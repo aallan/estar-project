@@ -20,6 +20,9 @@
 
 #  History:
 #     $Log: jach_agent.csh,v $
+#     Revision 1.3  2004/11/30 18:36:27  aa
+#     Fixed some of the software decay that had set into the distribution. The user_agent.pl and associated code still needs looking at to ermove direct access to $main::* in some cases
+#
 #     Revision 1.2  2004/11/12 14:32:04  aa
 #     Extensive changes to support jach_agent.pl, see ChangeLog
 #
@@ -36,7 +39,7 @@
 #
 
 #  Revision:
-#     $Id: jach_agent.csh,v 1.2 2004/11/12 14:32:04 aa Exp $
+#     $Id: jach_agent.csh,v 1.3 2004/11/30 18:36:27 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -62,7 +65,7 @@ if ($?ESTAR_VERSION) then
   set pkgvers = $ESTAR_VERSION
   echo "ESTAR_VERSION = ${ESTAR_VERSION}"
 else
-  set pkgvers = 2.0
+  set pkgvers = 3.0
 endif
 
 # Default for ESTAR_PERL5LIB
@@ -97,5 +100,5 @@ if (-e $PERL ) then
 else
   echo " "
   echo "eSTAR Intelligent Agent Software -- (Version $pkgvers)"
-  echo "PERL could not be found, please install Perl v5.8.*"
+  echo "PERL could not be found, please install Perl v5.8.6"
 endif

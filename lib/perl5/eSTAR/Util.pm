@@ -22,7 +22,7 @@ require Exporter;
 use vars qw/$VERSION @EXPORT_OK @ISA /;
 
 use Digest::MD5 'md5_hex';
-use Fcntl ':flock';
+use Fcntl qw(:DEFAULT :flock);
 use Config::Simple;
 use eSTAR::Constants qw /:all/;
 use eSTAR::Logging;
@@ -33,7 +33,7 @@ use eSTAR::Error qw /:try/;
 @EXPORT_OK = qw/make_cookie make_id freeze thaw melt 
              get_option set_option get_state set_state/;
 
-'$Revision: 1.5 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.6 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # This is the code that is used to generate cookies based on the user
 # name and password. It is NOT cryptographically sound, it is just a
@@ -362,7 +362,7 @@ sub set_state {
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.5 2004/11/05 15:32:09 aa Exp $
+$Id: Util.pm,v 1.6 2004/11/30 18:36:28 aa Exp $
 
 =head1 AUTHORS
 

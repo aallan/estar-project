@@ -28,7 +28,7 @@ use Sys::Hostname;
 use Net::Domain qw(hostname hostdomain);
 use Config::Simple;
 use Config::User;
-use Fcntl ':flock';
+use Fcntl qw(:DEFAULT :flock);
 use Data::Dumper;
 #use Video::Capture::V4l;
 #use Video::RTjpeg;
@@ -547,11 +547,11 @@ sub handle_rtml {
       # -----------------
       
       # create a science programme from the template XML files in
-      # $ESTAR2_DIR/xml using the $parsed->filter() to figure out 
+      # $ESTAR_DIR/xml using the $parsed->filter() to figure out 
       # which template to use. Current valid choices are "JHK" and 
       # "K" band.
       
-      my $xml_file = File::Spec->catfile( $ENV{"ESTAR2_DIR"}, 'xml',
+      my $xml_file = File::Spec->catfile( $ENV{"ESTAR_DIR"}, 'xml',
                                           "uist_" . lc($filter) . ".xml" );
           
       $log->debug( "XML Template $xml_file" );

@@ -1,4 +1,4 @@
-#!/home/perl/bin/perl
+#!/software/perl-5.8.6/bin/perl
 
 # D O C U M E N T I O N ------------------------------------------------------
 
@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: jach_agent.pl,v 1.3 2004/11/12 14:32:04 aa Exp $
+#     $Id: jach_agent.pl,v 1.4 2004/11/30 18:36:26 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -68,7 +68,7 @@ translation layer, which also handles external phase 0 discovery requests.
 
 =head1 REVISION
 
-$Id: jach_agent.pl,v 1.3 2004/11/12 14:32:04 aa Exp $
+$Id: jach_agent.pl,v 1.4 2004/11/30 18:36:26 aa Exp $
 
 =head1 AUTHORS
 
@@ -85,7 +85,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -136,6 +136,7 @@ use CfgTie::TieUser;
 #
 use Config;
 use Data::Dumper;
+use Fcntl qw(:DEFAULT :flock);
 
 # tag name of the current process, this identifies where log and 
 # status files for this process will be stored.
@@ -215,7 +216,7 @@ my $config_file =
  
 # open (or create) the options file
 $log->debug("Reading configuration from $config_file");
-$CONFIG = new Config::Simple( filename => $config_file, mode=>O_RDWR|O_CREAT );
+$CONFIG = new Config::Simple( syntax=>'ini', mode=>O_RDWR|O_CREAT );
 
 unless ( defined $CONFIG ) {
    # can't read/write to options file, bail out
@@ -243,7 +244,7 @@ my $state_file =
 
 # open (or create) the options file
 $log->debug("Reading agent state from $state_file");
-$STATE = new Config::Simple( filename => $state_file, mode=>O_RDWR|O_CREAT );
+$STATE = new Config::Simple( syntax=>'ini', mode=>O_RDWR|O_CREAT );
 
 unless ( defined $STATE ) {
    # can't read/write to state file, scream and shout!
@@ -317,11 +318,12 @@ unless ( defined $status ) {
 
 # grab users home directory and define options filename
 my $project_file = 
-  File::Spec->catfile(Config::User->Home(), '.estar', $process->get_process(), 'project.dat' );
+  File::Spec->catfile(Config::User->Home(), '.estar', 
+                      $process->get_process(), 'project.dat' );
 
 # open (or create) the options file
 $log->debug("Reading project ID file from $project_file");
-$PROJECT = new Config::Simple( filename => $project_file );
+$PROJECT = new Config::Simple( syntax=>'ini', mode=>O_RDWR|O_CREAT );
 
 unless ( defined $PROJECT ) {
    # can't read/write to state file, scream and shout!
@@ -396,7 +398,6 @@ use Digest::MD5 'md5_hex';
 use Config::Simple;
 use Config::User;
 use Time::localtime;
-use Fcntl ':flock';
 
 #
 # Networking modules
@@ -884,7 +885,6 @@ END {
 sub kill_agent {
    my $from = shift;
          
-   # Check to see whether we've been called via a SOAP message
    if (  $from == ESTAR__FATAL ) {  
       $log->debug("Calling kill_agent( ESTAR__FATAL )");
       $log->warn("Warning: Shutting down agent after ESTAR__FATAL error...");
@@ -925,6 +925,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: jach_agent.pl,v $
+# Revision 1.4  2004/11/30 18:36:26  aa
+# Fixed some of the software decay that had set into the distribution. The user_agent.pl and associated code still needs looking at to ermove direct access to $main::* in some cases
+#
 # Revision 1.3  2004/11/12 14:32:04  aa
 # Extensive changes to support jach_agent.pl, see ChangeLog
 #

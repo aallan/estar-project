@@ -1,10 +1,9 @@
-#!/home/perl/bin/perl
+#!/software/perl-5.8.6/bin/perl
   
   #use strict;
   
   #use SOAP::Lite +trace => all;
   use SOAP::Lite;
-  use SOAP::MIME;  
   
   use Digest::MD5 'md5_hex';
   use URI;
