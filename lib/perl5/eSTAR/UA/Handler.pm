@@ -1048,7 +1048,7 @@ sub handle_rtml {
             $log->debug("Attaching new \$id to $old_id");
             $old_observation->followup_id( $id );
             
-            my $status = eSTAR::Util::freeze($old_observation);
+            my $status = eSTAR::Util::freeze( $id, $old_observation);
             if ( $status == ESTAR__ERROR ) {
                $log->warn( 
                   "Warning: Problem re-serialising the old observation");

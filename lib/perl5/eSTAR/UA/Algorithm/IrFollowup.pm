@@ -3,7 +3,7 @@ package eSTAR::UA::Algorithm::IrFollowup;
 use strict;
 use vars qw/ $VERSION /;
 
-'$Revision: 1.4 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.5 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 use warnings;
 use threads;
@@ -60,7 +60,7 @@ sub process_data {
   # ================
   
   # thaw the observation object
-  my $observation_object = thaw( $id );
+  my $observation_object = eSTAR::Util::thaw( $id );
   return UA__ERROR unless defined $observation_object;
   
   # stuff into object 
@@ -78,7 +78,7 @@ sub process_data {
   unless ( defined $RABASE && defined $DECBASE ) {
      $log->warn( "Warning: FITS Header keywords not present" );
      $self->{OBS}->status("fits problem");                
-     my $status = freeze( $self->{OBS} ); 
+     my $status = eSTAR::Util::freeze( $id, $self->{OBS} ); 
      if ( $status == UA__ERROR ) {
         $log->warn( 
             "Warning: Problem re-serialising the \$self->{OBS}");
@@ -248,7 +248,7 @@ sub process_data {
   unless ( $status == UA__OK ) {
      $log->warn( "Warning: Cross Correlation routine failed to run" );
      $self->{OBS}->status("corlate problem");                
-     my $status = freeze( $self->{OBS} ); 
+     my $status = eSTAR::Util::freeze( $id, $self->{OBS} ); 
      if ( $status == UA__ERROR ) {
         $log->warn( 
             "Warning: Problem re-serialising the \$self->{OBS}");
@@ -345,7 +345,7 @@ sub process_data {
   # freeze the observation object before calling the followup observations
   # giving us a better chance of getting it updated correctly if returned
   # followup obervations turn up while we are still creating new ones.
-  $status = freeze( $self->{OBS} ); 
+  $status = eSTAR::Util::freeze( $id, $self->{OBS} ); 
   if ( $status == UA__ERROR ) {
      $log->warn( 
          "Warning: Problem re-serialising the \$self->{OBS}");

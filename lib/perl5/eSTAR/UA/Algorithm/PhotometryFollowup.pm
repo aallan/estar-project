@@ -3,7 +3,7 @@ package eSTAR::UA::Algorithm::PhotometryFollowup;
 use strict;
 use vars qw/ $VERSION /;
 
-'$Revision: 1.4 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.5 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 use threads;
 use threads::shared;
@@ -76,7 +76,7 @@ sub process_data {
   unless ( defined $FCRA && defined $FCDEC && defined $XPS && defined $YPS ) {
      $log->warn( "Warning: FITS Header keywords not present" );
      $self->{OBS}->status("fits problem");                
-     my $status = eSTAR::Util::freeze( $self->{OBS} ); 
+     my $status = eSTAR::Util::freeze( $id, $self->{OBS} ); 
      if ( $status == ESTAR__ERROR ) {
         $log->warn( 
             "Warning: Problem re-serialising the \$self->{OBS}");
@@ -243,7 +243,7 @@ sub process_data {
   unless ( $status == ESTAR__OK ) {
      $log->warn( "Warning: Cross Correlation routine failed to run" );
      $self->{OBS}->status("corlate problem");                
-     my $status = eSTAR::Util::freeze( $self->{OBS} ); 
+     my $status = eSTAR::Util::freeze( $id, $self->{OBS} ); 
      if ( $status == ESTAR__ERROR ) {
         $log->warn( 
             "Warning: Problem re-serialising the \$self->{OBS}");
@@ -340,7 +340,7 @@ sub process_data {
   # freeze the observation object before calling the followup observations
   # giving us a better chance of getting it updated correctly if returned
   # followup obervations turn up while we are still creating new ones.
-  my $status = eSTAR::Util::freeze( $self->{OBS} ); 
+  my $status = eSTAR::Util::freeze( $id, $self->{OBS} ); 
   if ( $status == ESTAR__ERROR ) {
      $log->warn( 
          "Warning: Problem re-serialising the \$self->{OBS}");
