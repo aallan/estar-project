@@ -4,6 +4,10 @@
           gcn_server.pl and jach_agent.pl to use it. Modified the user_agent.pl
           to do notifications under most circumstances.
           
+        * All Handler.pm files: Fixed bad bug in set_option() method which
+          meant that we had race conditions on the options files and they
+          were getting broken 
+          
 2005-02-14 Aladair Allan <aa@astro.ex.ac.uk>
 
         * bin/gcn_server.pl: Added email notification of alerts being passed

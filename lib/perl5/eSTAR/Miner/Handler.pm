@@ -216,17 +216,26 @@ sub set_option {
    my $option = shift;
    my $value = shift;
 
-   my $status = eSTAR::Util::set_option( $option, $value );
+   $log->debug("Setting $option = $value");
+   my $status = $config->set_option( $option, $value );
    if ( $status == ESTAR__ERROR ) {
       $log->error("Error: Unable to set value in configuration file" );
       die SOAP::Fault
       ->faultcode("Client.FileError")
       ->faultstring("Client Error: Unable to set value in configuration file");          
+   }   
+   
+   $log->debug("Writing out options file...");
+   my $status = $config->write_option();
+   if ( $status == ESTAR__ERROR ) {
+      $log->error("Error: Unable to write out to configuration file" );
+      die SOAP::Fault
+      ->faultcode("Client.FileError")
+      ->faultstring("Client Error: Unable to write out to configuration file");          
    }
 
    $log->debug("Returned STATUS message" );
    return SOAP::Data->name('return', ESTAR__OK )->type('xsd:integer');
-
 } 
 
 # ==========================================================================
