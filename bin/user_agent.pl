@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: user_agent.pl,v 1.2 2004/12/21 17:04:09 aa Exp $
+#     $Id: user_agent.pl,v 1.3 2005/01/11 01:41:25 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -38,12 +38,10 @@ use strict;
 
 # Global variables
 #  $VERSION  - CVS Revision Number
-#  $CONFIG   - Config object holding persistant configuration data
-#  $STATE    - Config object holding persistant state data
 #  %OPT      - Options hash for things we don't want to be persistant
 #  $log      - Handle for logging object
 
-use vars qw / $VERSION $CONFIG $STATE %OPT $log /;
+use vars qw / $VERSION %OPT $log $config /;
 
 # local status variable
 my $status;
@@ -67,7 +65,7 @@ itself.
 
 =head1 REVISION
 
-$Id: user_agent.pl,v 1.2 2004/12/21 17:04:09 aa Exp $
+$Id: user_agent.pl,v 1.3 2005/01/11 01:41:25 aa Exp $
 
 =head1 AUTHORS
 
@@ -84,7 +82,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -121,6 +119,7 @@ use eSTAR::Constants qw /:status/;
 use eSTAR::Util;
 use eSTAR::Process;
 use eSTAR::UserAgent;
+use eSTAR::Config;
 
 #
 # Config modules
@@ -194,44 +193,14 @@ if ( $Config{'useithreads'} ne "define" ) {
    throw eSTAR::Error::FatalError($error, ESTAR__FATAL);      
 }
 
-# A G E N T  C O N F I G  F I L E --------------------------------------------
+# A G E N T  C O N F I G U R A T I O N ----------------------------------------
 
 # OPTIONS FILE
 # ------------
 
 # Load in previously saved options, should be in a file in the users home 
-# directory. If not there, we go with the defaults.
-
-# grab users home directory and define options filename
-my $config_file = 
- File::Spec->catfile( Config::User->Home(), '.estar',  
-                      $process->get_process(), 'options.dat' );
-
-# open (or create) the options file
-$log->debug("Reading configuration from $config_file");
-$CONFIG = new Config::Simple( syntax=>'ini', mode=>O_RDWR|O_CREAT );
-
-unless ( defined $CONFIG ) {
-   # can't read/write to options file, bail out
-   my $error = "FatalError: " . $Config::Simple::errstr;
-   $log->error(chomp($error));
-   throw eSTAR::Error::FatalError($error, ESTAR__FATAL);      
-}
-
-# if it exists read the current contents in...
-if ( open ( CONFIG, "<$config_file" ) ) {
-   close( CONFIG );
-   $CONFIG->read( $config_file );
-}  
- 
-# store the options filename in the file itself, not sure why this is
-# useful but I'm sure it'll come in handly at some point.
-$CONFIG->param( "ua.options", $config_file );
-
-# commit basic defaults to Options file
-my $status = $CONFIG->write( $CONFIG->param( "ua.options" ) );
-
-# A G E N T   S T A T E   F I L E --------------------------------------------
+# directory. If not there, we go with the defaults and commit basic defaults 
+# to Options file
 
 # STATE FILE
 # ----------
@@ -241,33 +210,10 @@ my $status = $CONFIG->write( $CONFIG->param( "ua.options" ) );
 # a bunch of other stuff. This is saved and stored in the users home directory 
 # using Config::Simple.
 
-# grab users home directory and define options filename
-my $state_file = 
-  File::Spec->catfile(Config::User->Home(), '.estar',,  
-                      $process->get_process(), 'state.dat' );
+my $config = new eSTAR::Config(  );  
 
-# open (or create) the options file
-$log->debug("Reading agent state from $state_file");
-$STATE = new Config::Simple(  syntax=>'ini', mode=>O_RDWR|O_CREAT );
+# A G E N T   S T A T E   F I L E --------------------------------------------
 
-unless ( defined $STATE ) {
-   # can't read/write to state file, scream and shout!
-   my $error = "FatalError: " . $Config::Simple::errstr;
-   $log->error(chomp($error));
-   throw eSTAR::Error::FatalError($error, ESTAR__FATAL);      
-}
-
-# if it exists read the current contents in...
-if ( open ( STATE, "<$state_file" ) ) {
-   close( STATE );
-   $STATE->read( $state_file );
-}   
-
-# store the state filename in the file itself...
-$STATE->param( "ua.state", $state_file );
-
-# and to the configuration file
-$CONFIG->param( "ua.state", $state_file );
 
 # HANDLE UNIQUE ID
 # ----------------
@@ -277,27 +223,26 @@ $CONFIG->param( "ua.state", $state_file );
 # we'll run out of ints, I guess that will be bad...
 
 my ( $number, $string );
-$number = $STATE->param( "ua.unique_process" ); 
-if ( $number eq '' ) {
+$number = $config->get_state( "ua.unique_process" ); 
+unless ( defined $number ) {
   # $number is not defined correctly (first ever run of the program?)
-  $STATE->param( "ua.unique_process", 0 );
   $number = 0; 
 }
 
 # increment ID number
 $number = $number + 1;
-$STATE->param( "ua.unique_process", $number );
+$config->set_state( "ua.unique_process", $number );
+$log->debug("Setting ua.unique_process = $number"); 
   
 # commit ID stuff to STATE file
-my $status = $STATE->write( $STATE->param( "ua.state" ) );
+$status = $config->write_state();
 unless ( defined $status ) {
   # can't read/write to options file, bail out
-  my $error = "FatalError: " . $Config::Simple::errstr;
-  $log->error(chomp($error));
+  my $error = "FatalError: Can not read or write to state file";
+  $log->error( $error );
   throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
 } else {    
-  $log->debug("Unique process ID: updated " . 
-              $STATE->param( "ua.state" ) );
+  $log->debug("Unique process ID: updated state.dat file" );
 }
 
 # PID OF USER AGENT
@@ -305,17 +250,18 @@ unless ( defined $status ) {
 
 # log the current $pid of the user_agent.pl process to the state 
 # file  so we can kill it from the SOAP server.
-$STATE->param( "ua.pid", getpgrp() );
+$config->set_state( "ua.pid", getpgrp() );
   
 # commit $pid to STATE file
-my $status = $STATE->write( $STATE->param( "ua.state" ) );
+$status = $config->write_state();
 unless ( defined $status ) {
   # can't read/write to options file, bail out
-  my $error = "FatalError: " . $Config::Simple::errstr;
-  $log->error(chomp($error));
+  my $error = "FatalError: Can not read/write STATE file";
+  $log->error( $error );
   throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
 } else {    
-  $log->debug("User Agent PID: " . $STATE->param( "ua.pid" ) );
+  $log->debug("User Agent PID: " . 
+              $config->get_state( "ua.pid" ) );
 }
 
 # L A T E  L O A D I N G  M O D U L E S ------------------------------------- 
@@ -371,7 +317,7 @@ if ( defined $ENV{"ESTAR_DATA"} ) {
 
    if ( opendir (DIR, File::Spec->catdir($ENV{"ESTAR_DATA"}) ) ) {
       # default to the ESTAR_DATA directory
-      $CONFIG->param("ua.data", File::Spec->catdir($ENV{"ESTAR_DATA"}) );
+      $config->set_option("ua.data", File::Spec->catdir($ENV{"ESTAR_DATA"}) );
       closedir DIR;
       $log->debug("Verified \$ESTAR_DATA directory " . $ENV{"ESTAR_DATA"});
    } else {
@@ -383,7 +329,7 @@ if ( defined $ENV{"ESTAR_DATA"} ) {
          
 } elsif ( opendir(TMP, File::Spec->tmpdir() ) ) {
       # fall back on the /tmp directory
-      $CONFIG->param("ua.data", File::Spec->tmpdir() );
+      $config->get_option("ua.data", File::Spec->tmpdir() );
       closedir TMP;
       $log->debug("Falling back to using /tmp as \$ESTAR_DATA directory");
 } else {
@@ -403,8 +349,8 @@ my $state_dir =
 if ( opendir ( SDIR, $state_dir ) ) {
   
   # default to the ~/.estar/$process/state directory
-  $CONFIG->param("ua.cache", $state_dir );
-  $STATE->param("ua.cache", $state_dir );
+  $config->set_option("ua.cache", $state_dir );
+  $config->set_state("ua.cache", $state_dir );
   $log->debug("Verified state directory ~/.estar/" .
               $process->get_process() . "/state");
   closedir SDIR;
@@ -413,8 +359,8 @@ if ( opendir ( SDIR, $state_dir ) ) {
   mkdir $state_dir, 0755;
   if ( opendir (SDIR, $state_dir ) ) {
      # default to the ~/.estar/$process/state directory
-     $CONFIG->param("ua.cache", $state_dir );
-     $STATE->param("ua.cache", $state_dir );
+     $config->set_option("ua.cache", $state_dir );
+     $config->set_state("ua.cache", $state_dir );
      closedir SDIR;  
      $log->debug("Creating state directory ~/.estar/" .
               $process->get_process() . "/state");
@@ -436,8 +382,8 @@ my $tmp_dir =
 if ( opendir ( TDIR, $tmp_dir ) ) {
   
   # default to the ~/.estar/$process/tmp directory
-  $CONFIG->param("ua.tmp", $tmp_dir );
-  $STATE->param("ua.tmp", $tmp_dir );
+  $config->set_option("ua.tmp", $tmp_dir );
+  $config->set_state("ua.tmp", $tmp_dir );
   $log->debug("Verified tmp directory ~/.estar/" .
               $process->get_process() . "/tmp");
   closedir TDIR;
@@ -446,8 +392,8 @@ if ( opendir ( TDIR, $tmp_dir ) ) {
   mkdir $tmp_dir, 0755;
   if ( opendir (TDIR, $tmp_dir ) ) {
      # default to the ~/.estar/$process/tmp directory
-     $CONFIG->param("ua.tmp", $tmp_dir );
-     $STATE->param("ua.tmp", $tmp_dir );
+     $config->set_option("ua.tmp", $tmp_dir );
+     $config->set_state("ua.tmp", $tmp_dir );
      closedir TDIR;  
      $log->debug("Creating tmp directory ~/.estar/" .
               $process->get_process() . "/tmp");
@@ -463,8 +409,9 @@ if ( opendir ( TDIR, $tmp_dir ) ) {
 
 # grab current IP address
 my $ip = inet_ntoa(scalar(gethostbyname(hostname())));
+$log->debug("This machine as an IP address of $ip");
 
-if ( $STATE->param("ua.unique_process") == 1 ) {
+if ( $config->get_state("ua.unique_process") == 1 ) {
   
    my %user_id;
    tie %user_id, "CfgTie::TieUser";
@@ -474,42 +421,42 @@ if ( $STATE->param("ua.unique_process") == 1 ) {
    my $real_name = ${$current_user}{"GCOS"};
   
    # user defaults
-   $CONFIG->param("user.user_name", $ENV{"USER"} );
-   $CONFIG->param("user.real_name", $real_name );
-   $CONFIG->param("user.email_address", $ENV{"USER"} . "@" .hostdomain() );
-   $CONFIG->param("user.institution", "eSTAR Project" );
+   $config->set_option("user.user_name", $ENV{"USER"} );
+   $config->set_option("user.real_name", $real_name );
+   $config->set_option("user.email_address", $ENV{"USER"}."@".hostdomain());
+   $config->set_option("user.institution", "eSTAR Project" );
 
    # server parameters
-   $CONFIG->param("server.host", $ip );
-   $CONFIG->param("server.port", 8000 );
+   $config->set_option("server.host", $ip );
+   $config->set_option("server.port", 8000 );
 
    # burster agent parameters
-   $CONFIG->param("ba.host", $ip );
-   $CONFIG->param("ba.port", 8001 );
+   $config->set_option("ba.host", $ip );
+   $config->set_option("ba.port", 8001 );
 
    # interprocess communication
-   $CONFIG->param("ba.user", "agent" );
-   $CONFIG->param("ba.passwd", "InterProcessCommunication" );
+   $config->set_option("ba.user", "agent" );
+   $config->set_option("ba.passwd", "InterProcessCommunication" );
 
    # node port
-   $CONFIG->param("dn.port", 8080 );
+   $config->set_option("dn.port", 8080 );
 
    # USNO-A2 options defaults
-   $CONFIG->param("usnoa2.radius", 10);
-   $CONFIG->param("usnoa2.nout", 9000);
-   $CONFIG->param("usnoa2.url", "archive.eso.org" );
+   $config->set_option("usnoa2.radius", 10);
+   $config->set_option("usnoa2.nout", 9000);
+   $config->set_option("usnoa2.url", "archive.eso.org" );
 
    # 2MASS options defaults
-   $CONFIG->param("2mass.radius", 4 );
+   $config->set_option("2mass.radius", 4 );
 
    # SIMBAD option defaults
-   $CONFIG->param("simbad.error", 5 );
-   $CONFIG->param("simbad.units", "arcsec");
-   $CONFIG->param("simbad.url", "simbad.u-strasbg.fr" );
+   $config->set_option("simbad.error", 5 );
+   $config->set_option("simbad.units", "arcsec");
+   $config->set_option("simbad.url", "simbad.u-strasbg.fr" );
 
    # connection options defaults
-   $CONFIG->param("connection.timeout", 5 );
-   $CONFIG->param("connection.proxy", 'NONE'  );
+   $config->set_option("connection.timeout", 5 );
+   $config->set_option("connection.proxy", 'NONE'  );
     
    # C O M M I T T   O P T I O N S  T O   F I L E S
    # ----------------------------------------------
@@ -517,8 +464,8 @@ if ( $STATE->param("ua.unique_process") == 1 ) {
    # committ CONFIG and STATE changes
    $log->warn("Initial default options being generated");
    $log->warn("Committing options and state changes...");
-   my $status = $CONFIG->write( $CONFIG->param( "ua.options" ) );
-   my $status = $STATE->write( $STATE->param( "ua.state" ) );
+   $status = $config->write_option( );
+   $status = $config->write_state();
 }
    
 # ===========================================================================
@@ -529,7 +476,8 @@ $log->debug("Creating an HTTP User Agent...");
  
 
 # Create HTTP User Agent
-my $lwp = new LWP::UserAgent( timeout => $CONFIG->param( "connection.timeout" ));
+my $lwp = new LWP::UserAgent( 
+                timeout => $config->get_option( "connection.timeout" ));
 
 # Configure User Agent                         
 $lwp->env_proxy();
@@ -544,10 +492,11 @@ $ua->set_ua( $lwp );
 # ===========================================================================
 
 # list of "default" known nodes
-$CONFIG->param( "nodes.Exeter", "dn2.astro.ex.ac.uk" );
-#$CONFIG->param( "nodes.LJM", "150.204.240.111" );
-#$CONFIG->param( "nodes.JACH", "uluhe.jach.hawaii.edu" );
-#$CONFIG->param( "nodes.Test", "127.0.0.1" );
+$config->set_option( "nodes.Exeter", "dn2.astro.ex.ac.uk" );
+#$config->set_option( "nodes.LJM", "150.204.240.111" );
+#$config->set_option( "nodes.JACH", "uluhe.jach.hawaii.edu" );
+#$config->set_option( "nodes.Test", "127.0.0.1" );
+$status = $config->write_option( );
 
 # ===========================================================================
 # M A I N   B L O C K 
@@ -618,7 +567,7 @@ my $soap_server = sub {
    # create SOAP daemon
    $log->thread($thread_name, "Starting server (\$tid = ".threads->tid().")");  
    $daemon = eval{ new eSTAR::UA::SOAP::Daemon( 
-                      LocalPort     => $CONFIG->param( "server.port"),
+                      LocalPort     => $config->get_option( "server.port"),
                       Listen        => 5, 
                       Reuse         => 1 ) };   
                     
@@ -684,7 +633,7 @@ END {
 sub kill_agent {
    my $from = shift;
    
-   if ( $from == ESTAR__FATAL ) {  
+   if ( $from eq ESTAR__FATAL ) {  
       $log->debug("Calling kill_agent( ESTAR__FATAL )");
       $log->warn("Warning: Shutting down agent after ESTAR__FATAL error...");
    } else {
@@ -694,8 +643,8 @@ sub kill_agent {
 
    # committ CONFIG and STATE changes
    #$log->warn("Warning: Committing options and state changes");
-   #my $status = $CONFIG->write( $CONFIG->param( "#ua.options" ) );
-   #my $status = $STATE->write( $STATE->param( "ua.state" ) );  
+   #eSTAR::Util::write_options( );
+   #$config->write_state( );  
    
    # flush the error stack
    $log->debug("Flushing error stack...");
@@ -714,46 +663,19 @@ sub kill_agent {
    #}
 
    # kill -9 the agent process, hung threads should die screaming
-   killfam 9, ( $STATE->param( "ua.pid") );
+   killfam 9, ( $config->get_state( "ua.pid") );
+   #$log->warn( "Warning: Not calling killfam 9" );
    
    # close the door behind you!   
    exit;
 } 
-
-# QUERY SIMBAD BY TARGET
-# ======================
-sub query_simbad {
-   my $target = shift;
-   
-   $log->debug( "Called main::query_simbad()..." );
-   my $proxy;
-   unless ( $CONFIG->param("connection.proxy") eq "NONE" ) {
-      $proxy = $CONFIG->param("connection.proxy");
-   }
-      
-   my $simbad_query = new Astro::SIMBAD::Query( 
-                         Target  => $target,
-                         Timeout => $CONFIG->param( "connection.timeout" ),
-                         Proxy   => $proxy,
-                         URL     => $CONFIG->param( "simbad.url" ) );
-                         
-   $log->debug( "Contacting CDS SIMBAD (". $simbad_query->url() . ")..."  );
- 
-   # Throw an eSTAR::Error::FatalError if we have problems
-   my $simbad_result;
-   eval { $simbad_result = $simbad_query->querydb(); };
-   if ( $@ ) {
-      $log->error( "Error: Unable to contact CDS SIMBAD..." );
-      return undef;
-   }   
-
-   $log->debug( "Retrieved result..." );
-   return $simbad_result;
-};
   
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: user_agent.pl,v $
+# Revision 1.3  2005/01/11 01:41:25  aa
+# Modified backend configuration files to use a singleton object, should be more reliable?
+#
 # Revision 1.2  2004/12/21 17:04:09  aa
 # Fixes to store the LWP::UserAgent in a single instance object and get rid of the last $main:: references in the handler code
 #

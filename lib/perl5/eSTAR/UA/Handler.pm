@@ -23,7 +23,7 @@ use SOAP::Lite;
 use Digest::MD5 'md5_hex';
 use Time::localtime;
 use Sys::Hostname;
-use Net::Domain qw(hostname hostdomain);
+#use Net::Domain qw(hostname hostdomain);
 use Config::Simple;
 use Config::User;
 use Data::Dumper;
@@ -40,6 +40,7 @@ use eSTAR::RTML::Build;
 use eSTAR::RTML::Parse;
 use eSTAR::Constants qw/:all/;
 use eSTAR::Util;
+use eSTAR::Config;
 
 #
 # Astro modules
@@ -48,7 +49,8 @@ use Astro::SIMBAD::Query;
 use Astro::FITS::CFITSIO;
 use Astro::FITS::Header;
 use Astro::Catalog;
-my ($log, $process, $ua);
+use Astro::Catalog::Query::Sesame;
+my ($log, $process, $ua, $config);
 
 # ==========================================================================
 # U S E R   A U T H E N T I C A T I O N
@@ -61,6 +63,7 @@ sub new {
   $log = eSTAR::Logging::get_reference();
   $process = eSTAR::Process::get_reference();
   $ua = eSTAR::UserAgent::get_reference();
+  $config = eSTAR::Config::get_reference();
   
   if( $user and $passwd ) {
     return undef unless $self->set_user( user => $user, password => $passwd );
@@ -149,7 +152,7 @@ sub get_option {
    # grab the arguement telling us what we're looking for...
    my $option = shift;
 
-   my $value = eSTAR::Util::get_option( $option );
+   my $value = $config->get_option( $option );
    if ( $value == ESTAR__ERROR ) {
       $log->error("Error: Unable to get value from configuration file" );
       die SOAP::Fault
@@ -178,7 +181,7 @@ sub set_option {
    my $option = shift;
    my $value = shift;
 
-   my $status = eSTAR::Util::set_option( $option, $value );
+   my $status = $config->set_option( $option, $value );
    if ( $status == ESTAR__ERROR ) {
       $log->error("Error: Unable to set value in configuration file" );
       die SOAP::Fault
@@ -252,22 +255,27 @@ sub new_observation {
    my $obs_file = 
       File::Spec->catfile( Config::User->Home(), '.estar', 
                            $process->get_process(), 'obs.dat' );
-     
-   my $OBS = new Config::Simple( filename => $obs_file, mode=>O_RDWR|O_CREAT );
-
-   unless ( defined $OBS ) {
-      # can't read/write to state file, scream and shout!
-      my $error = "FatalError: " . $Config::Simple::errstr;
-      $log->error(chomp($error));
-      return SOAP::Data->name('return', chomp($error))->type('xsd:string');      
-   }
-
    
+   $log->debug("Writing state to \$obs_file = $obs_file");
+   #my $OBS = eSTAR::Util::open_ini_file( $obs_file );
+  
+   my $OBS = new Config::Simple( syntax   => 'ini', 
+                                 mode     => O_RDWR|O_CREAT );
+                                    
+   if( open ( FILE, "<$obs_file" ) ) {
+      close ( FILE );
+      $log->debug("Reading configuration from $obs_file" );
+      $OBS->read( $obs_file );
+   } else {
+      $log->warn("Warning: $obs_file does not exist");
+   }                                  
+                
    # VALIDATE DATA
    # -------------
    
    # check that RA and Dec are defined, either has been resolved using
    # Sesame, or was passed as part of the %observation hash object
+   
    
    if ( defined $observation{'target'}  && $observation{'target'} ne '') {
    
@@ -298,7 +306,7 @@ sub new_observation {
        $log->warn( "Warning: Falling back to SIMBAD..." );
        
        my @object;
-       my $simbad = main::query_simbad( $observation{'target'} );
+       my $simbad = eSTAR::Util::query_simbad( $observation{'target'} );
        if ( defined $simbad ) {   
           @object = $simbad->objects( );
           if ( defined $object[0] ){
@@ -348,7 +356,6 @@ sub new_observation {
    
    # check we have a passband, assume V-band if undefined
    $observation{'passband'} = 'V' unless defined $observation{'passband'};
-
    
    # UNIQUE ID
    # ---------
@@ -364,13 +371,14 @@ sub new_observation {
       $OBS->param( 'obs.unique_number', 0 );
       $number = 0; 
    } 
+   $log->debug("Generating unqiue ID: $number");
   
    # build string portion of identity
    my $version = $process->get_version();
    $version =~ s/\./-/g;
    
    my $string = ':UA:v'    . $version . 
-                ':run#'    . eSTAR::Util::get_state( 'ua.unique_process' ) .
+                ':run#'    . $config->get_state( 'ua.unique_process' ) .
                 ':user#'   . $observation{'user'};   
              
    # increment ID number
@@ -380,14 +388,16 @@ sub new_observation {
    $log->debug('Incrementing observation number to ' . $number);
      
    # commit ID stuff to STATE file
-   my $status = $OBS->write( $obs_file );
+   my $status = $OBS->save( $obs_file );
+   
    unless ( defined $status ) {
      # can't read/write to options file, bail out
-     my $error = $Config::Simple::errstr;
+     my $error = "Error: Can not read/write to $obs_file";
      $log->error(chomp($error));
      return SOAP::Data->name('return', chomp($error))->type('xsd:string');
    } else {    
-      $log->debug('Generated observation ID: updated ' . $obs_file ) ;
+      $log->debug('Generated observation ID: updated ' . $obs_file );
+      undef $OBS;
    }
    
    # Generate IDENTITY STRING
@@ -428,13 +438,13 @@ sub new_observation {
    
    # build a score request
    my $score_message = new eSTAR::RTML::Build( 
-             Port        => eSTAR::Util::get_option( "server.port"),
-             Host        => eSTAR::Util::get_option( "server.host"),
+             Port        => $config->get_option( "server.port"),
+             Host        => $config->get_option( "server.host"),
              ID          => $id,
-             User        => eSTAR::Util::get_option("user.user_name"),
-             Name        => eSTAR::Util::get_option("user.real_name"),
-             Institution => eSTAR::Util::get_option("user.institution"),
-             Email       => eSTAR::Util::get_option("user.email_address") );
+             User        => $config->get_option("user.user_name"),
+             Name        => $config->get_option("user.real_name"),
+             Institution => $config->get_option("user.institution"),
+             Email       => $config->get_option("user.email_address") );
    
    # if we have no target name, make one up from the RA and Dec    
    unless ( defined $observation{"target"} ) {
@@ -468,35 +478,23 @@ sub new_observation {
    
    # SCORE REQUEST
    # -------------
- 
+  
    # NODE ARRAY
    my @NODES;   
 
-   # grab a hash of nodes from the configuration
-   my %config = eSTAR::Util::get_option_hash( );
-   
-   # we might not have any nodes!
+   # we might not have any nodes! So check!
    my $node_flag = 0;
-   
-   # loop through configuration hash
-   foreach my $key ( sort keys %config ) {
-   
-      if ( $key =~ 'nodes' ) {
-         # grab the node name from the key value
-         push( @NODES, eSTAR::Util::get_option( $key ) ); 
-         
-         # flag existance
-         $node_flag = 1;
-      }
-   }
+   @NODES = $config->get_nodes();   
+   $node_flag = 1 if defined $NODES[0];
    
    # if there are no nodes add a default menu entry
    if ( $node_flag == 0 ) {
       my $error = "Error: No known Discovery Nodes";
+      $log->error( "Error: No known Discovery Nodes" );
       return SOAP::Data->name('return', $error )->type('xsd:string');
    }    
   
-   my $dn_port = eSTAR::Util::get_option( "dn.port" );
+   my $dn_port = $config->get_option( "dn.port" );
    foreach my $i ( 0 ... $#NODES ) {
    
       my $score_request = $observation_object->score_request();
@@ -583,7 +581,7 @@ sub new_observation {
 
    # grab best score and log it
    my $score_replies = $observation_object->score_reply();
-   my $score_reply = $$score_replies{$best_node};
+   $score_reply = $$score_replies{$best_node};
    my $best_score = $score_reply->score();
    $log->print("Best score of $best_score from $best_node");
 
@@ -601,8 +599,8 @@ sub new_observation {
   
    # build a observation request
    my $observe_message = new eSTAR::RTML::Build( 
-             Port        => eSTAR::Util::get_option( "server.port"),
-             Host        => eSTAR::Util::get_option( "server.host"),
+             Port        => $config->get_option( "server.port"),
+             Host        => $config->get_option( "server.host"),
              ID          => $observation_object->id(),
              User        => $score_request->user(),
              Name        => $score_request->name(),
@@ -721,9 +719,9 @@ sub new_observation {
          # SERIALISE OBSERVATION TO STATE DIRECTORY 
          # ========================================
          $log->debug( "Serialising \$observation_object to " .
-                       eSTAR::Util::get_option("ua.cache") );
+                       $config->get_option("ua.cache") );
          my $file = File::Spec->catfile(
-                       eSTAR::Util::get_option("ua.cache"), $id);
+                       $config->get_option("ua.cache"), $id);
         
          # write the observation object to disk. Lets use a DBM backend next
          # time shall we?
@@ -735,7 +733,7 @@ sub new_observation {
            # the state directory
            $log->warn( "Warning: Unable to serialise observation_object");
            $log->warn( "Warning: Can not write to "  .
-                            eSTAR::Util::get_option("ua.cache"));             
+                            $config->get_option("ua.cache"));             
          
          } else {
            unless ( flock( SERIAL, LOCK_EX ) ) {
@@ -809,9 +807,10 @@ sub handle_rtml {
 
    # Thaw Serialisation
    # ------------------
+   $log->debug( "Thawing serialisation: $id" );  
 
    # Return any previous data from persistant store in the state directory
-   my $observation_object = thaw( $id );
+   my $observation_object = eSTAR::Util::thaw( $id );
    unless ( defined $observation_object ) {
      $log->warn("Warning: $id does not exist" );
      $log->warn("Warning: Creating new observation object...");
@@ -820,6 +819,7 @@ sub handle_rtml {
      $observation_object->type( $message->type() );
    }      
    $observation_object->status('returned');
+     
         
    # UPDATE MESSAGE
    # ==============
@@ -846,7 +846,7 @@ sub handle_rtml {
       $observation_object->update($message);
       
       # re-serialise the object
-      my $status = freeze( $observation_object ); 
+      my $status = eSTAR::Util::freeze( $id, $observation_object ); 
       if ( $status == ESTAR__ERROR ) {
          $log->warn( 
             "Warning: Problem re-serialising the \$observation_object");
@@ -866,7 +866,7 @@ sub handle_rtml {
       $observation_object->status('reject');        
        
       # re-serialise the object
-      my $status = freeze( $observation_object ); 
+      my $status = eSTAR::Util::freeze( $id, $observation_object ); 
       if ( $status == ESTAR__ERROR ) {
          $log->warn( 
             "Warning: Problem re-serialising the \$observation_object");
@@ -883,7 +883,7 @@ sub handle_rtml {
       $observation_object->status('abort');        
        
       # re-serialise the object
-      my $status = freeze( $observation_object ); 
+      my $status = eSTAR::Util::freeze( $id, $observation_object ); 
       if ( $status == ESTAR__ERROR ) {
          $log->warn( 
             "Warning: Problem re-serialising the \$observation_object");
@@ -913,9 +913,20 @@ sub handle_rtml {
       # grab a filename for the associated FITS image
       my $image_url = $message->dataimage();
       $image_url =~ m/(\w+\W\w+)$/;
+      
+      $log->debug( "Image URL is $image_url" );
+     
       my $data = $1;
-      my $fits = File::Spec->catfile( 
-                            eSTAR::Util::get_option("ua.data"), $data );
+      
+      my $data_path = $config->get_option("ua.data");
+      $log->debug( "Path is $data_path");
+      
+      $config->get_option("ua.data");
+      $log->debug( "Path is $data_path");
+      
+      
+      my $fits = File::Spec->catfile( $data_path, $data );
+      $log->debug( "Saving file to $fits" );
                         
       # FITS Headers
       # ------------
@@ -1007,7 +1018,7 @@ sub handle_rtml {
       $observation_object->catalog( $cluster ); 
       
       # re-serialise the object
-      my $status = freeze( $observation_object );
+      my $status = eSTAR::Util::freeze( $id, $observation_object );
       if ( $status == ESTAR__ERROR ) {
          $log->warn( 
             "Warning: Problem re-serialising the \$observation_object");
@@ -1033,7 +1044,7 @@ sub handle_rtml {
          my $index = index($old_id, " "); 
          $old_id = substr( $old_id, $index+1, length($old_id)-$index );
          
-         my $old_observation = thaw( $old_id );
+         my $old_observation = eSTAR::Util::thaw( $old_id );
          
          unless ( defined $old_observation ) {
             $log->warn("Warning: Unable to restore old observation");
@@ -1041,7 +1052,7 @@ sub handle_rtml {
             $log->debug("Attaching new \$id to $old_id");
             $old_observation->followup_id( $id );
             
-            my $status = freeze($old_observation);
+            my $status = eSTAR::Util::freeze($old_observation);
             if ( $status == ESTAR__ERROR ) {
                $log->warn( 
                   "Warning: Problem re-serialising the old observation");

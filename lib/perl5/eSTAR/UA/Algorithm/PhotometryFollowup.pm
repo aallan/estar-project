@@ -3,7 +3,7 @@ package eSTAR::UA::Algorithm::PhotometryFollowup;
 use strict;
 use vars qw/ $VERSION /;
 
-'$Revision: 1.2 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.3 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 use threads;
 use threads::shared;
@@ -13,9 +13,9 @@ use SOAP::Lite;
 use URI;
 use HTTP::Cookies;
 use LWP::UserAgent;
-use Fcntl ':flock';
+use Fcntl qw(:DEFAULT :flock);
 
-use eSTAR::UA::Constants qw/:all/;
+use eSTAR::Constants qw/:all/;
 use eSTAR::UA::Handler;
 use eSTAR::Error qw /:try/;
 use eSTAR::Util;
@@ -54,8 +54,8 @@ sub process_data {
   # ================
   
   # thaw the observation object
-  my $observation_object = thaw( $id );
-  return UA__ERROR unless defined $observation_object;
+  my $observation_object = eSTAR::Util::thaw( $id );
+  return ESTAR__ERROR unless defined $observation_object;
   
   # stuff into object 
   $self->{OBS} = $observation_object;
@@ -74,13 +74,13 @@ sub process_data {
   unless ( defined $FCRA && defined $FCDEC && defined $XPS && defined $YPS ) {
      $log->warn( "Warning: FITS Header keywords not present" );
      $self->{OBS}->status("fits problem");                
-     my $status = freeze( $self->{OBS} ); 
-     if ( $status == UA__ERROR ) {
+     my $status = eSTAR::Util::freeze( $self->{OBS} ); 
+     if ( $status == ESTAR__ERROR ) {
         $log->warn( 
             "Warning: Problem re-serialising the \$self->{OBS}");
      }
-     $log->error( "Error: Returning a 'UA__ERROR'..." );
-     return UA__ERROR;    
+     $log->error( "Error: Returning a 'ESTAR__ERROR'..." );
+     return ESTAR__ERROR;    
   } 
   
   # RA & Dec         
@@ -218,14 +218,14 @@ sub process_data {
                    
   # run the corelation routine
   # --------------------------
-  my $status = UA__OK;
+  my $status = ESTAR__OK;
   try {
      $log->debug("Called run_corlate()...");
      $corlate->run_corlate();
   } otherwise {
      my $error = shift;
      eSTAR::Error->flush if defined $error;
-     $status = UA__ERROR;
+     $status = ESTAR__ERROR;
                 
      # grab the error line
      my $err = "$error";
@@ -238,16 +238,16 @@ sub process_data {
   
   # check for good status
   # ---------------------
-  unless ( $status == UA__OK ) {
+  unless ( $status == ESTAR__OK ) {
      $log->warn( "Warning: Cross Correlation routine failed to run" );
      $self->{OBS}->status("corlate problem");                
-     my $status = freeze( $self->{OBS} ); 
-     if ( $status == UA__ERROR ) {
+     my $status = eSTAR::Util::freeze( $self->{OBS} ); 
+     if ( $status == ESTAR__ERROR ) {
         $log->warn( 
             "Warning: Problem re-serialising the \$self->{OBS}");
      }
-     $log->error( "Error: Returning a 'UA__ERROR'..." );
-     return UA__ERROR;    
+     $log->error( "Error: Returning a 'ESTAR__ERROR'..." );
+     return ESTAR__ERROR;    
   }   
    
   # stuff catalogs into observation object
@@ -338,11 +338,11 @@ sub process_data {
   # freeze the observation object before calling the followup observations
   # giving us a better chance of getting it updated correctly if returned
   # followup obervations turn up while we are still creating new ones.
-  my $status = freeze( $self->{OBS} ); 
-  if ( $status == UA__ERROR ) {
+  my $status = eSTAR::Util::freeze( $self->{OBS} ); 
+  if ( $status == ESTAR__ERROR ) {
      $log->warn( 
          "Warning: Problem re-serialising the \$self->{OBS}");
-     return UA__ERROR;    
+     return ESTAR__ERROR;    
   } 
 
   
@@ -409,7 +409,8 @@ sub process_data {
         # call the new_observation routine directly passing it a valid
         # username and password, only problem with this is that we get
         # a SOAP::Data object back that we don't really want.
-        my $cookie = make_cookie( $observation{"user"}, $observation{"pass"} );
+        my $cookie = 
+         STAR::Util::make_cookie( $observation{"user"}, $observation{"pass"} );
         my $handler = new eSTAR::UA::Handler( );
         $handler->set_user( user   => $observation{"user"},
                             cookie => $cookie );
@@ -429,7 +430,7 @@ sub process_data {
  
   # END OF DATA PROCESSING ################################################
                             
-  return UA__OK;
+  return ESTAR__OK;
 }
 
               

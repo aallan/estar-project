@@ -3,14 +3,14 @@ package eSTAR::UA::Algorithm::SingleExposure;
 use strict;
 use vars qw/ $VERSION /;
 
-'$Revision: 1.2 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.3 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 use threads;
 use threads::shared;
-use Fcntl ':flock';
+use Fcntl qw(:DEFAULT :flock);
 use Carp;
 
-use eSTAR::UA::Constants qw/:status/;
+use eSTAR::Constants qw/:status/;
 use eSTAR::Util;
 
 my ( $log );
@@ -41,8 +41,8 @@ sub process_data {
   # ================
   
   # thaw the observation object
-  my $observation_object = thaw( $id );
-  return UA__ERROR unless defined $observation_object;
+  my $observation_object = eSTAR::Util::thaw( $id );
+  return ESTAR__ERROR unless defined $observation_object;
   
   # stuff into object 
   $self->{OBS} = $observation_object;
@@ -57,14 +57,14 @@ sub process_data {
   # ==================
   
   # freeze the observation object
-  my $status = freeze( $self->{OBS} ); 
-  if ( $status == UA__ERROR ) {
+  my $status =  eSTAR::Util::freeze( $id, $self->{OBS} ); 
+  if ( $status == ESTAR__ERROR ) {
      $log->warn( 
          "Warning: Problem re-serialising the \$observation_object");
-     return UA__ERROR;    
+     return ESTAR__ERROR;    
   }  
     
-  return UA__OK;
+  return ESTAR__OK;
 }
 
               

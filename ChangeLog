@@ -1,3 +1,18 @@
+2005-01-11 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * Extensive modifications to move the Config::Simple() backend into
+          a singleton object. Modifications to user_agent.pl and to the
+          eSTAR::UA::Handler to support the creation of an eSTAR::Config
+          singleton class. Also modified eSTAR::Util.
+          
+          All other agent processes now need modifying to use the same
+          code base. The user_agent.pl has been tested sucessfully against
+          dn2.astro in SingleExposure mode only running on estar.astro,
+          need to install NAG f95 onto estar.astro to test in Followup mode.
+        
+        * bin/make_observation.pl: Ported from second generation code base
+          to help test the user_agent.pl against dn2.astro.
+          
 2004-12-21 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * Fixes to get rid of the last $main::* references from the library

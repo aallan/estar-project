@@ -3,7 +3,7 @@ package eSTAR::UA::Algorithm::IrFollowup;
 use strict;
 use vars qw/ $VERSION /;
 
-'$Revision: 1.2 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.3 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 use warnings;
 use threads;
@@ -14,7 +14,7 @@ use SOAP::Lite;
 use URI;
 use HTTP::Cookies;
 use LWP::UserAgent;
-use Fcntl ':flock';
+use Fcntl qw(:DEFAULT :flock);
 
 use eSTAR::UA::Constants qw/:all/;
 use eSTAR::UA::Handler;

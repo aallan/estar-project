@@ -21,19 +21,20 @@ require Exporter;
 
 use vars qw/$VERSION @EXPORT_OK @ISA /;
 
+use Data::Dumper;
 use Digest::MD5 'md5_hex';
 use Fcntl qw(:DEFAULT :flock);
 use Config::Simple;
+use Config::IniFiles;
 use eSTAR::Constants qw /:all/;
 use eSTAR::Logging;
 use eSTAR::Process;
 use eSTAR::Error qw /:try/;
 
 @ISA = qw/Exporter/;
-@EXPORT_OK = qw/make_cookie make_id freeze thaw melt 
-             get_option set_option get_state set_state/;
+@EXPORT_OK = qw/ make_cookie make_id freeze thaw melt query_simbad/;
 
-'$Revision: 1.8 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.9 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # This is the code that is used to generate cookies based on the user
 # name and password. It is NOT cryptographically sound, it is just a
@@ -59,7 +60,7 @@ sub make_id {
 
    # open (or create) the options file
    $log->debug("Reading agent context file from $context_file");
-   my $CONTEXT = new Config::Simple( filename => $context_file, 
+   my $CONTEXT = new Config::Simple( syntax   =>'ini', 
                                      mode     => O_RDWR|O_CREAT);
 
    unless ( defined $CONTEXT ) {
@@ -68,7 +69,13 @@ sub make_id {
       $log->error("Error: " . chomp($error));
       throw eSTAR::Error::FatalError($error, ESTAR__FATAL);            
    }  
-     
+
+   # if it exists read the current contents in...
+   if ( open ( CONFIG, "$context_file" ) ) {
+      close( CONFIG );
+      $CONTEXT->read( $context_file );
+   }   
+        
    # UNIQUE ID
    # ---------
    
@@ -135,7 +142,7 @@ sub freeze {
    my $object = shift;
 
    my $log = eSTAR::Logging::get_reference();
-   
+      
    # RE-SERIALISE OBJECT
    # ===================
    my $process = eSTAR::Process::get_reference();
@@ -248,144 +255,51 @@ sub melt {
    
 }
 
-
-# grab an option from the $CONFIG file
-sub get_option {
-   my $option = shift;
-
-   # grab references to single instance objects
-   my $log = eSTAR::Logging::get_reference();
-   my $process = eSTAR::Process::get_reference();
-
-   # grab users home directory and define options filename
-   my $config_file = 
-         File::Spec->catfile( Config::User->Home(), '.estar', 
-                              $process->get_process(), 'options.dat' ); 
-
-   $log->debug("Reading configuration from $config_file");
-   my $CONFIG = new Config::Simple( filename => $config_file, mode=>O_RDWR  );
-
-   unless ( defined $CONFIG ) {
-      my $error = $Config::Simple::errstr;
-      $log->error("Error: " . chomp($error));
-      return ESTAR__ERROR;   
-   }
-     
-   return $CONFIG->param($option);
-} 
-
-sub get_option_hash {
+# Query SIMBAD by target
+sub query_simbad {
+   my $target = shift;
+   
 
    # grab references to single instance objects
    my $log = eSTAR::Logging::get_reference();
    my $process = eSTAR::Process::get_reference();
+   
+   $log->debug( "Called eSTAR::Util::query_simbad()..." );
 
-   # grab users home directory and define options filename
-   my $config_file = 
-         File::Spec->catfile( Config::User->Home(), '.estar', 
-                              $process->get_process(), 'options.dat' ); 
 
-   $log->debug("Reading configuration from $config_file");
-   my $CONFIG = new Config::Simple( filename => $config_file, mode=>O_RDWR  );
-
-   unless ( defined $CONFIG ) {
-      my $error = $Config::Simple::errstr;
-      $log->error("Error: " . chomp($error));
-      return ESTAR__ERROR;   
+   my $proxy;
+   unless ( get_option("connection.proxy") eq "NONE" ) {
+      $proxy = get_option("connection.proxy");
    }
-     
-   return $CONFIG->param_hash();
-} 
+      
+   $log->warn( "Warning: Using deprecated Astro::SIMBAD module..." );
+   my $simbad_query = new Astro::SIMBAD::Query( 
+                         Target  => $target,
+                         Timeout => get_option( "connection.timeout" ),
+                         Proxy   => $proxy,
+                         URL     => get_option( "simbad.url" ) );
+                         
+   $log->debug( "Contacting CDS SIMBAD (". $simbad_query->url() . ")..."  );
+ 
+   # Throw an eSTAR::Error::FatalError if we have problems
+   my $simbad_result;
+   eval { $simbad_result = $simbad_query->querydb(); };
+   if ( $@ ) {
+      $log->error( "Error: Unable to contact CDS SIMBAD..." );
+      return undef;
+   }   
 
-# set an option in the $CONFIG file
-sub set_option {
-   my $option = shift;
-   my $value = shift;
-
-   # grab references to single instance objects
-   my $log = eSTAR::Logging::get_reference();
-   my $process = eSTAR::Process::get_reference();
-
-   # grab users home directory and define options filename
-   my $config_file = 
-         File::Spec->catfile( Config::User->Home(), '.estar', 
-                              $process->get_process(), 'options.dat' ); 
-
-   $log->debug("Reading configuration from $config_file");
-   my $CONFIG = new Config::Simple( filename => $config_file, mode=>O_RDWR  );
-
-   unless ( defined $CONFIG ) {
-      my $error = $Config::Simple::errstr;
-      $log->error("Error: " . chomp($error));
-      return ESTAR__ERROR;         
-   }
-
-   $CONFIG->param( $option, $value );
-   my $status = $CONFIG->write( $config_file );
-   return ESTAR__OK;
-
-} 
+   $log->debug( "Retrieved result..." );
+   return $simbad_result;
+};
 
 
-# grab an option from the $STATE file
-sub get_state {
-   my $option = shift;
-
-   # grab references to single instance objects
-   my $log = eSTAR::Logging::get_reference();
-   my $process = eSTAR::Process::get_reference();
-
-   # grab users home directory and define options filename
-   my $config_file = 
-         File::Spec->catfile( Config::User->Home(), '.estar', 
-                              $process->get_process(), 'state.dat' ); 
-
-   $log->debug("Reading configuration from $config_file");
-   my $STATE = new Config::Simple( filename => $config_file, mode=>O_RDWR  );
-
-   unless ( defined $STATE ) {
-      my $error = $Config::Simple::errstr;
-      $log->error("Error: " . chomp($error));
-      return ESTAR__ERROR;   
-   }
-     
-   return $STATE->param($option);
-} 
-
-# set an option in the $STATE file
-sub set_state {
-   my $option = shift;
-   my $value = shift;
-
-   # grab references to single instance objects
-   my $log = eSTAR::Logging::get_reference();
-   my $process = eSTAR::Process::get_reference();
-
-   # grab users home directory and define options filename
-   my $config_file = 
-         File::Spec->catfile( Config::User->Home(), '.estar', 
-                              $process->get_process(), 'state.dat' ); 
-
-   $log->debug("Reading configuration from $config_file");
-   my $STATE = new Config::Simple( filename => $config_file, mode=>O_RDWR  );
-
-   unless ( defined $STATE ) {
-      my $error = $Config::Simple::errstr;
-      $log->error("Error: " . chomp($error));
-      return ESTAR__ERROR;         
-   }
-
-   $STATE->param( $option, $value );
-   my $status = $STATE->write( $STATE->param( "mining.state" ) );
-   return ESTAR__OK;
-
-} 
 
 =back
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.8 2004/12/21 17:02:47 aa Exp $
+$Id: Util.pm,v 1.9 2005/01/11 01:41:25 aa Exp $
 
 =head1 AUTHORS
 
