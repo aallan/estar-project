@@ -22,7 +22,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: gcn_server.pl,v 1.4 2005/02/07 17:18:15 aa Exp $
+$Id: gcn_server.pl,v 1.5 2005/02/07 21:36:50 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -41,7 +41,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -70,6 +70,7 @@ use eSTAR::Config;
 
 # GCN modules
 use GCN::Constants qw(:packet_types);
+use GCN::Util;
 
 # General modules
 use Config;
@@ -296,7 +297,7 @@ unless( defined $opt{"agent"} ) {
 }
 
 
-# M A I N   C O D E ----------------------------------------------------------
+# T C P / I P   S E R V E R   C O D E --------------------------------------
  
 # TCP/IP SERVER CALLBACK
 # ----------------------
@@ -312,8 +313,63 @@ my $tcp_callback = sub {
    if ( $$message[0] == TYPE_IM_ALIVE ) {
        $log->print("Recieved a TYPE_IM_ALIVE packet at " . ctime() ); 
                 
+   } elsif ( $$message[0] >= 60 && $$message[0] <= 83 ) {
+       $log->print(
+          "Recieved a SWIFT (type $$message[0]) packet at " . ctime() ); 
+   
+      # TYPE_SWIFT_BAT_GRB_ALERT_SRC (type 60)
+      # SWIFT BAT GRB ALERT message
+      if ( $$message[0] == 60 ) {
+         $log->warn( "Recieved a TYPE_SWIFT_BAT_GRB_ALERT_SRC message " );       
+         $log->warn( "trig_obs_num = " . $$message[4] );       
+
+
+   
+      # TYPE_SWIFT_BAT_GRB_POS_ACK_SRC (type 61)
+      # SWIFT BAT GRB Position Acknowledge message
+      } elsif ( $$message[0] == 61 ) {
+         $log->warn( 
+           "Recieved a TYPE_SWIFT_BAT_GRB_POS_ACK_SRC message ".
+           "(trig_obs_num = " . $$message[4] .")" );       
+        
+         $log->warn( "GRB detected at $$message[7], $$message[8]" .
+                     " +- $$message[11]" );
+
+         # convert to sextuplets
+         my ( $ra, $dec, $error) = GCN::Util::convert_to_sextuplets(
+                                  $$message[7], $$message[8], $$message[11] );
+         $log->warn( "GRB detected at $ra, $dec +- $error acrmin" ); 
+         
+                        
+      # TYPE_SWIFT_BAT_GRB_POS_NACK_SRC (type 62)
+      # SWIFT BAT GRB Position NOT Acknowledge message
+      } elsif ( $$message[0] == 62 ) {
+         $log->warn( "Recieved a TYPE_SWIFT_BAT_GRB_POS_NACK_SRC message " );
+         $log->warn( "trig_obs_num = " . $$message[4] );       
+
+
+         
+      # TYPE_SWIFT_XRT_POSITION_SRC (type 67)
+      # SWIFT XRT Position message
+      } elsif ( $$message[0] == 67 ) {
+         $log->warn( "Recieved a TYPE_SWIFT_XRT_POSITION_SRC message " );   
+         $log->warn( "trig_obs_num = " . $$message[4] );       
+
+
+         
+      # TYPE_SWIFT_XRT_CENTROID_SRC (type 71)
+      # SWIFT XRT Position NOT Ack message (Centroid Error)
+      } elsif ( $$message[0] == 71 ) {
+         $log->warn( "Recieved a TYPE_SWIFT_XRT_CENTROID_SRC message " );  
+         $log->warn( "trig_obs_num = " . $$message[4] );       
+
+
+         
+      
+      }
+   
    } else {
-       $log->warn( "Recieved a packet of type $$message[0] at " . ctime() );   
+       $log->print( "Recieved a packet of type $$message[0] at " . ctime() ); 
    
    }
    
@@ -373,9 +429,11 @@ my $tcpip_server = sub {
           my $bytes_read = sysread( $listen, $buffer, $length);
      
           next unless defined $bytes_read;
+          
+          $log->thread2("\n$thread_name", "Recieved a packet..." );
           if ( $bytes_read > 0 ) {
  
-            $log->debug( "\nRecieved $bytes_read bytes on $opt{port} from " . 
+            $log->debug( "Recieved $bytes_read bytes on $opt{port} from " . 
                          $listen->peerhost() );    
                       
              my @message = unpack( "N40", $buffer );
@@ -384,7 +442,6 @@ my $tcpip_server = sub {
                    "Recieved a TYPE_KILL_SOCKET packet at " . ctime() );
                 $log->warn("Warning: Killing connection...");
                 $status = undef;
-                next;
              } 
              
              $log->debug( "Echoing $bytes_read bytes to " . 
@@ -400,35 +457,54 @@ my $tcpip_server = sub {
              $callback_thread->detach();               
                 
           } elsif ( $bytes_read == 0 && $! != EWOULDBLOCK ) {
-             $log->warn("\nWarning: Recieved a 0 length packet");
+             $log->warn("Recieved an empty packet on $opt{port} from " . 
+                         $listen->peerhost() );   
              $listen->flush();
              print $listen $buffer;
-             $log->debug( 
-                 "Echoing $bytes_read bytes to " . $listen->peerhost() );
+             $log->warn( 
+                 "Echoing empty packet to " . $listen->peerhost() );
              $listen->flush();
-                          
+             $log->warn( "Closing socket connection..." );      
              $status = undef;
           }
        
           unless ( $listen->connected() ) {
-             $log->warn("\nWarning: Not connected, closing socket...");
+             $log->warn("\nWarning: Not connected, socket closed...");
              $status = undef;
           }    
     
        }   
-       $log->warn("Warning: Closing socket connection to client");
-       close ($listen);
+       #$log->warn("Warning: Closing socket connection to client");
+       #close ($listen);
     
    } 
+   
+   return $@;
 
 };  
 
-# Spawn the TCP/IP server thread
-$log->print("Spawning TCP/IP Server thread...");
-$tcpip_thread = threads->create( $tcpip_server );
+# M A I N   L O O P ---------------------------------------------------------
+
+my $exit_code;
+while ( !$exit_code ) {
+
+   # Spawn the inital TCP/IP server thread
+   $log->print("Spawning TCP/IP Server thread...");
+   $tcpip_thread = threads->create( $tcpip_server );
   
-$status = $tcpip_thread->join() if defined $tcpip_thread;
-$log->warn( "Warning: TCP/IP exiting with bad status... ");
-$log->error( $status );
+   my $thread_exit_code = $tcpip_thread->join() if defined $tcpip_thread;
+   $log->warn( "Warning: Server exiting... ");
+
+   # respawn on timeout
+   if ( $thread_exit_code eq "accept: timeout" ) {
+      $log->warn( "Warning: The socket has timed out waiting for connection" );
+      #$log->warn( "Warning: Respawing server..." );
+      
+   } else { 
+      $exit_code = 1;
+      $log->error( "Error: $thread_exit_code" );
+   }  
+}
+
 $log->print("Exiting...");    
 exit; 

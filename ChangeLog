@@ -9,6 +9,8 @@
           explicitly anyway using eSTAR::*::get_reference() because several of
           the single instance modules have this method we have namespace 
           clashes if you don't do it that way.
+        
+        * lib/perl5/GCN/Util.pm: Utility class for gcn_server.pl
           
 2005-02-04 Aladair Allan <aa@astro.ex.ac.uk>
 
