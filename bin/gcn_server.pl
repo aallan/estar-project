@@ -22,7 +22,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: gcn_server.pl,v 1.2 2005/02/04 01:00:04 aa Exp $
+$Id: gcn_server.pl,v 1.3 2005/02/04 14:28:28 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -38,7 +38,7 @@ use vars qw / $VERSION $log $process %opt /;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -130,6 +130,7 @@ my $sock = new IO::Socket::INET(
                   Proto     => 'tcp',
                   Listen    => 1,
                   Reuse     => 1,
+                  Timeout   => 300,
                   Type      => SOCK_STREAM ); 
                     
 die "Could not create socket: $!\n" unless $sock;
@@ -171,14 +172,23 @@ while ( my $listen = $sock->accept() ) {
              $listen->flush();
           } else {
              $log->print("Recieved a TYPE_KILL_SOCKET packet at " . ctime() );
+             $log->warn("Warning: Killing connection...");
+             $status = undef;
           }    
        } elsif ( $bytes_read == 0 && $! != EWOULDBLOCK ) {
           $log->warn("\nWarning: Recieved a 0 length packet");
-          #unless ( $listen->connected() ) {
-          #  $log->warn("Warning: Socket is no longer connected to remote host");
-            $status = undef;
-          #}  
-       }   
+          $listen->flush();
+          print $listen $buffer;
+          $log->debug( "Echoing $bytes_read bytes to " . $listen->peerhost() );
+          $listen->flush();
+                          
+          $status = undef;
+       }
+       
+       unless ( $listen->connected() ) {
+          $log->warn("\nWarning: Not connected, closing socket...");
+          $status = undef;
+       }    
     
     }   
     $log->warn("Warning: Closing socket connection to client");
