@@ -399,7 +399,7 @@ sub handle_rtml {
          # build a score request
          $score_message->score_response(
              Target   => $parsed->target(),
-             TargetType => $parsed->targettype(),
+             TargetIdent => $parsed->targetident(),
              RA       => $parsed->ra(),
              Dec      => $parsed->dec(),
              Exposure => $parsed->exposure(),
@@ -412,7 +412,7 @@ sub handle_rtml {
          # build a score request
          $score_message->score_response(
              Target => $parsed->target(),
-             TargetType => $parsed->targettype(),
+             TargetIdent => $parsed->targetident(),
              RA     => $parsed->ra(),
              Dec    => $parsed->dec(),
              Snr    => $parsed->snr(),
@@ -520,7 +520,7 @@ sub handle_rtml {
       # target
       # ------
       my $target = $parsed->target();
-      my $targettype = $parsed->targettype();
+      my $targetident = $parsed->targetident();
       my $ra = $parsed->ra();
       my $dec = $parsed->dec();
       my $equinox = $parsed->equinox();
@@ -530,7 +530,7 @@ sub handle_rtml {
       my $filter = $parsed->filter();
 
       #$log->debug( "target      = " . $target );
-      #$log->debug( "target type = " . $targettype );
+      #$log->debug( "target ident = " . $targetident );
       #$log->debug( "ra          = " . $ra );
       #$log->debug( "dec         = " . $dec );
       #$log->debug( "equinox     = " . $equinox );
@@ -571,7 +571,7 @@ sub handle_rtml {
       
       # NEW METHOD
       # ----------
-      if ( $targettype =~ "BurstFollowup" ) {
+      if ( $targetident =~ "BurstFollowup" ) {
          $log->warn( "Warning: Querying the OMP for template observations" );
          
          # retrieve the science program  
@@ -608,14 +608,14 @@ sub handle_rtml {
       
          # scan through MSBs
          $log->debug( "Scanning through MSB templates looking for '" .
-                       $parsed->targettype() . "'" );
+                       $parsed->targetident() . "'" );
          
          my $template;
          for my $m ( $sp->msb() ) {
             $log->debug( "Found template " . $m->msbtitle() );
 
-            my $looking_for = $parsed->targettype();
-            if ( $m->msbtitle()  =~ /$looking_for/ &&
+            my $looking_for = $parsed->targetident();
+            if ( $m->msbtitle()  =~ /\b$looking_for/ &&
                  $m->hasBlankTargets() ) {
 
                  $log->debug( "Matched '" . $m->msbtitle() . "'" );
@@ -915,7 +915,7 @@ return SOAP::Data->name('return', $reject)->type('base64');
          # build a score request
          $confirm_message->confirm_response(
              Target   => $parsed->target(),
-             TargetType => $parsed->targettype(),
+             TargetIdent => $parsed->targetident(),
              RA       => $parsed->ra(),
              Dec      => $parsed->dec(),
              Exposure => $parsed->exposure(),
@@ -928,7 +928,7 @@ return SOAP::Data->name('return', $reject)->type('base64');
          # build a score request
          $confirm_message->confirm_response(
              Target => $parsed->target(),
-             TargetType => $parsed->targettype(),
+             TargetIdent => $parsed->targetident(),
              RA     => $parsed->ra(),
              Dec    => $parsed->dec(),
              Snr    => $parsed->snr(),
@@ -1041,7 +1041,7 @@ sub handle_data {
    # target
    # ------
    my $target = $obs_request->target();
-   my $targettype = $obs_request->targettype();
+   my $targetident = $obs_request->targetident();
    my $ra = $obs_request->ra();
    my $dec = $obs_request->dec();
    my $equinox = $obs_request->equinox();
@@ -1051,7 +1051,7 @@ sub handle_data {
    my $filter = $obs_request->filter();
 
    #$log->debug( "target      = " . $target );
-   #$log->debug( "target type = " . $targettype );
+   #$log->debug( "target ident = " . $targetident );
    #$log->debug( "ra          = " . $ra );
    #$log->debug( "dec         = " . $dec );
    #$log->debug( "equinox     = " . $equinox );
@@ -1230,7 +1230,7 @@ sub handle_data {
    if ( defined $snr && defined $flux ) {       
       $message->$method(
                 Target    => $target,
-                TargetType => $targettype,
+                TargetIdent => $targetident,
                 RA        => $ra,
                 Dec       => $dec,
                 Score     => $score,
@@ -1245,7 +1245,7 @@ sub handle_data {
    } elsif ( defined $exposure ) {                      
       $message->$method(
                 Target   => $target,
-                TargetType => $targettype,
+                TargetIdent => $targetident,
                 RA       => $ra,
                 Dec      => $dec,
                 Score    => $score,
