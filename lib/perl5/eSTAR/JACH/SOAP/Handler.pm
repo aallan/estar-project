@@ -7,8 +7,11 @@ use vars qw( @ISA %COOKIES );
 use SOAP::Lite;
 use eSTAR::JACH::Handler;
 use eSTAR::Error qw/:try/;
+use eSTAR::Logging;
 
 @ISA = qw(eSTAR::JACH::Handler);
+
+my $log;
 
 BEGIN {
   no strict 'refs';
@@ -46,11 +49,12 @@ BEGIN {
         }
  
         # die if we have a fault in the original method
-        die SOAP::Fault
+        unless ( ref ( $res ) ) {
+           $log->error( $res );
+           die SOAP::Fault
             ->faultcode('Server.ExecError')
             ->faultstring("Execution Error: $res")
-        unless ref($res);
-        
+        } 
         $res;
      };
      
@@ -68,6 +72,8 @@ BEGIN {
 sub new {            
    my $class = shift;
    return $class if ref($class);
+
+   $log = eSTAR::Logging::get_reference();
       
    my $self;
    # if there are no arguements, but available cookies, 

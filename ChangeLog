@@ -1,3 +1,10 @@
+2005-01-19 Alasdair Allan <aa@astro.ex.ac.uk> &
+           Tim Jenness <timj@jach.hawaii.edu>
+
+	* bin/jach_agent.pl and associated classes have been updated to
+          work with the new JAC infrastructre and with the 3G eSTAR code.
+          Code now loopbacks correctly when poked via ORAC-DR test script.
+
 2005-01-11 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * bin/user_agent.pl: Fulling working 3G user_agent.pl which will 

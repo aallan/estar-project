@@ -816,7 +816,7 @@ sub handle_data {
    # ----------------
    
    # see if we can deserialise against this id
-   my $observation_object = thaw( $data{ID} );   
+   my $observation_object = eSTAR::Util::thaw( $data{ID} );   
    #use Data::Dumper; print Dumper( $observation_object );
    
    # if not throw an exception 
@@ -1077,7 +1077,7 @@ sub handle_data {
    my $uri = new URI($endpoint);
    
    # create a user/passwd cookie
-   my $cookie = make_cookie( "agent", "InterProcessCommunication" );
+   my $cookie = eSTAR::Util::make_cookie( "agent", "InterProcessCommunication" );
   
    my $cookie_jar = HTTP::Cookies->new();
    $cookie_jar->set_cookie( 0, user => $cookie, '/', 
@@ -1161,7 +1161,8 @@ sub handle_data {
       if ( $data{AlertType} eq 'observation' ) {
 
          # delete the serialised observation_object
-         my $status = melt( $observation_object );        
+         my $status = eSTAR::Util::melt(  $observation_object->id(),
+                                          $observation_object );        
          if ( $status == ESTAR__ERROR ) {
             $log->warn( 
                "Warning: Problem deleting the \$observation_object");

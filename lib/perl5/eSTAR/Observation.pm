@@ -20,7 +20,7 @@ package eSTAR::Observation;
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: Observation.pm,v 1.1 2004/11/12 14:32:05 aa Exp $
+#     $Id: Observation.pm,v 1.2 2005/01/19 16:57:26 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2001-2003 University of Exeter. All Rights Reserved.
@@ -60,13 +60,13 @@ use Net::Domain qw(hostname hostdomain);
 use File::Spec;
 use Carp;
 
-'$Revision: 1.1 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.2 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # C O N S T R U C T O R ----------------------------------------------------
 
 =head1 REVISION
 
-$Id: Observation.pm,v 1.1 2004/11/12 14:32:05 aa Exp $
+$Id: Observation.pm,v 1.2 2005/01/19 16:57:26 aa Exp $
 
 =head1 METHODS
 
@@ -336,6 +336,10 @@ and $score_parsed is the related eSTAR::RTML::Parse object.
 
 sub highest_score {
   my $self = shift;
+
+  #print "Calling highest_score()\n\n";
+  #use Carp;
+  #Carp::cluck();
 
   # loop through the SCORE_REPLY hash and find the highest score
   my ( $node, $best_node, $highest_score );
