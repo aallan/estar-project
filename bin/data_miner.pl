@@ -19,7 +19,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: data_miner.pl,v 1.3 2004/02/21 02:56:55 aa Exp $
+#     $Id: data_miner.pl,v 1.4 2004/03/05 00:55:07 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -62,7 +62,7 @@ data mining process. It helps populate the survey agent's backend database.
 
 =head1 REVISION
 
-$Id: data_miner.pl,v 1.3 2004/02/21 02:56:55 aa Exp $
+$Id: data_miner.pl,v 1.4 2004/03/05 00:55:07 aa Exp $
 
 =head1 AUTHORS
 
@@ -79,7 +79,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -530,7 +530,7 @@ my $listener_thread;
 # anonymous subroutine which starts a SOAP server which will accept
 # incoming SOAP requests and route them to the appropriate module
 my $soap_server = sub {
-   my $thread_name = "Data Mining Thread";
+   my $thread_name = "Server Thread";
    
    # create SOAP daemon
    $log->thread($thread_name, "Starting server (\$tid = ".threads->tid().")");  
@@ -633,6 +633,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: data_miner.pl,v $
+# Revision 1.4  2004/03/05 00:55:07  aa
+# Minor debugging difference
+#
 # Revision 1.3  2004/02/21 02:56:55  aa
 # Added freeze(), thaw() and melt() functions for arbitary objects
 # being serialised to the ~/.estar/$process/state/ directory.
