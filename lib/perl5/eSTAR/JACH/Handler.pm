@@ -298,7 +298,7 @@ sub handle_rtml {
    my $id = $parsed->id();
 
    # see if we can deserialise against this id
-   my $observation_object = thaw( $id );   
+   my $observation_object = eSTAR::Util::thaw( $id );   
    #use Data::Dumper; print Dumper( $observation_object );
    
    # if not create a new observation object
