@@ -33,7 +33,7 @@ use eSTAR::Error qw /:try/;
 @EXPORT_OK = qw/make_cookie make_id freeze thaw melt 
              get_option set_option get_state set_state/;
 
-'$Revision: 1.4 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.5 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # This is the code that is used to generate cookies based on the user
 # name and password. It is NOT cryptographically sound, it is just a
@@ -298,7 +298,7 @@ sub set_option {
    }
 
    $CONFIG->param( $option, $value );
-   my $status = $CONFIG->write( $CONFIG->param( "mining.options" ) );
+   my $status = $CONFIG->write( $config_file );
    return ESTAR__OK;
 
 } 
@@ -362,7 +362,7 @@ sub set_state {
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.4 2004/03/05 00:57:28 aa Exp $
+$Id: Util.pm,v 1.5 2004/11/05 15:32:09 aa Exp $
 
 =head1 AUTHORS
 

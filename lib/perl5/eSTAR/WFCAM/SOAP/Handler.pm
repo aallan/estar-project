@@ -55,6 +55,8 @@ BEGIN {
 sub new {            
    my $class = shift;
    return $class if ref($class);
+
+   my $log = shift;
    
    my $self;
    # if there are no arguements, but available cookies, 

@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: jach_agent.pl,v 1.1 2004/11/05 14:37:24 aa Exp $
+#     $Id: jach_agent.pl,v 1.2 2004/11/05 15:32:08 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -68,7 +68,7 @@ translation layer, which also handles external phase 0 discovery requests.
 
 =head1 REVISION
 
-$Id: jach_agent.pl,v 1.1 2004/11/05 14:37:24 aa Exp $
+$Id: jach_agent.pl,v 1.2 2004/11/05 15:32:08 aa Exp $
 
 =head1 AUTHORS
 
@@ -85,7 +85,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -620,8 +620,6 @@ if ( $STATE->param("jach.unique_process") == 1 ) {
 
    # telescope information
    $CONFIG->param( "dn.telescope", "UKIRT" );
-   $OPT{ $CONFIG->param( "dn.telescope") } = new Astro::Telescope( 
-                                           $CONFIG->param( "dn.telescope") );
 
    # garbage collection
    $CONFIG->param( "jach.garbage", 30 );
@@ -877,16 +875,6 @@ END {
 # A S S O C I A T E D   S U B R O U T I N E S 
 # ===========================================================================
 
-# anonymous subroutine which kill the jach agent process, called via
-# a SOAP message hitting the jach agent, initally handled using the
-# eSTAR::DN::Heandler::SOAP::shutdown() method, which calls main::shutdown()
-sub shutdown {  
-   # spawn a thread to kill the agent
-   $log->debug("Spawning shutdown thread...");
-   my $die_thread = threads->create( "kill_agent", JACH__SOAP ); 
-   $die_thread->detach();  
-   return "EXIT";
-}
 
 # anonymous subroutine which is called everytime the jach agent is
 # terminated (ab)normally. Hopefully this will provide a clean exit.
@@ -894,16 +882,9 @@ sub kill_agent {
    my $from = shift;
          
    # Check to see whether we've been called via a SOAP message
-   if( $from == JACH__SOAP ) {
-      $log->debug("Calling kill_agent( JACH__SOAP )");
-      $log->warn("Warning: Shutting down jach agent...");
-      sleep(5);
-   } elsif (  $from == JACH__FATAL ) {  
+   if (  $from == JACH__FATAL ) {  
       $log->debug("Calling kill_agent( JACH__FATAL )");
       $log->warn("Warning: Shutting down agent after JACH__FATAL error...");
-   } elsif (  $from == JACH__THREAD ) {  
-      $log->debug("Calling kill_agent( JACH__THREAD )");
-      $log->warn("Warning: Shutting down agent after JACH__THREAD error...");
    } else {
       if( threads->tid() == 0 && $from == undef ) {
          $log->debug("Calling kill_agent( SIGINT )");
@@ -915,11 +896,9 @@ sub kill_agent {
    }
 
    # committ CONFIG and STATE changes
-   if ( $from == JACH__SOAP ) {
-      $log->warn("Warning: Committing options and state changes");
-      my $status = $CONFIG->write( $CONFIG->param( "jach.options" ) );
-      my $status = $STATE->write( $STATE->param( "jach.state" ) );
-   }
+   #$log->warn("Warning: Committing options and state changes");
+   #my $status = $CONFIG->write( $CONFIG->param( "jach.options" ) );
+   #my $status = $STATE->write( $STATE->param( "jach.state" ) );
    
    # flush the error stack
    $log->debug("Flushing error stack...");
@@ -943,6 +922,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: jach_agent.pl,v $
+# Revision 1.2  2004/11/05 15:32:08  aa
+# Inital commit of jach_agent and associated files. Outstandingf problems with the $main::* in eSTAR::JACH::Handler and %running in eSTAR::JACH::Handler and jach_agent.pl script itself. How do I share %running across threads, but keep it a singleton object?
+#
 # Revision 1.1  2004/11/05 14:37:24  aa
 # Inital check-in, modified from working generation 2 code. Probably won't run at this point
 #

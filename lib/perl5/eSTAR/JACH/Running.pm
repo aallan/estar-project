@@ -19,7 +19,7 @@ package eSTAR::Logging;
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: Running.pm,v 1.1 2004/11/05 15:16:07 aa Exp $
+#     $Id: Running.pm,v 1.2 2004/11/05 15:32:09 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2001 University of Exeter. All Rights Reserved.
@@ -50,11 +50,13 @@ use strict;
 use vars qw/ $VERSION /;
 use subs qw/ new set_hash get_hash /;
 
+use threads;
+use threads::shared;
 
 use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:status/;
 
-'$Revision: 1.1 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.2 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # C O N S T R U C T O R ----------------------------------------------------
 
@@ -110,7 +112,7 @@ sub configure {
 
 =head1 REVISION
 
-$Id: Running.pm,v 1.1 2004/11/05 15:16:07 aa Exp $
+$Id: Running.pm,v 1.2 2004/11/05 15:32:09 aa Exp $
 
 =head1 METHODS
 

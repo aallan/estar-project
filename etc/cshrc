@@ -1,16 +1,19 @@
 
 if ($?USER == 0 || $?prompt == 0) exit
 
+# Root Directory
+setenv ESTAR_ROOT_DIR /jac_sw/estar
+
 # eSTAR
-setenv ESTAR3_DIR ${ESTAR_ROOT_DIR}/third_generation
-setenv ESTAR3_DATA ${ESTAR_ROOT_DIR}/allan/data
-setenv ESTAR3_PERL5LIB ${ESTAR3_DIR}/lib/perl5
+setenv ESTAR_DIR ${ESTAR_ROOT_DIR}/third_generation
+setenv ESTAR_DATA ${ESTAR_ROOT_DIR}/allan/data
+setenv ESTAR_PERL5LIB ${ESTAR_DIR}/lib/perl5
 setenv LANG C
 
 setenv ESTAR_TKPGPLOT ${ESTAR_ROOT_DIR}/pgplot
 
-# Perl 5.8.3
-setenv ESTAR3_PERLBIN ${ESTAR_ROOT_DIR}/perl/bin/perl
+# Perl 5.8.*
+setenv ESTAR_PERLBIN ${ESTAR_ROOT_DIR}/perl/bin/perl
 setenv MANPATH ${MANPATH}:${ESTAR_ROOT_DIR}/perl/man
 
 # PGPLOT
@@ -28,13 +31,14 @@ setenv SYBASE ${ESTAR_ROOT_DIR}/sybase
 setenv LANG C
 
 # Daemons & Agents
-alias wfcam        'source ${ESTAR3_DIR}/etc/wfcam_agent.csh'
-alias miner        'source ${ESTAR3_DIR}/etc/data_miner.csh'
+alias jach         'source ${ESTAR_DIR}/etc/jach_agent.csh'
+alias wfcam        'source ${ESTAR_DIR}/etc/wfcam_agent.csh'
+alias miner        'source ${ESTAR_DIR}/etc/data_miner.csh'
 
 # Client Software
-alias soap_client  '${ESTAR3_PERLBIN} ${ESTAR3_DIR}/bin/soap_client.pl'
-alias datamine     '${ESTAR3_PERLBIN} ${ESTAR3_DIR}/bin/datamining_client.pl'
-alias dump_users   '${ESTAR3_PERLBIN} ${ESTAR3_DIR}/bin/dump_users.pl'
-alias add_user     '${ESTAR3_PERLBIN} ${ESTAR3_DIR}/bin/add_user.pl'
-alias fake_catalog '${ESTAR3_PERLBIN} ${ESTAR3_DIR}/bin/fake_catalog.pl'
+alias soap_client  '${ESTAR_PERLBIN} ${ESTAR_DIR}/bin/soap_client.pl'
+alias datamine     '${ESTAR_PERLBIN} ${ESTAR_DIR}/bin/datamining_client.pl'
+alias dump_users   '${ESTAR_PERLBIN} ${ESTAR_DIR}/bin/dump_users.pl'
+alias add_user     '${ESTAR_PERLBIN} ${ESTAR_DIR}/bin/add_user.pl'
+alias fake_catalog '${ESTAR_PERLBIN} ${ESTAR_DIR}/bin/fake_catalog.pl'
   
