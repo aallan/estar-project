@@ -2,7 +2,8 @@
 if ($?USER == 0 || $?prompt == 0) exit
 
 # eSTAR
-setenv ESTAR3_DIR /home/`whoami`/third_generation
+#setenv ESTAR3_DIR /home/`whoami`/third_generation
+setenv ESTAR3_DIR /export/data/`whoami`
 setenv ESTAR3_DATA /home/`whoami`/testing/estar
 setenv ESTAR3_PERL5LIB ${ESTAR3_DIR}/lib/perl5
 setenv LANG C
