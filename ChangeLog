@@ -1,8 +1,16 @@
+2005-02-14 Aladair Allan <aa@astro.ex.ac.uk>
+
+        * bin/gcn_server.pl: Added email notification of alerts being passed
+          to the user agent. Need to move this to the user agent because right
+          now obsevration requests that score 0 are still notified.
+          
+        * bin/jach_agent.pl: Added email notification of alerts being added
+          to the UKIRT queue.
+          
 2005-02-11 Aladair Allan <aa@astro.ex.ac.uk>
 
         * bin/gcn_server.pl: Modified to trigger on XRT_POS messages rather
           than BAT_POS messages. Now checking soln_status on BAT_POS messages.
-          
           
         * bin/jach_agent.pl: Modified to clean out rejceted messages from the
           state directory. It shouldn't happen, but it appears that sometimes
