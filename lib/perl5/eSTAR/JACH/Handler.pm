@@ -47,6 +47,7 @@ use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw/:status/;
 use eSTAR::Util;
 use eSTAR::JACH::Running;
+use eSTAR::Config;
 
 #
 # Astro modules
@@ -61,7 +62,7 @@ use Astro::FITS::Header::CFITSIO;
 use lib $ENV{"ESTAR_OMPLIB"};
 use OMP::SciProg;
 use OMP::SpServer;
-my ($log, $run, $ua);
+my ($log, $run, $ua, $config);
 
 # ==========================================================================
 # U S E R   A U T H E N T I C A T I O N
@@ -74,6 +75,7 @@ sub new {
   $log = eSTAR::Logging::get_reference();
   $run = eSTAR::JACH::Running::get_reference();
   $ua = eSTAR::UserAgent::get_reference();
+  $config = eSTAR::Config::get_reference();
   
   if( $user and $passwd ) {
     return undef unless $self->set_user( user => $user, password => $passwd );
@@ -184,7 +186,7 @@ sub get_option {
    # grab the arguement telling us what we're looking for...
    my $option = shift;
 
-   my $value = eSTAR::Util::get_option( $option );
+   my $value = $config->get_option( $option );
    if ( $value == ESTAR__ERROR ) {
       $log->error("Error: Unable to get value from configuration file" );
       die SOAP::Fault
@@ -213,7 +215,7 @@ sub set_option {
    my $option = shift;
    my $value = shift;
 
-   my $status = eSTAR::Util::set_option( $option, $value );
+   my $status = $config->set_option( $option, $value );
    if ( $status == ESTAR__ERROR ) {
       $log->error("Error: Unable to set value in configuration file" );
       die SOAP::Fault
@@ -323,7 +325,7 @@ sub handle_rtml {
                                       dec => $parsed->dec(),
                                       type => $parsed->equinox() );
       
-      my $scope = eSTAR::Util::get_option("dn.telescope");
+      my $scope = $config->get_option("dn.telescope");
       $coords->telescope( $scope );
       
       # report the coordinates for the request
@@ -358,16 +360,16 @@ sub handle_rtml {
       
       if( Astro::WaveBand::has_filter( "UIST" => $parsed->filter() ) ) {
       #if ( Astro::WaveBand::is_observable( 
-      #    eSTAR::Util::get_option( "dn.telescope") => $parsed->filter() ) ) {
+      #    $config->get_option( "dn.telescope") => $parsed->filter() ) ) {
           
           # don't modify an already set $isobs
-          $log->debug(  eSTAR::Util::get_option( "dn.telescope") . " has a " . 
+          $log->debug(  $config->get_option( "dn.telescope") . " has a " . 
                       $parsed->filter() . " filter on an available instrument" );
       } else {
                          
           # $isobs must now be set to bad
           $isobs = 0;
-          $log->warn(  eSTAR::Util::get_option( "dn.telescope") . 
+          $log->warn(  $config->get_option( "dn.telescope") . 
                       " doesn't have a " . $parsed->filter() . " filter...");
       }
                           
@@ -469,7 +471,7 @@ sub handle_rtml {
       # --------------
       
       # check that the eSTAR user id maps to a JACH project id
-      unless (  eSTAR::Util::get_option("user.".$username) ) {
+      unless (  $config->get_option("user.".$username) ) {
                 
          # return the RTML document
          $log->warn("Warning: eSTAR UserID doesn't map to JAC ProjectID");
@@ -559,7 +561,7 @@ sub handle_rtml {
                                           
       # catch non-existant filter errors
       unless( -e $xml_file ) {
-         $log->error( "Error: " .  eSTAR::Util::get_option( "dn.telescope") .
+         $log->error( "Error: " .  $config->get_option( "dn.telescope") .
                             " does not have a $filter band filter.....");
          $observation_object->obs_reply( $reject_message ); 
          my $status = freeze( $observation_object ); 
@@ -606,7 +608,7 @@ sub handle_rtml {
                                         type => $parsed->equinox(),
                                         name => $parsed->target());
                                                                                 
-      my $scope =  eSTAR::Util::get_option("dn.telescope");
+      my $scope =  $config->get_option("dn.telescope");
       $position->telescope( $scope );      
       
       # tag each msb in the science proposal with an expiry time, there
@@ -643,14 +645,14 @@ sub handle_rtml {
       }    
  
       # Store the project ID in the XML
-      my $project_id =  eSTAR::Util::get_option("user.".$username);
+      my $project_id =  $config->get_option("user.".$username);
       $sp->projectID(  $project_id );
       $log->debug( "Setting ProjectID to $project_id " );
        
       # Store to DB [there is also a SOAP interface]
       $log->debug( 
       "Dispatching MSB to SpServer (user $username, project $project_id)" );
-      my $password =  eSTAR::Util::get_option("project.".$project_id);
+      my $password =  $config->get_option("project.".$project_id);
       try {
        
          # the ,1 forces overwrite of the existing science program
@@ -929,7 +931,7 @@ sub handle_data {
    # grab the file name
    $image_url =~ m/(\w+\W\w+)$/;
    my $data = $1;
-   my $fits = File::Spec->catfile(eSTAR::Util::get_option("jach.data"), $data);
+   my $fits = File::Spec->catfile($config->get_option("dir.data"), $data);
   
    # retrieve the file
    $log->debug( "Requesting FITS file...");

@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: jach_agent.pl,v 1.6 2004/12/21 17:04:09 aa Exp $
+#     $Id: jach_agent.pl,v 1.7 2005/01/11 17:18:26 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -38,14 +38,13 @@ use strict;
 
 # Global variables
 #  $VERSION  - CVS Revision Number
-#  $CONFIG   - Config object holding persistant configuration data
-#  $STATE    - Config object holding persistant state data
 #  $PROJECT  - Lookup table between estar user id and JAC project id
 #  %OPT      - Options hash for things we don't want to be persistant
 #  $log      - Handle for logging object
-#  %running  - a shared hash to hold the currently running observations
+#  $config   - Handle for configuration object
+#  %running  - A shared hash to hold the currently running observations
 
-use vars qw / $VERSION $CONFIG $STATE $PROJECT %OPT $log $process %running /;
+use vars qw / $VERSION $PROJECT %OPT $log $config %running /;
 
 # local status variable
 my $status;
@@ -68,7 +67,7 @@ translation layer, which also handles external phase 0 discovery requests.
 
 =head1 REVISION
 
-$Id: jach_agent.pl,v 1.6 2004/12/21 17:04:09 aa Exp $
+$Id: jach_agent.pl,v 1.7 2005/01/11 17:18:26 aa Exp $
 
 =head1 AUTHORS
 
@@ -85,7 +84,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -123,6 +122,7 @@ use eSTAR::Util;
 use eSTAR::JACH::Running;
 use eSTAR::Process;
 use eSTAR::UserAgent;
+use eSTAR::Config;
 
 #
 # Config modules
@@ -203,78 +203,26 @@ if ( $Config{'useithreads'} ne "define" ) {
    throw eSTAR::Error::FatalError($error, ESTAR__FATAL);      
 }
 
-# A G E N T  C O N F I G  F I L E --------------------------------------------
+# A G E N T  C O N F I G U R A T I O N ----------------------------------------
 
 # OPTIONS FILE
 # ------------
 
 # Load in previously saved options, should be in a file in the users home 
-# directory. If not there, we go with the defaults.
-
-# grab users home directory and define options filename
-my $config_file = 
- File::Spec->catfile( Config::User->Home(), '.estar', 
-                      $process->get_process(), 'options.dat' ); 
- 
-# open (or create) the options file
-$log->debug("Reading configuration from $config_file");
-$CONFIG = new Config::Simple( syntax=>'ini', mode=>O_RDWR|O_CREAT );
-
-unless ( defined $CONFIG ) {
-   # can't read/write to options file, bail out
-   my $error = "FatalError: " . $Config::Simple::errstr;
-   $log->error(chomp($error));
-   throw eSTAR::Error::FatalError($error, ESTAR__FATAL);      
-}
-
-# if it exists read the current contents in...
-if ( open ( CONFIG, "<$config_file" ) ) {
-   close( CONFIG );
-   $CONFIG->read( $config_file );
-}  
-
-# store the options filename in the file itself, not sure why this is
-# useful but I'm sure it'll come in handly at some point.
-$CONFIG->param( "jach.options", $config_file );
-
-# commit basic defaults to Options file
-my $status = $CONFIG->write( $CONFIG->param( "jach.options" ) );
-
-# A G E N T   S T A T E   F I L E --------------------------------------------
+# directory. If not there, we go with the defaults and commit basic defaults 
+# to Options file
 
 # STATE FILE
 # ----------
 
-# grab users home directory and define options filename
-my $state_file = 
-  File::Spec->catfile(Config::User->Home(), '.estar', 
-                      $process->get_process(), 'state.dat' );
+# To a certain extent the UA must be persitant state, it needs to know about
+# observations previously taken, the current unique ID (this is vital) and
+# a bunch of other stuff. This is saved and stored in the users home directory 
+# using Config::Simple.
 
-# open (or create) the options file
-$log->debug("Reading agent state from $state_file");
-$STATE = new Config::Simple( syntax=>'ini', mode=>O_RDWR|O_CREAT );
+$config = new eSTAR::Config(  );  
 
-unless ( defined $STATE ) {
-   # can't read/write to state file, scream and shout!
-   my $error = "FatalError: " . $Config::Simple::errstr;
-   $log->error(chomp($error));
-   throw eSTAR::Error::FatalError($error, ESTAR__FATAL);      
-}
-
-# if it exists read the current contents in...
-if ( open ( STATE, "<$state_file" ) ) {
-   close( STATE );
-   $STATE->read( $state_file );
-}   
-
-# store the state filename in the file itself...
-$STATE->param( "jach.state", $state_file );
-
-# and the options filename
-$STATE->param( "jach.options", $config_file );
-
-# and to the configuration file
-$CONFIG->param( "jach.state", $state_file );
+# A G E N T   S T A T E   F I L E --------------------------------------------
 
 # HANDLE UNIQUE ID
 # ----------------
@@ -284,27 +232,26 @@ $CONFIG->param( "jach.state", $state_file );
 # we'll run out of ints, I guess that will be bad...
 
 my ( $number, $string );
-$number = $STATE->param( "jach.unique_process" ); 
-if ( $number eq '' ) {
+$number = $config->get_state( "jach.unique_process" ); 
+if ( defined $number ) {
   # $number is not defined correctly (first ever run of the program?)
-  $STATE->param( "jach.unique_process", 0 );
   $number = 0; 
 }
 
 # increment ID number
 $number = $number + 1;
-$STATE->param( "jach.unique_process", $number );
+$config->set_state( "jach.unique_process", $number );
+$log->debug("Setting jach.unique_process = $number"); 
   
 # commit ID stuff to STATE file
-my $status = $STATE->write( $STATE->param( "jach.state" ) );
+$status = $config->write_state();
 unless ( defined $status ) {
   # can't read/write to options file, bail out
-  my $error = "FatalError: " . $Config::Simple::errstr;
-  $log->error(chomp($error));
+  my $error = "FatalError: Can not read or write to state file";
+  $log->error( $error );
   throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
 } else {    
-  $log->debug("Unique process ID: updated " . 
-              $STATE->param( "jach.state" ) );
+  $log->debug("Unique process ID: updated state.dat file" );
 }
 
 # PID OF JACH AGENT
@@ -312,17 +259,17 @@ unless ( defined $status ) {
 
 # log the current $pid of the jach_agent.pl process to the state 
 # file  so we can kill it from the SOAP server.
-$STATE->param( "jach.pid", getpgrp() );
+$config->set_state( "jach.pid", getpgrp() );
   
 # commit $pid to STATE file
-my $status = $STATE->write( $STATE->param( "jach.state" ) );
+$status = $config->write_state( );
 unless ( defined $status ) {
   # can't read/write to options file, bail out
-  my $error = "FatalError: " . $Config::Simple::errstr;
-  $log->error(chomp($error));
+  my $error = "FatalError: Can not read or write to state.dat file";
+  $log->error( $error );
   throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
 } else {    
-  $log->debug("JACH Agent PID: " . $STATE->param( "jach.pid" ) );
+  $log->debug("Embedded Agent PID: " . $config->get_state( "jach.pid" ) );
 }
 
 # P R O J E C T  L O O K U P  F I L E ---------------------------------------
@@ -345,9 +292,10 @@ unless ( defined $PROJECT ) {
    $log->error(chomp($error));
    throw eSTAR::Error::FatalError($error, ESTAR__FATAL);      
 }
-
-$CONFIG->param( "jach.project", $project_file );
 $PROJECT->param( "jach.project", $project_file );
+
+# save the name of the project.dat file into the options.dat file
+$config->set_option( "jach.project", $project_file );
 
 # READ PROJECT LIST FROM FILE (OR WEB SERVICE?)
 # ---------------------------------------------
@@ -388,7 +336,7 @@ foreach my $key ( sort keys %projects ) {
 # WRITE IT OUT
 # ------------
 # commit name of the lookup file to PROJECT and CONFIG files
-my $status = $PROJECT->write( $CONFIG->param( "jach.project" ) );
+$status = $PROJECT->write( $config->get_option( "jach.project" ) );
 
 unless ( defined $status ) {
   # can't read/write to options file, bail out
@@ -396,7 +344,7 @@ unless ( defined $status ) {
   $log->error(chomp($error));
   throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
 } else {    
-  $log->debug("Project file: " . $CONFIG->param( "jach.project" ) );
+  $log->debug("Project file: " . $config->get_option( "jach.project" ) );
 }
 
 # L A T E  L O A D I N G  M O D U L E S ------------------------------------- 
@@ -440,82 +388,27 @@ use Astro::Telescope;
 use eSTAR::JACH::SOAP::Daemon;  # replaces for SOAP::Transport::HTTP::Daemon
 use eSTAR::JACH::SOAP::Handler; # SOAP layer ontop of handler class
 
-# E S T A R   D A T A   D I R E C T O R Y -----------------------------------
+# M A K E   D I R E C T O R I E S -------------------------------------------
 
-# Grab the $ESTARDATA enivronment variable and confirm that this directory
-# exists and can be written to by the user, if $ESTARDATA isn't defined we
-# fallback to using the temporary directory /tmp.
-
-# Grab something for DATA directory
-if ( defined $ENV{"ESTARDATA"} ) {
-
-   if ( opendir (DIR, File::Spec->catdir($ENV{"ESTARDATA"}) ) ) {
-      # default to the ESTARDATA directory
-      $CONFIG->param("jach.data", File::Spec->catdir($ENV{"ESTARDATA"}) );
-      closedir DIR;
-      $log->debug("Verified \$ESTARDATA directory " . $ENV{"ESTARDATA"});
-   } else {
-      # Shouldn't happen?
-      my $error = "Cannot open $ENV{ESTARDATA} for incoming files";
-      $log->error($error);
-      throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
-   }  
-         
-} elsif ( opendir(TMP, File::Spec->tmpdir() ) ) {
-      # fall back on the /tmp directory
-      $CONFIG->param("jach.data", File::Spec->tmpdir() );
-      closedir TMP;
-      $log->debug("Falling back to using /tmp as \$ESTARDATA directory");
-} else {
-   # Shouldn't happen?
-   my $error = "Cannot open any directory for incoming files.";
-   $log->error($error);
-   throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
+# create the data, state and tmp directories if needed
+$status = $config->make_directories();
+unless ( defined $status ) {
+  # can't read/write to options file, bail out
+  my $error = "FatalError: Problems creating data directories";
+  $log->error( $error );
+  throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
 } 
-
-# A G E N T   S T A T E  D I R E C T O R Y ----------------------------------
-
-# This directory where the agent caches its Observation objects between runs
-my $state_dir = 
-   File::Spec->catdir( Config::User->Home(), ".estar",, 
-                       $process->get_process(), "state");
-
-if ( opendir ( SDIR, $state_dir ) ) {
-  
-  # default to the ~/.estar/$process->get_process()/state directory
-  $CONFIG->param("jach.cache", $state_dir );
-  $STATE->param("jach.cache", $state_dir );
-  $log->debug("Verified state directory ~/.estar/" .
-              $process->get_process() . "/state");
-  closedir SDIR;
-} else {
-  # make the directory
-  mkdir $state_dir, 0755;
-  if ( opendir (SDIR, $state_dir ) ) {
-     # default to the ~/.estar/$process->get_process()/state directory
-     $CONFIG->param("jach.cache", $state_dir );
-     $STATE->param("jach.cache", $state_dir );
-     closedir SDIR;  
-     $log->debug("Creating state directory ~/.estar/" .
-              $process->get_process() . "/state");
-  } else {
-     # can't open or create it, odd huh?
-     my $error = "Cannot make directory " . $state_dir;
-     $log->error( $error );
-     throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
-  }
-} 
-
 # L O A D   % R U N N I N G   S H A R E D   H A S H -----------------------        
 
 my ( @files );
-if ( opendir (DIR, $state_dir )) {
+if ( opendir (DIR, $config->get_state_dir() )) {
    foreach ( readdir DIR ) {
       push( @files, $_ ); 
    }
    closedir DIR;
 } else {
-   $log->error("Error: Can not open state directory ($state_dir) for reading" );      
+   $log->error("Error: Can not open state directory (" .
+               $config->get_state_dir() .") for reading" );      
 }         
 
 $log->print("Thawing outstanding observations from state directory...");
@@ -575,45 +468,12 @@ foreach my $i ( 2 ... $#files ) {
 if ( ($#files - 1) == 0 ) {
    $log->warn( "Warning: No outstanding observations found?" );
 }   
-                    
-# A G E N T   T E M P  D I R E C T O R Y ----------------------------------
-
-# This directory where the agent drops temporary files
-my $tmp_dir = 
-   File::Spec->catdir( Config::User->Home(), ".estar",
-                       $process->get_process(), "tmp");
-
-if ( opendir ( TDIR, $tmp_dir ) ) {
-  
-  # default to the ~/.estar/$process->get_process()/tmp directory
-  $CONFIG->param("jach.tmp", $tmp_dir );
-  $STATE->param("jach.tmp", $tmp_dir );
-  $log->debug("Verified tmp directory ~/.estar/" . 
-              $process->get_process() . "/tmp");
-  closedir TDIR;
-} else {
-  # make the directory
-  mkdir $tmp_dir, 0755;
-  if ( opendir (TDIR, $tmp_dir ) ) {
-     # default to the ~/.estar/$process->get_process()/tmp directory
-     $CONFIG->param("jach.tmp", $tmp_dir );
-     $STATE->param("jach.tmp", $tmp_dir );
-     closedir TDIR;  
-     $log->debug("Creating tmp directory ~/.estar/" . 
-              $process->get_process() . "/tmp");
-  } else {
-     # can't open or create it, odd huh?
-     my $error = "Cannot make directory " . $tmp_dir;
-     $log->error( $error );
-     throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
-  }
-}  
 
 # M A I N   O P T I O N S   H A N D L I N G ---------------------------------
 
 my $ip = inet_ntoa(scalar(gethostbyname(hostname())));
 
-if ( $STATE->param("jach.unique_process") == 1 ) {
+if ( $config->get_state("jach.unique_process") == 1 ) {
 
    my %user_id;
    tie %user_id, "CfgTie::TieUser";
@@ -623,28 +483,28 @@ if ( $STATE->param("jach.unique_process") == 1 ) {
    my $real_name = ${$current_user}{"GCOS"};
      
    # user defaults
-   $CONFIG->param("user.user_name", $ENV{"USER"} );
-   $CONFIG->param("user.real_name", $real_name );
-   $CONFIG->param("user.email_address", $ENV{"USER"} . "@" .hostdomain() );
-   $CONFIG->param("user.institution", "eSTAR Project" );
+   $config->set_option("user.user_name", $ENV{"USER"} );
+   $config->set_option("user.real_name", $real_name );
+   $config->set_option("user.email_address", $ENV{"USER"} . "@" .hostdomain() );
+   $config->set_option("user.institution", "eSTAR Project" );
       
    # SOAP server parameters
-   $CONFIG->param( "soap.host", $ip );
-   $CONFIG->param( "soap.port", 8080 );
+   $config->set_option( "soap.host", $ip );
+   $config->set_option( "server.port", 8080 );
 
    # interprocess communication
-   $CONFIG->param( "ua.user", "agent" );
-   $CONFIG->param( "ua.passwd", "InterProcessCommunication" );
+   $config->set_option( "ua.user", "agent" );
+   $config->set_option( "ua.passwd", "InterProcessCommunication" );
 
    # telescope information
-   $CONFIG->param( "dn.telescope", "UKIRT" );
+   $config->set_option( "dn.telescope", "UKIRT" );
 
    # garbage collection
-   $CONFIG->param( "jach.garbage", 30 );
+   $config->set_option( "jach.garbage", 30 );
    
    # connection options defaults
-   $CONFIG->param("connection.timeout", 5 );
-   $CONFIG->param("connection.proxy", 'NONE'  ); 
+   $config->set_option("connection.timeout", 5 );
+   $config->set_option("connection.proxy", 'NONE'  ); 
     
    # C O M M I T T   O P T I O N S  T O   F I L E S
    # ----------------------------------------------
@@ -652,8 +512,8 @@ if ( $STATE->param("jach.unique_process") == 1 ) {
    # committ CONFIG and STATE changes
    $log->warn("Initial default options being generated");
    $log->warn("Committing options and state changes...");
-   my $status = $CONFIG->write( $CONFIG->param( "jach.options" ) );
-   my $status = $STATE->write( $STATE->param( "jach.state" ) );
+   $status = $config->write_option( );
+   $status = $config->write_state( );
 }
    
 # ===========================================================================
@@ -664,7 +524,8 @@ $log->debug("Creating an HTTP User Agent...");
 
 
 # Create HTTP User Agent
-my $lwp = new LWP::UserAgent( timeout => $CONFIG->param("connection.timeout") );
+my $lwp = new LWP::UserAgent( 
+                timeout => $config->get_option("connection.timeout") );
 
 # Configure User Agent                         
 $lwp->env_proxy();
@@ -699,9 +560,9 @@ my $soap_server = sub {
    
    # create SOAP daemon
    $log->thread($thread_name, "Starting server on port " . 
-            $CONFIG->param( "soap.port") . " (\$tid = ".threads->tid().")");  
+       $config->get_option( "server.port") . " (\$tid = ".threads->tid().")");  
    $daemon = eval{ new eSTAR::JACH::SOAP::Daemon( 
-                      LocalPort     => $CONFIG->param( "soap.port"),
+                      LocalPort     => $config->get_option( "server.port"),
                       Listen        => 5, 
                       Reuse         => 1 ) };    
                     
@@ -754,10 +615,10 @@ my $garbage = sub {
    # create SOAP daemon
    $log->thread2($thread_name, "Starting garbage collection...");  
    $log->thread2($thread_name, "Collected every " .
-                 $CONFIG->param( "jach.garbage") . " seconds..." );
+                 $config->get_option( "jach.garbage") . " seconds..." );
  
    while( 1 ) {
-      sleep $CONFIG->param( "jach.garbage" );
+      sleep $config->get_option( "jach.garbage" );
       $main::log->print( "Garbage Collection started at ". ctime() );
       $log->thread2( $thread_name,
           "Running garbage collection (\$tid = " . threads->tid() . ")");
@@ -841,12 +702,11 @@ my $garbage = sub {
               # normal circumstances, which probably means I'll see this
               # error message next time I run the code.
               $log->warn("Warning: Bad status, trying to unlink observation");
-              my $file = 
-                File::Spec->catfile($main::CONFIG->param("jach.cache"), $key);
+              my $file = File::Spec->catfile($config->get_state_dir(), $key);
               unless ( unlink $file ) {
-                 $main::log->warn( "Warning: Unable to unlink file...");
+                 $log->warn( "Warning: Unable to unlink file...");
               } else {
-                  $main::log->warn( "Warning: Sucessfully unlinked file..."); 
+                  $log->warn( "Warning: Sucessfully unlinked file..."); 
               }          
               $log->warn( "Warning: Removing " . $key. " from \%running..." );
               delete ${ $run->get_hash() }{ $key };
@@ -901,7 +761,7 @@ END {
 sub kill_agent {
    my $from = shift;
          
-   if (  $from == ESTAR__FATAL ) {  
+   if ( $from eq ESTAR__FATAL ) {  
       $log->debug("Calling kill_agent( ESTAR__FATAL )");
       $log->warn("Warning: Shutting down agent after ESTAR__FATAL error...");
    } else {
@@ -916,8 +776,8 @@ sub kill_agent {
 
    # committ CONFIG and STATE changes
    #$log->warn("Warning: Committing options and state changes");
-   #my $status = $CONFIG->write( $CONFIG->param( "jach.options" ) );
-   #my $status = $STATE->write( $STATE->param( "jach.state" ) );
+   #$config->write_option( );
+   #$config->write_state( );
    
    # flush the error stack
    $log->debug("Flushing error stack...");
@@ -929,9 +789,14 @@ sub kill_agent {
 
    # close out log files
    $log->closeout();
-
+   
+   # ring my bell, baby
+   #if ( $OPT{"BLEEP"} == ESTAR__OK ) {
+   #  for (1..10) {print STDOUT "\a"; select undef,undef,undef,0.2}
+   #}
+   
    # kill -9 the agent process, hung threads should die screaming
-   killfam 9, ( $STATE->param( "jach.pid") );
+   killfam 9, ( $config->get_state( "jach.pid") );
    
    # close the door behind you!   
    exit;
@@ -941,6 +806,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: jach_agent.pl,v $
+# Revision 1.7  2005/01/11 17:18:26  aa
+# Refactored, should work once OMP issues are resolved  (see ChangeLog for details.
+#
 # Revision 1.6  2004/12/21 17:04:09  aa
 # Fixes to store the LWP::UserAgent in a single instance object and get rid of the last $main:: references in the handler code
 #
