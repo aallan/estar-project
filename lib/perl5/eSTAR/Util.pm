@@ -30,10 +30,10 @@ use eSTAR::Process;
 use eSTAR::Error qw /:try/;
 
 @ISA = qw/Exporter/;
-@EXPORT_OK = qw/make_cookie freeze thaw melt 
+@EXPORT_OK = qw/make_cookie make_id freeze thaw melt 
              get_option set_option get_state set_state/;
 
-'$Revision: 1.3 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.4 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # This is the code that is used to generate cookies based on the user
 # name and password. It is NOT cryptographically sound, it is just a
@@ -362,7 +362,7 @@ sub set_state {
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.3 2004/02/21 02:56:55 aa Exp $
+$Id: Util.pm,v 1.4 2004/03/05 00:57:28 aa Exp $
 
 =head1 AUTHORS
 
