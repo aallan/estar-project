@@ -40,6 +40,7 @@ use eSTAR::RTML::Build;
 use eSTAR::RTML::Parse;
 use eSTAR::Constants qw/:all/;
 use eSTAR::Util;
+use eSTAR::Mail;
 use eSTAR::Config;
 
 #

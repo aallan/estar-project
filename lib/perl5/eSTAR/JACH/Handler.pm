@@ -626,9 +626,10 @@ sub handle_rtml {
 
                  $log->debug( "Confirmed that this is a template MSB" );
                  $template = $m;
-                 next;
+                 last;
                } else {
                  $log->warn( "Warning: MSB does not have blank targets" );
+                 last;
                }
                
             }
