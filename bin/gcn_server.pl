@@ -22,7 +22,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: gcn_server.pl,v 1.10 2005/02/14 20:23:26 aa Exp $
+$Id: gcn_server.pl,v 1.11 2005/02/14 21:52:36 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -41,7 +41,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.10 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -505,9 +505,9 @@ my $tcp_callback = sub {
                                                  
            if ( $@ ) {
               $log->warn("Warning: Problem connecting to user agent");
-              $log->error("Error: $@");
+              $log->error("Error: " . chomp($@) );
            } else {
-              $log->print("Connection closed");  
+              $log->debug("Connection closed...");  
             
            }                                       
          
