@@ -155,6 +155,7 @@ sub dump_hash {
    my $self = shift;
 
    $log->debug("Called dump_running() from \$tid = ".threads->tid());
+   $config->reread();
    
    # not callable as a static method, so must have a value
    # user object stored within             
@@ -176,6 +177,7 @@ sub get_option {
    my $self = shift;
 
    $log->debug("Called get_option() from \$tid = ".threads->tid());
+   $config->reread();
    
    # not callable as a static method, so must have a value
    # user object stored within             
@@ -205,6 +207,7 @@ sub set_option {
    my $self = shift;
 
    $log->debug("Called set_option() from \$tid = ".threads->tid());
+   $config->reread();
    
    # not callable as a static method, so must have a value
    # user object stored within             
@@ -272,6 +275,7 @@ sub handle_rtml {
    my $document = shift;
 
    $log->debug("Called handle_rtml() from \$tid = ".threads->tid());
+   $config->reread();
   
    # debugging
    #use Data::Dumper;
@@ -941,7 +945,7 @@ return SOAP::Data->name('return', $reject)->type('base64');
          "the summit if you feel this request may be a mistake.\n";
       
       eSTAR::Mail::send_mail( $parsed->email(), $parsed->name(),
-                              'allan@jach.hawaii.edu',
+                              'frossie@jach.hawaii.edu',
                               'eSTAR UKIRT queue submission',
                               $mail_body );
  
@@ -1022,6 +1026,7 @@ sub handle_data {
    my %data = @_;
 
    $log->debug("Called handle_data() from \$tid = ".threads->tid());
+   $config->reread();
 
    # not callable as a static method, so must have a value
    # user object stored within             
@@ -1326,7 +1331,7 @@ sub handle_data {
    my $soap = new SOAP::Lite();
   
    $soap->uri('urn:/user_agent'); 
-   $soap->proxy($endpoint, cookie_jar => $cookie_jar);
+   $soap->proxy($endpoint, cookie_jar => $cookie_jar, timeout => 10);
    
    # report
    $log->print("Connecting to " . $host . "..." );

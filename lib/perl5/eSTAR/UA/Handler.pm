@@ -140,6 +140,7 @@ sub get_option {
    my $self = shift;
 
    $log->debug("Called get_option() from \$tid = ".threads->tid());
+   $config->reread();
    
    # not callable as a static method, so must have a value
    # user object stored within             
@@ -168,7 +169,8 @@ sub get_option {
 sub set_option {
    my $self = shift;
 
-   $log->debug("Called set_option() from \$tid = ".threads->tid());
+   $log->debug("Called set_option() from \$tid = ".threads->tid());   
+   $config->reread();
    
    # not callable as a static method, so must have a value
    # user object stored within             
@@ -181,6 +183,7 @@ sub set_option {
    
    my $option = shift;
    my $value = shift;
+
 
    $log->debug("Setting $option = $value");
    my $status = $config->set_option( $option, $value );
@@ -254,6 +257,7 @@ sub new_observation {
    #print "eSTAR::SOAP::User = " . Dumper($self->{_user}) . "\n";
 
    $log->debug("Called new_observation() from \$tid = ".threads->tid());
+   $config->reread();
    
    # check we have a valid user object            
    unless ( my $user = $self->{_user}) {
@@ -529,7 +533,7 @@ sub new_observation {
       my $soap = new SOAP::Lite();
   
       $soap->uri('urn:/node_agent'); 
-      $soap->proxy($endpoint, cookie_jar => $cookie_jar);
+      $soap->proxy($endpoint, cookie_jar => $cookie_jar, timeout => 10);
     
       # report
       $log->print("Connecting to " . $NODES[$i] . "..." );
@@ -588,20 +592,22 @@ sub new_observation {
    # check we have any scores
    unless ( defined $best_node && defined $score_reply ) {
       my $error = "Error: No nodes able to carry out observation";
-      $log->error( $error );
       
       if( $config->get_option("user.notify") == 1 ) {
       
           $log->print( "Sending notification email...");
             
           my $mail_body = 
-            "Your user agent attempted to submit your observing request\n" .
-            "to all telescopes known to it but failed. There were no nodes\n" .
-            "capable of carying out the observation, however the reason is\n" .
-            "not known so it may idicate an error has occured.\n" .
-            "\n" .
-            "If you feel this is the case you should try and followup the\n" .
-            "manually.\n";
+            "Your user agent attempted to score your observing request\n" .
+            "of type $observation{type} with all known telescopes. However\n".
+            "there were no nodes capable of carying out the observation.\n".
+            "\n".
+            "The reason for this is not known so it may idicate an error\n".
+            "has occured, the RTML which was sent to the telescopes is\n".
+            "attaced below. If you feel an error has occured you should\n".
+            "try and place the observation manually.\n" .
+            "\n\n".
+            $observation_object->score_request()->dump_rtml();
       
           eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
                               $config->get_option("user.real_name"),
@@ -610,6 +616,7 @@ sub new_observation {
                               $mail_body ); 
       }           
       
+      $log->error( $error );
       return SOAP::Data->name('return', $error )->type('xsd:string');   
    }
 
@@ -622,19 +629,23 @@ sub new_observation {
    # check the best score is not zero
    if ( $best_score == 0.0 ) {
       my $error = "Error: best score is $best_score, possible problem?";
-      $log->error( $error );
       
       if( $config->get_option("user.notify") == 1 ) {
       
           $log->print( "Sending notification email...");
             
           my $mail_body = 
-            "Your user agent attempted to submit your observing request\n" .
-            "to all telescopes known to it but failed. All scopes returned\n".
-            "a score of zero indicating that the target was unobservable.\n".
-            "\n" .
-            "If you feel this is in error you should try and observe manually\n";
-      
+            "Your user agent attempted to score your observing request\n" .
+            "of type $observation{type} with all known telescopes. All\n".
+            "telescopes returned a score of zero indicating that the target\n".
+            "was below their horizon or otherwise unobservable.\n".
+            "\n".
+            "The RTML which was sent to the telescopes is attaced below. If\n".
+            "you feel an error has occured you should try and place the \n".
+            "observation manually.\n" .
+            "\n\n".
+            $observation_object->score_request()->dump_rtml();
+            
           eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
                               $config->get_option("user.real_name"),
                               'aa@astro.ex.ac.uk',
@@ -642,6 +653,7 @@ sub new_observation {
                               $mail_body ); 
       }                                          
       
+      $log->error( $error );
       return SOAP::Data->name('return', $error )->type('xsd:string');   
    }
    
@@ -715,7 +727,7 @@ sub new_observation {
    my $soap = new SOAP::Lite();
   
    $soap->uri('urn:/node_agent'); 
-   $soap->proxy($endpoint, cookie_jar => $cookie_jar);
+   $soap->proxy($endpoint, cookie_jar => $cookie_jar, timeout => 10);
     
    # report
    $log->print("Connecting to " . $best_node . "..." );
@@ -729,7 +741,6 @@ sub new_observation {
                SOAP::Data->name('query', $obs_rtml )->type('xsd:string') ); };
    if ( $@ ) {
       my $error = "Error: Failed to connect to " . $best_node;
-      $log->error( $error );
       
       if( $config->get_option("user.notify") == 1 ) {
       
@@ -737,11 +748,15 @@ sub new_observation {
             
           my $mail_body = 
             "Your user agent attempted to submit your observing request\n" .
-            "to all telescopes known to it but failed to reconnect to the\n" .
-            "node which produced the best score during the inital poll.\n".
+            "of type $observation{type} to $best_node but it but failed\n".
+            "to reconnect to $best_node after it had recieved a valid inital\n".
+            "score from that node. The RTML message that was sent to the\n".
+            "node is attached below.\n".
             "\n" .
             "This may indicate an error has occured. If you feel this is\n".
-            "the case you should try and followup the manually.\n";
+            "the case you should try and followup the manually.\n".
+            "\n\n".
+            $observation_object->obs_request()->dump_rtml();
       
           eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
                               $config->get_option("user.real_name"),
@@ -751,6 +766,7 @@ sub new_observation {
       }         
       
       
+      $log->error( $error );
       return SOAP::Data->name('return', $error )->type('xsd:string'); 
    }
    
@@ -768,7 +784,6 @@ sub new_observation {
    eval { $ers_reply = new eSTAR::RTML( Source => $reply ); };
    if ( $@ ) {
       my $error = "Error: Unable to parse ERS reply, not XML?";
-      $log->error( $error );
       
       if( $config->get_option("user.notify") == 1 ) {
       
@@ -776,12 +791,13 @@ sub new_observation {
             
           my $mail_body = 
             "Your user agent attempted to submit your observing request\n" .
-            "to all telescopes known to it but failed to parse the reply\n" .
-            "from the node which produced the best score during the inital\n".
-            "poll.\n".
+            "of type $observation{type} to $best_node but failed to parse\n".
+            "the reply. The RTML message sent to the node is attached below.\n".
             "\n" .
             "This may indicate an error has occured. If you feel this is\n".
-            "the case you should try and followup the manually.\n";
+            "the case you should try and followup the manually.\n".
+            "\n\n".
+            $observation_object->obs_request()->dump_rtml();
       
           eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
                               $config->get_option("user.real_name"),
@@ -790,15 +806,13 @@ sub new_observation {
                               $mail_body ); 
       }      
       
+      $log->error( $error );
       return SOAP::Data->name('return', $error )->type('xsd:string');           
    }
             
    # check for errors, if none stuff the score reply into the
    # observation object
    unless ( defined $ers_reply->determine_type() )  {
-      $log->warn("Warning: node $best_node has gone down since scoring");
-      $log->warn("Warning: discarding observation from queue");
-      
       my $error = "Error: node $best_node has gone down since scoring";
       
       if( $config->get_option("user.notify") == 1 ) {
@@ -807,20 +821,26 @@ sub new_observation {
             
           my $mail_body = 
             "Your user agent attempted to submit your observing request\n" .
-            "to all telescopes known to it but failed to parse the reply\n" .
-            "from the node which produced the best score during the inital\n".
-            "poll.\n".
+            "of type $observation{type} to $best_node but it but failed\n".
+            "to reconnect to $best_node after it had recieved a valid inital\n".
+            "score from that node. The RTML message that was sent to the\n".
+            "node is attached below.\n".
             "\n" .
             "This may indicate an error has occured. If you feel this is\n".
-            "the case you should try and followup the manually.\n";
+            "the case you should try and followup the manually.\n".
+            "\n\n".
+            $observation_object->obs_request()->dump_rtml(); 
       
           eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
                               $config->get_option("user.real_name"),
                               'aa@astro.ex.ac.uk',
-                              'eSTAR User Agent (Bad Parse)',
+                              'eSTAR User Agent (Node Down)',
                               $mail_body ); 
       }            
       
+      $log->warn("Warning: node $best_node has gone down since scoring");
+      $log->warn("Warning: discarding observation from queue");
+      $log->error( $error );
       return SOAP::Data->name('return', $error )->type('xsd:string');
   
    } else {
@@ -873,7 +893,6 @@ sub new_observation {
       } else {
          $log->debug( $best_node . " rejected the observation" );
          my $error = "Error: Observation rejected";
-         $log->error( $error );
          
       
          if( $config->get_option("user.notify") == 1 ) {
@@ -881,12 +900,15 @@ sub new_observation {
              $log->print( "Sending notification email...");
              
              my $mail_body = 
-               "Your user agent attempted to submit your observing request\n" .
-               "to the best scoring telescope, but the request was rejected\n".
-               "with the error,\n" .
-               "\n$error\n" .
-               "This is a fatal error has occured. You may want to try and\n".
-               "followup up manually.\n";
+              "Your user agent attempted to submit your observing request\n" .
+              "of type $observation{type} to $best_node but the request\n".
+              "was rejected with the error,\n" .
+              "\n$error\n" .
+              "This is a fatal error. You may want to try and followup up\n".
+              "manually. The RTML message that was sent to the node is\n".
+              "attached below\n".
+              "\n\n".
+              $observation_object->obs_request()->dump_rtml();
       
              eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
                               $config->get_option("user.real_name"),
@@ -895,6 +917,7 @@ sub new_observation {
                               $mail_body ); 
          }               
          
+         $log->error( $error );
          return SOAP::Data->name('return', $error )->type('xsd:string'); 
       }
                 
@@ -906,7 +929,10 @@ sub new_observation {
             
           my $mail_body = 
             "Your user agent has submitted an observing request into the\n" .
-            "queue at $best_node of type $observation{type}.\n";
+            "queue at $best_node of type $observation{type}. The RTML\n".
+            "message that was sent to the node is attached below\n".
+            "\n\n".
+            $observation_object->obs_request()->dump_rtml();
       
           eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
                               $config->get_option("user.real_name"),
@@ -917,7 +943,6 @@ sub new_observation {
    
    # return sucess code
    $log->debug( "Returning 'QUEUED OK' message" );
-   
    return SOAP::Data->name('return', 'QUEUED OK')->type('xsd:string');
    
 }
@@ -929,6 +954,7 @@ sub handle_rtml {
 
    #print Dumper( $rtml );
    $log->debug("Called handle_rtml() from \$tid = ".threads->tid());
+   $config->reread();
    
    # check we have a valid user object            
    unless ( my $user = $self->{_user}) {

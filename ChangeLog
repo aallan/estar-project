@@ -6,7 +6,13 @@
           
         * All Handler.pm files: Fixed bad bug in set_option() method which
           meant that we had race conditions on the options files and they
-          were getting broken 
+          were getting broken.
+          
+        * Bad race conditions with the configuration files again, I wish
+          I'd never used them, horrible things. Moved User Agent to use the
+          ThreadOnAccept.pm module and forced rereads at the start of all
+          methods in Handler.pm (amongst other things). This seems to cure
+          the problems, at least for now.   
           
 2005-02-14 Aladair Allan <aa@astro.ex.ac.uk>
 

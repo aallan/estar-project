@@ -174,7 +174,8 @@ sub get_option {
    my $self = shift;
 
    $log->debug("Called get_option() from \$tid = ".threads->tid());
-   
+   $config->reread();
+  
    # not callable as a static method, so must have a value
    # user object stored within             
    unless ( my $user = $self->{_user}) {
@@ -203,6 +204,7 @@ sub set_option {
    my $self = shift;
 
    $log->debug("Called set_option() from \$tid = ".threads->tid());
+   $config->reread();
    
    # not callable as a static method, so must have a value
    # user object stored within             
@@ -247,6 +249,7 @@ sub populate_db {
    my @args = @_;
    
    $log->debug("Called populate_db() from \$tid = ".threads->tid());
+   $config->reread();
    
    # CHECK FOR USER DATA
    # ===================
@@ -307,7 +310,8 @@ sub handle_results {
    my @args = @_;
    
    $log->debug("Called handle_results() from \$tid = ".threads->tid());
-   
+   $config->reread();
+  
    # CHECK FOR USER DATA
    # ===================
    

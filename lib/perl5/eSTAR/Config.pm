@@ -20,7 +20,7 @@ use vars qw/$VERSION @EXPORT @ISA/;
               get_state set_state write_state make_directories
               get_data_dir get_state_dir get_tmp_dir /;
 
-'$Revision: 1.4 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.5 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 my $SINGLETON;
 
@@ -63,10 +63,24 @@ sub reread {
    my $log = eSTAR::Logging::get_reference();
    
    $log->warn( "Warning: Forced read of $self->{CONFIG_FILE}" );
-   $self->{CONFIG}->read( $self->{CONFIG_FILE} );
    
+   my $config_file = $self->{CONFIG_FILE};
+   if ( open ( FILE, "<$config_file" ) ) {
+      close( FILE );
+      $self->{CONFIG}->read( $self->{CONFIG_FILE} );
+   } else {
+      $log->warn("Warning: $config_file does not exist.");
+   }
+
    $log->warn( "Warning: Forced read of $self->{STATE_FILE}" );
-   $self->{STATE}->read( $self->{STATE_FILE} );
+   
+   my $state_file = $self->{STATE_FILE};
+   if ( open ( FILE, "<$state_file" ) ) {
+      close( FILE );
+      $self->{STATE}->read( $self->{STATE_FILE} );
+   } else {
+      $log->warn("Warning: $state_file does not exist.");
+   }   
  
 } 
    

@@ -38,7 +38,7 @@ use eSTAR::Util;
 @ISA = qw/Exporter/;
 @EXPORT_OK = qw/ send_mail /;
 
-'$Revision: 1.3 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.4 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 
 sub send_mail {
@@ -68,6 +68,7 @@ sub send_mail {
    } else {
 
      $log->debug( "Talking to mailserver..." );
+     $log->debug( "Sending mail from $from to $to" );
                     
      $smtp->mail( $from );
      $smtp->to( $to );
@@ -94,7 +95,7 @@ sub send_mail {
 
 =head1 REVISION
 
-$Id: Mail.pm,v 1.3 2005/02/15 17:00:34 aa Exp $
+$Id: Mail.pm,v 1.4 2005/02/15 20:41:23 aa Exp $
 
 =head1 AUTHORS
 
