@@ -22,7 +22,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: gcn_server.pl,v 1.9 2005/02/11 15:03:23 aa Exp $
+$Id: gcn_server.pl,v 1.10 2005/02/14 20:23:26 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -41,7 +41,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.10 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -77,6 +77,7 @@ use Config;
 use IO::Socket;
 use Errno qw(EWOULDBLOCK EINPROGRESS);
 use Net::Domain qw(hostname hostdomain);
+use Net::SMTP;
 use Time::localtime;
 use Getopt::Long;
 use Data::Dumper;
@@ -264,7 +265,9 @@ $status = GetOptions( "host=s"     => \$opt{"host"},
                       "port=s"     => \$opt{"port"},
                       "user=s"     => \$opt{"user"},
                       "pass=s"     => \$opt{"pass"},
-                      "agent=s"    => \$opt{"agent"} );
+                      "agent=s"    => \$opt{"agent"},
+                      "email=s"    => \$opt{"email_address"},
+                      "name=s"     => \$opt{"real_name"} );
 
 # default hostname
 unless ( defined $opt{"host"} ) {
@@ -316,6 +319,16 @@ unless( defined $opt{"pass"} ) {
 } else{       
    $log->warn("Warning: Resetting password...");
    $config->set_option("gcn.passwd", $opt{"pass"} );
+}
+
+
+# only redifine the user's real name and email address if
+if( defined $opt{"email_address"} ) {
+   $log->warn("Warning: Resetting user email to $opt{email_address}");
+}
+
+if( defined $opt{"real_name"} ) {
+   $log->warn("Warning: Resetting user's real name to $opt{real_name}");
 }
 
 # T C P / I P   S E R V E R   C O D E --------------------------------------
@@ -370,7 +383,7 @@ my $tcp_callback = sub {
          $log->debug("Repacking into a big-endian long...");
          my $bit_string = pack("N", $$message[18] );
          $log->debug("Unpacking to bit string...");
-         my $bit_string = unpack( "B32", $bit_string );
+         $bit_string = unpack( "B32", $bit_string );
 
          $log->debug("Chopping up the bit string...");
          my @bits;
@@ -448,11 +461,113 @@ my $tcp_callback = sub {
          my $soap = new SOAP::Lite();
          $soap->uri('urn:/user_agent'); 
          $soap->proxy($endpoint, cookie_jar => $cookie_jar);
+
+         # ==============================================================
+        
+         # Set the user_agent's username and email address if the 
+         # default was overridden by the gcn_server command line options.
+         
+         # This is a hack and needs to be sorted quickly!
+         
+         # ==============================================================
+         
+         $log->print("Making a SOAP conncetion for to set_option()...");
+        
+         my $result;
+         
+         if( defined $opt{real_name} ) {
+         
+           $log->debug(
+               "Making a SOAP conncetion to set_option(user.real_name) = " .
+               $opt{"real_name"} );
+           eval { $result = $soap->set_option( "user.real_name", 
+                                                 $opt{"real_name"} ); };
+                                                 
+           if ( $@ ) {
+              $log->warn("Warning: Problem connecting to user agent");
+              $log->error("Error: $@");
+           } else {
+              $log->print("Connection closed");  
+            
+           }                                       
+         
+         }
+
+         $log->print("Making a SOAP conncetion for to set_option()...");
+         
+         if( defined $opt{email_address} ) {
+          
+           $log->debug(
+             "Making a SOAP conncetion to set_option(user.email_address) = " .
+             $opt{"email_address"} );         
+           eval { $result = $soap->set_option( "user.email_address", 
+                                                 $opt{"email_address"} ); };
+                                                 
+           if ( $@ ) {
+              $log->warn("Warning: Problem connecting to user agent");
+              $log->error("Error: $@");
+           } else {
+              $log->print("Connection closed");  
+            
+           }                                       
+         
+         }   
+         
+         
+         # Send a notification
+         # -------------------
+         
+         if ( defined $opt{real_name} && defined $opt{email_address} ) {
+         
+            $log->print( "Sending notification email...");
+            
+            my $smtp = new Net::SMTP(  Host  => 'butch.astro.ex.ac.uk',
+                                       Hello => 'astro.ex.ac.uk',
+                                       Timeout => 30,
+                                       Debug   => 1,
+                                    );   
+    
+            if ( $@ ) {
+               $log->error("Error: $@");
+            } else {
+
+               $log->debug( "Talking to mailserver..." );
+                       
+               $smtp->mail('aa@astro.ex.ac.uk');
+               $smtp->to( $opt{email_address} );
+
+               $smtp->data();
+               $smtp->datasend("To: $opt{real_name} <$opt{email_address}>\n");
+               $smtp->datasend(
+               'From: eSTAR Project <aa@astro.ex.ac.uk>' . "\n");
+               $smtp->datasend("Subject: eSTAR ACK SWIFT XPT postion\n");
+               $smtp->datasend("\n");
+               $smtp->datasend(
+               "This message indicates that the eSTAR system has recieved\n");
+               $smtp->datasend(
+               "a postion update alert and is currently attempting to place\n");
+               $smtp->datasend(
+               "followup observations into the UKIRT queue. If you do not\n");
+               $smtp->datasend(
+               "recieve notification that this has been successful you may\n");
+               $smtp->datasend(
+               "wish to attempt manual followup.\n");             
+               $smtp->dataend();
+
+               $smtp->quit;
+  
+               $log->debug( "Conneciton closed..." );               
+
+            }
+
+         } else {
+         
+             $log->warn("Warning: No email notification sent" );
+         }
          
          # Submit an inital burst followup block
          # -------------------------------------
          $log->print("Making a SOAP conncetion for InitialBurstFollowup...");
-         my $result;
          eval { $result = $soap->new_observation( 
                               user     => $config->get_option("gcn.user"),
                               pass     => $config->get_option("gcn.passwd"),
@@ -465,15 +580,16 @@ my $tcp_callback = sub {
          if ( $@ ) {
             $log->warn("Warning: Problem connecting to user agent");
             $log->error("Error: $@");
+            $log->error("Error: Aborting submission of observations");
+            $log->print("Connection closed");      
+           
          } else {
             $log->print("Connection closed");      
-         }
          
-         # Submit an burst followup block
-         # -------------------------------------
-         $log->print("Making a SOAP conncetion for BurstFollowup...");
-         my $result;
-         eval { $result = $soap->new_observation( 
+            # Submit an burst followup block
+            # -------------------------------------
+            $log->print("Making a SOAP conncetion for BurstFollowup...");
+            eval { $result = $soap->new_observation( 
                               user     => $config->get_option("gcn.user"),
                               pass     => $config->get_option("gcn.passwd"),
                               type     => 'BurstFollowup',
@@ -482,13 +598,15 @@ my $tcp_callback = sub {
                               followup => 0,
                               exposure => 30,
                               passband => "k98" ); };
-         if ( $@ ) {
-            $log->warn("Warning: Problem connecting to user agent");
-            $log->error("Error: $@");
-         } else {
-            $log->print("Connection closed");      
-         } 
-                 
+            if ( $@ ) {
+               $log->warn("Warning: Problem connecting to user agent");
+               $log->error("Error: $@");
+            } else {
+               $log->print("Connection closed");      
+            } 
+         
+         }
+        
       # TYPE_SWIFT_XRT_CENTROID_SRC (type 71)
       # SWIFT XRT Position NOT Ack message (Centroid Error)
       # ---------------------------------------------------
