@@ -576,10 +576,10 @@ sub handle_rtml {
          my $password =  $project->get_project("project.".$project_id);
 
          try {                                  
-            $sp = new OMP::SciServer( $project_id, $password, 1 );
+            $sp = new OMP::SpServer->fetchProgram( $project_id, $password, 1 );
             unless ( $sp ) {
                throw eSTAR::Error::FatalError( 
-                                    "OMP::SciServer() returned undef...") 
+                   "OMP::SpServer()->fetchProgram returned undef..."); 
             }
          } otherwise {
             my $error = shift;
