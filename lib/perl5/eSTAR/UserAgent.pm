@@ -1,4 +1,4 @@
-package eSTAR::UserAgents;
+package eSTAR::UserAgent;
 
 =head1 NAME
 
@@ -32,7 +32,7 @@ use vars qw/$VERSION @EXPORT @ISA/;
 @ISA = qw/Exporter/;
 @EXPORT = qw/set_ua get_ua/;
 
-'$Revision: 1.1 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.2 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 my $SINGLETON;
 
@@ -43,7 +43,7 @@ sub new {
    my $class = ref($proto) || $proto;   
    $SINGLETON = bless { UA => undef, }, $class;
    
-   $SINGLETON->set_process( @_ );
+   $SINGLETON->set_ua( @_ ) if defined @_;
    return $SINGLETON;
 }
 
@@ -67,7 +67,7 @@ sub get_ua {
 
 =head1 REVISION
 
-$Id: UserAgent.pm,v 1.1 2004/12/21 17:03:29 aa Exp $
+$Id: UserAgent.pm,v 1.2 2004/12/21 17:10:19 aa Exp $
 
 =head1 AUTHORS
 
