@@ -1,3 +1,14 @@
+2005-03-22 Aladair Allan <aa@astro.ex.ac.uk>
+
+        * Location of the currently deployed instrument held in $INST_TYPE
+          environment variable. For UKIRT instrument file is $INST_TYPE/ukirt
+          
+        * JACH/Handler.pm: Added check for instrument type to the template
+          handling code.
+          
+        * eSTAR/JACH/Util.pm: Method to check the XML file containing the
+          current instrument.    
+
 2005-02-15 Aladair Allan <aa@astro.ex.ac.uk>
 
         * Created an eSTAR::Mail class to handle mail messages, modified
@@ -20,7 +31,7 @@
           trying to parse another file, close() it first." errors from the
           Config::Simple module. I'm not sure what was going on really, cured
           this by forcing recreation of the Config::Simple object on reread()
-          inside eSTAR::Config. I think this should slove things, it seems
+          inside eSTAR::Config. I think this should solve things, it seems
           to have fixed both the race conditions and the flock'ing problem.
           
         * Yuck!

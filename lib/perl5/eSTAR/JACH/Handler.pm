@@ -49,6 +49,7 @@ use eSTAR::Util;
 use eSTAR::Mail;
 use eSTAR::JACH::Running;
 use eSTAR::JACH::Project;
+use eSTAR::JACH::Util;
 use eSTAR::Config;
 
 #
@@ -633,17 +634,33 @@ sub handle_rtml {
             my $looking_for = $parsed->targetident();
             if ( $m->msbtitle()  =~ /\b$looking_for/ ) {
             
-            
                $log->debug( "Matched '" . $m->msbtitle() . "'" );
-               if ( $m->hasBlankTargets() ) {
+               
+               # Grab the instrument from this MSB
+               my $minfo = $m->info();
+               my $msb_inst = $minfo->instrument();
+               $log->debug( "This MSB is for $msb_inst" );
+               
+               my $curr_inst = eSTAR::JACH::Util::current_instrument( 
+                                    $config->get_option( "dn.telescope") );
+               $log->debug( "Current instrument is $curr_inst" );
+               
+               if ( $msb_inst eq $curr_inst ) {
+                  $log->debug( "MSB and current instrument match..." );
+               
+                  # If it has blank targets it is a template MSB
+                  if ( $m->hasBlankTargets() ) {
 
-                 $log->debug( "Confirmed that this is a template MSB" );
-                 $template = $m;
-                 last;
+                    $log->debug( "Confirmed that this is a template MSB" );
+                    $template = $m;
+                    last;
+                  } else {
+                    $log->warn( "Warning: MSB does not have blank targets" );
+                    last;
+                  }
                } else {
-                 $log->warn( "Warning: MSB does not have blank targets" );
-                 last;
-               }
+                  $log->debug( "MSB and current instrument do not match..." );
+               }   
                
             }
          }
