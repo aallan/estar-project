@@ -10,7 +10,7 @@
 #    C-shell script
 
 #  Invocation:
-#    source $ESTAR3_DIR/etc/wfcam_agent.csh
+#    source $ESTAR_DIR/etc/wfcam_agent.csh
 
 #  Description:
 #    Sets all the aliases required to run the eSTAR WFCAM Agent, passes
@@ -21,6 +21,9 @@
 
 #  History:
 #     $Log: wfcam_agent.csh,v $
+#     Revision 1.3  2004/11/12 14:32:04  aa
+#     Extensive changes to support jach_agent.pl, see ChangeLog
+#
 #     Revision 1.2  2004/02/19 23:33:54  aa
 #     Inital skeleton of the WFCAM agent, with ping() and echo() methods
 #     exposed by the Handler class. Currently using ForkAfterProcessing
@@ -31,7 +34,7 @@
 #
 
 #  Revision:
-#     $Id: wfcam_agent.csh,v 1.2 2004/02/19 23:33:54 aa Exp $
+#     $Id: wfcam_agent.csh,v 1.3 2004/11/12 14:32:04 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -40,13 +43,13 @@
 
 # Need to make sure we use the right PERL (v5.8.3)
 
-# Check for the existence of a $ESTAR3_PERLBIN environment variable and
+# Check for the existence of a $ESTAR_PERLBIN environment variable and
 # allow that to be used in preference to the starlink version if set.
 
-if ($?ESTAR3_PERLBIN) then
-  setenv PERL $ESTAR3_PERLBIN
+if ($?ESTAR_PERLBIN) then
+  setenv PERL $ESTAR_PERLBIN
   echo " "
-  echo "ESTAR3_PERLBIN = ${ESTAR3_PERLBIN}"
+  echo "ESTAR_PERLBIN = ${ESTAR_PERLBIN}"
 else
   setenv PERL NONE
 endif
@@ -74,10 +77,10 @@ endif
 
 # Default for ESTAR_PERL5LIB
 
-if (! $?ESTAR3_PERL5LIB) then
-  setenv ESTAR3_PERl5LIB ${ESTAR3_DIR}/lib/perl5
+if (! $?ESTAR_PERL5LIB) then
+  setenv ESTAR_PERl5LIB ${ESTAR_DIR}/lib/perl5
   echo " "
-  echo "ESTAR3_PERL5LIB = ${ESTAR3_PERl5LIB}"
+  echo "ESTAR_PERL5LIB = ${ESTAR_PERl5LIB}"
 endif
 
 # These are perl programs
@@ -99,7 +102,7 @@ if (-e $PERL ) then
   echo "--------------------------------"
   echo "Please wait..."
   echo "Starting WFCAM Agent (${ia_args} )"
-  ${PERL} ${ESTAR3_DIR}/bin/wfcam_agent.pl ${ia_args}
+  ${PERL} ${ESTAR_DIR}/bin/wfcam_agent.pl ${ia_args}
 
 else
   echo " "

@@ -13,13 +13,13 @@
 #    Perl script
 
 #  Invocation:
-#    Invoked by source ${ESTAR3_DIR}/etc/wfcam_agent.csh
+#    Invoked by source ${ESTAR_DIR}/etc/wfcam_agent.csh
 
 #  Authors:
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: wfcam_agent.pl,v 1.8 2004/11/05 14:38:01 aa Exp $
+#     $Id: wfcam_agent.pl,v 1.9 2004/11/12 14:32:04 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -63,7 +63,7 @@ passing data mining jobs out to a seperate data ining process.
 
 =head1 REVISION
 
-$Id: wfcam_agent.pl,v 1.8 2004/11/05 14:38:01 aa Exp $
+$Id: wfcam_agent.pl,v 1.9 2004/11/12 14:32:04 aa Exp $
 
 =head1 AUTHORS
 
@@ -80,7 +80,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -110,7 +110,7 @@ use threads::shared;
 #
 # UA modules
 #
-use lib $ENV{"ESTAR3_PERL5LIB"};     
+use lib $ENV{"ESTAR_PERL5LIB"};     
 use eSTAR::Logging;
 use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:all/;
@@ -338,21 +338,21 @@ use eSTAR::WFCAM::SOAP::Handler; # SOAP layer ontop of handler class
 
 # E S T A R   D A T A   D I R E C T O R Y -----------------------------------
 
-# Grab the $ESTAR3_DATA enivronment variable and confirm that this directory
-# exists and can be written to by the user, if $ESTAR3_DATA isn't defined we
+# Grab the $ESTAR_DATA enivronment variable and confirm that this directory
+# exists and can be written to by the user, if $ESTAR_DATA isn't defined we
 # fallback to using the temporary directory /tmp.
 
 # Grab something for DATA directory
-if ( defined $ENV{"ESTAR3_DATA"} ) {
+if ( defined $ENV{"ESTAR_DATA"} ) {
 
-   if ( opendir (DIR, File::Spec->catdir($ENV{"ESTAR3_DATA"}) ) ) {
-      # default to the ESTAR3_DATA directory
-      $CONFIG->param("wfcam.data", File::Spec->catdir($ENV{"ESTAR3_DATA"}) );
+   if ( opendir (DIR, File::Spec->catdir($ENV{"ESTAR_DATA"}) ) ) {
+      # default to the ESTAR_DATA directory
+      $CONFIG->param("wfcam.data", File::Spec->catdir($ENV{"ESTAR_DATA"}) );
       closedir DIR;
-      $log->debug("Verified \$ESTAR3_DATA directory " . $ENV{"ESTAR3_DATA"});
+      $log->debug("Verified \$ESTAR_DATA directory " . $ENV{"ESTAR_DATA"});
    } else {
       # Shouldn't happen?
-      my $error = "Cannot open $ENV{ESTAR3_DATA} for incoming files";
+      my $error = "Cannot open $ENV{ESTAR_DATA} for incoming files";
       $log->error($error);
       throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
    }  
@@ -361,7 +361,7 @@ if ( defined $ENV{"ESTAR3_DATA"} ) {
       # fall back on the /tmp directory
       $CONFIG->param("wfcam.data", File::Spec->tmpdir() );
       closedir TMP;
-      $log->debug("Falling back to using /tmp as \$ESTAR3_DATA directory");
+      $log->debug("Falling back to using /tmp as \$ESTAR_DATA directory");
 } else {
    # Shouldn't happen?
    my $error = "Cannot open any directory for incoming files.";
@@ -632,6 +632,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: wfcam_agent.pl,v $
+# Revision 1.9  2004/11/12 14:32:04  aa
+# Extensive changes to support jach_agent.pl, see ChangeLog
+#
 # Revision 1.8  2004/11/05 14:38:01  aa
 # Minor docs change
 #

@@ -10,7 +10,7 @@
 #    C-shell script
 
 #  Invocation:
-#    source $ESTAR2_DIR/etc/jach_agent.csh
+#    source $ESTAR_DIR/etc/jach_agent.csh
 
 #  Description:
 #    Sets all the aliases required to run the eSTAR JACH Embedded Agent
@@ -20,6 +20,9 @@
 
 #  History:
 #     $Log: jach_agent.csh,v $
+#     Revision 1.2  2004/11/12 14:32:04  aa
+#     Extensive changes to support jach_agent.pl, see ChangeLog
+#
 #     Revision 1.1  2004/11/05 15:32:09  aa
 #     Inital commit of jach_agent and associated files. Outstandingf problems with the $main::* in eSTAR::JACH::Handler and %running in eSTAR::JACH::Handler and jach_agent.pl script itself. How do I share %running across threads, but keep it a singleton object?
 #
@@ -33,7 +36,7 @@
 #
 
 #  Revision:
-#     $Id: jach_agent.csh,v 1.1 2004/11/05 15:32:09 aa Exp $
+#     $Id: jach_agent.csh,v 1.2 2004/11/12 14:32:04 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -45,29 +48,29 @@
 # Check for the existence of a $ESTAR2_PERLBIN environment variable and
 # allow that to be used in preference to the starlink version if set.
 
-if ($?ESTAR2_PERLBIN) then
-  setenv PERL $ESTAR2_PERLBIN
+if ($?ESTAR_PERLBIN) then
+  setenv PERL $ESTAR_PERLBIN
   echo " "
-  echo "ESTAR2_PERLBIN = ${ESTAR2_PERLBIN}"
+  echo "ESTAR_PERLBIN = ${ESTAR_PERLBIN}"
 else
   setenv PERL NONE
 endif
       
 # Set up back door for the version number
 
-if ($?ESTAR2_VERSION) then
-  set pkgvers = $ESTAR2_VERSION
-  echo "ESTAR2_VERSION = ${ESTAR2_VERSION}"
+if ($?ESTAR_VERSION) then
+  set pkgvers = $ESTAR_VERSION
+  echo "ESTAR_VERSION = ${ESTAR_VERSION}"
 else
   set pkgvers = 2.0
 endif
 
 # Default for ESTAR_PERL5LIB
 
-if (! $?ESTAR2_PERL5LIB) then
-  setenv ESTAR2_PERl5LIB ${ESTAR2_DIR}/lib/perl5
+if (! $?ESTAR_PERL5LIB) then
+  setenv ESTAR_PERl5LIB ${ESTAR_DIR}/lib/perl5
   echo " "
-  echo "ESTAR2_PERL5LIB = ${ESTAR2_PERl5LIB} (Warning)"
+  echo "ESTAR_PERL5LIB = ${ESTAR_PERl5LIB} (Warning)"
 endif
 
 # These are perl programs
@@ -89,10 +92,10 @@ if (-e $PERL ) then
   echo "--------------------------------"
   echo "Please wait..."
   echo "Starting JACH Embedded Agent (${ia_args} )"
-  ${PERL} ${ESTAR2_DIR}/bin/jach_agent.pl ${ia_args}
+  ${PERL} ${ESTAR_DIR}/bin/jach_agent.pl ${ia_args}
 
 else
   echo " "
   echo "eSTAR Intelligent Agent Software -- (Version $pkgvers)"
-  echo "PERL could not be found, please install Perl v5.8.0"
+  echo "PERL could not be found, please install Perl v5.8.*"
 endif

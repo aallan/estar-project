@@ -16,8 +16,8 @@ BEGIN {
   # class. The local versions catch errors that would otherwise be
   # simple text, and turn them into SOAP::Fault objects.
   
-  for my $method qw( ping handle_rtml handle_data query_ldap 
-                     query_schedule query_webcam ) {
+  for my $method qw( ping handle_rtml handle_data get_option
+                     set_option dump_hash ) {
      eval "sub $method";
      *$method = sub {
         my $self = shift->new();

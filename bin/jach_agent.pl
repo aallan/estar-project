@@ -13,7 +13,7 @@
 #    Perl script
 
 #  Invocation:
-#    Invoked by source ${ESTAR2_DIR}/etc/jach_agent.csh
+#    Invoked by source ${ESTARDIR}/etc/jach_agent.csh
 
 #  Description:
 #    The eSTAR agent process embedded in a JACH telescope.
@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: jach_agent.pl,v 1.2 2004/11/05 15:32:08 aa Exp $
+#     $Id: jach_agent.pl,v 1.3 2004/11/12 14:32:04 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -68,7 +68,7 @@ translation layer, which also handles external phase 0 discovery requests.
 
 =head1 REVISION
 
-$Id: jach_agent.pl,v 1.2 2004/11/05 15:32:08 aa Exp $
+$Id: jach_agent.pl,v 1.3 2004/11/12 14:32:04 aa Exp $
 
 =head1 AUTHORS
 
@@ -85,7 +85,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -115,11 +115,12 @@ use threads::shared;
 #
 # DN modules
 #
-use lib $ENV{"ESTAR2_PERL5LIB"};     
+use lib $ENV{"ESTAR_PERL5LIB"};     
 use eSTAR::Logging;
 use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:status/;
 use eSTAR::Util;
+use eSTAR::JACH::Running;
 
 #
 # Config modules
@@ -167,6 +168,8 @@ $OPT{"BLEEP"} = ESTAR__OK;
 
 # share the running array across threads
 share( %running );
+my $run = new eSTAR::JACH::Running( $process->get_process() );
+$run->set_hash( \%running );
 
 # S T A R T   L O G   S Y S T E M -------------------------------------------
 
@@ -175,7 +178,7 @@ share( %running );
 
 # start the log system
 print "Starting logging...\n\n";
-$log = new eSTAR::Logging( $process );
+$log = new eSTAR::Logging( $process->get_process() );
 
 # Toggle debugging in the log system, passing ESTAR__QUIET will turn off 
 # debugging while ESTAR__DEBUG will turn it on.
@@ -194,7 +197,7 @@ if ( $Config{'useithreads'} ne "define" ) {
    # Perl isn't threaded, this is NOT good
    my $error = "FatalError: Perl mis-configured, ithreads must be enabled";
    $log->error($error);
-   throw eSTAR::Error::FatalError($error, JACH__FATAL);      
+   throw eSTAR::Error::FatalError($error, ESTAR__FATAL);      
 }
 
 # A G E N T  C O N F I G  F I L E --------------------------------------------
@@ -218,7 +221,7 @@ unless ( defined $CONFIG ) {
    # can't read/write to options file, bail out
    my $error = "FatalError: " . $Config::Simple::errstr;
    $log->error(chomp($error));
-   throw eSTAR::Error::FatalError($error, JACH__FATAL);      
+   throw eSTAR::Error::FatalError($error, ESTAR__FATAL);      
 }
 
 # store the options filename in the file itself, not sure why this is
@@ -246,7 +249,7 @@ unless ( defined $STATE ) {
    # can't read/write to state file, scream and shout!
    my $error = "FatalError: " . $Config::Simple::errstr;
    $log->error(chomp($error));
-   throw eSTAR::Error::FatalError($error, JACH__FATAL);      
+   throw eSTAR::Error::FatalError($error, ESTAR__FATAL);      
 }
 
 # store the state filename in the file itself...
@@ -283,7 +286,7 @@ unless ( defined $status ) {
   # can't read/write to options file, bail out
   my $error = "FatalError: " . $Config::Simple::errstr;
   $log->error(chomp($error));
-  throw eSTAR::Error::FatalError($error, JACH__FATAL); 
+  throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
 } else {    
   $log->debug("Unique process ID: updated " . 
               $STATE->param( "jach.state" ) );
@@ -302,7 +305,7 @@ unless ( defined $status ) {
   # can't read/write to options file, bail out
   my $error = "FatalError: " . $Config::Simple::errstr;
   $log->error(chomp($error));
-  throw eSTAR::Error::FatalError($error, JACH__FATAL); 
+  throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
 } else {    
   $log->debug("JACH Agent PID: " . $STATE->param( "jach.pid" ) );
 }
@@ -314,7 +317,7 @@ unless ( defined $status ) {
 
 # grab users home directory and define options filename
 my $project_file = 
-  File::Spec->catfile(Config::User->Home(), '.estar', $process, 'project.dat' );
+  File::Spec->catfile(Config::User->Home(), '.estar', $process->get_process(), 'project.dat' );
 
 # open (or create) the options file
 $log->debug("Reading project ID file from $project_file");
@@ -324,7 +327,7 @@ unless ( defined $PROJECT ) {
    # can't read/write to state file, scream and shout!
    my $error = "FatalError: " . $Config::Simple::errstr;
    $log->error(chomp($error));
-   throw eSTAR::Error::FatalError($error, JACH__FATAL);      
+   throw eSTAR::Error::FatalError($error, ESTAR__FATAL);      
 }
 
 $CONFIG->param( "jach.project", $project_file );
@@ -375,7 +378,7 @@ unless ( defined $status ) {
   # can't read/write to options file, bail out
   my $error = "FatalError: " . $Config::Simple::errstr;
   $log->error(chomp($error));
-  throw eSTAR::Error::FatalError($error, JACH__FATAL); 
+  throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
 } else {    
   $log->debug("Project file: " . $CONFIG->param( "jach.project" ) );
 }
@@ -424,35 +427,35 @@ use eSTAR::JACH::SOAP::Handler; # SOAP layer ontop of handler class
 
 # E S T A R   D A T A   D I R E C T O R Y -----------------------------------
 
-# Grab the $ESTAR2_DATA enivronment variable and confirm that this directory
-# exists and can be written to by the user, if $ESTAR2_DATA isn't defined we
+# Grab the $ESTARDATA enivronment variable and confirm that this directory
+# exists and can be written to by the user, if $ESTARDATA isn't defined we
 # fallback to using the temporary directory /tmp.
 
 # Grab something for DATA directory
-if ( defined $ENV{"ESTAR3_DATA"} ) {
+if ( defined $ENV{"ESTARDATA"} ) {
 
-   if ( opendir (DIR, File::Spec->catdir($ENV{"ESTAR3_DATA"}) ) ) {
-      # default to the ESTAR2_DATA directory
-      $CONFIG->param("jach.data", File::Spec->catdir($ENV{"ESTAR3_DATA"}) );
+   if ( opendir (DIR, File::Spec->catdir($ENV{"ESTARDATA"}) ) ) {
+      # default to the ESTARDATA directory
+      $CONFIG->param("jach.data", File::Spec->catdir($ENV{"ESTARDATA"}) );
       closedir DIR;
-      $log->debug("Verified \$ESTAR3_DATA directory " . $ENV{"ESTAR3_DATA"});
+      $log->debug("Verified \$ESTARDATA directory " . $ENV{"ESTARDATA"});
    } else {
       # Shouldn't happen?
-      my $error = "Cannot open $ENV{ESTAR3_DATA} for incoming files";
+      my $error = "Cannot open $ENV{ESTARDATA} for incoming files";
       $log->error($error);
-      throw eSTAR::Error::FatalError($error, JACH__FATAL);
+      throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
    }  
          
 } elsif ( opendir(TMP, File::Spec->tmpdir() ) ) {
       # fall back on the /tmp directory
       $CONFIG->param("jach.data", File::Spec->tmpdir() );
       closedir TMP;
-      $log->debug("Falling back to using /tmp as \$ESTAR3_DATA directory");
+      $log->debug("Falling back to using /tmp as \$ESTARDATA directory");
 } else {
    # Shouldn't happen?
    my $error = "Cannot open any directory for incoming files.";
    $log->error($error);
-   throw eSTAR::Error::FatalError($error, JACH__FATAL);
+   throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
 } 
 
 # A G E N T   S T A T E  D I R E C T O R Y ----------------------------------
@@ -464,7 +467,7 @@ my $state_dir =
 
 if ( opendir ( SDIR, $state_dir ) ) {
   
-  # default to the ~/.estar/$process/state directory
+  # default to the ~/.estar/$process->get_process()/state directory
   $CONFIG->param("jach.cache", $state_dir );
   $STATE->param("jach.cache", $state_dir );
   $log->debug("Verified state directory ~/.estar/" .
@@ -474,7 +477,7 @@ if ( opendir ( SDIR, $state_dir ) ) {
   # make the directory
   mkdir $state_dir, 0755;
   if ( opendir (SDIR, $state_dir ) ) {
-     # default to the ~/.estar/$process/state directory
+     # default to the ~/.estar/$process->get_process()/state directory
      $CONFIG->param("jach.cache", $state_dir );
      $STATE->param("jach.cache", $state_dir );
      closedir SDIR;  
@@ -484,7 +487,7 @@ if ( opendir ( SDIR, $state_dir ) ) {
      # can't open or create it, odd huh?
      my $error = "Cannot make directory " . $state_dir;
      $log->error( $error );
-     throw eSTAR::Error::FatalError($error, JACH__FATAL);
+     throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
   }
 } 
 
@@ -507,7 +510,7 @@ foreach my $i ( 2 ... $#files ) {
 
    $log->print("File: $files[$i]");
    # thaw the observation
-   my $observation_object = thaw( $files[$i] );    
+   my $observation_object = eSTAR::Util::thaw( $files[$i] );    
    unless ( defined $observation_object ) {
       $log->warn( "Warning: Unable to deserialise ID = $files[$i]" );   
    }
@@ -526,25 +529,25 @@ foreach my $i ( 2 ... $#files ) {
          $log->debug( "$id expires at $expire");
 
          $log->debug( "Locking \%running..." );
-         lock( %running );
+         lock( %{ $run->get_hash() } );
          my $ref = &share({});
          $ref->{Expire} = "$expire";
          $ref->{Status} = "$status";
-         $running{$id} = $ref;
+         ${ $run->get_hash() }{$id} = $ref;
          $log->debug( "Unlocking \%running...");
       } else {
          $log->warn( "Warning: $id isn't outstanding" );
          $log->warn( "Warning: discarding $id..." );
-         my $status = melt( $observation_object );        
-         if ( $status == JACH__ERROR ) {
+         my $status = eSTAR::Util::melt( $observation_object );        
+         if ( $status == ESTAR__ERROR ) {
             $main::log->warn( 
                "Warning: Problem deleting the \$observation_object");
          } 
         
          $log->debug( "Locking \%running..." );
-         lock( %running );
+         lock( %{ $run->get_hash() } );
          $log->debug( "Removing " . $id. " from \%running..." );
-         delete $running{ $id };
+         delete ${ $run->get_hash() }{ $id };
          $log->debug( "Unlocking \%running...");
         
       }   
@@ -567,7 +570,7 @@ my $tmp_dir =
 
 if ( opendir ( TDIR, $tmp_dir ) ) {
   
-  # default to the ~/.estar/$process/tmp directory
+  # default to the ~/.estar/$process->get_process()/tmp directory
   $CONFIG->param("jach.tmp", $tmp_dir );
   $STATE->param("jach.tmp", $tmp_dir );
   $log->debug("Verified tmp directory ~/.estar/" . 
@@ -577,7 +580,7 @@ if ( opendir ( TDIR, $tmp_dir ) ) {
   # make the directory
   mkdir $tmp_dir, 0755;
   if ( opendir (TDIR, $tmp_dir ) ) {
-     # default to the ~/.estar/$process/tmp directory
+     # default to the ~/.estar/$process->get_process()/tmp directory
      $CONFIG->param("jach.tmp", $tmp_dir );
      $STATE->param("jach.tmp", $tmp_dir );
      closedir TDIR;  
@@ -587,7 +590,7 @@ if ( opendir ( TDIR, $tmp_dir ) ) {
      # can't open or create it, odd huh?
      my $error = "Cannot make directory " . $tmp_dir;
      $log->error( $error );
-     throw eSTAR::Error::FatalError($error, JACH__FATAL);
+     throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
   }
 }  
 
@@ -681,7 +684,7 @@ my $soap_server = sub {
    $log->thread($thread_name, "Starting server on port " . 
             $CONFIG->param( "soap.port") . " (\$tid = ".threads->tid().")");  
    $daemon = eval{ new eSTAR::JACH::SOAP::Daemon( 
-                      LocalPort     => $CONFIG->param( "server.port"),
+                      LocalPort     => $CONFIG->param( "soap.port"),
                       Listen        => 5, 
                       Reuse         => 1 ) };    
                     
@@ -746,19 +749,19 @@ my $garbage = sub {
       # observations and then melt them() after sending a fail message
       {
          $log->debug( "Locking \%running in jach_agent..." );
-         lock( %running );
-         foreach my $key ( keys %running ) {         
+         lock( %{ $run->get_hash() } );
+         foreach my $key ( keys %{ $run->get_hash() } ) {         
            $log->print( "Observation $key is queued..." );
            
            # RETRY SUBMISSION BACK TO USER AGENT
            # -----------------------------------
               
-           my $observation_object = thaw( $key );    
+           my $observation_object = eSTAR::Util::thaw( $key );    
            unless ( defined $observation_object ) {
               $log->warn( "Warning: Unable to deserialise ID = $key" );   
            }
                          
-           if ( ${$running{$key}}{Status} eq "retry" &&
+           if ( ${${ $run->get_hash() }{$key}}{Status} eq "retry" &&
                 defined $observation_object ) {
 
               
@@ -777,14 +780,14 @@ my $garbage = sub {
               unless ( defined $message ) {
                  $log->error( "Error: No messages defined, how odd!?" );
                  $log->error( "Error: Discarding observation $key" );  
-                 my $status = melt( $observation_object );        
-                 if ( $status == JACH__ERROR ) {
+                 my $status = eSTAR::Util::melt( $observation_object );        
+                 if ( $status == ESTAR__ERROR ) {
                     $log->warn( 
                        "Warning: Problem deleting the \$observation_object");
                  } 
         
                  $log->debug( "Removing " . $key. " from \%running..." );
-                 delete $running{ $key };
+                 delete ${ $run->get_hash() }{ $key };
                  next;
               }
              
@@ -800,7 +803,7 @@ my $garbage = sub {
            # CHECK FOR EXPIRY OF OBSERVATION
            # -------------------------------         
            
-           } elsif ( ${$running{$key}}{Status} eq "running" &&
+           } elsif ( ${${ $run->get_hash() }{$key}}{Status} eq "running" &&
                      defined $observation_object ) {
 
               #
@@ -829,7 +832,7 @@ my $garbage = sub {
                   $main::log->warn( "Warning: Sucessfully unlinked file..."); 
               }          
               $log->warn( "Warning: Removing " . $key. " from \%running..." );
-              delete $running{ $key };
+              delete ${ $run->get_hash() }{ $key };
               next;
            }      
               
@@ -868,7 +871,7 @@ $log->warn( "Warning: SOAP Thread has been terminated abnormally..." );
 END {
    # we must have generated an error somewhere to have gotten here,
    # run the exit code to clean(ish)ly shutdown the agent.
-   kill_agent( JACH__FATAL );
+   kill_agent( ESTAR__FATAL );
 }
 
 # ===========================================================================
@@ -882,9 +885,9 @@ sub kill_agent {
    my $from = shift;
          
    # Check to see whether we've been called via a SOAP message
-   if (  $from == JACH__FATAL ) {  
-      $log->debug("Calling kill_agent( JACH__FATAL )");
-      $log->warn("Warning: Shutting down agent after JACH__FATAL error...");
+   if (  $from == ESTAR__FATAL ) {  
+      $log->debug("Calling kill_agent( ESTAR__FATAL )");
+      $log->warn("Warning: Shutting down agent after ESTAR__FATAL error...");
    } else {
       if( threads->tid() == 0 && $from == undef ) {
          $log->debug("Calling kill_agent( SIGINT )");
@@ -922,6 +925,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: jach_agent.pl,v $
+# Revision 1.3  2004/11/12 14:32:04  aa
+# Extensive changes to support jach_agent.pl, see ChangeLog
+#
 # Revision 1.2  2004/11/05 15:32:08  aa
 # Inital commit of jach_agent and associated files. Outstandingf problems with the $main::* in eSTAR::JACH::Handler and %running in eSTAR::JACH::Handler and jach_agent.pl script itself. How do I share %running across threads, but keep it a singleton object?
 #

@@ -1,3 +1,28 @@
+2004-11-12 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * Large number of changes to make the jach_agent.pl code to actually
+          work. All ESTAR2_* and ESTAR3_* environment variables have been
+          removed, gone back to ESTAR_* variables. We shouldn't need to 
+          ever run the old code again and the multiply defined PERL5LIB 
+          managed to confuse things enough that I was running some of the
+          old code, and some of the new code. This wasn't good, it all seemed 
+          to work, but actually didn't.
+          
+          The only $main::* problem outstanging is the $main::OPT{"http_agent"}
+          call in the eSTAR::JACH::Handler, not sure how to approach this at
+          the moment. All the %running accesses should now be via the new
+          eSTAR::JACH::Running module which stores a reference to the running
+          hash created in main() and shared across threads. I think this should
+          allow me to lock the internally stored variable in the object without
+          having to actually share the object, which I don't think is possible
+          yet.
+          
+        * Removed all reference (hopefully) to JACH__* errors, now using a 
+          package wide ESTAR__* error.
+          
+        * Returned to using the ThreadOnAccept daemon module, we need to share
+          the %running hash across threads or it all doesn't work.  
+          
 2004-11-05 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * Added some jach_agent.pl code from 2nd generation work, mostly ported

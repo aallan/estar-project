@@ -11,7 +11,7 @@
   use HTTP::Cookies;
   use Getopt::Long;
   
-  use lib $ENV{"ESTAR3_PERL5LIB"};     
+  use lib $ENV{"ESTAR_PERL5LIB"};     
   use eSTAR::Util;
 
   unless ( scalar @ARGV >= 1 ) {

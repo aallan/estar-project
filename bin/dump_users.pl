@@ -1,7 +1,7 @@
 #!/home/perl/bin/perl
   
   use strict;
-  use lib $ENV{"ESTAR3_PERL5LIB"};     
+  use lib $ENV{"ESTAR_PERL5LIB"};     
 
   use eSTAR::SOAP::User;
   use Storable qw(freeze thaw);

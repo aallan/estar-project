@@ -5,8 +5,8 @@ package eSTAR::JACH::Handler;
 # authentication.
 
 use strict;
-use subs qw( new set_user ping handle_rtml handle_data query_ldap 
-             query_schedule query_webcam );
+use subs qw( new set_user ping handle_rtml handle_data get_option
+             set_option dump_hash );
 
 #
 # Threading code (ithreads)
@@ -20,7 +20,7 @@ use threads::shared;
 #use SOAP::Lite +trace =>   
 # [transport => sub { print (ref $_[0] eq 'CODE' ? &{$_[0]} : $_[0]) }]; 
 use SOAP::Lite;
-use SOAP::MIME;
+#use SOAP::MIME;
 use MIME::Entity;
 use Digest::MD5 'md5_hex';
 use Time::localtime;
@@ -29,6 +29,7 @@ use Net::Domain qw(hostname hostdomain);
 use Config::Simple;
 use Config::User;
 use Fcntl ':flock';
+use Data::Dumper;
 #use Video::Capture::V4l;
 #use Video::RTjpeg;
 
@@ -45,6 +46,7 @@ use eSTAR::RTML::Parse;
 use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw/:status/;
 use eSTAR::Util;
+use eSTAR::JACH::Running;
 
 #
 # Astro modules
@@ -56,10 +58,10 @@ use Astro::FITS::Header::CFITSIO;
 
 # 
 # JACH modules
-use lib $ENV{"ESTAR2_OMPLIB"};
+use lib $ENV{"ESTAR_OMPLIB"};
 use OMP::SciProg;
 use OMP::SpServer;
-my $log;
+my ($log, $run);
 
 # ==========================================================================
 # U S E R   A U T H E N T I C A T I O N
@@ -70,6 +72,7 @@ sub new {
   
   my $self = bless {}, $class;
   $log = eSTAR::Logging::get_reference();
+  $run = eSTAR::JACH::Running::get_reference();
   
   if( $user and $passwd ) {
     return undef unless $self->set_user( user => $user, password => $passwd );
@@ -140,6 +143,27 @@ sub set_user {
 # ==========================================================================
 # O P T I O N S  H A N D L E R S 
 # ==========================================================================
+
+# option handling
+sub dump_hash {
+   my $self = shift;
+
+   $log->debug("Called dump_running() from \$tid = ".threads->tid());
+   
+   # not callable as a static method, so must have a value
+   # user object stored within             
+   unless ( my $user = $self->{_user}) {
+      $log->warn("SOAP Request: The object is missing user data.");
+      die SOAP::Fault
+         ->faultcode("Client.DataError")
+         ->faultstring("Client Error: The object is missing user data.")
+   }
+   
+   $log->debug("Returned \%running hash");
+   my $string = Dumper( %{ $run->get_hash() } );
+   return SOAP::Data->name('return', $string )->type('xsd:string');
+} 
+
 
 # option handling
 sub get_option {
@@ -387,7 +411,7 @@ sub handle_rtml {
       # push the reply into the observation_object
       $observation_object->score_reply( $score_message );
       my $status = freeze( $observation_object ); 
-      if ( $status == JACH__ERROR ) {
+      if ( $status == ESTAR__ERROR ) {
          $log->warn( 
             "Warning: Problem re-serialising the \$observation_object");
       }
@@ -451,7 +475,7 @@ sub handle_rtml {
          $log->debug("Rejecting observation request...");
          $observation_object->obs_reply( $reject_message );
          my $status = freeze( $observation_object ); 
-         if ( $status == JACH__ERROR ) {
+         if ( $status == ESTAR__ERROR ) {
             $log->warn( 
                "Warning: Problem re-serialising the \$observation_object");
          }  
@@ -538,7 +562,7 @@ sub handle_rtml {
                             " does not have a $filter band filter.....");
          $observation_object->obs_reply( $reject_message ); 
          my $status = freeze( $observation_object ); 
-         if ( $status == JACH__ERROR ) {
+         if ( $status == ESTAR__ERROR ) {
             $log->warn( 
                "Warning: Problem re-serialising the \$observation_object");
          }  
@@ -567,7 +591,7 @@ sub handle_rtml {
          $log->debug("Rejecting observation request...");
          $observation_object->obs_reply( $reject_message );
          my $status = freeze( $observation_object ); 
-         if ( $status == JACH__ERROR ) {
+         if ( $status == ESTAR__ERROR ) {
             $log->warn( 
                "Warning: Problem re-serialising the \$observation_object");
          }  
@@ -650,7 +674,7 @@ sub handle_rtml {
          $log->debug("Rejecting observation request...");
          $observation_object->obs_reply( $reject_message );
          my $status = freeze( $observation_object ); 
-         if ( $status == JACH__ERROR ) {
+         if ( $status == ESTAR__ERROR ) {
             $log->warn( 
                "Warning: Problem re-serialising the \$observation_object");
          }  
@@ -670,14 +694,14 @@ sub handle_rtml {
       {
          $log->debug( "Locking \%running in handle_rtml()..." );
          $log->debug( "Adding $id to \%running" );
-         lock( %main::running );
+         lock( %{ $run->get_hash() } );
          my $ref = &share({});
          $ref->{Expire} = "$time";
          $ref->{Status} = "running";
-         $main::running{$id} = $ref;
+         ${ $run->get_hash() }{$id} = $ref;
          $log->debug( "Unlocking \%running...");
       } # implict unlock() here
-      #use Data::Dumper; print Dumper ( %main::running );
+      #use Data::Dumper; print Dumper ( %{ $run->get_hash() } );
                          
       # BUILD MESSAGE
       # -------------
@@ -720,7 +744,7 @@ sub handle_rtml {
       # drop the reply into the observation object
       $observation_object->obs_reply( $confirm_message );
       my $status = freeze( $observation_object ); 
-      if ( $status == JACH__ERROR ) {
+      if ( $status == ESTAR__ERROR ) {
          $log->warn( 
             "Warning: Problem re-serialising the \$observation_object");
       }  
@@ -1086,7 +1110,7 @@ sub handle_data {
       $log->warn("Warning: Re-serialising the \$observation_object");
       $observation_object->status( 'retry' );
       my $status = freeze( $observation_object ); 
-      if ( $status == JACH__ERROR ) {
+      if ( $status == ESTAR__ERROR ) {
          $log->warn( 
             "Warning: Problem re-serialising the \$observation_object");
       }
@@ -1101,15 +1125,15 @@ sub handle_data {
       {
          $log->warn( "Warning: Locking \%running in handle_data()..." );
          $log->warn( "Warning: Flagging $data{ID} for 'retry'...");
-         lock( %main::running ); 
+         lock( %{ $run->get_hash() } ); 
          
          my $ref = &share({});
          $ref->{Expire} = "$time";
          $ref->{Status} = "retry";
-         $main::running{$data{ID}} = $ref; 
+         ${ $run->get_hash() }{$data{ID}} = $ref; 
          $log->warn( "Warning: Unlocking \%running...");
       } # implict unlock() here
-      #use Data::Dumper; print Dumper ( %main::running );
+      #use Data::Dumper; print Dumper ( %{ $run->get_hash() } );
    
       $log->debug("Returned 'RETRY' message to ORAC-DR");
       return SOAP::Data->name('return', "ACK RETRY" )->type('xsd:string');
@@ -1128,7 +1152,7 @@ sub handle_data {
 
          # delete the serialised observation_object
          my $status = melt( $observation_object );        
-         if ( $status == JACH__ERROR ) {
+         if ( $status == ESTAR__ERROR ) {
             $log->warn( 
                "Warning: Problem deleting the \$observation_object");
          }
@@ -1137,13 +1161,13 @@ sub handle_data {
          # observations and then remove them from the hash 
          {
             $log->debug( "Locking \%running in handle_data()..." );
-            lock( %main::running );
+            lock( %{ $run->get_hash() } );
             $log->debug( "Removing " . $observation_object->id(). 
                                " from \%running..." );
-            delete $main::running{ $observation_object->id() };
+            delete ${ $run->get_hash() }{ $observation_object->id() };
             $log->debug( "Unlocking \%running...");
          } # implict unlock() here
-         #use Data::Dumper; print Dumper ( %main::running );         
+         #use Data::Dumper; print Dumper ( %{ $run->get_hash() } );         
 
       }
             

@@ -1,4 +1,4 @@
-package eSTAR::Logging;
+package eSTAR::JACH::Running;
 
 # ---------------------------------------------------------------------------
 
@@ -19,7 +19,7 @@ package eSTAR::Logging;
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: Running.pm,v 1.2 2004/11/05 15:32:09 aa Exp $
+#     $Id: Running.pm,v 1.3 2004/11/12 14:32:05 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2001 University of Exeter. All Rights Reserved.
@@ -35,8 +35,8 @@ eSTAR::Running - Object to handle running observations
 =head1 SYNOPSIS
 
   $object = eSTAR::Running::get_reference();
-  $object->set_hash( %hash );
-  my %hash = $object->get_hash();
+  $object->set_hash( \%hash );
+  my $hash = $object->get_hash();
 
 =head1 DESCRIPTION
 
@@ -56,7 +56,7 @@ use threads::shared;
 use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:status/;
 
-'$Revision: 1.2 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.3 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # C O N S T R U C T O R ----------------------------------------------------
 
@@ -112,7 +112,7 @@ sub configure {
 
 =head1 REVISION
 
-$Id: Running.pm,v 1.2 2004/11/05 15:32:09 aa Exp $
+$Id: Running.pm,v 1.3 2004/11/12 14:32:05 aa Exp $
 
 =head1 METHODS
 
@@ -130,9 +130,9 @@ Store a reference to the current running hash
 
 sub set_hash {
   my $self = shift;
-  my %hash = $@;
+  my $hash = shift;
    
-  $self->{RUNNING_HASH} = \%hash; 
+  $self->{RUNNING_HASH} = $hash; 
   
 }     
 
@@ -147,7 +147,7 @@ Retreieve a reference to the current running hash
 sub get_hash {
   my $self = shift;
    
-  return %$self->{RUNNING_HASH}; 
+  return $self->{RUNNING_HASH}; 
   
 } 
 

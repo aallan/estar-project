@@ -16,7 +16,7 @@
   use Socket;
   use POSIX qw/:sys_wait_h/;
   
-  use lib $ENV{"ESTAR3_PERL5LIB"};     
+  use lib $ENV{"ESTAR_PERL5LIB"};     
   use eSTAR::Util;
 
   unless ( scalar @ARGV >= 1 ) {
