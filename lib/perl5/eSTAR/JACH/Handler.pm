@@ -395,6 +395,7 @@ sub handle_rtml {
          # build a score request
          $score_message->score_response(
              Target   => $parsed->target(),
+             TargetType => $parsed->targettype(),
              RA       => $parsed->ra(),
              Dec      => $parsed->dec(),
              Exposure => $parsed->exposure(),
@@ -407,6 +408,7 @@ sub handle_rtml {
          # build a score request
          $score_message->score_response(
              Target => $parsed->target(),
+             TargetType => $parsed->targettype(),
              RA     => $parsed->ra(),
              Dec    => $parsed->dec(),
              Snr    => $parsed->snr(),
@@ -514,6 +516,7 @@ sub handle_rtml {
       # target
       # ------
       my $target = $parsed->target();
+      my $targettype = $parsed->targettype();
       my $ra = $parsed->ra();
       my $dec = $parsed->dec();
       my $equinox = $parsed->equinox();
@@ -523,6 +526,7 @@ sub handle_rtml {
       my $filter = $parsed->filter();
 
       #$log->debug( "target      = " . $target );
+      #$log->debug( "target type = " . $targettype );
       #$log->debug( "ra          = " . $ra );
       #$log->debug( "dec         = " . $dec );
       #$log->debug( "equinox     = " . $equinox );
@@ -730,6 +734,7 @@ sub handle_rtml {
          # build a score request
          $confirm_message->confirm_response(
              Target   => $parsed->target(),
+             TargetType => $parsed->targettype(),
              RA       => $parsed->ra(),
              Dec      => $parsed->dec(),
              Exposure => $parsed->exposure(),
@@ -742,6 +747,7 @@ sub handle_rtml {
          # build a score request
          $confirm_message->confirm_response(
              Target => $parsed->target(),
+             TargetType => $parsed->targettype(),
              RA     => $parsed->ra(),
              Dec    => $parsed->dec(),
              Snr    => $parsed->snr(),
@@ -854,6 +860,7 @@ sub handle_data {
    # target
    # ------
    my $target = $obs_request->target();
+   my $targettype = $obs_request->targettype();
    my $ra = $obs_request->ra();
    my $dec = $obs_request->dec();
    my $equinox = $obs_request->equinox();
@@ -863,6 +870,7 @@ sub handle_data {
    my $filter = $obs_request->filter();
 
    #$log->debug( "target      = " . $target );
+   #$log->debug( "target type = " . $targettype );
    #$log->debug( "ra          = " . $ra );
    #$log->debug( "dec         = " . $dec );
    #$log->debug( "equinox     = " . $equinox );
@@ -1041,6 +1049,7 @@ sub handle_data {
    if ( defined $snr && defined $flux ) {       
       $message->$method(
                 Target    => $target,
+                TargetType => $targettype,
                 RA        => $ra,
                 Dec       => $dec,
                 Score     => $score,
@@ -1055,6 +1064,7 @@ sub handle_data {
    } elsif ( defined $exposure ) {                      
       $message->$method(
                 Target   => $target,
+                TargetType => $targettype,
                 RA       => $ra,
                 Dec      => $dec,
                 Score    => $score,

@@ -456,6 +456,7 @@ sub new_observation {
       # build a score request
       $score_message->score_observation(
           Target => $observation{'target'},
+          TargetType => $observation{'type'},
           RA       => $observation{'ra'},
           Dec      => $observation{'dec'},
           Exposure => $observation{'exposure'},
@@ -467,6 +468,7 @@ sub new_observation {
       # build a score request
       $score_message->score_observation(
           Target => $observation{'target'},
+          TargetType => $observation{'type'},
           RA     => $observation{'ra'},
           Dec    => $observation{'dec'},
           Snr    => $observation{'signaltonoise'},
@@ -611,6 +613,7 @@ sub new_observation {
              
       $observe_message->request_observation(
                 Target   => $score_request->target(),
+                TargetType => $observation{'type'},
                 RA       => $score_request->ra(),
                 Dec      => $score_request->dec(),
                 Score    => $score_reply->score(),
@@ -623,6 +626,7 @@ sub new_observation {
              
       $observe_message->request_observation(
                 Target   => $score_request->target(),
+                TargetType => $observation{'type'},
                 RA       => $score_request->ra(),
                 Dec      => $score_request->dec(),
                 Score    => $score_reply->score(),
