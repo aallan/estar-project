@@ -36,6 +36,8 @@ use eSTAR::Logging;
 use eSTAR::Constants qw/:all/;
 use eSTAR::Util;
 
+my $log;
+
 # ==========================================================================
 # U S E R   A U T H E N T I C A T I O N
 # ==========================================================================
@@ -44,12 +46,13 @@ sub new {
   my ( $class, $user, $passwd ) = @_;
   
   my $self = bless {}, $class;
+  $log = eSTAR::Logging::get_reference();
   
   if( $user and $passwd ) {
     return undef unless $self->set_user( user => $user, password => $passwd );
   }
   
-  $main::log->thread2( "Handler Thread", 
+  $log->thread2( "Handler Thread", 
     "Created new eSTAR::WFCAM::Handler object (\$tid = ".threads->tid().")");
         
   return $self;
@@ -66,7 +69,7 @@ sub set_user {
       # user isn't know, return error string      
       undef $self->{_user};
       
-      $main::log->warn("SOAP Request: Could not load data for $args{user}");
+      $log->warn("SOAP Request: Could not load data for $args{user}");
       return "Could not load data for $args{user}";
    }
    
@@ -80,7 +83,7 @@ sub set_user {
       
          undef $self->{_user};
       
-         $main::log->warn("SOAP Request: Bad password for $args{user}");
+         $log->warn("SOAP Request: Bad password for $args{user}");
          return "Bad password for $args{user}";
       }
       
@@ -91,7 +94,7 @@ sub set_user {
               
          undef $self->{_user};
 
-         $main::log->warn(
+         $log->warn(
             "SOAP Request: Authentication token for $args{user} invalid");
          return "Authentication token for $args{user} invalid";
       }
@@ -100,13 +103,13 @@ sub set_user {
    
       undef $self->{_user};
 
-      $main::log->warn(
+      $log->warn(
           "SOAP Request: No authentication present for $args{user}");
       return "No authentication present for $args{user}";
    
    } 
    
-   $main::log->print( "SOAP Request: from $args{user} on ". ctime() );
+   $log->print( "SOAP Request: from $args{user} on ". ctime() );
    return $self;             
 }
 
@@ -118,18 +121,18 @@ sub set_user {
 sub ping {
    my $self = shift;
 
-   $main::log->debug("Called ping() from \$tid = ".threads->tid());
+   $log->debug("Called ping() from \$tid = ".threads->tid());
    
    # not callable as a static method, so must have a value
    # user object stored within             
    unless ( my $user = $self->{_user}) {
-      $main::log->warn("SOAP Request: The object is missing user data.");
+      $log->warn("SOAP Request: The object is missing user data.");
       die SOAP::Fault
          ->faultcode("Client.DataError")
          ->faultstring("Client Error: The object is missing user data.")
    }
      
-   $main::log->debug("Returned ACK message");
+   $log->debug("Returned ACK message");
    return SOAP::Data->name('return', 'ACK')->type('xsd:string');
 } 
 
@@ -138,18 +141,18 @@ sub echo {
    my $self = shift;
    my @args = @_;
 
-   $main::log->debug("Called echo() from \$tid = ".threads->tid());
+   $log->debug("Called echo() from \$tid = ".threads->tid());
    
    # not callable as a static method, so must have a value
    # user object stored within             
    unless ( my $user = $self->{_user}) {
-      $main::log->warn("SOAP Request: The object is missing user data.");
+      $log->warn("SOAP Request: The object is missing user data.");
       die SOAP::Fault
          ->faultcode("Client.DataError")
          ->faultstring("Client Error: The object is missing user data.")
    }
      
-   $main::log->debug("Returned ECHO message");
+   $log->debug("Returned ECHO message");
    return SOAP::Data->name('return', "ECHO @args")->type('xsd:string');
 } 
 

@@ -20,7 +20,7 @@ package eSTAR::Logging;
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: Logging.pm,v 1.1 2004/02/18 22:06:09 aa Exp $
+#     $Id: Logging.pm,v 1.2 2004/02/20 00:42:29 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2001 University of Exeter. All Rights Reserved.
@@ -35,7 +35,7 @@ eSTAR::Logging - Object to handle logging
 
 =head1 SYNOPSIS
 
-  $log = new eSTAR::Logging();
+  $log = eSTAR::Logging::get_reference();
   
   $log->print( "An standard message" );
   $log->debug( "An debugging report" );
@@ -66,7 +66,7 @@ use Carp;
 use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:status/;
 
-'$Revision: 1.1 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.2 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # G L O B A L S ------------------------------------------------------------
 
@@ -95,12 +95,18 @@ my $purple_norm = $esc . "39;35m";
 
 # C O N S T R U C T O R ----------------------------------------------------
 
+# is a single instance class, can only be once instance for the entire
+# application. Use get_reference() to grab a reference to the object.
+my $SINGLETON;
+
 sub new {
+  return $SINGLETON if defined $SINGLETON;
+
   my $proto = shift;
   my $class = ref($proto) || $proto;
 
   # bless the query hash into the class
-  my $block = bless { WARN     => undef,
+  $SINGLETON = bless { WARN     => undef,
                       ERROR    => undef,
                       STD      => undef, 
                       DEBUG    => undef,
@@ -109,20 +115,22 @@ sub new {
                       TOGGLE   => undef }, $class;
   
   # Configure the object
-  $block->configure( @_ );
+  $SINGLETON->configure( @_ );
   
-  return $block;
+  return $SINGLETON;
+}
+
+sub get_reference {
+  return $SINGLETON if defined $SINGLETON;
+  return undef;
 }
 
 sub configure {
   my $self = shift;
-  
-  # return unless we have arguments
-  return undef unless @_;
 
-  # grab the argument list
-  my $process = shift; 
-  $self->{PROCESS} = $process; 
+  # grab the process name
+  my $process = eSTAR::Process::get_reference(); 
+  $self->{PROCESS} = $process->get_process();
   
   # DEBUGGING
   # ---------
@@ -135,26 +143,30 @@ sub configure {
   
   # Warning log
   $self->{WARN} = 
-    File::Spec->catfile(Config::User->Home(), '.estar', $process, 'warn.log' );
+    File::Spec->catfile(Config::User->Home(), 
+                 '.estar', $self->{PROCESS}, 'warn.log' );
     
   # Error log  
   $self->{ERROR} = 
-    File::Spec->catfile(Config::User->Home(), '.estar', $process, 'error.log' );
+    File::Spec->catfile(Config::User->Home(), 
+                 '.estar', $self->{PROCESS}, 'error.log' );
     
   # Standard Output log  
   $self->{STD} = 
-   File::Spec->catfile(Config::User->Home(), '.estar', $process, 'output.log' );
+   File::Spec->catfile(Config::User->Home(), 
+                 '.estar', $self->{PROCESS}, 'output.log' );
     
   # Debugging log 
   $self->{DEBUG} = 
-    File::Spec->catfile(Config::User->Home(), '.estar', $process, 'debug.log' );
+    File::Spec->catfile(Config::User->Home(), 
+                 '.estar', $self->{PROCESS}, 'debug.log' );
 
   # UNIQUE TAG NUMBER
   # -----------------
 
   # Tag number identifying each individual instance of the class
   my $tagid = sprintf( '%.0f', rand( 1000 ) );
-  $self->{TAGNUM} = "TagID#$process#$tagid";
+  $self->{TAGNUM} = "TagID#" . $self->{PROCESS} . "#$tagid";
 
   # CREATE ~/.estar DIRECTORY
   # -------------------------
@@ -163,10 +175,10 @@ sub configure {
   # exist create it.
 
   # create .estar directory
-  unless ( opendir(DIR, File::Spec->catdir( Config::User->Home(), ".estar" )) ) {
+  unless (opendir(DIR, File::Spec->catdir(Config::User->Home(),".estar"))) {
     # make the directory
     mkdir File::Spec->catdir( Config::User->Home(), ".estar" ), 0755;
-    if ( opendir(DIR, File::Spec->catdir( Config::User->Home(), ".estar" )) ) {
+    if (opendir(DIR, File::Spec->catdir(Config::User->Home(),".estar"))) {
        print "Creating ~/.estar directory\n";
        closedir DIR;
     } else {
@@ -181,22 +193,25 @@ sub configure {
   # CREATE PROCESS DIRECTORY
   # -------------------------
 
-  # create ~/.estar/$process subdirectory if needed
+  # create ~/.estar/$self->{PROCESS} subdirectory if needed
   unless ( opendir(DIR, 
-         File::Spec->catdir( Config::User->Home(), ".estar", "$process" )) ) {
+         File::Spec->catdir( Config::User->Home(), ".estar", 
+	                     $self->{PROCESS} )) ) {
        
      # make the directory
      mkdir File::Spec->catdir( 
-       Config::User->Home(), ".estar", "$process" ), 0755;
+       Config::User->Home(), ".estar", $self->{PROCESS} ), 0755;
        
      if ( opendir(DIR, 
-          File::Spec->catdir( Config::User->Home(), ".estar", "$process" )) ) {
-        print "Creating ~/.estar/$process directory\n";
+          File::Spec->catdir( Config::User->Home(), 
+	                      ".estar", $self->{PROCESS} )) ) {
+        print "Creating ~/.estar/$self->{PROCESS} directory\n";
         closedir DIR;
      } else {
         # can't open or create it, odd huh?
         my $error = "Cannot make directory " .
-          File::Spec->catdir( Config::User->Home(), ".estar", "$process" );
+          File::Spec->catdir( Config::User->Home(), 
+	                      ".estar", $self->{PROCESS} );
         throw eSTAR::Error::FatalError($error, ESTAR__FATAL);     
      }
   }
@@ -235,7 +250,7 @@ sub configure {
 
 =head1 REVISION
 
-$Id: Logging.pm,v 1.1 2004/02/18 22:06:09 aa Exp $
+$Id: Logging.pm,v 1.2 2004/02/20 00:42:29 aa Exp $
 
 =head1 METHODS
 

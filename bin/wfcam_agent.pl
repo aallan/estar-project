@@ -19,7 +19,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: wfcam_agent.pl,v 1.3 2004/02/19 23:39:12 aa Exp $
+#     $Id: wfcam_agent.pl,v 1.4 2004/02/20 00:42:29 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -39,17 +39,12 @@ use strict;
 #  $STATE    - Config object holding persistant state data
 #  %OPT      - Options hash for things we don't want to be persistant
 #  $log      - Handle for logging object
-#  $process  - process identity, used by some low level methods.
 
-use vars qw / $VERSION $CONFIG $STATE %OPT $log $process /;
+use vars qw / $VERSION $CONFIG $STATE %OPT $log /;
 
 # local status variable
 my $status;
-
-# tag name of the current process, this identifies where log and 
-# status files for this process will be stored.
-$process = "wfcam_agent";
-   
+ 
 # P O D  D O C U M E N T A T I O N ------------------------------------------
 
 =head1 NAME
@@ -68,7 +63,7 @@ passing data mining jobs out to a seperate data ining process.
 
 =head1 REVISION
 
-$Id: wfcam_agent.pl,v 1.3 2004/02/19 23:39:12 aa Exp $
+$Id: wfcam_agent.pl,v 1.4 2004/02/20 00:42:29 aa Exp $
 
 =head1 AUTHORS
 
@@ -85,7 +80,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -120,6 +115,7 @@ use eSTAR::Logging;
 use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:all/;
 use eSTAR::Util;
+use eSTAR::Process;
 
 #
 # Config modules
@@ -135,6 +131,10 @@ use CfgTie::TieUser;
 #
 use Config;
 use Data::Dumper;
+
+# tag name of the current process, this identifies where log and 
+# status files for this process will be stored.
+my $process = new eSTAR::Process( "wfcam_agent" );  
 
 # C A T C H   S I G N A L S -------------------------------------------------
 
@@ -158,7 +158,7 @@ $OPT{"BLEEP"} = ESTAR__OK;
 
 # start the log system
 print "Starting logging...\n\n";
-$log = new eSTAR::Logging( $process );
+$log = new eSTAR::Logging( );
 
 # Toggle debugging in the log system, passing ESTAR__QUIET will turn off 
 # debugging while ESTAR__DEBUG will turn it on.
@@ -190,7 +190,8 @@ if ( $Config{'useithreads'} ne "define" ) {
 
 # grab users home directory and define options filename
 my $config_file = 
- File::Spec->catfile( Config::User->Home(), '.estar', $process, 'options.dat' );
+ File::Spec->catfile( Config::User->Home(), '.estar', 
+                      $process->get_process(), 'options.dat' );
 
 # open (or create) the options file
 $log->debug("Reading configuration from $config_file");
@@ -220,7 +221,8 @@ my $status = $CONFIG->write( $CONFIG->param( "wfcam.options" ) );
 
 # grab users home directory and define options filename
 my $state_file = 
-  File::Spec->catfile(Config::User->Home(), '.estar', $process, 'state.dat' );
+  File::Spec->catfile(Config::User->Home(), '.estar', 
+                      $process->get_process(), 'state.dat' );
 
 # open (or create) the options file
 $log->debug("Reading agent state from $state_file");
@@ -367,24 +369,27 @@ if ( defined $ENV{"ESTAR3_DATA"} ) {
 
 # This directory where the agent caches its objects between runs
 my $state_dir = 
-   File::Spec->catdir( Config::User->Home(), ".estar", $process, "state");
+   File::Spec->catdir( Config::User->Home(), ".estar", 
+                       $process->get_process(), "state");
 
 if ( opendir ( SDIR, $state_dir ) ) {
   
-  # default to the ~/.estar/$process/state directory
+  # default to the ~/.estar/$process->get_process()/state directory
   $CONFIG->param("wfcam.cache", $state_dir );
   $STATE->param("wfcam.cache", $state_dir );
-  $log->debug("Verified state directory ~/.estar/$process/state");
+  $log->debug("Verified state directory ~/.estar/" .
+              $process->get_process() . "/state");
   closedir SDIR;
 } else {
   # make the directory
   mkdir $state_dir, 0755;
   if ( opendir (SDIR, $state_dir ) ) {
-     # default to the ~/.estar/$process/state directory
+     # default to the ~/.estar/$process->get_process()/state directory
      $CONFIG->param("wfcam.cache", $state_dir );
      $STATE->param("wfcam.cache", $state_dir );
      closedir SDIR;  
-     $log->debug("Creating state directory ~/.estar/$process/state");
+     $log->debug("Creating state directory ~/.estar/" .
+                  $process->get_process() . "/state");
   } else {
      # can't open or create it, odd huh?
      my $error = "Cannot make directory " . $state_dir;
@@ -397,14 +402,16 @@ if ( opendir ( SDIR, $state_dir ) ) {
 
 # This directory where the agent drops temporary files
 my $tmp_dir = 
-   File::Spec->catdir( Config::User->Home(), ".estar", $process, "tmp");
+   File::Spec->catdir( Config::User->Home(), ".estar", 
+                       $process->get_process(), "tmp");
 
 if ( opendir ( TDIR, $tmp_dir ) ) {
   
-  # default to the ~/.estar/$process/tmp directory
+  # default to the ~/.estar/$process->get_process()/tmp directory
   $CONFIG->param("wfcam.tmp", $tmp_dir );
   $STATE->param("wfcam.tmp", $tmp_dir );
-  $log->debug("Verified tmp directory ~/.estar/$process/tmp");
+  $log->debug("Verified tmp directory ~/.estar/" . 
+              $process->get_process() . "/tmp");
   closedir TDIR;
 } else {
   # make the directory
@@ -414,7 +421,8 @@ if ( opendir ( TDIR, $tmp_dir ) ) {
      $CONFIG->param("wfcam.tmp", $tmp_dir );
      $STATE->param("wfcam.tmp", $tmp_dir );
      closedir TDIR;  
-     $log->debug("Creating tmp directory ~/.estar/$process/tmp");
+     $log->debug("Creating tmp directory ~/.estar/" .
+                 $process->get_process() . "/tmp");
   } else {
      # can't open or create it, odd huh?
      my $error = "Cannot make directory " . $tmp_dir;
@@ -613,6 +621,12 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: wfcam_agent.pl,v $
+# Revision 1.4  2004/02/20 00:42:29  aa
+# Made eSTAR::Logging a single instance class, and created an eSTAR::Process
+# class to keep track of the process name. This fixes the breaks in the
+# encapsulation we had with the second generation code, shouldn't need to
+# refer to $main::* variables at any point from now on.
+#
 # Revision 1.3  2004/02/19 23:39:12  aa
 # Removed bogus status line
 #
