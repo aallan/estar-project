@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: user_agent.pl,v 1.7 2005/02/14 20:22:44 aa Exp $
+#     $Id: user_agent.pl,v 1.8 2005/02/15 17:00:34 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -65,7 +65,7 @@ itself.
 
 =head1 REVISION
 
-$Id: user_agent.pl,v 1.7 2005/02/14 20:22:44 aa Exp $
+$Id: user_agent.pl,v 1.8 2005/02/15 17:00:34 aa Exp $
 
 =head1 AUTHORS
 
@@ -82,7 +82,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -335,7 +335,8 @@ if ( $config->get_state("ua.unique_process") == 1 ) {
    $config->set_option("user.real_name", $real_name );
    $config->set_option("user.email_address", $ENV{"USER"}."@".hostdomain());
    $config->set_option("user.institution", "eSTAR Project" );
-
+   $config->set_option("user.notify" 1 );
+   
    # server parameters
    $config->set_option("server.host", $ip );
    $config->set_option("server.port", 8000 );
@@ -583,6 +584,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: user_agent.pl,v $
+# Revision 1.8  2005/02/15 17:00:34  aa
+# More mail notification
+#
 # Revision 1.7  2005/02/14 20:22:44  aa
 # Removed obsolete ba.* configuration, break anything?
 #

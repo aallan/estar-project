@@ -22,7 +22,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: gcn_server.pl,v 1.12 2005/02/15 15:44:41 aa Exp $
+$Id: gcn_server.pl,v 1.13 2005/02/15 17:00:34 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -41,7 +41,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.13 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -443,6 +443,37 @@ my $tcp_callback = sub {
                                   $$message[7], $$message[8], $$message[11] );
          $log->warn( "GRB detected at $ra, $dec +- $error acrmin" ); 
 
+         # Send a notification
+         # -------------------
+         
+         if ( defined $opt{real_name} && defined $opt{email_address} ) {
+         
+            $log->print( "Sending notification email...");
+            
+            my $mail_body = 
+              "Recieved a TYPE_SWIFT_XRT_POSITION_SRC message\n" .
+              "Position RA $$message[7], Dec $$message[8]  +- $$message[11]\n" .
+              "\n" .
+              "This message indicates that the eSTAR system has recieved\n" . 
+              "a postion update alert and is currently attempting to place\n" .
+              "followup observations into the UKIRT queue. If you do not\n" .
+              "recieve notification that this has been successful you may\n" .
+              "wish to attempt manual followup.\n";
+      
+            eSTAR::Mail::send_mail( $opt{email_address}, $opt{real_name},
+                                    'aa@astro.ex.ac.uk',
+                                    'eSTAR ACK SWIFT XPT postion',
+                                    $mail_body );            
+
+         } else {
+         
+             $log->warn("Warning: No email notification sent" );
+         }
+
+         # Make SOAP calls
+         # ---------------
+
+
          # build endpoint
          my $endpoint = "http://" . $config->get_option("ua.host") . 
                         ":" . $config->get_option("ua.port");
@@ -518,31 +549,7 @@ my $tcp_callback = sub {
            }                                       
          
          }   
-         
-         
-         # Send a notification
-         # -------------------
-         
-         if ( defined $opt{real_name} && defined $opt{email_address} ) {
-         
-            $log->print( "Sending notification email...");
-            
-            my $mail_body = 
-              "This message indicates that the eSTAR system has recieved\n" . 
-              "a postion update alert and is currently attempting to place\n" .
-              "followup observations into the UKIRT queue. If you do not\n" .
-              "recieve notification that this has been successful you may\n" .
-              "wish to attempt manual followup.\n";
-      
-            eSTAR::Mail::send_mail( $opt{email_address}, $opt{real_name},
-                                    'aa@astro.ex.ac.uk',
-                                    'eSTAR ACK SWIFT XPT postion',
-                                    $mail_body );            
 
-         } else {
-         
-             $log->warn("Warning: No email notification sent" );
-         }
          
          # Submit an inital burst followup block
          # -------------------------------------

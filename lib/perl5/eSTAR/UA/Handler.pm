@@ -578,6 +578,27 @@ sub new_observation {
    unless ( defined $best_node && defined $score_reply ) {
       my $error = "Error: No nodes able to carry out observation";
       $log->error( $error );
+      
+      if( $config->get_option("user.notify") == 1 ) {
+      
+          $log->print( "Sending notification email...");
+            
+          my $mail_body = 
+            "Your user agent attempted to submit your observing request\n" .
+            "to all telescopes known to it but failed. There were no nodes\n" .
+            "capable of carying out the observation, however the reason is\n" .
+            "not known so it may idicate an error has occured.\n" .
+            "\n" .
+            "If you feel this is the case you should try and followup the\n" .
+            "manually.\n";
+      
+          eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
+                              $config->get_option("user.real_name"),
+                              'aa@astro.ex.ac.uk',
+                              'eSTAR User Agent (Failed)',
+                              $mail_body ); 
+      }           
+      
       return SOAP::Data->name('return', $error )->type('xsd:string');   
    }
 
@@ -591,6 +612,25 @@ sub new_observation {
    if ( $best_score == 0.0 ) {
       my $error = "Error: best score is $best_score, possible problem?";
       $log->error( $error );
+      
+      if( $config->get_option("user.notify") == 1 ) {
+      
+          $log->print( "Sending notification email...");
+            
+          my $mail_body = 
+            "Your user agent attempted to submit your observing request\n" .
+            "to all telescopes known to it but failed. All scopes returned\n"
+            "a score of zero indicating that the target was unobservable.\n"
+            "\n" .
+            "If you feel this is in error you should try and observe manually\n";
+      
+          eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
+                              $config->get_option("user.real_name"),
+                              'aa@astro.ex.ac.uk',
+                              'eSTAR User Agent (Score 0)',
+                              $mail_body ); 
+      }                                          
+      
       return SOAP::Data->name('return', $error )->type('xsd:string');   
    }
    
@@ -679,6 +719,27 @@ sub new_observation {
    if ( $@ ) {
       my $error = "Error: Failed to connect to " . $best_node;
       $log->error( $error );
+      
+      if( $config->get_option("user.notify") == 1 ) {
+      
+          $log->print( "Sending notification email...");
+            
+          my $mail_body = 
+            "Your user agent attempted to submit your observing request\n" .
+            "to all telescopes known to it but failed to reconnect to the\n" .
+            "node which produced the best score during the inital poll.\n".
+            "\n" .
+            "This may indicate an error has occured. If you feel this is\n".
+            "the case you should try and followup the manually.\n";
+      
+          eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
+                              $config->get_option("user.real_name"),
+                              'aa@astro.ex.ac.uk',
+                              'eSTAR User Agent (Node Down)',
+                              $mail_body ); 
+      }         
+      
+      
       return SOAP::Data->name('return', $error )->type('xsd:string'); 
    }
    
@@ -697,6 +758,27 @@ sub new_observation {
    if ( $@ ) {
       my $error = "Error: Unable to parse ERS reply, not XML?";
       $log->error( $error );
+      
+      if( $config->get_option("user.notify") == 1 ) {
+      
+          $log->print( "Sending notification email...");
+            
+          my $mail_body = 
+            "Your user agent attempted to submit your observing request\n" .
+            "to all telescopes known to it but failed to parse the reply\n" .
+            "from the node which produced the best score during the inital\n".
+            "poll.\n".
+            "\n" .
+            "This may indicate an error has occured. If you feel this is\n".
+            "the case you should try and followup the manually.\n";
+      
+          eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
+                              $config->get_option("user.real_name"),
+                              'aa@astro.ex.ac.uk',
+                              'eSTAR User Agent (Bad Parse)',
+                              $mail_body ); 
+      }      
+      
       return SOAP::Data->name('return', $error )->type('xsd:string');           
    }
             
@@ -707,6 +789,27 @@ sub new_observation {
       $log->warn("Warning: discarding observation from queue");
       
       my $error = "Error: node $best_node has gone down since scoring";
+      
+      if( $config->get_option("user.notify") == 1 ) {
+      
+          $log->print( "Sending notification email...");
+            
+          my $mail_body = 
+            "Your user agent attempted to submit your observing request\n" .
+            "to all telescopes known to it but failed to parse the reply\n" .
+            "from the node which produced the best score during the inital\n".
+            "poll.\n".
+            "\n" .
+            "This may indicate an error has occured. If you feel this is\n".
+            "the case you should try and followup the manually.\n";
+      
+          eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
+                              $config->get_option("user.real_name"),
+                              'aa@astro.ex.ac.uk',
+                              'eSTAR User Agent (Bad Parse)',
+                              $mail_body ); 
+      }            
+      
       return SOAP::Data->name('return', $error )->type('xsd:string');
   
    } else {
@@ -760,6 +863,27 @@ sub new_observation {
          $log->debug( $best_node . " rejected the observation" );
          my $error = "Error: Observation rejected";
          $log->error( $error );
+         
+      
+         if( $config->get_option("user.notify") == 1 ) {
+      
+             $log->print( "Sending notification email...");
+             
+             my $mail_body = 
+               "Your user agent attempted to submit your observing request\n" .
+               "to the best scoring telescope, but the request was rejected\n".
+               "with the error,\n" .
+               "\n$error\n" .
+               "This is a fatal error has occured. You may want to try and\n".
+               "followup up manually.\n";
+      
+             eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
+                              $config->get_option("user.real_name"),
+                              'aa@astro.ex.ac.uk',
+                              'eSTAR User Agent (Reject)',
+                              $mail_body ); 
+         }               
+         
          return SOAP::Data->name('return', $error )->type('xsd:string'); 
       }
                 
@@ -767,6 +891,24 @@ sub new_observation {
    
    # return sucess code
    $log->debug( "Returning 'QUEUED OK' message" );
+   
+         
+   if( $config->get_option("user.notify") == 1 ) {
+      
+          $log->print( "Sending notification email...");
+            
+          my $mail_body = 
+            "Your user agent has submitted an observing request into the\n" .
+            "queue at $best_node of type $observation{type}.\n";
+      
+          eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
+                              $config->get_option("user.real_name"),
+                              'aa@astro.ex.ac.uk',
+                              'eSTAR User Agent (Success)',
+                              $mail_body ); 
+   }      
+   
+   
    return SOAP::Data->name('return', 'QUEUED OK')->type('xsd:string');
    
 }

@@ -1,7 +1,8 @@
 2005-02-15 Aladair Allan <aa@astro.ex.ac.uk>
 
         * Created an eSTAR::Mail class to handle mail messages, modified
-          gcn_server.pl and jach_agent.pl to use it.
+          gcn_server.pl and jach_agent.pl to use it. Modified the user_agent.pl
+          to do notifications under most circumstances.
           
 2005-02-14 Aladair Allan <aa@astro.ex.ac.uk>
 
