@@ -1,4 +1,15 @@
-2005-01-19 Alasdair Allan <aa@astro.ex.ac.uk> &
+2005-02-02 Aladair Allan <aa@astro.ex.ac.uk>
+
+        * bin/gcn_server.pl: A program to accept incoming GCN packets. Basic
+          framework for a server to recieve the GCN packets. It currently will
+          recieve the packets correctly, but does not respond with the correct
+          ACK message. Possibly something to do with the way I open and close
+          the socket.
+        
+        * lib/perl5/GCN/Constants.pm: Module to manage constants for the
+          gcn_server.pl program.
+
+2005-01-19 Alasdair Allan <aa@astro.ex.ac.uk> 
            Tim Jenness <timj@jach.hawaii.edu>
 
 	* bin/jach_agent.pl and associated classes have been updated to
