@@ -3,7 +3,7 @@
 
 =head1 NAME
 
-make)observation - comman line client to generate an observation request
+make_observation - command line client to generate an observation request
 
 =head1 SYNOPSIS
 
@@ -20,7 +20,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: make_observation.pl,v 1.1 2005/01/11 01:41:25 aa Exp $
+$Id: make_observation.pl,v 1.2 2005/02/02 20:43:44 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -37,7 +37,7 @@ use vars qw / $VERSION $log /;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {

@@ -9,7 +9,7 @@
 #  Purposes:
 #    eSTAR JACH Embedded Agent
 
-#  LangDNge:
+#  Language:
 #    Perl script
 
 #  Invocation:
@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: jach_agent.pl,v 1.13 2005/01/19 16:13:17 aa Exp $
+#     $Id: jach_agent.pl,v 1.14 2005/02/02 20:44:03 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -67,7 +67,7 @@ translation layer, which also handles external phase 0 discovery requests.
 
 =head1 REVISION
 
-$Id: jach_agent.pl,v 1.13 2005/01/19 16:13:17 aa Exp $
+$Id: jach_agent.pl,v 1.14 2005/02/02 20:44:03 aa Exp $
 
 =head1 AUTHORS
 
@@ -84,7 +84,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.13 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.14 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -790,6 +790,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: jach_agent.pl,v $
+# Revision 1.14  2005/02/02 20:44:03  aa
+# Spelling error fixed in documentation
+#
 # Revision 1.13  2005/01/19 16:13:17  aa
 # Fixed state management problem. Silly me!
 #
