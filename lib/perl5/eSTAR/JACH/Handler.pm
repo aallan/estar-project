@@ -730,7 +730,6 @@ sub handle_rtml {
  
 # debugging purposes only ---------------------------------------
 
-
 # return the RTML document
 $log->debug("Rejecting observation request...");
 $observation_object->obs_reply( $reject_message );
@@ -871,6 +870,8 @@ return SOAP::Data->name('return', $reject)->type('base64');
 #         }      
 #         $log->debug( "Sucessfully connected to SpServer" );
 #         $log->debug( "Submitted MSB..." );
+
+# ---------------------------------------------------------------- 
       
       } # end if if() { ... } else { ... }
         #
