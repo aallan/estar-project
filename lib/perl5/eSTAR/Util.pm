@@ -29,12 +29,13 @@ use Config::IniFiles;
 use eSTAR::Constants qw /:all/;
 use eSTAR::Logging;
 use eSTAR::Process;
+use eSTAR::Config;
 use eSTAR::Error qw /:try/;
 
 @ISA = qw/Exporter/;
 @EXPORT_OK = qw/ make_cookie make_id freeze thaw melt query_simbad/;
 
-'$Revision: 1.9 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.10 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # This is the code that is used to generate cookies based on the user
 # name and password. It is NOT cryptographically sound, it is just a
@@ -146,8 +147,8 @@ sub freeze {
    # RE-SERIALISE OBJECT
    # ===================
    my $process = eSTAR::Process::get_reference();
-   my $state_dir = File::Spec->catdir( 
-       Config::User->Home(), ".estar", $process->get_process(), "state");  
+   my $config = eSTAR::Config::get_reference();
+   my $state_dir = File::Spec->catdir( $config->get_state_dir() );  
    
    $log->debug( "Serialising \$object ($id) to " . $state_dir );   
    
@@ -197,8 +198,8 @@ sub thaw {
    # DE-SERIALISE OBJECT
    # ===================
    my $process = eSTAR::Process::get_reference();
-   my $state_dir = File::Spec->catdir( 
-       Config::User->Home(), ".estar", $process->get_process(), "state");  
+   my $config = eSTAR::Config::get_reference();
+   my $state_dir = File::Spec->catdir( $config->get_state_dir() );  
         
    # Return any previous data from persistant store in the state directory
    my $observation_object;
@@ -235,8 +236,8 @@ sub melt {
    # DELETE OBJECT
    # =============
    my $process = eSTAR::Process::get_reference();
-   my $state_dir = File::Spec->catdir( 
-       Config::User->Home(), ".estar", $process->get_process(), "state");  
+   my $config = eSTAR::Config::get_reference();
+   my $state_dir = File::Spec->catdir( $config->get_state_dir() );   
    
    $log->debug( "Removing \$object ($id) from " . $state_dir );   
    
@@ -299,7 +300,7 @@ sub query_simbad {
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.9 2005/01/11 01:41:25 aa Exp $
+$Id: Util.pm,v 1.10 2005/01/11 14:22:53 aa Exp $
 
 =head1 AUTHORS
 

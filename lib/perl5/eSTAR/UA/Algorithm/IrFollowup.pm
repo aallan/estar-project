@@ -3,7 +3,7 @@ package eSTAR::UA::Algorithm::IrFollowup;
 use strict;
 use vars qw/ $VERSION /;
 
-'$Revision: 1.3 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.4 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 use warnings;
 use threads;
@@ -20,6 +20,7 @@ use eSTAR::UA::Constants qw/:all/;
 use eSTAR::UA::Handler;
 use eSTAR::Error qw /:try/;
 use eSTAR::Util;
+use eSTAR::Config;
 
 use Astro::Coords;
 use Astro::SLA;
@@ -28,7 +29,7 @@ use Astro::Catalog::Query::2MASS;
 use Astro::Catalog::Query::SIMBAD;
 use Astro::Corlate;
 
-my ( $log );
+my ( $log, $config );
 
 # C O N S T R U C T O R ----------------------------------------------------
 
@@ -39,6 +40,7 @@ sub new {
   # bless the header block into the class
   my $block = bless { OBS => undef }, $class;
   $log = eSTAR::Logging::get_reference();
+  $config = eSTAR::Config::get_reference();
 
   return $block;
 
@@ -104,10 +106,10 @@ sub process_data {
   $log->debug("Field Centre: $ra, $dec");
                                   
   # field radius
-  my $radius = eSTAR::Util::get_option("2mass.radius"); 
+  my $radius = $config->get_option("2mass.radius"); 
              
   # proxy
-  my $proxy = eSTAR::Util::get_option("connection.proxy");
+  my $proxy = $config->get_option("connection.proxy");
   $proxy = "" if $proxy eq "NONE";   
                        
   $log->debug("Querying 2MASS at Vizier...");
@@ -127,7 +129,7 @@ sub process_data {
   my @out_cols = ( 'J-H' );            
              
   # USNO-A2 reference.cat
-  my $ref_file = File::Spec->catfile( eSTAR::Util::get_option("ua.tmp"), 
+  my $ref_file = File::Spec->catfile( $config->get_tmp_dir(), 
                                        "$id.corlate_ref.cat");
   $log->debug("Writing reference catalogue to disk...");
   my $status = $catalog->write_catalog( Format     => 'Cluster',  
@@ -146,7 +148,7 @@ sub process_data {
   #print Dumper( $object_catalog ) ."\n\n"; 
    
   # object catalogue
-  my $obj_file = File::Spec->catfile( eSTAR::Util::get_option("ua.tmp"), 
+  my $obj_file = File::Spec->catfile( $config->get_tmp_dir(), 
                                     "$id.corlate_obj.cat");
   $log->debug("Writing object catalogue to disk...");
   $status = $object_catalog->write_catalog( Format     => 'Cluster',  
@@ -161,32 +163,32 @@ sub process_data {
                                      Observation => $obj_file  );
   
   # log file
-  my $log_file = File::Spec->catfile( eSTAR::Util::get_option("ua.tmp"), 
+  my $log_file = File::Spec->catfile( $config->get_tmp_dir(), 
                                         "$id.corlate_log.log");
   $corlate->logfile( $log_file );
 
   # fit catalog
-  my $fit_file = File::Spec->catfile( eSTAR::Util::get_option("ua.tmp"), 
+  my $fit_file = File::Spec->catfile( $config->get_tmp_dir(), 
                                       "$id.corlate_fit.fit");
   $corlate->fit( $fit_file );
                    
   # histogram
-  my $hist_file = File::Spec->catfile( eSTAR::Util::get_option("ua.tmp"), 
+  my $hist_file = File::Spec->catfile( $config->get_tmp_dir(), 
                                        "$id.corlate_hist.dat");
   $corlate->histogram( $hist_file );
                    
   # information
-  my $info_file = File::Spec->catfile( eSTAR::Util::get_option("ua.tmp"), 
+  my $info_file = File::Spec->catfile( $config->get_tmp_dir(), 
                                        "$id.corlate_info.dat");
   $corlate->information( $info_file );
                    
   # varaiable catalog
-  my $var_file = File::Spec->catfile( eSTAR::Util::get_option("ua.tmp"), 
+  my $var_file = File::Spec->catfile( $config->get_tmp_dir(), 
                                       "$id.corlate_var.cat");
   $corlate->variables( $var_file );
                    
   # data catalog
-  my $data_file = File::Spec->catfile( eSTAR::Util::get_option("ua.tmp"), 
+  my $data_file = File::Spec->catfile( $config->get_tmp_dir(), 
                                        "$id.corlate_fit.cat");
   $corlate->data( $data_file);
                    
@@ -358,7 +360,7 @@ sub process_data {
   eval { unlink ( @file_list); };
   if ( $@ ) {
      $log->warn("Warning: Can not unlink files in " .
-                      eSTAR::Util::get_option("ua.tmp") );
+                      $config->get_tmp_dir() );
   }        
     
   # IF VARAIABLES > 0 THEN REQUEST AUTO OBSERVATIONS
@@ -412,7 +414,8 @@ sub process_data {
         # call the new_observation routine directly passing it a valid
         # username and password, only problem with this is that we get
         # a SOAP::Data object back that we don't really want.
-        my $cookie = make_cookie( $observation{"user"}, $observation{"pass"} );
+        my $cookie = 
+           eSTAR::Util::make_cookie($observation{"user"}, $observation{"pass"});
         my $handler = new eSTAR::UA::Handler( );
         $handler->set_user( user   => $observation{"user"},
                             cookie => $cookie );

@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: user_agent.pl,v 1.3 2005/01/11 01:41:25 aa Exp $
+#     $Id: user_agent.pl,v 1.4 2005/01/11 14:24:18 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -65,7 +65,7 @@ itself.
 
 =head1 REVISION
 
-$Id: user_agent.pl,v 1.3 2005/01/11 01:41:25 aa Exp $
+$Id: user_agent.pl,v 1.4 2005/01/11 14:24:18 aa Exp $
 
 =head1 AUTHORS
 
@@ -82,7 +82,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -210,7 +210,7 @@ if ( $Config{'useithreads'} ne "define" ) {
 # a bunch of other stuff. This is saved and stored in the users home directory 
 # using Config::Simple.
 
-my $config = new eSTAR::Config(  );  
+$config = new eSTAR::Config(  );  
 
 # A G E N T   S T A T E   F I L E --------------------------------------------
 
@@ -238,7 +238,7 @@ $log->debug("Setting ua.unique_process = $number");
 $status = $config->write_state();
 unless ( defined $status ) {
   # can't read/write to options file, bail out
-  my $error = "FatalError: Can not read or write to state file";
+  my $error = "FatalError: Can not read or write to state.dat file";
   $log->error( $error );
   throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
 } else {    
@@ -256,12 +256,11 @@ $config->set_state( "ua.pid", getpgrp() );
 $status = $config->write_state();
 unless ( defined $status ) {
   # can't read/write to options file, bail out
-  my $error = "FatalError: Can not read/write STATE file";
+  my $error = "FatalError: Can not read or write to state.dat file";
   $log->error( $error );
   throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
 } else {    
-  $log->debug("User Agent PID: " . 
-              $config->get_state( "ua.pid" ) );
+  $log->debug("User Agent PID: " . $config->get_state( "ua.pid" ) );
 }
 
 # L A T E  L O A D I N G  M O D U L E S ------------------------------------- 
@@ -305,105 +304,16 @@ use Astro::SIMBAD::Query;
 use eSTAR::UA::SOAP::Daemon;  # replacement for SOAP::Transport::HTTP::Daemon
 use eSTAR::UA::SOAP::Handler; # SOAP layer ontop of handler class
 
+# M A K E   D I R E C T O R I E S -------------------------------------------
 
-# E S T A R   D A T A   D I R E C T O R Y -----------------------------------
-
-# Grab the $ESTAR_DATA enivronment variable and confirm that this directory
-# exists and can be written to by the user, if $ESTAR_DATA isn't defined we
-# fallback to using the temporary directory /tmp.
-
-# Grab something for DATA directory
-if ( defined $ENV{"ESTAR_DATA"} ) {
-
-   if ( opendir (DIR, File::Spec->catdir($ENV{"ESTAR_DATA"}) ) ) {
-      # default to the ESTAR_DATA directory
-      $config->set_option("ua.data", File::Spec->catdir($ENV{"ESTAR_DATA"}) );
-      closedir DIR;
-      $log->debug("Verified \$ESTAR_DATA directory " . $ENV{"ESTAR_DATA"});
-   } else {
-      # Shouldn't happen?
-      my $error = "Cannot open $ENV{ESTAR_DATA} for incoming files";
-      $log->error($error);
-      throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
-   }  
-         
-} elsif ( opendir(TMP, File::Spec->tmpdir() ) ) {
-      # fall back on the /tmp directory
-      $config->get_option("ua.data", File::Spec->tmpdir() );
-      closedir TMP;
-      $log->debug("Falling back to using /tmp as \$ESTAR_DATA directory");
-} else {
-   # Shouldn't happen?
-   my $error = "Cannot open any directory for incoming files.";
-   $log->error($error);
-   throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
+# create the data, state and tmp directories if needed
+$status = $config->make_directories();
+unless ( defined $status ) {
+  # can't read/write to options file, bail out
+  my $error = "FatalError: Problems creating data directories";
+  $log->error( $error );
+  throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
 } 
-
-# A G E N T   S T A T E  D I R E C T O R Y ----------------------------------
-
-# This directory where the agent caches its Observation objects between runs
-my $state_dir = 
-   File::Spec->catdir( Config::User->Home(), ".estar",  
-                      $process->get_process(),  "state");
-
-if ( opendir ( SDIR, $state_dir ) ) {
-  
-  # default to the ~/.estar/$process/state directory
-  $config->set_option("ua.cache", $state_dir );
-  $config->set_state("ua.cache", $state_dir );
-  $log->debug("Verified state directory ~/.estar/" .
-              $process->get_process() . "/state");
-  closedir SDIR;
-} else {
-  # make the directory
-  mkdir $state_dir, 0755;
-  if ( opendir (SDIR, $state_dir ) ) {
-     # default to the ~/.estar/$process/state directory
-     $config->set_option("ua.cache", $state_dir );
-     $config->set_state("ua.cache", $state_dir );
-     closedir SDIR;  
-     $log->debug("Creating state directory ~/.estar/" .
-              $process->get_process() . "/state");
-  } else {
-     # can't open or create it, odd huh?
-     my $error = "Cannot make directory " . $state_dir;
-     $log->error( $error );
-     throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
-  }
-} 
-            
-# A G E N T   T E M P  D I R E C T O R Y ----------------------------------
-
-# This directory where the agent drops temporary files
-my $tmp_dir = 
-   File::Spec->catdir( Config::User->Home(), ".estar",  
-                      $process->get_process(), "tmp");
-
-if ( opendir ( TDIR, $tmp_dir ) ) {
-  
-  # default to the ~/.estar/$process/tmp directory
-  $config->set_option("ua.tmp", $tmp_dir );
-  $config->set_state("ua.tmp", $tmp_dir );
-  $log->debug("Verified tmp directory ~/.estar/" .
-              $process->get_process() . "/tmp");
-  closedir TDIR;
-} else {
-  # make the directory
-  mkdir $tmp_dir, 0755;
-  if ( opendir (TDIR, $tmp_dir ) ) {
-     # default to the ~/.estar/$process/tmp directory
-     $config->set_option("ua.tmp", $tmp_dir );
-     $config->set_state("ua.tmp", $tmp_dir );
-     closedir TDIR;  
-     $log->debug("Creating tmp directory ~/.estar/" .
-              $process->get_process() . "/tmp");
-  } else {
-     # can't open or create it, odd huh?
-     my $error = "Cannot make directory " . $tmp_dir;
-     $log->error( $error );
-     throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
-  }
-}  
 
 # M A I N   O P T I O N S   H A N D L I N G ---------------------------------
 
@@ -673,6 +583,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: user_agent.pl,v $
+# Revision 1.4  2005/01/11 14:24:18  aa
+# Modified user_agent.pl and supporting files to use a standard directory path, now generated from eSTAR::Config rather from the agent itself. This will let us reuse that routine for all the rest of the agents
+#
 # Revision 1.3  2005/01/11 01:41:25  aa
 # Modified backend configuration files to use a singleton object, should be more reliable?
 #

@@ -3,7 +3,7 @@ package eSTAR::UA::Algorithm::SingleExposure;
 use strict;
 use vars qw/ $VERSION /;
 
-'$Revision: 1.3 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.4 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 use threads;
 use threads::shared;
@@ -12,8 +12,9 @@ use Carp;
 
 use eSTAR::Constants qw/:status/;
 use eSTAR::Util;
+use eSTAR::Config;
 
-my ( $log );
+my ( $log, $config );
 
 # C O N S T R U C T O R ----------------------------------------------------
 
@@ -24,6 +25,7 @@ sub new {
   # bless the header block into the class
   my $block = bless { OBS => undef }, $class;
   $log = eSTAR::Logging::get_reference();
+  $config = eSTAR::Config::get_reference();
 
   return $block;
 

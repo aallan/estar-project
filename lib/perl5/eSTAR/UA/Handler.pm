@@ -719,9 +719,9 @@ sub new_observation {
          # SERIALISE OBSERVATION TO STATE DIRECTORY 
          # ========================================
          $log->debug( "Serialising \$observation_object to " .
-                       $config->get_option("ua.cache") );
+                       $config->get_state_dir() );
          my $file = File::Spec->catfile(
-                       $config->get_option("ua.cache"), $id);
+                       $config->get_state_dir(), $id);
         
          # write the observation object to disk. Lets use a DBM backend next
          # time shall we?
@@ -733,7 +733,7 @@ sub new_observation {
            # the state directory
            $log->warn( "Warning: Unable to serialise observation_object");
            $log->warn( "Warning: Can not write to "  .
-                            $config->get_option("ua.cache"));             
+                            $config->get_state_dir());             
          
          } else {
            unless ( flock( SERIAL, LOCK_EX ) ) {
@@ -918,12 +918,8 @@ sub handle_rtml {
      
       my $data = $1;
       
-      my $data_path = $config->get_option("ua.data");
+      my $data_path = $config->get_data_dir();
       $log->debug( "Path is $data_path");
-      
-      $config->get_option("ua.data");
-      $log->debug( "Path is $data_path");
-      
       
       my $fits = File::Spec->catfile( $data_path, $data );
       $log->debug( "Saving file to $fits" );

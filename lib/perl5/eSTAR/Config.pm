@@ -16,11 +16,11 @@ use eSTAR::Constants qw/:all/;
 use vars qw/$VERSION @EXPORT @ISA/;
 
 @ISA = qw/Exporter/;
-@EXPORT = qw/ config get_option set_op;tion write_option
-              state get_state set_state write_state
-              get_nodes get_reference/;
+@EXPORT = qw/ get_option set_option write_option get_nodes 
+              get_state set_state write_state make_directories
+              get_reference get_data_dir get_state_dir get_tmp_dir /;
 
-'$Revision: 1.2 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.3 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 my $SINGLETON;
 
@@ -55,16 +55,6 @@ sub get_reference {
   return $SINGLETON if defined $SINGLETON;
   return undef;
 }
-
-sub config {
-   my $self = shift;
-   $self->{CONFIG} = shift;   
-}
-
-sub state {
-   my $self = shift;
-   return $self->{PROCESS};
-}   
 
 
 sub reread {
@@ -346,5 +336,200 @@ sub get_nodes {
    return @NODES;
    
 } 
+
+sub make_directories {
+   my $self = shift;
+
+   # grab references to single instance objects
+   my $log = eSTAR::Logging::get_reference();
+   my $process = eSTAR::Process::get_reference();
+
+   my $config_file = $self->{CONFIG_FILE}; 
+
+   my $CONFIG = $self->{CONFIG};
+   unless ( defined $CONFIG ) {
+      # can't read/write to options file, bail out
+      my $error = "FatalError: Can not read from $config_file";
+      $log->error( $error );
+      return undef;      
+   } 
+   
+   my $state_file = $self->{STATE_FILE}; 
+
+   my $STATE = $self->{STATE};
+   unless ( defined $STATE ) {
+      # can't read/write to options file, bail out
+      my $error = "FatalError: Can not read from $state_file";
+      $log->error( $error );
+      return undef;      
+   }   
+    
+   # E S T A R   D A T A   D I R E C T O R Y 
+
+   # Grab the $ESTAR_DATA enivronment variable and confirm that this directory
+   # exists and can be written to by the user, if $ESTAR_DATA isn't defined we
+   # fallback to using the temporary directory /tmp.
+
+   # Grab something for DATA directory
+   if ( defined $ENV{"ESTAR_DATA"} ) {
+
+      if ( opendir (DIR, File::Spec->catdir($ENV{"ESTAR_DATA"}) ) ) {
+         # default to the ESTAR_DATA directory
+         $CONFIG->param("dir.data", File::Spec->catdir($ENV{"ESTAR_DATA"}) );
+         closedir DIR;
+         $log->debug("Verified \$ESTAR_DATA directory " . $ENV{"ESTAR_DATA"});
+         
+         
+      } else {
+         # Shouldn't happen?
+         my $error = "Cannot open $ENV{ESTAR_DATA} for incoming files";
+         $log->error($error);
+         
+         return undef;
+      }  
+         
+   } elsif ( opendir(TMP, File::Spec->tmpdir() ) ) {
+         # fall back on the /tmp directory
+         $CONFIG->param("dir.data", File::Spec->tmpdir() );
+         closedir TMP;
+         $log->debug("Falling back to using /tmp as \$ESTAR_DATA directory");
+                  
+   } else {
+      # Shouldn't happen?
+      my $error = "Cannot open any directory for incoming files.";
+      $log->error($error);
+      
+      return undef;
+   } 
+
+   # A G E N T   S T A T E  D I R E C T O R Y 
+
+   # This directory where the agent caches its Observation 
+   # objects between runs
+   my $state_dir = 
+     File::Spec->catdir( Config::User->Home(), ".estar",  
+                         $process->get_process(),  "state");
+
+   if ( opendir ( SDIR, $state_dir ) ) {
+  
+     # default to the ~/.estar/$process/state directory
+     $CONFIG->param("dir.cache", $state_dir );
+     $STATE->param("dir.cache", $state_dir );
+     $log->debug("Verified state directory ~/.estar/" .
+                 $process->get_process() . "/state");
+     closedir SDIR;
+          
+   } else {
+     # make the directory
+     mkdir $state_dir, 0755;
+     if ( opendir (SDIR, $state_dir ) ) {
+        # default to the ~/.estar/$process/state directory
+        $CONFIG->param("dir.cache", $state_dir );
+        $STATE->param("dir.cache", $state_dir );
+        closedir SDIR;  
+        $log->debug("Creating state directory ~/.estar/" .
+                 $process->get_process() . "/state");
+                                  
+     } else {
+        # can't open or create it, odd huh?
+        my $error = "Cannot make directory " . $state_dir;
+        $log->error( $error );
+        
+        return undef;  
+     }
+   } 
+            
+   # A G E N T   T E M P  D I R E C T O R Y 
+
+   # This directory where the agent drops temporary files
+   my $tmp_dir = 
+      File::Spec->catdir( Config::User->Home(), ".estar",  
+                      $process->get_process(), "tmp");
+
+   if ( opendir ( TDIR, $tmp_dir ) ) {
+  
+     # default to the ~/.estar/$process/tmp directory
+     $CONFIG->param("dir.tmp", $tmp_dir );
+     $STATE->param("dir.tmp", $tmp_dir );
+     $log->debug("Verified tmp directory ~/.estar/" .
+                 $process->get_process() . "/tmp");
+     closedir TDIR;
+          
+   } else {
+     # make the directory
+     mkdir $tmp_dir, 0755;
+     if ( opendir (TDIR, $tmp_dir ) ) {
+        # default to the ~/.estar/$process/tmp directory
+        $CONFIG->param("dir.tmp", $tmp_dir );
+        $STATE->param("dir.tmp", $tmp_dir );
+        closedir TDIR;  
+        $log->debug("Creating tmp directory ~/.estar/" .
+                 $process->get_process() . "/tmp");
+                                  
+     } else {
+        # can't open or create it, odd huh?
+        my $error = "Cannot make directory " . $tmp_dir;
+        $log->error( $error );
+        
+        return undef;
+     }
+   }  
+   
+   return 1;
+
+}
+
+
+sub get_data_dir {
+   my $self = shift;
+
+   my $config_file = $self->{CONFIG_FILE}; 
+
+   my $CONFIG = $self->{CONFIG};
+   unless ( defined $CONFIG ) {
+      # can't read/write to options file, bail out
+      my $error = "FatalError: Can not read from $config_file";
+      $log->error( $error );
+      return undef;      
+   } 
+   
+   #$log->warn("Data dir is " . $CONFIG->param("dir.data") );
+   return $CONFIG->param("dir.data");    
+}
+
+sub get_state_dir {
+   my $self = shift;
+
+   my $config_file = $self->{CONFIG_FILE}; 
+
+   my $CONFIG = $self->{CONFIG};
+   unless ( defined $CONFIG ) {
+      # can't read/write to options file, bail out
+      my $error = "FatalError: Can not read from $config_file";
+      $log->error( $error );
+      return undef;      
+   } 
+   
+   #$log->warn("State dir is " . $CONFIG->param("dir.cache") );
+   return $CONFIG->param("dir.cache");    
+}   
+
+sub get_tmp_dir {
+   my $self = shift;
+
+   my $config_file = $self->{CONFIG_FILE}; 
+
+   my $CONFIG = $self->{CONFIG};
+   unless ( defined $CONFIG ) {
+      # can't read/write to options file, bail out
+      my $error = "FatalError: Can not read from $config_file";
+      $log->error( $error );
+      return undef;      
+   } 
+
+   #$log->warn("Temporary dir is " . $CONFIG->param("dir.tmp") );
+   return $CONFIG->param("dir.tmp");    
+   
+}   
 
 1;
