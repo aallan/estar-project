@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: jach_agent.pl,v 1.8 2005/01/18 17:58:47 aa Exp $
+#     $Id: jach_agent.pl,v 1.9 2005/01/18 19:45:04 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -67,7 +67,7 @@ translation layer, which also handles external phase 0 discovery requests.
 
 =head1 REVISION
 
-$Id: jach_agent.pl,v 1.8 2005/01/18 17:58:47 aa Exp $
+$Id: jach_agent.pl,v 1.9 2005/01/18 19:45:04 aa Exp $
 
 =head1 AUTHORS
 
@@ -84,7 +84,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -420,7 +420,8 @@ foreach my $i ( 2 ... $#files ) {
    # thaw the observation
    my $observation_object = eSTAR::Util::thaw( $files[$i] );    
    unless ( defined $observation_object ) {
-      $log->warn( "Warning: Unable to deserialise ID = $files[$i]" );   
+      $log->warn( "Warning: Unable to deserialise ID = $files[$i]" );
+      next;   
    }
    
    #push it onto the %running hash
@@ -448,7 +449,7 @@ foreach my $i ( 2 ... $#files ) {
          $log->warn( "Warning: discarding $id..." );
          my $status = eSTAR::Util::melt( $observation_object );        
          if ( $status == ESTAR__ERROR ) {
-            $main::log->warn( 
+            $log->warn( 
                "Warning: Problem deleting the \$observation_object");
          } 
         
@@ -619,7 +620,7 @@ my $garbage = sub {
  
    while( 1 ) {
       sleep $config->get_option( "jach.garbage" );
-      $main::log->print( "Garbage Collection started at ". ctime() );
+      $log->print( "Garbage Collection started at ". ctime() );
       $log->thread2( $thread_name,
           "Running garbage collection (\$tid = " . threads->tid() . ")");
 
@@ -806,6 +807,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: jach_agent.pl,v $
+# Revision 1.9  2005/01/18 19:45:04  aa
+# Removed last couple of $main::* references, and added a next; in the garbage collection routine
+#
 # Revision 1.8  2005/01/18 17:58:47  aa
 # Changed project mappings
 #
