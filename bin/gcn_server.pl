@@ -22,7 +22,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: gcn_server.pl,v 1.5 2005/02/07 21:36:50 aa Exp $
+$Id: gcn_server.pl,v 1.6 2005/02/07 22:20:18 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -41,7 +41,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -82,7 +82,10 @@ use Getopt::Long;
 use Data::Dumper;
 use Fcntl qw(:DEFAULT :flock);
 #use CfgTie::TieUser;
-
+use SOAP::Lite;
+use Digest::MD5 'md5_hex';
+use URI;
+use HTTP::Cookies;
 
 # tag name of the current process, this identifies where log and 
 # status files for this process will be stored.
@@ -259,6 +262,8 @@ if ( $config->get_state("gcn.unique_process") == 1 ) {
 # grab options from command line
 $status = GetOptions( "host=s"     => \$opt{"host"},
                       "port=s"     => \$opt{"port"},
+                      "user=s"     => \$opt{"user"},
+                      "pass=s"     => \$opt{"pass"},
                       "agent=s"    => \$opt{"agent"} );
 
 # default hostname
@@ -296,6 +301,22 @@ unless( defined $opt{"agent"} ) {
    $config->set_option("ua.host", $opt{"agent"});
 }
 
+# default user and password location
+unless( defined $opt{"user"} ) {
+   $opt{"user"} = $config->get_option("gcn.user");
+} else{       
+   $log->warn("Warning: Resetting username from " .
+             $config->get_option("gcn.user") . " to $opt{user}");
+   $config->set_option("gcn.user", $opt{"user"} );
+}
+
+# default user and password location
+unless( defined $opt{"pass"} ) {
+   $opt{"user"} = $config->get_option("gcn.passwd");
+} else{       
+   $log->warn("Warning: Resetting password...");
+   $config->set_option("gcn.passwd", $opt{"pass"} );
+}
 
 # T C P / I P   S E R V E R   C O D E --------------------------------------
  
@@ -319,6 +340,7 @@ my $tcp_callback = sub {
    
       # TYPE_SWIFT_BAT_GRB_ALERT_SRC (type 60)
       # SWIFT BAT GRB ALERT message
+      # --------------------------------------
       if ( $$message[0] == 60 ) {
          $log->warn( "Recieved a TYPE_SWIFT_BAT_GRB_ALERT_SRC message " );       
          $log->warn( "trig_obs_num = " . $$message[4] );       
@@ -327,6 +349,7 @@ my $tcp_callback = sub {
    
       # TYPE_SWIFT_BAT_GRB_POS_ACK_SRC (type 61)
       # SWIFT BAT GRB Position Acknowledge message
+      # ------------------------------------------
       } elsif ( $$message[0] == 61 ) {
          $log->warn( 
            "Recieved a TYPE_SWIFT_BAT_GRB_POS_ACK_SRC message ".
@@ -339,10 +362,52 @@ my $tcp_callback = sub {
          my ( $ra, $dec, $error) = GCN::Util::convert_to_sextuplets(
                                   $$message[7], $$message[8], $$message[11] );
          $log->warn( "GRB detected at $ra, $dec +- $error acrmin" ); 
+
+         # build endpoint
+         my $endpoint = "http://" . $config->get_option("ua.host") . 
+                        ":" . $config->get_option("ua.port");
+         my $uri = new URI($endpoint);         
          
+         $log->debug("Connecting to server at $endpoint");
+
+         # create authentication cookie
+         $log->debug("Creating authentication token");
+         my $cookie =  eSTAR::Util::make_cookie( 
+           $config->get_option("gcn.user"), $config->get_option("gcn.passwd") );
+         
+                      
+         $log->debug("Placing it in the cookie jar...");
+         my $cookie_jar = HTTP::Cookies->new();
+         $cookie_jar->set_cookie(0, 
+                         user => $cookie, '/', $uri->host(), $uri->port()); 
+                                   
+         $log->print("Building SOAP client...");
+ 
+         # create SOAP connection
+         my $soap = new SOAP::Lite();
+         $soap->uri('urn:/user_agent'); 
+         $soap->proxy($endpoint, cookie_jar => $cookie_jar);
+         
+         # grab result 
+         $log->debug("Making a SOAP connection...");
+         my $result;
+         eval { $result = $soap->new_observation( 
+                              user     => $config->get_option("gcn.user"),
+                              pass     => $config->get_option("gcn.passwd"),
+                              type     => 'InitalBurstFollowup',
+                              ra       => $ra,
+                              dec      => $dec,
+                              followup => 0,
+                              exposure => 30,
+                              passband => "j98" ); };
+         if ( $@ ) {
+            $log->warn("Warning: Problem connecting to user agent");
+            $log->error("Error: $@");
+         }          
                         
       # TYPE_SWIFT_BAT_GRB_POS_NACK_SRC (type 62)
       # SWIFT BAT GRB Position NOT Acknowledge message
+      # ----------------------------------------------
       } elsif ( $$message[0] == 62 ) {
          $log->warn( "Recieved a TYPE_SWIFT_BAT_GRB_POS_NACK_SRC message " );
          $log->warn( "trig_obs_num = " . $$message[4] );       
@@ -351,6 +416,7 @@ my $tcp_callback = sub {
          
       # TYPE_SWIFT_XRT_POSITION_SRC (type 67)
       # SWIFT XRT Position message
+      # -------------------------------------
       } elsif ( $$message[0] == 67 ) {
          $log->warn( "Recieved a TYPE_SWIFT_XRT_POSITION_SRC message " );   
          $log->warn( "trig_obs_num = " . $$message[4] );       
@@ -359,6 +425,7 @@ my $tcp_callback = sub {
          
       # TYPE_SWIFT_XRT_CENTROID_SRC (type 71)
       # SWIFT XRT Position NOT Ack message (Centroid Error)
+      # ---------------------------------------------------
       } elsif ( $$message[0] == 71 ) {
          $log->warn( "Recieved a TYPE_SWIFT_XRT_CENTROID_SRC message " );  
          $log->warn( "trig_obs_num = " . $$message[4] );       
@@ -454,8 +521,8 @@ my $tcpip_server = sub {
              $log->thread2($thread_name, "Detaching thread..." );
              my $callback_thread = 
                     threads->create ( $tcp_callback, \@message );
-             $callback_thread->detach();               
-                
+             $callback_thread->detach(); 
+                             
           } elsif ( $bytes_read == 0 && $! != EWOULDBLOCK ) {
              $log->warn("Recieved an empty packet on $opt{port} from " . 
                          $listen->peerhost() );   
