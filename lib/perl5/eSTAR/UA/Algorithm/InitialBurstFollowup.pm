@@ -1,4 +1,4 @@
-package eSTAR::UA::Algorithm::InitalBurstFollowup;
+package eSTAR::UA::Algorithm::InitialBurstFollowup;
 
 use strict;
 use vars qw/ $VERSION /;
