@@ -557,146 +557,302 @@ sub handle_rtml {
 
       # SCIENCE PROGRAMME
       # -----------------
+      my $flag = undef;  # flag for science program creation will be  
+                         # set to 1 if the MSB is *not* sucessfully created
       
-      # create a science programme from the template XML files in
-      # $ESTAR_DIR/xml using the $parsed->filter() to figure out 
-      # which template to use. Current valid choices are "JHK" and 
-      # "K" band.
+      # If the target type is a gamma ray burst followup we're going to 
+      # use the new method of querying the OMP for template observations
+      # using the "magic words" in the title to figure out which one to
+      # of the possible many templates we should be using.
       
-      my $xml_file = File::Spec->catfile( $ENV{"ESTAR_DIR"}, 'xml',
-                                          "uist_" . lc($filter) . ".xml" );
-          
-      $log->debug( "XML Template $xml_file" );
-                                          
-      # catch non-existant filter errors
-      unless( -e $xml_file ) {
-         $log->error( "Error: " .  $config->get_option( "dn.telescope") .
-                            " does not have a $filter band filter.....");
-         $observation_object->obs_reply( $reject_message ); 
-         my $status = eSTAR::Util::freeze( $id, $observation_object ); 
-         if ( $status == ESTAR__ERROR ) {
-            $log->warn( 
-               "Warning: Problem re-serialising the \$observation_object");
-         }  
-         $log->debug("Returned RTML 'reject' message");         
-         return SOAP::Data->name('return', $reject)->type('base64');       
-      }
-      
-      # create a new science program  
-      my $sp;
-      my $flag = undef;
-      try {                                  
-         $sp = new OMP::SciProg( FILE => $xml_file );
-         unless ( $sp ) {
-            throw eSTAR::Error::FatalError( "OMP::SciProg() returned undef...") 
-         }
-      } otherwise {
-         my $error = shift;
-         $log->error( 
-           "Error: Unable to parse template science programme $xml_file");
-         $log->error( "Error: $error" );
-         $flag = 1;
-      }; 
-      if ( $flag ) { 
+      # NEW METHOD
+      # ----------
+      if ( $targettype =~ "BurstFollowup" ) {
+         $log->warn( "Warning: Querying the OMP for template observations" );
+         
+         # retrieve the science program  
+         my $sp;
+         my $project_id =  $project->get_project("user.".$username);
+         my $password =  $project->get_project("project.".$project_id);
+
+         try {                                  
+            $sp = new OMP::SciServer( $project_id, $password, 1 );
+            unless ( $sp ) {
+               throw eSTAR::Error::FatalError( 
+                                    "OMP::SciServer() returned undef...") 
+            }
+         } otherwise {
+            my $error = shift;
+            $log->error( 
+              "Error: Unable to retrieve science programme from OMP");
+            $log->error( "Error: $error" );
+            $flag = 1;
+         }; 
+         if ( $flag ) { 
                
-         # return the RTML document
-         $log->debug("Rejecting observation request...");
-         $observation_object->obs_reply( $reject_message );
-         my $status = eSTAR::Util::freeze( $id, $observation_object ); 
-         if ( $status == ESTAR__ERROR ) {
-            $log->warn( 
-               "Warning: Problem re-serialising the \$observation_object");
-         }  
-         $log->debug("Returned RTML 'reject' message");   
-         return SOAP::Data->name('return', $reject)->type('base64');
-      }
+            # return the RTML document
+            $log->debug("Rejecting observation request...");
+            $observation_object->obs_reply( $reject_message );
+            my $status = eSTAR::Util::freeze( $id, $observation_object ); 
+            if ( $status == ESTAR__ERROR ) {
+               $log->warn( 
+                  "Warning: Problem re-serialising the \$observation_object");
+            }  
+            $log->debug("Returned RTML 'reject' message");   
+            return SOAP::Data->name('return', $reject)->type('base64');
+         }     
+      
+         # scan through MSBs
+         $log->debug( "Scanning through MSB templates" );
+         my $template;
+         for my $m ( $sp->msb() ) {
+            $log->debug( "Found template " . $m->msbtitle() );
+            if ( $m->msbtitle() eq $parsed->targettype() &&
+                 $m->hasBlankTargets() ) {
+                 
+                 $template = $m;
+            }
+         }
+         unless ( defined $template ) {
+               
+            # return the RTML document
+            $log->debug("Rejecting observation request...");
+            $observation_object->obs_reply( $reject_message );
+            my $status = eSTAR::Util::freeze( $id, $observation_object ); 
+            if ( $status == ESTAR__ERROR ) {
+               $log->warn( 
+                  "Warning: Unable to find a matching template MSB");
+            }  
+            $log->debug("Returned RTML 'reject' message");   
+            return SOAP::Data->name('return', $reject)->type('base64');
+         }   
+         
+         # duplicate MSB
+         $template = $sp->dupMSB( $template );
+         
+         # fill the duplicated MSB with the target information
            
-      # create a Astro::Coords object to use in MSB creation
-      my $position = new Astro::Coords( ra  => $parsed->ra(),
-                                        dec => $parsed->dec(),
-                                        type => $parsed->equinox(),
-                                        name => $parsed->target());
-                                                                                
-      my $scope =  $config->get_option("dn.telescope");
-      $position->telescope( $scope );      
+         my $position = new Astro::Coords( ra  => $parsed->ra(),
+                                           dec => $parsed->dec(),
+                                           type => $parsed->equinox(),
+                                           name => $parsed->target());
       
-      # tag each msb in the science proposal with an expiry time, there
-      # seems to be problems inside Astro::Coords that we don't know about
-      # yet so lets buffer this with lots of error checking
-      my $expire = $position->set_time();
-      if ( $expire ) {
-         $log->debug( "Expiry time is $expire");
+         $template->fill_template( coords => $position );
+         $template->remaining( 1 ); # only do once
+         
+         # tag the msb in the science proposal with an expiry time, there
+         # seems to be problems inside Astro::Coords that we don't know about
+         # yet so lets buffer this with lots of error checking
+         my $scope =  $config->get_option("dn.telescope");
+         $position->telescope( $scope );                   
+         my $expire = $position->set_time();
+         if ( $expire ) {
+            $log->debug( "Expiry time is $expire");
       
-         for my $msb ( $sp->msb ) {
             try {
                my $tp = Time::Piece::gmtime( $expire->epoch() );
-               $msb->setDateMax( $tp );
+               $template->setDateMax( $tp );
                $log->debug( "Setting expiry time to $tp" );
             } otherwise {
                my $error = shift;
                $log->warn( "Warning: Unable to set expiry time..." );
                $log->warn( "Warning: $error ");
             }      
-         }
-      } else {
-         $log->warn( 
-          "Warning: Problem with Astro::Coords, unable to set expiry time..." );
-      }
-      
-      # generate an MSB from our Astro::Coords object array
-      my @messages = $sp->cloneMSBs( $position ); # array of Astro::Coords
-      #foreach my $i ( 0 ... $#messages ) {
-      #   $log->debug( $messages[$i] );
-      #}
-      for my $msb ( $sp->msb ) {
-        $log->debug( "Cloned MSB with title '" . $msb->msbtitle() . "'");
-        $log->debug( "Attaching eSTAR ID $id to MSB");
-        $msb->remote_trigger( src => "ESTAR", id => $id );
-      }    
- 
-      # Store the project ID in the XML
-      my $project_id =  $project->get_project("user.".$username);
-      $sp->projectID(  $project_id );
-      $log->debug( "Setting ProjectID to $project_id " );
-       
-      # Store to DB [there is also a SOAP interface]
-      $log->debug( 
-      "Dispatching MSB to SpServer (user $username, project $project_id)" );
-      my $password =  $project->get_project("project.".$project_id);
-      try {
-       
-         # the ,1 forces overwrite of the existing science program
-         # for the project id. Really need to fetch, append and
-         # then resubmit (probably need a prune method to remove
-         # exipired MSB's).
-         $log->debug( "Trying now...." );
-         OMP::SpServer->storeProgram( "$sp", $password, 1);
-         #$log->warn(
-         #   "Warning: OMP::SpServer->storeProgram() commented out");
-         #$log->warn( "Warning: MSB will not be sumbitted to SpServer" );
-      } otherwise {
-         my $error = shift;
-         $log->error( "Error: Unable to submit MSB to SpServer" );
-         $log->error( "Error: $error");
-         $flag = 1;
-      };
-      
-      if ( $flag ) { 
-               
-         # return the RTML document
-         $log->debug("Rejecting observation request...");
-         $observation_object->obs_reply( $reject_message );
-         my $status = eSTAR::Util::freeze( $id, $observation_object ); 
-         if ( $status == ESTAR__ERROR ) {
+         } else {
             $log->warn( 
-               "Warning: Problem re-serialising the \$observation_object");
-         }  
-         $log->debug("Returned RTML 'reject' message");   
-         return SOAP::Data->name('return', $reject)->type('base64');
-      }      
-      $log->debug( "Sucessfully connected to SpServer" );
-      $log->debug( "Submitted MSB..." );
+         "Warning: Problem with Astro::Coords, unable to set expiry time..." );
+         }                 
+      
+      
+         # store the eSTAR unique trigger ID into the MSB
+         $msb->remote_trigger( src => "ESTAR", id => $id );
 
+         # Store to DB [there is also a SOAP interface]
+         $log->debug( 
+         "Dispatching MSB to SpServer (user $username, project $project_id)" );
+          try {
+       
+            # the ,1 forces overwrite of the existing science program
+            # for the project id. Really need to fetch, append and
+            # then resubmit (probably need a prune method to remove
+            # exipired MSB's).
+            $log->debug( "Trying now...." );
+            OMP::SpServer->storeProgram( "$sp", $password );
+            #$log->warn(
+            #   "Warning: OMP::SpServer->storeProgram() commented out");
+            #$log->warn( "Warning: MSB will not be sumbitted to SpServer" );
+         } otherwise {
+            my $error = shift;
+            $log->error( "Error: Unable to submit MSB to SpServer" );
+            $log->error( "Error: $error");
+            $flag = 1;
+         };
+         if ( $flag ) { 
+               
+            # return the RTML document
+            $log->debug("Rejecting observation request...");
+            $observation_object->obs_reply( $reject_message );
+            my $status = eSTAR::Util::freeze( $id, $observation_object ); 
+            if ( $status == ESTAR__ERROR ) {
+               $log->warn( 
+                  "Warning: Problem re-serialising the \$observation_object");
+            }  
+            $log->debug("Returned RTML 'reject' message");   
+            return SOAP::Data->name('return', $reject)->type('base64');
+         }      
+         $log->debug( "Sucessfully connected to SpServer" );
+         $log->debug( "Submitted MSB..." );
+
+      
+      # OLD METHOD
+      # ----------
+      } else {
+         $log->warn( "Warning: Building templates from flat files" );
+      
+         # create a science programme from the template XML files in
+         # $ESTAR_DIR/xml using the $parsed->filter() to figure out 
+         # which template to use. Current valid choices are "JHK" and 
+         # "K" band.
+         
+         my $xml_file = File::Spec->catfile( $ENV{"ESTAR_DIR"}, 'xml',
+                                          "uist_" . lc($filter) . ".xml" );
+             
+         $log->debug( "XML Template $xml_file" );
+                                          
+         # catch non-existant filter errors
+         unless( -e $xml_file ) {
+            $log->error( "Error: " .  $config->get_option( "dn.telescope") .
+                               " does not have a $filter band filter.....");
+            $observation_object->obs_reply( $reject_message ); 
+            my $status = eSTAR::Util::freeze( $id, $observation_object ); 
+            if ( $status == ESTAR__ERROR ) {
+               $log->warn( 
+                  "Warning: Problem re-serialising the \$observation_object");
+            }  
+            $log->debug("Returned RTML 'reject' message");         
+            return SOAP::Data->name('return', $reject)->type('base64');       
+         }
+      
+         # create a new science program  
+         my $sp;
+         try {                                  
+            $sp = new OMP::SciProg( FILE => $xml_file );
+            unless ( $sp ) {
+               throw eSTAR::Error::FatalError( 
+                                    "OMP::SciProg() returned undef...") 
+            }
+         } otherwise {
+            my $error = shift;
+            $log->error( 
+              "Error: Unable to parse template science programme $xml_file");
+            $log->error( "Error: $error" );
+            $flag = 1;
+         }; 
+         if ( $flag ) { 
+               
+            # return the RTML document
+            $log->debug("Rejecting observation request...");
+            $observation_object->obs_reply( $reject_message );
+            my $status = eSTAR::Util::freeze( $id, $observation_object ); 
+            if ( $status == ESTAR__ERROR ) {
+               $log->warn( 
+                  "Warning: Problem re-serialising the \$observation_object");
+            }  
+            $log->debug("Returned RTML 'reject' message");   
+            return SOAP::Data->name('return', $reject)->type('base64');
+         }
+           
+         # create a Astro::Coords object to use in MSB creation
+         my $position = new Astro::Coords( ra  => $parsed->ra(),
+                                           dec => $parsed->dec(),
+                                           type => $parsed->equinox(),
+                                           name => $parsed->target());
+                                                                                
+         my $scope =  $config->get_option("dn.telescope");
+         $position->telescope( $scope );      
+      
+         # tag each msb in the science proposal with an expiry time, there
+         # seems to be problems inside Astro::Coords that we don't know about
+         # yet so lets buffer this with lots of error checking
+         my $expire = $position->set_time();
+         if ( $expire ) {
+            $log->debug( "Expiry time is $expire");
+      
+            for my $msb ( $sp->msb ) {
+               try {
+                  my $tp = Time::Piece::gmtime( $expire->epoch() );
+                  $msb->setDateMax( $tp );
+                  $log->debug( "Setting expiry time to $tp" );
+               } otherwise {
+                  my $error = shift;
+                  $log->warn( "Warning: Unable to set expiry time..." );
+                  $log->warn( "Warning: $error ");
+               }      
+            }
+         } else {
+            $log->warn( 
+             "Warning: Problem with Astro::Coords, unable to set expiry time..." );
+         }
+      
+         # generate an MSB from our Astro::Coords object array
+         my @messages = $sp->cloneMSBs( $position ); # array of Astro::Coords
+         #foreach my $i ( 0 ... $#messages ) {
+         #   $log->debug( $messages[$i] );
+         #}
+         for my $msb ( $sp->msb ) {
+           $log->debug( "Cloned MSB with title '" . $msb->msbtitle() . "'");
+           $log->debug( "Attaching eSTAR ID $id to MSB");
+           $msb->remote_trigger( src => "ESTAR", id => $id );
+         }    
+ 
+         # Store the project ID in the XML
+         my $project_id =  $project->get_project("user.".$username);
+         $sp->projectID(  $project_id );
+         $log->debug( "Setting ProjectID to $project_id " );
+       
+         # Store to DB [there is also a SOAP interface]
+         $log->debug( 
+         "Dispatching MSB to SpServer (user $username, project $project_id)" );
+         my $password =  $project->get_project("project.".$project_id);
+         try {
+       
+            # the ,1 forces overwrite of the existing science program
+            # for the project id. Really need to fetch, append and
+            # then resubmit (probably need a prune method to remove
+            # exipired MSB's).
+            $log->debug( "Trying now...." );
+            OMP::SpServer->storeProgram( "$sp", $password, 1);
+            #$log->warn(
+            #   "Warning: OMP::SpServer->storeProgram() commented out");
+            #$log->warn( "Warning: MSB will not be sumbitted to SpServer" );
+         } otherwise {
+            my $error = shift;
+            $log->error( "Error: Unable to submit MSB to SpServer" );
+            $log->error( "Error: $error");
+            $flag = 1;
+         };
+         if ( $flag ) { 
+               
+            # return the RTML document
+            $log->debug("Rejecting observation request...");
+            $observation_object->obs_reply( $reject_message );
+            my $status = eSTAR::Util::freeze( $id, $observation_object ); 
+            if ( $status == ESTAR__ERROR ) {
+               $log->warn( 
+                  "Warning: Problem re-serialising the \$observation_object");
+            }  
+            $log->debug("Returned RTML 'reject' message");   
+            return SOAP::Data->name('return', $reject)->type('base64');
+         }      
+         $log->debug( "Sucessfully connected to SpServer" );
+         $log->debug( "Submitted MSB..." );
+      
+      } # end if if() { ... } else { ... }
+        #
+        # This block determines which of the two methods we use to build
+        # the MSB from template observations. Either directly from templates
+        # in the OMP, or from flat files (old method) in the source directory.
+      
       # GARBAGE COLLECTION THREAD
       # -------------------------
       
