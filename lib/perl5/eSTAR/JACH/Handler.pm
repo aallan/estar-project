@@ -925,7 +925,7 @@ return SOAP::Data->name('return', $reject)->type('base64');
 
         $smtp->data();
         $smtp->datasend("To: " . 
-                        $parsed->name() . " <" . $parsed->email() . ">\n";
+                        $parsed->name() . " <" . $parsed->email() . ">\n" );
         $smtp->datasend('From: eSTAR Project <allan@jach.hawaii.edu>' ."\n");
         $smtp->datasend("Subject: eSTAR UKIRT queue submission\n");
         $smtp->datasend("\n");
