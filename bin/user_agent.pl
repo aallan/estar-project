@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: user_agent.pl,v 1.5 2005/01/11 14:35:30 aa Exp $
+#     $Id: user_agent.pl,v 1.6 2005/01/18 21:14:48 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -65,7 +65,7 @@ itself.
 
 =head1 REVISION
 
-$Id: user_agent.pl,v 1.5 2005/01/11 14:35:30 aa Exp $
+$Id: user_agent.pl,v 1.6 2005/01/18 21:14:48 aa Exp $
 
 =head1 AUTHORS
 
@@ -82,7 +82,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -402,9 +402,9 @@ $ua->set_ua( $lwp );
 # ===========================================================================
 
 # list of "default" known nodes
-$config->set_option( "nodes.Exeter", "dn2.astro.ex.ac.uk" );
+#$config->set_option( "nodes.Exeter", "dn2.astro.ex.ac.uk" );
 #$config->set_option( "nodes.LJM", "150.204.240.111" );
-#$config->set_option( "nodes.JACH", "uluhe.jach.hawaii.edu" );
+$config->set_option( "nodes.UKIRT", "estar.ukirt.jach.hawaii.edu" );
 #$config->set_option( "nodes.Test", "127.0.0.1" );
 $status = $config->write_option( );
 
@@ -583,6 +583,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: user_agent.pl,v $
+# Revision 1.6  2005/01/18 21:14:48  aa
+# Moved project file to singleton object
+#
 # Revision 1.5  2005/01/11 14:35:30  aa
 # Minor bug fix
 #

@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: jach_agent.pl,v 1.10 2005/01/18 20:58:39 aa Exp $
+#     $Id: jach_agent.pl,v 1.11 2005/01/18 21:14:48 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -38,13 +38,13 @@ use strict;
 
 # Global variables
 #  $VERSION  - CVS Revision Number
-#  $PROJECT  - Lookup table between estar user id and JAC project id
+#  $project  - Lookup table between estar user id and JAC project id
 #  %OPT      - Options hash for things we don't want to be persistant
 #  $log      - Handle for logging object
 #  $config   - Handle for configuration object
 #  %running  - A shared hash to hold the currently running observations
 
-use vars qw / $VERSION $PROJECT %OPT $log $config %running /;
+use vars qw / $VERSION %OPT $log $config $project %running /;
 
 # local status variable
 my $status;
@@ -67,7 +67,7 @@ translation layer, which also handles external phase 0 discovery requests.
 
 =head1 REVISION
 
-$Id: jach_agent.pl,v 1.10 2005/01/18 20:58:39 aa Exp $
+$Id: jach_agent.pl,v 1.11 2005/01/18 21:14:48 aa Exp $
 
 =head1 AUTHORS
 
@@ -84,7 +84,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.10 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -120,6 +120,7 @@ use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:status/;
 use eSTAR::Util;
 use eSTAR::JACH::Running;
+use eSTAR::JACH::Project;
 use eSTAR::Process;
 use eSTAR::UserAgent;
 use eSTAR::Config;
@@ -276,23 +277,8 @@ unless ( defined $status ) {
 
 # LOOKUP FILE
 # -----------
-
-# grab users home directory and define options filename
-my $project_file = 
-  File::Spec->catfile(Config::User->Home(), '.estar', 
-                      $process->get_process(), 'project.dat' );
-
-# open (or create) the options file
-$log->debug("Reading project ID file from $project_file");
-$PROJECT = new Config::Simple( syntax=>'ini', mode=>O_RDWR|O_CREAT );
-
-unless ( defined $PROJECT ) {
-   # can't read/write to state file, scream and shout!
-   my $error = "FatalError: " . $Config::Simple::errstr;
-   $log->error(chomp($error));
-   throw eSTAR::Error::FatalError($error, ESTAR__FATAL);      
-}
-$PROJECT->param( "jach.project", $project_file );
+$project = new eSTAR::JACH::Project();
+$project->set_project( "jach.project", $project_file );
 
 # save the name of the project.dat file into the options.dat file
 $config->set_option( "jach.project", $project_file );
@@ -319,8 +305,8 @@ $projects{"U/03B/D10"} = "strytess";
 # list of users with access to specific JAC project ID's, can have many
 # eSTAR users mapped to one JAC project ID, but not a single eSTAR user
 # mapped to many JAC project IDs (at least for now)>=.
-$PROJECT->param( "user.aa", "TJ03" );
-$PROJECT->param( "user.timj", "TJ03" );
+$project->set_project( "user.aa", "TJ03" );
+$project->set_project( "user.timj", "TJ03" );
 #$PROJECT->param( "user.aa", "U/03B/D10" );
 #$PROJECT->param( "user.aa", "U/03B/D10" );
 
@@ -330,18 +316,17 @@ $PROJECT->param( "user.timj", "TJ03" );
 # loop over all known projects and serialise the lookups
 
 foreach my $key ( sort keys %projects ) {
-   $PROJECT->param( "project.".$key, $projects{$key} );
+   $project->set_project( "project.".$key, $projects{$key} );
 }
 
 # WRITE IT OUT
 # ------------
 # commit name of the lookup file to PROJECT and CONFIG files
-$status = $PROJECT->write( $config->get_option( "jach.project" ) );
+$status = $project->write_project();
 
 unless ( defined $status ) {
   # can't read/write to options file, bail out
-  my $error = "FatalError: " . $Config::Simple::errstr;
-  $log->error(chomp($error));
+  my $error = "FatalError: Can not access project.dat file";
   throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
 } else {    
   $log->debug("Project file: " . $config->get_option( "jach.project" ) );
@@ -808,6 +793,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: jach_agent.pl,v $
+# Revision 1.11  2005/01/18 21:14:48  aa
+# Moved project file to singleton object
+#
 # Revision 1.10  2005/01/18 20:58:39  aa
 # Fixed melt() api calls
 #

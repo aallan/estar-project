@@ -47,6 +47,7 @@ use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw/:status/;
 use eSTAR::Util;
 use eSTAR::JACH::Running;
+use eSTAR::JACH::Project;
 use eSTAR::Config;
 
 #
@@ -62,7 +63,7 @@ use Astro::FITS::Header::CFITSIO;
 use lib $ENV{"ESTAR_OMPLIB"};
 use OMP::SciProg;
 use OMP::SpServer;
-my ($log, $run, $ua, $config);
+my ($log, $run, $ua, $config, $project );
 
 # ==========================================================================
 # U S E R   A U T H E N T I C A T I O N
@@ -76,6 +77,7 @@ sub new {
   $run = eSTAR::JACH::Running::get_reference();
   $ua = eSTAR::UserAgent::get_reference();
   $config = eSTAR::Config::get_reference();
+  $project = eSTAR::Project::get_reference();
   
   if( $user and $passwd ) {
     return undef unless $self->set_user( user => $user, password => $passwd );
@@ -321,6 +323,7 @@ sub handle_rtml {
       $observation_object->score_request( $parsed );
         
       # grab the coordinates
+
       my $coords = new Astro::Coords( ra  => $parsed->ra(),
                                       dec => $parsed->dec(),
                                       type => $parsed->equinox() );
@@ -475,7 +478,7 @@ sub handle_rtml {
       # --------------
       
       # check that the eSTAR user id maps to a JACH project id
-      unless (  $config->get_option("user.".$username) ) {
+      unless (  $project->get_project("user.".$username) ) {
                 
          # return the RTML document
          $log->warn("Warning: eSTAR UserID doesn't map to JAC ProjectID");
@@ -649,14 +652,14 @@ sub handle_rtml {
       }    
  
       # Store the project ID in the XML
-      my $project_id =  $config->get_option("user.".$username);
+      my $project_id =  $project->get_project("user.".$username);
       $sp->projectID(  $project_id );
       $log->debug( "Setting ProjectID to $project_id " );
        
       # Store to DB [there is also a SOAP interface]
       $log->debug( 
       "Dispatching MSB to SpServer (user $username, project $project_id)" );
-      my $password =  $config->get_option("project.".$project_id);
+      my $password =  $project->get_project("project.".$project_id);
       try {
        
          # the ,1 forces overwrite of the existing science program
