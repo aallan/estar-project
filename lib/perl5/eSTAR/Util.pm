@@ -33,7 +33,7 @@ use eSTAR::Error qw /:try/;
 @EXPORT_OK = qw/make_cookie make_id freeze thaw melt 
              get_option set_option get_state set_state/;
 
-'$Revision: 1.6 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.7 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # This is the code that is used to generate cookies based on the user
 # name and password. It is NOT cryptographically sound, it is just a
@@ -274,6 +274,29 @@ sub get_option {
    return $CONFIG->param($option);
 } 
 
+sub get_option_hash {
+
+   # grab references to single instance objects
+   my $log = eSTAR::Logging::get_reference();
+   my $process = eSTAR::Process::get_reference();
+
+   # grab users home directory and define options filename
+   my $config_file = 
+         File::Spec->catfile( Config::User->Home(), '.estar', 
+                              $process->get_process(), 'options.dat' ); 
+
+   $log->debug("Reading configuration from $config_file");
+   my $CONFIG = new Config::Simple( filename => $config_file, mode=>O_RDWR  );
+
+   unless ( defined $CONFIG ) {
+      my $error = $Config::Simple::errstr;
+      $log->error("Error: " . chomp($error));
+      return ESTAR__ERROR;   
+   }
+     
+   return $CONFIG->param_hash();
+} 
+
 # set an option in the $CONFIG file
 sub set_option {
    my $option = shift;
@@ -362,7 +385,7 @@ sub set_state {
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.6 2004/11/30 18:36:28 aa Exp $
+$Id: Util.pm,v 1.7 2004/11/30 19:05:32 aa Exp $
 
 =head1 AUTHORS
 

@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: jach_agent.pl,v 1.4 2004/11/30 18:36:26 aa Exp $
+#     $Id: jach_agent.pl,v 1.5 2004/11/30 19:05:30 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -68,7 +68,7 @@ translation layer, which also handles external phase 0 discovery requests.
 
 =head1 REVISION
 
-$Id: jach_agent.pl,v 1.4 2004/11/30 18:36:26 aa Exp $
+$Id: jach_agent.pl,v 1.5 2004/11/30 19:05:30 aa Exp $
 
 =head1 AUTHORS
 
@@ -85,7 +85,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -225,6 +225,12 @@ unless ( defined $CONFIG ) {
    throw eSTAR::Error::FatalError($error, ESTAR__FATAL);      
 }
 
+# if it exists read the current contents in...
+if ( open ( CONFIG, "<$config_file" ) ) {
+   close( CONFIG );
+   $CONFIG->read( $config_file );
+}  
+
 # store the options filename in the file itself, not sure why this is
 # useful but I'm sure it'll come in handly at some point.
 $CONFIG->param( "jach.options", $config_file );
@@ -252,6 +258,12 @@ unless ( defined $STATE ) {
    $log->error(chomp($error));
    throw eSTAR::Error::FatalError($error, ESTAR__FATAL);      
 }
+
+# if it exists read the current contents in...
+if ( open ( STATE, "<$state_file" ) ) {
+   close( STATE );
+   $STATE->read( $state_file );
+}   
 
 # store the state filename in the file itself...
 $STATE->param( "jach.state", $state_file );
@@ -925,6 +937,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: jach_agent.pl,v $
+# Revision 1.5  2004/11/30 19:05:30  aa
+# Working user_agent.pl, Handler.pm cleaned of most $main:: references. Only $main::OPT{http_agent} reference remains, similar to jach_agent.pl. Not tried a loopback test yet
+#
 # Revision 1.4  2004/11/30 18:36:26  aa
 # Fixed some of the software decay that had set into the distribution. The user_agent.pl and associated code still needs looking at to ermove direct access to $main::* in some cases
 #
