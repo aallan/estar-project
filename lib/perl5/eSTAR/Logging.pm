@@ -20,7 +20,7 @@ package eSTAR::Logging;
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: Logging.pm,v 1.3 2004/03/05 00:56:49 aa Exp $
+#     $Id: Logging.pm,v 1.4 2004/03/05 20:47:33 cavanagh Exp $
 
 #  Copyright:
 #     Copyright (C) 2001 University of Exeter. All Rights Reserved.
@@ -66,7 +66,7 @@ use Carp;
 use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:status/;
 
-'$Revision: 1.3 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.4 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # G L O B A L S ------------------------------------------------------------
 
@@ -250,7 +250,7 @@ sub configure {
 
 =head1 REVISION
 
-$Id: Logging.pm,v 1.3 2004/03/05 00:56:49 aa Exp $
+$Id: Logging.pm,v 1.4 2004/03/05 20:47:33 cavanagh Exp $
 
 =head1 METHODS
 
@@ -403,7 +403,7 @@ sub warn {
   close WARN;
   
   # open file and print to file
-  my $file = $self->{STD};
+  $file = $self->{STD};
   if ( open( STD, ">>$file") ) {
      print STD $string . "\n";
   }
@@ -432,7 +432,7 @@ sub error {
   close ERR;
   
   # open file and print to file
-  my $file = $self->{STD};
+  $file = $self->{STD};
   if ( open( STD, ">>$file") ) {
      print STD $string . "\n";
   }
@@ -461,7 +461,7 @@ sub debug {
   close BUG;
   
   # open file and print to file
-  my $file = $self->{STD};
+  $file = $self->{STD};
   if ( open( STD, ">>$file") ) {
      print STD "Debug: " . $string . "\n";
   }
@@ -492,7 +492,7 @@ sub debug_ncr {
   close BUG;
   
   # open file and print to file
-  my $file = $self->{STD};
+  $file = $self->{STD};
   if ( open( STD, ">>$file") ) {
      print STD "Debug: " . $string . "\n";
   }
@@ -523,7 +523,7 @@ sub debug_overtype_ncr {
   close BUG;
   
   # open file and print to file
-  my $file = $self->{STD};
+  $file = $self->{STD};
   if ( open( STD, ">>$file") ) {
      print STD "Debug: " . $string . "\n";
   }
@@ -556,21 +556,21 @@ sub closeout {
   close STD;
 
   # open warn.log file and print to file
-  my $file = $self->{WARN};
+  $file = $self->{WARN};
   if ( open( WARN, ">>$file") ) {
      print WARN "Warning log closed at " . ctime() . "\n";
   }
   close WARN;
 
   # open error.log file and print to file
-  my $file = $self->{ERROR};
+  $file = $self->{ERROR};
   if ( open( ERR, ">>$file") ) {
      print ERR "Error log closed at " . ctime() . "\n";
   }
   close ERR;  
 
   # open debug.log file and print to file
-  my $file = $self->{DEBUG};
+  $file = $self->{DEBUG};
   if ( open( BUG, ">>$file") ) {
      print BUG "Debugging log closed at " . ctime() . "\n";
   }
