@@ -665,7 +665,7 @@ sub handle_rtml {
       
       
          # store the eSTAR unique trigger ID into the MSB
-         $msb->remote_trigger( src => "ESTAR", id => $id );
+         $template->remote_trigger( src => "ESTAR", id => $id );
 
          # Store to DB [there is also a SOAP interface]
          $log->debug( 
