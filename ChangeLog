@@ -1,9 +1,14 @@
 2004-02-19 Alasdair Allan <aa@astro.ex.ac.uk>
 
-        * Got ping() and echo() working. Fixed the breaks in encapsulation
-	  present from the 2nd generation code by making eSTAR::Process and
-	  eSTAR::Logging single instance objects.
-	  
+        * Got ping() and echo() working for wfcam_agent.pl. Fixed the breaks
+	  in encapsulation present from the 2nd generation code by making 
+	  eSTAR::Process and eSTAR::Logging single instance objects.
+
+        * Added a data mining process, carbon copy of the wfcam_agant.pl
+	  code with configurations changed. Need to find some way to grab
+	  some meta-classes from this so that the 4th generation stuff can
+	  actually be easier to write than is currently the case.
+	  	  
 2004-02-18 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * Inital skeleton installation of the WFCAM survey_agent.pl 
