@@ -9,8 +9,8 @@ use Config::Simple;
 use Fcntl qw(:DEFAULT :flock);
 use Data::Dumper;
 
-use eSTAR::Logging;
-use eSTAR::Process;
+#use eSTAR::Logging;
+#use eSTAR::Process;
 use eSTAR::Constants qw/:all/;
 
 use vars qw/$VERSION @EXPORT @ISA/;
@@ -20,7 +20,7 @@ use vars qw/$VERSION @EXPORT @ISA/;
               state get_state set_state write_state
               get_nodes get_reference/;
 
-'$Revision: 1.1 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.2 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 my $SINGLETON;
 
@@ -67,6 +67,19 @@ sub state {
 }   
 
 
+sub reread {
+   my $self = shift;
+   
+   my $log = eSTAR::Logging::get_reference();
+   
+   $log->warn( "Warning: Forced read of $self->{CONFIG_FILE}" );
+   $self->{CONFIG}->read( $self->{CONFIG_FILE} );
+   
+   $log->warn( "Warning: Forced read of $self->{STATE_FILE}" );
+   $self->{STATE}->read( $self->{STATE_FILE} );
+ 
+} 
+   
 # create a configuration file
 sub create_ini_file {
    my $file = shift;
@@ -99,7 +112,6 @@ sub create_ini_file {
       $error = "Error: Config::Simple reported '" 
                . $Config::Simple::errstr . "'";
       $log->error( $error );
-      
       
       return undef;      
    }
@@ -140,8 +152,6 @@ sub get_option {
       $log->debug( $option . " = " .  $CONFIG->param( $option ) ); 
    } else {
       $log->warn( "Warning: $option is currently undefined" );
-      $log->warn( Dumper( $CONFIG ) );
-      $log->warn( "Error: $Config::Simple::errstr" );
       
    }
    my $value = $CONFIG->param( $option );
@@ -239,8 +249,6 @@ sub get_state {
       $log->debug( $option . " = " .  $STATE->param( $option ) ); 
    } else {
       $log->warn( "Warning: $option is currently undefined" );
-      $log->warn( Dumper( $STATE ) );
-      $log->warn( "Error: $Config::Simple::errstr" );
    }       
    my $value = $STATE->param( $option );
    #$STATE->close();
