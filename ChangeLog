@@ -1,3 +1,10 @@
+2004-11-05 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * Added some jach_agent.pl code from 2nd generation work, mostly ported
+          this code to third generation framework. Problems with the %running
+          hash. Need to share the %running hash across threads, and then use
+          an eSTAR::Running object to access a reference to this hash perhaps?
+
 2004-02-20 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * Added freeze(), thaw() and melt() functions for arbitary objects 
