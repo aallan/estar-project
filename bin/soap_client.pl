@@ -15,7 +15,7 @@
   use eSTAR::Util;
 
   unless ( scalar @ARGV >= 1 ) {
-     die "USAGE: $0 -method method [-file filename] [-arg args]" .
+     die "USAGE: $0 -method method [-file filename] [-arg1 arg] [-arg2 arg]" .
          " [-host host] [-port port] [-urn urn]\n";
   }
 
@@ -25,7 +25,8 @@
                            "urn=s"        => \$urn,
                            "method=s"     => \$method,
                            "file=s"       => \$file,
-                           "arg=s"        => \$args );
+                           "arg1=s"       => \$arg1,
+                           "arg2=s"       => \$arg2 );
 
   # default hostname
   unless ( defined $host ) {
@@ -41,7 +42,7 @@
   
   # need method
   unless ( defined $method ) {
-     die "USAGE: $0 -method method [-file filename] [-arg args]" .
+     die "USAGE: $0 -method method [-file filename] [-arg1 arg] [-arg2 arg]" .
          " [-host host] [-port port] [-urn urn]\n";
   }
          
@@ -55,7 +56,7 @@
      $xml = <FILE>;
      close FILE;
 
-     $args = $xml;
+     $arg1 = $xml;
   }
                
   # end point
@@ -81,11 +82,11 @@
   $soap->proxy($endpoint, cookie_jar => $cookie_jar);
     
   # report
-  print "Calling         : $method( $args )\n";
+  print "Calling         : $method( $arg1 $arg2 )\n";
     
   # grab result 
   my $result;
-  eval { $result = $soap->$method( $args ); };
+  eval { $result = $soap->$method( $arg1, $arg2 ); };
   if ( $@ ) {
      print "Error: $@";
      exit;   
