@@ -17,7 +17,8 @@ BEGIN {
   # class. The local versions catch errors that would otherwise be
   # simple text, and turn them into SOAP::Fault objects.
   
-  for my $method qw( ping echo get_option set_option populate_db ) {
+  for my $method qw( ping echo get_option set_option 
+                     populate_db handle_results ) {
      eval "sub $method";
      *$method = sub {
         my $self = shift->new();

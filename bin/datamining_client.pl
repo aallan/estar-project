@@ -20,13 +20,14 @@
   use eSTAR::Util;
 
   unless ( scalar @ARGV >= 1 ) {
-     die "USAGE: $0 -file filename [-host host] [-port port]\n";
+     die "USAGE: $0 -file filename [-host host] [-port port] [-server]\n";
   }
 
-  my ( $host, $port, $file );   
+  my ( $host, $port, $file, $server );   
   my $status = GetOptions( "file=s" => \$file,
                            "host=s" => \$host,
-			   "port=s" => \$port );
+			   "port=s" => \$port,
+			   "server!" => \$server );
 
   # default hostname
   unless ( defined $host ) {
@@ -62,12 +63,16 @@
   # incoming SOAP requests and route them to the appropriate module
   my $soap_server = sub {
     my $daemon = new SOAP::Transport::HTTP::Daemon(
-                     LocalAddr => $server_host, LocalPort => $server_port);
+                     LocalAddr => $server_host, LocalPort => $server_port );
     $daemon->dispatch_with({ 'urn:/wfcam_agent' => 'Callback' });
     $daemon->handle;
   };
 
-  my $listener_thread = threads->create( $soap_server );
+  my $listener_thread;
+  if( defined $server ) {
+     $listener_thread = threads->create( $soap_server );
+     print "Starting SOAP server thread...\n";
+  }
   
   # SOAP CLIENT CONNECTION
   # ----------------------
@@ -114,9 +119,11 @@
     print "Fault: " . $result->faultstring() ."\n";
   }  
  
-  print "Server thread listening for response...\n";
-  $status = $listener_thread->join() if defined $listener_thread;
-  print "Error: Server thread terminated with status ($status)\n";
+  if ( defined $server ) {
+     print "Server thread listening for response...\n";
+     $status = $listener_thread->join() if defined $listener_thread;
+     print "Error: Server thread terminated with status ($status)\n";
+  }
   exit;
 
   # CALLBACK CLASS
@@ -124,11 +131,11 @@
   
   package Callback;
   
-  sub callback {
+  sub handle_results {
      my $process = shift;
      my @args = @_;
      
-     print "Message passed to callback( )\n";
+     print "Message passed to handle_results( )\n";
      foreach my $i ( 0 ... $#args ) {
         print "$i = $args[$i]\n";
      }	     

@@ -7,7 +7,8 @@ package eSTAR::WFCAM::Handler;
 use lib $ENV{"ESTAR3_PERL5LIB"};     
 
 use strict;
-use subs qw( new set_user ping echo get_option set_option populate_db );
+use subs qw( new set_user ping echo get_option set_option
+             populate_db handle_results );
 
 #
 # Threading code (ithreads)
@@ -288,6 +289,36 @@ sub populate_db {
    $log->debug("Returned OK message");
    return SOAP::Data->name('return', "OK")->type('xsd:string');
       
+}
+  
+  
+
+sub handle_results {
+   my $self = shift;
+   my @args = @_;
+   
+   $log->debug("Called handle_results() from \$tid = ".threads->tid());
+   
+   # CHECK FOR USER DATA
+   # ===================
+   
+   # not callable as a static method, so must have a value user object 
+   # stored within the class otherwise we'll return a SOAP Error            
+   unless ( my $user = $self->{_user}) {
+      $log->warn("SOAP Request: The object is missing user data.");
+      die SOAP::Fault
+         ->faultcode("Client.DataError")
+         ->faultstring("Client Error: The object is missing user data.")
+   }  
+
+ 
+   # RETURN OK MESSAGE TO CLIENT
+   # ===========================
+   
+   # return an OK message to the client
+   $log->debug("Returned OK message");
+   return SOAP::Data->name('return', "OK")->type('xsd:string');
+
 }
    
 1;                                

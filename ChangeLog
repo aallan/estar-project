@@ -13,7 +13,9 @@
 	* Wrote a datamining_client.pl script which pushes a VOTable file to
 	  the data_miner.pl process, along with a host:port to reply to and
 	  context ID. This script runs up a "fake" wfcam_agent server for the
-	  data_miner.pl to reply to after it has processed the pushed file.
+	  data_miner.pl to reply to after it has processed the pushed file if
+	  a command line switch is given, otherwise you need to have the
+	  the data_miner.pl and wfcam_agent.pl running.
 	  
 	* Added a handle_objects() method to the data_miner.pl, this should  
 	  return immediately with an ACK to the client/agent calling it saying
@@ -23,6 +25,9 @@
 	* Made eSTAR::Util use EXPORT_OK rather than EXPORT and fixed the
 	  class method calls (hopefully) to reflect this change.        
 	  
+	* Added handle_results() method to the wfcam_agent.pl. This will
+	  handle results returned by the data_miner.pl.
+	    
 2004-02-19 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * Got ping() and echo() working for wfcam_agent.pl. Fixed the breaks
