@@ -20,7 +20,7 @@ package eSTAR::Logging;
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: Logging.pm,v 1.2 2004/02/20 00:42:29 aa Exp $
+#     $Id: Logging.pm,v 1.3 2004/03/05 00:56:49 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2001 University of Exeter. All Rights Reserved.
@@ -56,7 +56,7 @@ and state system.
 use strict;
 use vars qw/ $VERSION /;
 use subs qw/ new set_debug print header thread thread2 warn 
-             error debug closeout /;
+             error debug debug_ncr debug_overtype_ncr closeout /;
 
 use File::Spec;
 use Time::localtime;
@@ -66,7 +66,7 @@ use Carp;
 use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:status/;
 
-'$Revision: 1.2 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.3 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # G L O B A L S ------------------------------------------------------------
 
@@ -250,7 +250,7 @@ sub configure {
 
 =head1 REVISION
 
-$Id: Logging.pm,v 1.2 2004/02/20 00:42:29 aa Exp $
+$Id: Logging.pm,v 1.3 2004/03/05 00:56:49 aa Exp $
 
 =head1 METHODS
 
@@ -473,6 +473,72 @@ sub debug {
   }
 } 
 
+  
+=item B<debug_ncr>
+
+Debugging messages
+
+=cut
+
+sub debug_ncr {
+  my $self = shift;
+  my $string = shift;
+   
+  # open file and print to file
+  my $file = $self->{DEBUG};
+  if ( open( BUG, ">>$file") ) {
+     print BUG $string . "\n";
+  }
+  close BUG;
+  
+  # open file and print to file
+  my $file = $self->{STD};
+  if ( open( STD, ">>$file") ) {
+     print STD "Debug: " . $string . "\n";
+  }
+  close STD;  
+  
+  # print to screen if debugging turned on
+  if ( $self->{TOGGLE} == ESTAR__DEBUG ) {
+     print $green_norm . $string . $normal;
+  }
+} 
+
+  
+=item B<debug_overtype_ncr>
+
+Debugging messages
+
+=cut
+
+sub debug_overtype_ncr {
+  my $self = shift;
+  my $string = shift;
+   
+  # open file and print to file
+  my $file = $self->{DEBUG};
+  if ( open( BUG, ">>$file") ) {
+     print BUG $string . "\n";
+  }
+  close BUG;
+  
+  # open file and print to file
+  my $file = $self->{STD};
+  if ( open( STD, ">>$file") ) {
+     print STD "Debug: " . $string . "\n";
+  }
+  close STD;  
+    
+  # print to screen if debugging turned on
+  if ( $self->{TOGGLE} == ESTAR__DEBUG ) {
+     
+     my $backspace = "";
+     foreach ( 0 ... 80 ) {
+        $backspace = $backspace . "\b";
+     }
+     print $green_norm . $backspace . $string . $normal;
+  }
+} 
 =item B<closeout>
 
 Print closing tags to all log files
