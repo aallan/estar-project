@@ -16,6 +16,9 @@ eSTAR::Process - wrapper object to hold process related data
   
   $process->set_version( $VERSION )
   my $version = $process->get_version()
+
+  $process->set_urn( $urnid )
+  my $urnid = $process->get_urn()  
   
 =head1 DESCRIPTION
 
@@ -34,9 +37,9 @@ require Exporter;
 use vars qw/$VERSION @EXPORT @ISA/;
 
 @ISA = qw/Exporter/;
-@EXPORT = qw/set_process get_process get_reference/;
+@EXPORT = qw/set_process get_process get_reference get_urn/;
 
-'$Revision: 1.2 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.3 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 my $SINGLETON;
 
@@ -46,7 +49,8 @@ sub new {
    my $proto = shift;
    my $class = ref($proto) || $proto;   
    $SINGLETON = bless { PROCESS        => undef,
-                        VERSION_NUMBER => undef }, $class;
+                        VERSION_NUMBER => undef,
+                        URN_ID         => undef }, $class;
    
    $SINGLETON->set_process( @_ );
    return $SINGLETON;
@@ -77,11 +81,20 @@ sub get_version {
    return $self->{VERSION_NUMBER};
 }   
 
+sub set_urn {
+   my $self = shift;
+   $self->{URN_ID} = shift;   
+}
+
+sub get_urn {
+   my $self = shift;
+   return $self->{URN_ID};
+}   
 =back
 
 =head1 REVISION
 
-$Id: Process.pm,v 1.2 2004/02/21 02:56:55 aa Exp $
+$Id: Process.pm,v 1.3 2004/11/05 14:36:48 aa Exp $
 
 =head1 AUTHORS
 
