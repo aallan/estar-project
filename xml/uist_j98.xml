@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<SpProg timestamp="1061980089" type="pr" subtype="none"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+  <ot_version>20030822</ot_version>
+  <title>eStar startup</title>
+  <meta_gui_collapsed>false</meta_gui_collapsed>
+  <projectID>u/03b/d10</projectID>
+  <meta_gui_filename>estar.xml</meta_gui_filename>
+  <SpSiteQualityObsComp id="1" type="oc" subtype="schedInfo">
+    <meta_unique>true</meta_unique>
+    <meta_gui_collapsed>false</meta_gui_collapsed>
+  </SpSiteQualityObsComp>
+  <SpMSB remaining="1" type="og" subtype="msb">
+    <SpSiteQualityObsCompRef idref="1"/>
+    <library_version>$Revision: 1.1 $</library_version>
+    <title>5pt jitter/offsets of 20arcsec</title>
+    <meta_gui_collapsed>false</meta_gui_collapsed>
+    <priority>99</priority>
+    <estimatedDuration units="seconds">90.17975999999999</estimatedDuration>
+    <SpTelescopeObsCompRef idref="0"/>
+    <SpNote observeInstruction="true" type="no" subtype="none">
+      <meta_gui_collapsed>false</meta_gui_collapsed>
+      <note>Please do the sky flats if flats do not exist from some other observation using this configuration (UIST, J, 0.12"/pix). 
+
+***** The sky-flat has the same position as the target - please ask the TSS to offset manually to somewhere fairly blank...</note>
+    </SpNote>
+    <SpTelescopeObsComp id="0" type="oc" subtype="targetList">
+      <meta_unique>true</meta_unique>
+      <meta_gui_collapsed>false</meta_gui_collapsed>
+      <BASE TYPE="Base">
+        <target>
+          <targetName></targetName>
+          <spherSystem SYSTEM="J2000">
+            <c1>0:00:00</c1>
+            <c2>0:00:00</c2>
+          </spherSystem>
+        </target>
+      </BASE>
+      <meta_gui_selectedTelescopePos>Base</meta_gui_selectedTelescopePos>
+    </SpTelescopeObsComp>
+    <SpObs msb="false" optional="true" remaining="1" type="ob" subtype="none">
+      <chainedToNext>false</chainedToNext>
+      <estimatedDuration units="seconds">246.0</estimatedDuration>
+      <library_version>$Revision: 1.1 $</library_version>
+      <chainedToPrev>false</chainedToPrev>
+      <title>make_skyflats</title>
+      <meta_gui_collapsed>false</meta_gui_collapsed>
+      <standard>false</standard>
+      <SpInstUIST type="oc" subtype="inst.UIST">
+        <instPntgOffset>
+          <value>17.24</value>
+          <value>8.2076</value>
+        </instPntgOffset>
+        <meta_gui_collapsed>false</meta_gui_collapsed>
+        <dispersion>0.0</dispersion>
+        <order>0</order>
+        <resolution>0.0</resolution>
+        <centralWavelength>1.25</centralWavelength>
+        <posAngle>0.0</posAngle>
+        <disperser>open</disperser>
+        <instPort>South</instPort>
+        <focus>1.22</focus>
+        <meta_version>3</meta_version>
+        <instAper>
+          <value>-6.84</value>
+          <value>-4.14</value>
+          <value>0.00</value>
+          <value>2.00</value>
+        </instAper>
+        <mode>NDSTARE</mode>
+        <pixelScale>0.12</pixelScale>
+        <readArea>1024x1024</readArea>
+        <filter>J98</filter>
+        <readMode>NDSTARE</readMode>
+        <coadds>1</coadds>
+        <nreads>31</nreads>
+        <spectralCoverage>1.170um-1.330um</spectralCoverage>
+        <DAConf>ND1</DAConf>
+        <observationTime>32.13996</observationTime>
+        <dutyCycle>0.9334174653608778</dutyCycle>
+        <readout>NDSTARE</readout>
+        <chopFrequency>0.0</chopFrequency>
+        <pupil_imaging>no</pupil_imaging>
+        <meta_unique>true</meta_unique>
+        <imager>0.12</imager>
+        <pixelFOV>0.12 x 0.12</pixelFOV>
+        <configType>Normal</configType>
+        <scienceArea>122.88 x 122.88 arcsec</scienceArea>
+        <filterCategory>broad</filterCategory>
+        <polarimetry>no</polarimetry>
+        <readInterval>1.0</readInterval>
+        <maskWidth>0.0</maskWidth>
+        <DAConfMinExpT>0.81</DAConfMinExpT>
+        <chopDelay>0.0</chopDelay>
+        <mask>large_field</mask>
+        <maskHeight>0.0</maskHeight>
+        <source_mag>11-12</source_mag>
+        <camera>imaging</camera>
+        <exposureTime>30.0</exposureTime>
+        <expTimeOT>30.0</expTimeOT>
+      </SpInstUIST>
+      <SpDRRecipe type="oc" subtype="DRRecipe">
+        <SkyRecipe>REDUCE_SKY</SkyRecipe>
+        <FlatRecipe>REDUCE_FLAT</FlatRecipe>
+        <ArcRecipe>REDUCE_ARC</ArcRecipe>
+        <DarkRecipe>REDUCE_DARK</DarkRecipe>
+        <title>SKY_FLAT_MASKED</title>
+        <meta_unique>true</meta_unique>
+        <BiasInGroup>false</BiasInGroup>
+        <DarkInGroup>false</DarkInGroup>
+        <BiasRecipe>REDUCE_BIAS</BiasRecipe>
+        <meta_gui_collapsed>false</meta_gui_collapsed>
+        <ObjectRecipe>SKY_FLAT_MASKED</ObjectRecipe>
+        <DRRecipe>SKY_FLAT</DRRecipe>
+        <ArcInGroup>false</ArcInGroup>
+        <FlatInGroup>false</FlatInGroup>
+        <SkyInGroup>true</SkyInGroup>
+        <ObjectInGroup>true</ObjectInGroup>
+      </SpDRRecipe>
+      <SpIterFolder type="if" subtype="none">
+        <meta_gui_collapsed>false</meta_gui_collapsed>
+        <SpIterDarkObs type="ic" subtype="darkObs">
+          <coadds>1</coadds>
+          <exposureTime>30.0</exposureTime>
+          <meta_gui_collapsed>false</meta_gui_collapsed>
+          <repeatCount>1</repeatCount>
+        </SpIterDarkObs>
+        <SpIterOffset type="ic" subtype="offset">
+          <meta_gui_selectedOffsetPos>Offset0</meta_gui_selectedOffsetPos>
+          <obsArea>
+            <PA>0.0</PA>
+            <OFFSET>
+              <DC1>0.0</DC1>
+              <DC2>0.0</DC2>
+            </OFFSET>
+            <OFFSET>
+              <DC1>60.0</DC1>
+              <DC2>60.0</DC2>
+            </OFFSET>
+            <OFFSET>
+              <DC1>-60.0</DC1>
+              <DC2>60.0</DC2>
+            </OFFSET>
+            <OFFSET>
+              <DC1>-60.0</DC1>
+              <DC2>-60.0</DC2>
+            </OFFSET>
+            <OFFSET>
+              <DC1>60.0</DC1>
+              <DC2>-60.0</DC2>
+            </OFFSET>
+          </obsArea>
+          <title>jitter_5_60as</title>
+          <meta_gui_collapsed>false</meta_gui_collapsed>
+          <SpIterObserve type="ic" subtype="observe">
+            <repeatCount>1</repeatCount>
+            <meta_gui_collapsed>false</meta_gui_collapsed>
+          </SpIterObserve>
+        </SpIterOffset>
+        <SpIterOffset type="ic" subtype="offset">
+          <meta_gui_selectedOffsetPos>Offset0</meta_gui_selectedOffsetPos>
+          <meta_gui_collapsed>false</meta_gui_collapsed>
+          <obsArea>
+            <PA>0.0</PA>
+            <OFFSET>
+              <DC1>0.0</DC1>
+              <DC2>0.0</DC2>
+            </OFFSET>
+          </obsArea>
+        </SpIterOffset>
+      </SpIterFolder>
+    </SpObs>
+    <SpObs msb="false" optional="false" remaining="1" type="ob" subtype="none">
+      <chainedToNext>false</chainedToNext>
+      <estimatedDuration units="seconds">90.17975999999999</estimatedDuration>
+      <chainedToPrev>false</chainedToPrev>
+      <title>5pt jitter/offsets of 30arcsec</title>
+      <meta_gui_collapsed>false</meta_gui_collapsed>
+      <standard>false</standard>
+      <SpInstUIST type="oc" subtype="inst.UIST">
+        <instPntgOffset>
+          <value>17.24</value>
+          <value>8.2076</value>
+        </instPntgOffset>
+        <meta_gui_collapsed>false</meta_gui_collapsed>
+        <dispersion>0.0</dispersion>
+        <order>0</order>
+        <resolution>0.0</resolution>
+        <biasReadArea>1024x1024</biasReadArea>
+        <centralWavelength>1.25</centralWavelength>
+        <posAngle>0.0</posAngle>
+        <disperser>open</disperser>
+        <instPort>South</instPort>
+        <biasDutyCycle>0.507</biasDutyCycle>
+        <waveform>uist_starev11</waveform>
+        <focus>1.22</focus>
+        <meta_version>3</meta_version>
+        <biasMustIdles>100</biasMustIdles>
+        <instAper>
+          <value>4.82</value>
+          <value>1.19</value>
+          <value>0.00</value>
+          <value>2.00</value>
+        </instAper>
+        <mode>NDSTARE</mode>
+        <obsTimeOT>60.0</obsTimeOT>
+        <pixelScale>0.12</pixelScale>
+        <readArea>1024x1024</readArea>
+        <filter>J98</filter>
+        <readMode>NDSTARE</readMode>
+        <coadds>2</coadds>
+        <nreads>2</nreads>
+        <spectralCoverage>1.170um-1.330um</spectralCoverage>
+        <DAConf>ND1</DAConf>
+        <biasRefPixelY>512.5</biasRefPixelY>
+        <observationTime>6.05992</observationTime>
+        <biasRefPixelX>512.5</biasRefPixelX>
+        <dutyCycle>0.33003736022917796</dutyCycle>
+        <arrayAngle>0.54</arrayAngle>
+        <readout>NDSTARE</readout>
+        <chopFrequency>0.0</chopFrequency>
+        <pupil_imaging>no</pupil_imaging>
+        <biasNResets>2</biasNResets>
+        <mustIdles>100</mustIdles>
+        <meta_unique>true</meta_unique>
+        <imager>0.12</imager>
+        <nullReads>1</nullReads>
+        <biasIdlePeriod>0.0022</biasIdlePeriod>
+        <biasObsTime>9.468</biasObsTime>
+        <nullCycles>0</nullCycles>
+        <idlePeriod>0.0022</idlePeriod>
+        <pixelFOV>0.1205 x 0.1205</pixelFOV>
+        <configType>Normal</configType>
+        <scienceArea>122.88 x 122.88 arcsec</scienceArea>
+        <filterCategory>broad</filterCategory>
+        <darkFilter>black_blank</darkFilter>
+        <polarimetry>no</polarimetry>
+        <readoutOT>NDSTARE 1024x1024</readoutOT>
+        <readInterval>1.0</readInterval>
+        <maskWidth>0.0</maskWidth>
+        <DAConfMinExpT>0.81</DAConfMinExpT>
+        <chopDelay>0.0</chopDelay>
+        <mask>large_field</mask>
+        <maskHeight>0.0</maskHeight>
+        <refPixelY>480.5</refPixelY>
+        <refPixelX>480.5</refPixelX>
+        <biasWaveform>uist_starev11</biasWaveform>
+        <source_mag>9-10</source_mag>
+        <refPixelS>480.5</refPixelS>
+        <nullExposures>0</nullExposures>
+        <resetDelay>0.11</resetDelay>
+        <nresets>1</nresets>
+        <camera>imaging</camera>
+        <refPixelL>512.5</refPixelL>
+        <exposureTime>1.0</exposureTime>
+        <expTimeOT>1.0</expTimeOT>
+      </SpInstUIST>
+      <SpDRRecipe type="oc" subtype="DRRecipe">
+        <SkyRecipe>REDUCE_SKY</SkyRecipe>
+        <FlatRecipe>REDUCE_FLAT</FlatRecipe>
+        <ArcRecipe>REDUCE_ARC</ArcRecipe>
+        <DarkRecipe>REDUCE_DARK</DarkRecipe>
+        <title>BRIGHT_POINT_SOURCE_CATALOGUE</title>
+        <meta_unique>true</meta_unique>
+        <BiasInGroup>false</BiasInGroup>
+        <DarkInGroup>false</DarkInGroup>
+        <BiasRecipe>REDUCE_BIAS</BiasRecipe>
+        <meta_gui_collapsed>false</meta_gui_collapsed>
+        <ObjectRecipe>BRIGHT_POINT_SOURCE_CATALOGUE</ObjectRecipe>
+        <DRRecipe>JITTER_SELF_FLAT</DRRecipe>
+        <ArcInGroup>false</ArcInGroup>
+        <FlatInGroup>false</FlatInGroup>
+        <SkyInGroup>true</SkyInGroup>
+        <ObjectInGroup>true</ObjectInGroup>
+      </SpDRRecipe>
+      <SpIterFolder type="if" subtype="none">
+        <meta_gui_collapsed>false</meta_gui_collapsed>
+        <SpIterDarkObs type="ic" subtype="darkObs">
+          <coadds>2</coadds>
+          <exposureTime>1.0</exposureTime>
+          <meta_gui_collapsed>false</meta_gui_collapsed>
+          <repeatCount>1</repeatCount>
+        </SpIterDarkObs>
+        <SpIterRepeat type="ic" subtype="repeat">
+          <repeatCount>1</repeatCount>
+          <meta_gui_collapsed>false</meta_gui_collapsed>
+          <SpIterOffset type="ic" subtype="offset">
+            <meta_gui_selectedOffsetPos>Offset4</meta_gui_selectedOffsetPos>
+            <obsArea>
+              <PA>0.0</PA>
+              <OFFSET>
+                <DC1>0.0</DC1>
+                <DC2>0.0</DC2>
+              </OFFSET>
+              <OFFSET>
+                <DC1>10.0</DC1>
+                <DC2>10.0</DC2>
+              </OFFSET>
+              <OFFSET>
+                <DC1>-10.0</DC1>
+                <DC2>10.0</DC2>
+              </OFFSET>
+              <OFFSET>
+                <DC1>-10.0</DC1>
+                <DC2>-10.0</DC2>
+              </OFFSET>
+              <OFFSET>
+                <DC1>10.0</DC1>
+                <DC2>-10.0</DC2>
+              </OFFSET>
+            </obsArea>
+            <title>jitter_5_10as</title>
+            <meta_gui_collapsed>false</meta_gui_collapsed>
+            <SpIterObserve type="ic" subtype="observe">
+              <repeatCount>1</repeatCount>
+              <meta_gui_collapsed>false</meta_gui_collapsed>
+            </SpIterObserve>
+          </SpIterOffset>
+        </SpIterRepeat>
+        <SpIterOffset type="ic" subtype="offset">
+          <meta_gui_selectedOffsetPos>Offset0</meta_gui_selectedOffsetPos>
+          <meta_gui_collapsed>false</meta_gui_collapsed>
+          <obsArea>
+            <PA>0.0</PA>
+            <OFFSET>
+              <DC1>0.0</DC1>
+              <DC2>0.0</DC2>
+            </OFFSET>
+          </obsArea>
+        </SpIterOffset>
+      </SpIterFolder>
+    </SpObs>
+  </SpMSB>
+</SpProg>

@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<SpProg type="pr" subtype="none"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+  <ot_version>20030702</ot_version>
+  <meta_gui_collapsed>false</meta_gui_collapsed>
+  <projectID>tj03</projectID>
+  <meta_gui_filename>ufti_k.xml</meta_gui_filename>
+  <SpSchedConstObsComp id="1" type="oc" subtype="schedConstraints">
+    <latest>2033-07-18T22:17:47</latest>
+    <meta_unique>true</meta_unique>
+    <earliest>2003-07-18T22:17:47</earliest>
+  </SpSchedConstObsComp>
+  <SpSiteQualityObsComp id="0" type="oc" subtype="schedInfo">
+    <meta_unique>true</meta_unique>
+  </SpSiteQualityObsComp>
+  <SpMSB remaining="1" type="og" subtype="msb">
+    <SpSiteQualityObsCompRef idref="0"/>
+    <SpSchedConstObsCompRef idref="1"/>
+    <title>5pt jitter/offsets: Bright Point Source</title>
+    <library_version>$Revision: 1.1 $</library_version>
+    <meta_gui_collapsed>false</meta_gui_collapsed>
+    <priority>99</priority>
+    <estimatedDuration units="seconds">150.0</estimatedDuration>
+    <SpNote observeInstruction="true" type="no" subtype="none">
+      <title>OBSERVER NOTES</title>
+      <meta_gui_collapsed>false</meta_gui_collapsed>
+      <note></note>
+    </SpNote>
+    <SpObs msb="false" optional="false" remaining="1" type="ob" subtype="none">
+      <chainedToNext>false</chainedToNext>
+      <estimatedDuration units="seconds">150.0</estimatedDuration>
+      <chainedToPrev>false</chainedToPrev>
+      <title>5pt jitter/offsets: Bright Point Source</title>
+      <meta_gui_collapsed>false</meta_gui_collapsed>
+      <standard>false</standard>
+      <SpTelescopeObsComp type="oc" subtype="targetList">
+        <meta_unique>true</meta_unique>
+        <meta_gui_collapsed>false</meta_gui_collapsed>
+        <BASE TYPE="Base">
+          <target>
+            <targetName></targetName>
+            <spherSystem SYSTEM="J2000">
+              <c1>0:00:00</c1>
+              <c2>0:00:00</c2>
+            </spherSystem>
+          </target>
+        </BASE>
+        <meta_gui_selectedTelescopePos>Base</meta_gui_selectedTelescopePos>
+      </SpTelescopeObsComp>
+      <SpInstUFTI type="oc" subtype="inst.UFTI">
+        <posAngle>0.0</posAngle>
+        <instPort>West</instPort>
+        <meta_version>1.0</meta_version>
+        <readoutArea>1024x1024</readoutArea>
+        <coadds>2</coadds>
+        <sourceMag>10-11</sourceMag>
+        <instAper>
+          <value>3.28</value>
+          <value>0.36</value>
+          <value>0.0</value>
+          <value>2.150</value>
+        </instAper>
+        <polariser>none</polariser>
+        <filter>K98</filter>
+        <exposureTime>5.0</exposureTime>
+        <title>- set configuration</title>
+        <meta_unique>true</meta_unique>
+        <acqMode>Normal+NDSTARE</acqMode>
+        <meta_gui_collapsed>false</meta_gui_collapsed>
+        <instPntgOffset>
+          <value>0.0</value>
+          <value>0.0</value>
+        </instPntgOffset>
+      </SpInstUFTI>
+      <SpDRRecipe type="oc" subtype="DRRecipe">
+        <SkyRecipe>REDUCE_SKY</SkyRecipe>
+        <FlatRecipe>REDUCE_FLAT</FlatRecipe>
+        <ArcRecipe>REDUCE_ARC</ArcRecipe>
+        <DarkRecipe>REDUCE_DARK</DarkRecipe>
+        <title>BRIGHT_POINT_SOURCE</title>
+        <meta_unique>true</meta_unique>
+        <BiasInGroup>false</BiasInGroup>
+        <DarkInGroup>false</DarkInGroup>
+        <BiasRecipe>REDUCE_BIAS</BiasRecipe>
+        <meta_gui_collapsed>false</meta_gui_collapsed>
+        <ObjectRecipe>BRIGHT_POINT_SOURCE</ObjectRecipe>
+        <DRRecipe>JITTER_SELF_FLAT</DRRecipe>
+        <ArcInGroup>false</ArcInGroup>
+        <FlatInGroup>false</FlatInGroup>
+        <SkyInGroup>true</SkyInGroup>
+        <ObjectInGroup>true</ObjectInGroup>
+      </SpDRRecipe>
+      <SpIterFolder type="if" subtype="none">
+        <meta_gui_collapsed>false</meta_gui_collapsed>
+        <SpIterDarkObs type="ic" subtype="darkObs">
+          <coadds>2</coadds>
+          <exposureTime>5.0</exposureTime>
+          <meta_gui_collapsed>false</meta_gui_collapsed>
+          <repeatCount>1</repeatCount>
+        </SpIterDarkObs>
+        <SpIterRepeat type="ic" subtype="repeat">
+          <repeatCount>1</repeatCount>
+          <meta_gui_collapsed>false</meta_gui_collapsed>
+          <SpIterOffset type="ic" subtype="offset">
+            <meta_gui_selectedOffsetPos>Offset0</meta_gui_selectedOffsetPos>
+            <obsArea>
+              <PA>0.0</PA>
+              <OFFSET>
+                <DC1>0.0</DC1>
+                <DC2>0.0</DC2>
+              </OFFSET>
+              <OFFSET>
+                <DC1>-10.0</DC1>
+                <DC2>11.0</DC2>
+              </OFFSET>
+              <OFFSET>
+                <DC1>-12.0</DC1>
+                <DC2>-10.0</DC2>
+              </OFFSET>
+              <OFFSET>
+                <DC1>11.0</DC1>
+                <DC2>-11.0</DC2>
+              </OFFSET>
+              <OFFSET>
+                <DC1>11.0</DC1>
+                <DC2>10.0</DC2>
+              </OFFSET>
+            </obsArea>
+            <title>jitter_5_10as</title>
+            <meta_gui_collapsed>false</meta_gui_collapsed>
+            <SpIterObserve type="ic" subtype="observe">
+              <repeatCount>1</repeatCount>
+              <meta_gui_collapsed>false</meta_gui_collapsed>
+            </SpIterObserve>
+          </SpIterOffset>
+        </SpIterRepeat>
+        <SpIterOffset type="ic" subtype="offset">
+          <meta_gui_selectedOffsetPos>Offset0</meta_gui_selectedOffsetPos>
+          <meta_gui_collapsed>false</meta_gui_collapsed>
+          <obsArea>
+            <PA>0.0</PA>
+            <OFFSET>
+              <DC1>0.0</DC1>
+              <DC2>0.0</DC2>
+            </OFFSET>
+          </obsArea>
+        </SpIterOffset>
+      </SpIterFolder>
+    </SpObs>
+  </SpMSB>
+</SpProg>
