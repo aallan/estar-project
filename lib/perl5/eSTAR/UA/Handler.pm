@@ -619,8 +619,8 @@ sub new_observation {
             
           my $mail_body = 
             "Your user agent attempted to submit your observing request\n" .
-            "to all telescopes known to it but failed. All scopes returned\n"
-            "a score of zero indicating that the target was unobservable.\n"
+            "to all telescopes known to it but failed. All scopes returned\n".
+            "a score of zero indicating that the target was unobservable.\n".
             "\n" .
             "If you feel this is in error you should try and observe manually\n";
       
