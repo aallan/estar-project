@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: user_agent.pl,v 1.1 2004/11/30 19:05:31 aa Exp $
+#     $Id: user_agent.pl,v 1.2 2004/12/21 17:04:09 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -67,7 +67,7 @@ itself.
 
 =head1 REVISION
 
-$Id: user_agent.pl,v 1.1 2004/11/30 19:05:31 aa Exp $
+$Id: user_agent.pl,v 1.2 2004/12/21 17:04:09 aa Exp $
 
 =head1 AUTHORS
 
@@ -84,7 +84,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -120,6 +120,7 @@ use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:status/;
 use eSTAR::Util;
 use eSTAR::Process;
+use eSTAR::UserAgent;
 
 #
 # Config modules
@@ -528,13 +529,15 @@ $log->debug("Creating an HTTP User Agent...");
  
 
 # Create HTTP User Agent
-$OPT{"http_agent"} = new LWP::UserAgent(
-                          timeout => $CONFIG->param( "connection.timeout" ));
+my $lwp = new LWP::UserAgent( timeout => $CONFIG->param( "connection.timeout" ));
 
 # Configure User Agent                         
-$OPT{"http_agent"}->env_proxy();
-$OPT{"http_agent"}->agent( "eSTAR Persistent User Agent /$VERSION (" 
-                           . hostname() . "." . hostdomain() .")");
+$lwp->env_proxy();
+$lwp->agent( "eSTAR Persistent User Agent /$VERSION (" 
+            . hostname() . "." . hostdomain() .")");
+
+my $ua = new eSTAR::UserAgent(  );  
+$ua->set_ua( $lwp );
 
 # ===========================================================================
 # K N O W N   N O D E S 
@@ -751,6 +754,9 @@ sub query_simbad {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: user_agent.pl,v $
+# Revision 1.2  2004/12/21 17:04:09  aa
+# Fixes to store the LWP::UserAgent in a single instance object and get rid of the last $main:: references in the handler code
+#
 # Revision 1.1  2004/11/30 19:05:31  aa
 # Working user_agent.pl, Handler.pm cleaned of most $main:: references. Only $main::OPT{http_agent} reference remains, similar to jach_agent.pl. Not tried a loopback test yet
 #

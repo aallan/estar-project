@@ -1,3 +1,9 @@
+2004-12-21 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * Fixes to get rid of the last $main::* references from the library
+          code. All access to main:: resources should now be going through
+          single instance objects such as eSTAR::Process and eSTAR::UserAgent
+          
 2004-11-12 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * Large number of changes to make the jach_agent.pl code to actually

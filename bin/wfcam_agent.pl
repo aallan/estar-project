@@ -19,7 +19,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: wfcam_agent.pl,v 1.9 2004/11/12 14:32:04 aa Exp $
+#     $Id: wfcam_agent.pl,v 1.10 2004/12/21 17:05:59 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -63,7 +63,7 @@ passing data mining jobs out to a seperate data ining process.
 
 =head1 REVISION
 
-$Id: wfcam_agent.pl,v 1.9 2004/11/12 14:32:04 aa Exp $
+$Id: wfcam_agent.pl,v 1.10 2004/12/21 17:05:59 aa Exp $
 
 =head1 AUTHORS
 
@@ -80,7 +80,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.10 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -116,6 +116,7 @@ use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:all/;
 use eSTAR::Util;
 use eSTAR::Process;
+use eSTAR::UserAgent;
 
 #
 # Config modules
@@ -500,13 +501,15 @@ if ( $STATE->param("wfcam.unique_process") == 1 ) {
 $log->debug("Creating an HTTP User Agent...");
 
 # Create HTTP User Agent
-$OPT{"http_agent"} = new LWP::UserAgent(
-                          timeout => $CONFIG->param( "connection.timeout" ));
+my $lwp = new LWP::UserAgent( timeout => $CONFIG->param( "connection.timeout" ));
 
 # Configure User Agent                         
-$OPT{"http_agent"}->env_proxy();
-$OPT{"http_agent"}->agent( "eSTAR WFCAM Survey Agent /$VERSION (" 
-                           . hostname() . "." . hostdomain() .")");
+$lpw->env_proxy();
+$lwp->agent( "eSTAR WFCAM Survey Agent /$VERSION (" 
+             . hostname() . "." . hostdomain() .")");
+
+my $ua = new eSTAR::UserAgent(  );  
+$ua->set_ua( $lwp );
 
 # ===========================================================================
 # M A I N   B L O C K 
@@ -632,6 +635,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: wfcam_agent.pl,v $
+# Revision 1.10  2004/12/21 17:05:59  aa
+# Fixes to store the LWP::UserAgent in a single instance object and get rid of the last $main:: references in the handler code
+#
 # Revision 1.9  2004/11/12 14:32:04  aa
 # Extensive changes to support jach_agent.pl, see ChangeLog
 #
