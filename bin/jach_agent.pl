@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: jach_agent.pl,v 1.7 2005/01/11 17:18:26 aa Exp $
+#     $Id: jach_agent.pl,v 1.8 2005/01/18 17:58:47 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -67,7 +67,7 @@ translation layer, which also handles external phase 0 discovery requests.
 
 =head1 REVISION
 
-$Id: jach_agent.pl,v 1.7 2005/01/11 17:18:26 aa Exp $
+$Id: jach_agent.pl,v 1.8 2005/01/18 17:58:47 aa Exp $
 
 =head1 AUTHORS
 
@@ -84,7 +84,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -319,10 +319,10 @@ $projects{"U/03B/D10"} = "strytess";
 # list of users with access to specific JAC project ID's, can have many
 # eSTAR users mapped to one JAC project ID, but not a single eSTAR user
 # mapped to many JAC project IDs (at least for now)>=.
-#$PROJECT->param( "user.aa", "TJ03" );
-#$PROJECT->param( "user.timj", "TJ03" );
-$PROJECT->param( "user.aa", "U/03B/D10" );
-$PROJECT->param( "user.aa", "U/03B/D10" );
+$PROJECT->param( "user.aa", "TJ03" );
+$PROJECT->param( "user.timj", "TJ03" );
+#$PROJECT->param( "user.aa", "U/03B/D10" );
+#$PROJECT->param( "user.aa", "U/03B/D10" );
 
 # PROJECT LOOKUP FILE
 # -------------------
@@ -806,6 +806,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: jach_agent.pl,v $
+# Revision 1.8  2005/01/18 17:58:47  aa
+# Changed project mappings
+#
 # Revision 1.7  2005/01/11 17:18:26  aa
 # Refactored, should work once OMP issues are resolved  (see ChangeLog for details.
 #
