@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: user_agent.pl,v 1.4 2005/01/11 14:24:18 aa Exp $
+#     $Id: user_agent.pl,v 1.5 2005/01/11 14:35:30 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -65,7 +65,7 @@ itself.
 
 =head1 REVISION
 
-$Id: user_agent.pl,v 1.4 2005/01/11 14:24:18 aa Exp $
+$Id: user_agent.pl,v 1.5 2005/01/11 14:35:30 aa Exp $
 
 =head1 AUTHORS
 
@@ -82,7 +82,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -553,7 +553,7 @@ sub kill_agent {
 
    # committ CONFIG and STATE changes
    #$log->warn("Warning: Committing options and state changes");
-   #eSTAR::Util::write_options( );
+   #$config->write_option( );
    #$config->write_state( );  
    
    # flush the error stack
@@ -583,6 +583,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: user_agent.pl,v $
+# Revision 1.5  2005/01/11 14:35:30  aa
+# Minor bug fix
+#
 # Revision 1.4  2005/01/11 14:24:18  aa
 # Modified user_agent.pl and supporting files to use a standard directory path, now generated from eSTAR::Config rather from the agent itself. This will let us reuse that routine for all the rest of the agents
 #
