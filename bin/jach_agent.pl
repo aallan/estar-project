@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: jach_agent.pl,v 1.12 2005/01/19 15:56:09 aa Exp $
+#     $Id: jach_agent.pl,v 1.13 2005/01/19 16:13:17 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -67,7 +67,7 @@ translation layer, which also handles external phase 0 discovery requests.
 
 =head1 REVISION
 
-$Id: jach_agent.pl,v 1.12 2005/01/19 15:56:09 aa Exp $
+$Id: jach_agent.pl,v 1.13 2005/01/19 16:13:17 aa Exp $
 
 =head1 AUTHORS
 
@@ -84,7 +84,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.13 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -234,7 +234,7 @@ $config = new eSTAR::Config(  );
 
 my ( $number, $string );
 $number = $config->get_state( "jach.unique_process" ); 
-if ( defined $number ) {
+unless ( defined $number ) {
   # $number is not defined correctly (first ever run of the program?)
   $number = 0; 
 }
@@ -790,6 +790,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: jach_agent.pl,v $
+# Revision 1.13  2005/01/19 16:13:17  aa
+# Fixed state management problem. Silly me!
+#
 # Revision 1.12  2005/01/19 15:56:09  aa
 # jach_agent.pl will now queue observations in the Science DB sucessfully. Added try{ } catch { }; blocks to SOAP::Handler to cathc errors, these should be added to the other Handler routines.
 #
