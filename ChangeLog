@@ -23,7 +23,10 @@
           inside eSTAR::Config. I think this should slove things, it seems
           to have fixed both the race conditions and the flock'ing problem.
           
-        * Yuck!  
+        * Yuck!
+        
+        * Added BurstFollowup.pm to be skeleton for processing returned
+          observations.  
           
 2005-02-14 Aladair Allan <aa@astro.ex.ac.uk>
 
