@@ -7,7 +7,7 @@ package eSTAR::Miner::Handler;
 use lib $ENV{"ESTAR3_PERL5LIB"};     
 
 use strict;
-use subs qw( new set_user ping echo );
+use subs qw( new set_user ping echo get_option set_option );
 
 #
 # Threading code (ithreads)
@@ -114,7 +114,7 @@ sub set_user {
 }
 
 # ==========================================================================
-# H A N D L E R S 
+# T E S T  H A N D L E R S 
 # ==========================================================================
 
 # test function
@@ -156,6 +156,100 @@ sub echo {
    return SOAP::Data->name('return', "ECHO @args")->type('xsd:string');
 } 
 
+
+# ==========================================================================
+# O P T I O N S  H A N D L E R S 
+# ==========================================================================
+
+# test function
+sub get_option {
+   my $self = shift;
+
+   $log->debug("Called get_option() from \$tid = ".threads->tid());
+   
+   # not callable as a static method, so must have a value
+   # user object stored within             
+   unless ( my $user = $self->{_user}) {
+      $log->warn("SOAP Request: The object is missing user data.");
+      die SOAP::Fault
+         ->faultcode("Client.DataError")
+         ->faultstring("Client Error: The object is missing user data.")
+   }
+   
+   # grab the arguement telling us what we're looking for...
+   my $option = shift;
+
+   # grab the process object
+   my $process = eSTAR::Process::get_reference();
+
+   # grab users home directory and define options filename
+   my $config_file = 
+         File::Spec->catfile( Config::User->Home(), '.estar', 
+                              $process->get_process(), 'options.dat' ); 
+
+   $log->debug("Reading configuration from $config_file");
+   my $CONFIG = new Config::Simple( filename => $config_file, mode=>O_RDWR  );
+
+   unless ( defined $CONFIG ) {
+      my $error = $Config::Simple::errstr;
+      $log->error("Error: " . chomp($error));
+      die SOAP::Fault
+         ->faultcode("Client.FileError")
+         ->faultstring("Client Error: $error")          
+   }
+     
+   $log->debug("Returned RESULT message");
+   return SOAP::Data->name('return', 
+          $CONFIG->param($option) )->type('xsd:string');
+} 
+
+sub set_option {
+   my $self = shift;
+
+   $log->debug("Called set_option() from \$tid = ".threads->tid());
+   
+   # not callable as a static method, so must have a value
+   # user object stored within             
+   unless ( my $user = $self->{_user}) {
+      $log->warn("SOAP Request: The object is missing user data.");
+      die SOAP::Fault
+         ->faultcode("Client.DataError")
+         ->faultstring("Client Error: The object is missing user data.")
+   }
+   
+   # grab the arguement telling us what we're looking for...
+   my $option = shift;
+   
+   # and its new value
+   my $value = shift;
+
+   # grab the process object
+   my $process = eSTAR::Process::get_reference();
+
+   # grab users home directory and define options filename
+   my $config_file = 
+         File::Spec->catfile( Config::User->Home(), '.estar', 
+                              $process->get_process(), 'options.dat' ); 
+
+   $log->debug("Reading configuration from $config_file");
+   my $CONFIG = new Config::Simple( filename => $config_file, mode=>O_RDWR  );
+
+   unless ( defined $CONFIG ) {
+      my $error = $Config::Simple::errstr;
+      $log->error("Error: " . chomp($error));
+      die SOAP::Fault
+         ->faultcode("Client.FileError")
+         ->faultstring("Client Error: $error")          
+   }
+
+
+   $CONFIG->param( $option, $value );
+   my $status = $CONFIG->write( $CONFIG->param( "mining.options" ) );
+     
+   $log->debug("Returned STATUS message");
+   return SOAP::Data->name('return', $status )->type('xsd:string');
+
+} 
 
 1;                                
                   

@@ -7,7 +7,7 @@ package eSTAR::WFCAM::Handler;
 use lib $ENV{"ESTAR3_PERL5LIB"};     
 
 use strict;
-use subs qw( new set_user ping echo query_option set_option populate_db );
+use subs qw( new set_user ping echo get_option set_option populate_db );
 
 #
 # Threading code (ithreads)
@@ -18,6 +18,7 @@ use threads::shared;
 #
 # General modules
 #
+use Config::Simple;
 use SOAP::Lite;
 use Digest::MD5 'md5_hex';
 use Time::localtime;
@@ -35,6 +36,7 @@ use eSTAR::SOAP::User;
 use eSTAR::Logging;
 use eSTAR::Constants qw/:all/;
 use eSTAR::Util;
+use eSTAR::Process;
 
 #
 # Astro modules
@@ -167,10 +169,10 @@ sub echo {
 # ==========================================================================
 
 # test function
-sub query_option {
+sub get_option {
    my $self = shift;
 
-   $log->debug("Called query_option() from \$tid = ".threads->tid());
+   $log->debug("Called get_option() from \$tid = ".threads->tid());
    
    # not callable as a static method, so must have a value
    # user object stored within             
@@ -180,9 +182,32 @@ sub query_option {
          ->faultcode("Client.DataError")
          ->faultstring("Client Error: The object is missing user data.")
    }
+   
+   # grab the arguement telling us what we're looking for...
+   my $option = shift;
+
+   # grab the process object
+   my $process = eSTAR::Process::get_reference();
+
+   # grab users home directory and define options filename
+   my $config_file = 
+         File::Spec->catfile( Config::User->Home(), '.estar', 
+                              $process->get_process(), 'options.dat' ); 
+
+   $log->debug("Reading configuration from $config_file");
+   my $CONFIG = new Config::Simple( filename => $config_file, mode=>O_RDWR  );
+
+   unless ( defined $CONFIG ) {
+      my $error = $Config::Simple::errstr;
+      $log->error("Error: " . chomp($error));
+      die SOAP::Fault
+         ->faultcode("Client.FileError")
+         ->faultstring("Client Error: $error")          
+   }
      
-   $log->debug("Returned ACK message");
-   return SOAP::Data->name('return', 'ACK')->type('xsd:string');
+   $log->debug("Returned RESULT message");
+   return SOAP::Data->name('return', 
+          $CONFIG->param($option) )->type('xsd:string');
 } 
 
 sub set_option {
@@ -198,9 +223,38 @@ sub set_option {
          ->faultcode("Client.DataError")
          ->faultstring("Client Error: The object is missing user data.")
    }
+   
+   # grab the arguement telling us what we're looking for...
+   my $option = shift;
+   
+   # and its new value
+   my $value = shift;
+
+   # grab the process object
+   my $process = eSTAR::Process::get_reference();
+
+   # grab users home directory and define options filename
+   my $config_file = 
+         File::Spec->catfile( Config::User->Home(), '.estar', 
+                              $process->get_process(), 'options.dat' ); 
+
+   $log->debug("Reading configuration from $config_file");
+   my $CONFIG = new Config::Simple( filename => $config_file, mode=>O_RDWR  );
+
+   unless ( defined $CONFIG ) {
+      my $error = $Config::Simple::errstr;
+      $log->error("Error: " . chomp($error));
+      die SOAP::Fault
+         ->faultcode("Client.FileError")
+         ->faultstring("Client Error: $error")          
+   }
+
+
+   $CONFIG->param( $option, $value );
+   my $status = $CONFIG->write( $CONFIG->param( "wfcam.options" ) );
      
-   $log->debug("Returned ACK message");
-   return SOAP::Data->name('return', 'ACK')->type('xsd:string');
+   $log->debug("Returned STATUS message");
+   return SOAP::Data->name('return', $status )->type('xsd:string');
 } 
 
 # ==========================================================================
