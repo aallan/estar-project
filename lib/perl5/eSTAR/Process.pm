@@ -8,17 +8,21 @@ eSTAR::Process - wrapper object to hold process related data
 
   use eSTAR::Process
   
-  $process = new eSTAR::Process( $process_name );
+  my $process = new eSTAR::Process( $process_name );
   $process = eSTAR::Process::get_reference();
   
   $process->set_process( $process_name )
-  $process->get_process()
+  my $version = $process->get_process()
+  
+  $process->set_version( $VERSION )
+  my $version = $process->get_version()
   
 =head1 DESCRIPTION
 
 This module contains simpel wrapped routines to hold information
 concerning the current process. Currently only holds the process
-name for use by eSTAR::Util. Th.is is a single instance object
+name and version for use by eSTAR::Util. This is a single instance 
+object.
 
 =cut
 
@@ -32,7 +36,7 @@ use vars qw/$VERSION @EXPORT @ISA/;
 @ISA = qw/Exporter/;
 @EXPORT = qw/set_process get_process get_reference/;
 
-'$Revision: 1.1 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.2 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 my $SINGLETON;
 
@@ -41,7 +45,8 @@ sub new {
 
    my $proto = shift;
    my $class = ref($proto) || $proto;   
-   $SINGLETON = bless { PROCESS => undef }, $class;
+   $SINGLETON = bless { PROCESS        => undef,
+                        VERSION_NUMBER => undef }, $class;
    
    $SINGLETON->set_process( @_ );
    return $SINGLETON;
@@ -62,11 +67,21 @@ sub get_process {
    return $self->{PROCESS};
 }   
 
+sub set_version {
+   my $self = shift;
+   $self->{VERSION_NUMBER} = shift;   
+}
+
+sub get_version {
+   my $self = shift;
+   return $self->{VERSION_NUMBER};
+}   
+
 =back
 
 =head1 REVISION
 
-$Id: Process.pm,v 1.1 2004/02/20 00:42:29 aa Exp $
+$Id: Process.pm,v 1.2 2004/02/21 02:56:55 aa Exp $
 
 =head1 AUTHORS
 

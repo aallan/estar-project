@@ -65,7 +65,7 @@
   print "End Point       : " . $endpoint . "\n";
   
   # create a user/passwd cookie
-  my $cookie = make_cookie( "agent", "InterProcessCommunication" );
+  my $cookie = eSTAR::Util::make_cookie( "agent", "InterProcessCommunication" );
   
   my $cookie_jar = HTTP::Cookies->new();
   $cookie_jar->set_cookie(0, user => $cookie, '/', $uri->host(), $uri->port());

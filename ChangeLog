@@ -1,3 +1,28 @@
+2004-02-20 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * Added freeze(), thaw() and melt() functions for arbitary objects 
+	  being serialised to the ~/.estar/$process/state/ directory. 
+	  
+	* Added set_state() and get_state() functions to allow access to the
+	  state.dat file as well as the options.dat file to which access was
+	  provided yesterday with the get_option() and set_option() methods.
+	  
+	* Moved all the options/state querying to eSTAR::Util and put wrapper
+	  methods into the Handler classes only.
+	  
+	* Wrote a datamining_client.pl script which pushes a VOTable file to
+	  the data_miner.pl process, along with a host:port to reply to and
+	  context ID. This script runs up a "fake" wfcam_agent server for the
+	  data_miner.pl to reply to after it has processed the pushed file.
+	  
+	* Added a handle_objects() method to the data_miner.pl, this should  
+	  return immediately with an ACK to the client/agent calling it saying
+	  that everything is okay, and then return its results in an async
+	  manner using threads.
+	  
+	* Made eSTAR::Util use EXPORT_OK rather than EXPORT and fixed the
+	  class method calls (hopefully) to reflect this change.        
+	  
 2004-02-19 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * Got ping() and echo() working for wfcam_agent.pl. Fixed the breaks

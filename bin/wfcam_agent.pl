@@ -19,7 +19,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: wfcam_agent.pl,v 1.6 2004/02/20 03:42:29 aa Exp $
+#     $Id: wfcam_agent.pl,v 1.7 2004/02/21 02:56:55 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -63,7 +63,7 @@ passing data mining jobs out to a seperate data ining process.
 
 =head1 REVISION
 
-$Id: wfcam_agent.pl,v 1.6 2004/02/20 03:42:29 aa Exp $
+$Id: wfcam_agent.pl,v 1.7 2004/02/21 02:56:55 aa Exp $
 
 =head1 AUTHORS
 
@@ -80,7 +80,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -135,6 +135,7 @@ use Data::Dumper;
 # tag name of the current process, this identifies where log and 
 # status files for this process will be stored.
 my $process = new eSTAR::Process( "wfcam_agent" );  
+$process->set_version( $VERSION );
 
 # C A T C H   S I G N A L S -------------------------------------------------
 
@@ -631,6 +632,30 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: wfcam_agent.pl,v $
+# Revision 1.7  2004/02/21 02:56:55  aa
+# Added freeze(), thaw() and melt() functions for arbitary objects
+# being serialised to the ~/.estar/$process/state/ directory.
+#
+# Added set_state() and get_state() functions to allow access to the
+# state.dat file as well as the options.dat file to which access was
+# provided yesterday with the get_option() and set_option() methods.
+#
+# Moved all the options/state querying to eSTAR::Util and put wrapper
+# methods into the Handler classes only.
+#
+# Wrote a datamining_client.pl script which pushes a VOTable file to
+# the data_miner.pl process, along with a host:port to reply to and
+# context ID. This script runs up a "fake" wfcam_agent server for the
+# data_miner.pl to reply to after it has processed the pushed file.
+#
+# Added a handle_objects() method to the data_miner.pl, this should
+# return immediately with an ACK to the client/agent calling it saying
+# that everything is okay, and then return its results in an async
+# manner using threads.
+#
+# Made eSTAR::Util use EXPORT_OK rather than EXPORT and fixed the
+# class method calls (hopefully) to reflect this change.
+#
 # Revision 1.6  2004/02/20 03:42:29  aa
 # Changed configuration options so that default options are only generated
 # on the inital program run. If an option.dat and state.dat file already

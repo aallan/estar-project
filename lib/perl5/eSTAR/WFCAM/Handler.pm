@@ -97,7 +97,7 @@ sub set_user {
    } elsif( $args{cookie} ) {
 
       unless( $args{cookie} eq 
-              make_cookie($args{user}, $self->{_user}->{passwd}) ) {
+         eSTAR::Util::make_cookie($args{user}, $self->{_user}->{passwd}) ) {
               
          undef $self->{_user};
 
@@ -168,7 +168,7 @@ sub echo {
 # O P T I O N S  H A N D L E R S 
 # ==========================================================================
 
-# test function
+# option handling
 sub get_option {
    my $self = shift;
 
@@ -186,28 +186,16 @@ sub get_option {
    # grab the arguement telling us what we're looking for...
    my $option = shift;
 
-   # grab the process object
-   my $process = eSTAR::Process::get_reference();
-
-   # grab users home directory and define options filename
-   my $config_file = 
-         File::Spec->catfile( Config::User->Home(), '.estar', 
-                              $process->get_process(), 'options.dat' ); 
-
-   $log->debug("Reading configuration from $config_file");
-   my $CONFIG = new Config::Simple( filename => $config_file, mode=>O_RDWR  );
-
-   unless ( defined $CONFIG ) {
-      my $error = $Config::Simple::errstr;
-      $log->error("Error: " . chomp($error));
+   my $value = eSTAR::Util::get_option( $option );
+   if ( $value == ESTAR__ERROR ) {
+      $log->error("Error: Unable to get value from configuration file" );
       die SOAP::Fault
-         ->faultcode("Client.FileError")
-         ->faultstring("Client Error: $error")          
+     ->faultcode("Client.FileError")
+     ->faultstring("Client Error: Unable to get value from configuration file");          
    }
-     
+
    $log->debug("Returned RESULT message");
-   return SOAP::Data->name('return', 
-          $CONFIG->param($option) )->type('xsd:string');
+   return SOAP::Data->name('return', $value )->type('xsd:string');
 } 
 
 sub set_option {
@@ -224,37 +212,20 @@ sub set_option {
          ->faultstring("Client Error: The object is missing user data.")
    }
    
-   # grab the arguement telling us what we're looking for...
    my $option = shift;
-   
-   # and its new value
    my $value = shift;
 
-   # grab the process object
-   my $process = eSTAR::Process::get_reference();
-
-   # grab users home directory and define options filename
-   my $config_file = 
-         File::Spec->catfile( Config::User->Home(), '.estar', 
-                              $process->get_process(), 'options.dat' ); 
-
-   $log->debug("Reading configuration from $config_file");
-   my $CONFIG = new Config::Simple( filename => $config_file, mode=>O_RDWR  );
-
-   unless ( defined $CONFIG ) {
-      my $error = $Config::Simple::errstr;
-      $log->error("Error: " . chomp($error));
+   my $status = eSTAR::Util::set_option( $option, $value );
+   if ( $status == ESTAR__ERROR ) {
+      $log->error("Error: Unable to set value in configuration file" );
       die SOAP::Fault
-         ->faultcode("Client.FileError")
-         ->faultstring("Client Error: $error")          
+      ->faultcode("Client.FileError")
+      ->faultstring("Client Error: Unable to set value in configuration file");          
    }
 
+   $log->debug("Returned STATUS message" );
+   return SOAP::Data->name('return', ESTAR__OK )->type('xsd:integer');
 
-   $CONFIG->param( $option, $value );
-   my $status = $CONFIG->write( $CONFIG->param( "wfcam.options" ) );
-     
-   $log->debug("Returned STATUS message");
-   return SOAP::Data->name('return', $status )->type('xsd:string');
 } 
 
 # ==========================================================================

@@ -33,6 +33,7 @@ alias miner        'source ${ESTAR3_DIR}/etc/data_miner.csh'
 
 # Client Software
 alias soap_client  '${ESTAR3_PERLBIN} ${ESTAR3_DIR}/bin/soap_client.pl'
+alias datamine     '${ESTAR3_PERLBIN} ${ESTAR3_DIR}/bin/datamining_client.pl'
 alias dump_users   '${ESTAR3_PERLBIN} ${ESTAR3_DIR}/bin/dump_users.pl'
 alias add_user     '${ESTAR3_PERLBIN} ${ESTAR3_DIR}/bin/add_user.pl'
 alias fake_catalog '${ESTAR3_PERLBIN} ${ESTAR3_DIR}/bin/fake_catalog.pl'
