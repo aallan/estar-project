@@ -36,6 +36,14 @@ use eSTAR::Logging;
 use eSTAR::Constants qw/:all/;
 use eSTAR::Util qw//;
 
+# 
+# Astro modules
+#
+use Astro::Catalog;
+use Astro::Catalog::Query::SIMBAD;
+
+use Astro::SIMBAD::Query;
+
 my $log;
 
 # ==========================================================================
@@ -251,16 +259,95 @@ sub handle_objects {
    my $port = shift;
    my $xml = shift;
    
-   # generate a unique ID
-   my $id = eSTAR::Util::make_id();
+   # RESPONSE THREAD
+   # ---------------
+   # we have a seperate thread that goes off and data mines information
+   # pertaining to the list of objects we have been given. This is so that
+   # an ACK response can be given to teh client immediately.
+   my $response_client = sub {
+    
+      my $thread_name = "Mining Thread"; 
+      $log->thread($thread_name, 
+        "Called response_client() from \$tid = " . threads->tid());
+      
+      # generate a unique ID
+      #my $id = eSTAR::Util::make_id();
 
-   print "context = $context\n";
-   print "host    = $host\n";
-   print "port    = $port\n";
-   print "\nXML\n\n";
-   print $xml . "\n";
+      $log->debug( "Connection from $host:$port");
+      $log->debug( "Connection has context '" . $context . "'" );
+        
+      # Generate Catalogue
+      # ------------------
+   
+      my $catalog = new Astro::Catalog( Format => 'VOTable', Data => $xml );
+      $log->debug("List of " . $catalog->sizeof() . 
+                  " objects read from SOAP message");
+    	
+      use Data::Dumper; print Dumper( $catalog );
+      	
+      # Check each Star
+      # ---------------
+      my $error = eSTAR::Util::get_option( "simbad.error" );
+      $log->debug("Searching SIMBAD at $error arcsec...");
+      foreach my $i ( 0 ... $catalog->sizeof()-1 ) {
+   
+         my $star = $catalog->starbyindex( $i );
+         my $ra = $star->ra();
+         my $dec = $star->dec();
+         #$log->debug( "Star $i - RA $ra, Dec $dec");
+      
+         my $simbad = new Astro::SIMBAD::Query( 
+	           RA => $ra, Dec => $dec, Error => $error,  Unit => "arcsec" );
          
-   $log->debug("Returned ACK message for $context");
+	 if( $i == 0 ) {
+	    $log->debug_ncr( 
+	        "Making connection " . ($i+1) . " of " . $catalog->sizeof() );
+	 } else {
+	    $log->debug_overtype_ncr( 
+	       "Making connection " . ($i+1) . " of " . $catalog->sizeof()); 
+	 }
+	 
+	 if( $i == $catalog->sizeof()-1 ) {
+	    $log->debug_overtype_ncr(""); 
+	    $log->debug( "\nMade all " . ($i+1) . " connections to SIMABD..." );
+         }
+	 	 
+	 my $result = $simbad->querydb();	
+	 
+         #use Data::Dumper; print Dumper( $result );
+	 if( $result->objects() >= 1  ) {
+	   my @objects = $result->objects();
+	   $log->print( "\nStar " . $star->id() );
+	   $log->print( "  RA $ra, Dec $dec");
+	   
+	   my $number = scalar( @objects );
+	   $log->debug("  SIMBAD returned ". $number ." matching records");
+	   foreach my $j ( 0 ... $#objects ) {
+	      $log->print( "  Match ". ($j+1) );
+	      $log->print( "  " . $objects[$j]->name() );
+	      $log->print( "  RA " . $objects[$j]->ra() . 
+	                   ", Dec " . $objects[$j]->dec() );
+	      $log->debug( "  Object Class : " . $objects[$j]->long() );
+	      $log->debug( "  Spectral Type: " . $objects[$j]->spec() );	       
+	   }   
+	 } 
+      }
+      $log->thread($thread_name, "Completed data mining task");
+   };
+   
+   # SPAWN THREADED PROCESS
+   # ----------------------
+   # spawn a sub-thread to do our data mining
+   $log->thread2("Handler Thread", "Detaching data mining process...");
+   my $response_thread = threads->create( $response_client );
+   $response_thread->detach();
+    
+   # RETURN ACK
+   # ----------
+   # return a simple ACK message to the client for now, we have the context
+   # we'll be contacting them with the data mined information later. 
+   $log->thread2("Handler Thread",
+                 "Returned ACK message for context '" . $context . "'");
    return SOAP::Data->name('return', "ACK $context" )->type('xsd:string');   
 }   
 
