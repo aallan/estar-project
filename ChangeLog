@@ -1,3 +1,15 @@
+2005-02-07 Aladair Allan <aa@astro.ex.ac.uk>
+
+        * bin/gcn_server.pl: Moved TCP/IP server into it's own thread and
+          multi-threaded the response on callback. Basic building blocks
+          complete, now actually have to write some filtering code.
+
+        * Removed get_reference() from list of routines exported by singleton
+          modules such as eSTAR::Process and eSTAR::Config. Should be called
+          explicitly anyway using eSTAR::*::get_reference() because several of
+          the single instance modules have this method we have namespace 
+          clashes if you don't do it that way.
+          
 2005-02-04 Aladair Allan <aa@astro.ex.ac.uk>
 
         * bin/gcn_server.pl: Working socket connection to GCN service that

@@ -1,7 +1,7 @@
 #!/software/perl-5.8.6/bin/perl -w
 
-use strict;
-use warnings;
+#use strict;
+#use warnings;
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: gcn_server.pl,v 1.3 2005/02/04 14:28:28 aa Exp $
+$Id: gcn_server.pl,v 1.4 2005/02/07 17:18:15 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -31,14 +31,17 @@ All Rights Reserved.
 
 =cut  
 
-use vars qw / $VERSION $log $process %opt /;
+use vars qw / $log $process $config $VERSION  %opt /;
+
+# local status variable
+my $status;
 
 # H A N D L E  V E R S I O N ----------------------------------------------- 
 
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -51,24 +54,33 @@ BEGIN {
 }
 
 # L O A D I N G -------------------------------------------------------------
+
+# Threading code (ithreads)
+use threads;
+use threads::shared;
   
 # eSTAR modules
 use lib $ENV{ESTAR_PERL5LIB};
 use eSTAR::Logging;
-use eSTAR::Process;
-use eSTAR::Constants qw(:status); 
 use eSTAR::Error qw /:try/;
+use eSTAR::Constants qw /:status/;
+use eSTAR::Util;
+use eSTAR::Process;
+use eSTAR::Config;
 
 # GCN modules
 use GCN::Constants qw(:packet_types);
 
 # General modules
+use Config;
 use IO::Socket;
 use Errno qw(EWOULDBLOCK EINPROGRESS);
 use Net::Domain qw(hostname hostdomain);
 use Time::localtime;
 use Getopt::Long;
 use Data::Dumper;
+use Fcntl qw(:DEFAULT :flock);
+#use CfgTie::TieUser;
 
 
 # tag name of the current process, this identifies where log and 
@@ -79,13 +91,22 @@ $process = new eSTAR::Process( "gcn_server" );
 # status files for this process will be stored.
 $process->set_version( $VERSION );
 
-
-# turn off buffering
-$| = 1;
-
 # Get date and time
 my $date = scalar(localtime);
 my $host = hostname;
+  
+# C A T C H   S I G N A L S -------------------------------------------------
+
+#  Catch as many signals as possible so that the END{} blocks work correctly
+use sigtrap qw/die normal-signals error-signals/;
+
+# make unbuffered
+#$|=1;					
+
+# signals
+#$SIG{'INT'} = exit;
+#$SIG{'PIPE'} = 'IGNORE';
+
 
 # L O G G I N G --------------------------------------------------------------
 
@@ -102,100 +123,312 @@ $log->set_debug(ESTAR__DEBUG);
 # Start of log file
 $log->header("Starting GCN Server: Version $VERSION");
 
+# Check for threading
+$log->debug("Config: useithreads = " . $Config{'useithreads'});
+if($threads::shared::threads_shared) {
+    $log->debug("Config: threads::shared loaded");
+} 
+
+if ( $Config{'useithreads'} ne "define" ) {
+   # Perl isn't threaded, this is NOT good
+   my $error = "FatalError: Perl mis-configured, ithreads must be enabled";
+   $log->error($error);
+   throw eSTAR::Error::FatalError($error, ESTAR__FATAL);      
+}
+
+# C O N F I G U R A T I O N --------------------------------------------------
+
+# Load in previously saved options, should be in a file in the users home 
+# directory. If not there, we go with the defaults and commit basic defaults 
+# to Options file
+
+$config = new eSTAR::Config(  );  
+
+# S T A T E   F I L E -------------------------------------------------------
+
+# HANDLE UNIQUE ID
+# ----------------
+  
+# create a unique ID for each process, increment every time it is
+# created and save it immediately to the state file, of course eventually 
+# we'll run out of ints, I guess that will be bad...
+
+my ( $number, $string );
+$number = $config->get_state( "gcn.unique_process" ); 
+unless ( defined $number ) {
+  # $number is not defined correctly (first ever run of the program?)
+  $number = 0; 
+}
+
+# increment ID number
+$number = $number + 1;
+$config->set_state( "gcn.unique_process", $number );
+$log->debug("Setting gcn.unique_process = $number"); 
+  
+# commit ID stuff to STATE file
+$status = $config->write_state();
+unless ( defined $status ) {
+  # can't read/write to options file, bail out
+  my $error = "FatalError: Can not read or write to state.dat file";
+  $log->error( $error );
+  throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
+} else {    
+  $log->debug("Unique process ID: updated state.dat file" );
+}
+
+# PID OF USER AGENT
+# -----------------
+
+# log the current $pid of the user_agent.pl process to the state 
+# file  so we can kill it from the SOAP server.
+$config->set_state( "gcn.pid", getpgrp() );
+  
+# commit $pid to STATE file
+$status = $config->write_state();
+unless ( defined $status ) {
+  # can't read/write to options file, bail out
+  my $error = "FatalError: Can not read or write to state.dat file";
+  $log->error( $error );
+  throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
+} else {    
+  $log->debug("GCN Server PID: " . $config->get_state( "gcn.pid" ) );
+}
+
+# M A K E   D I R E C T O R I E S -------------------------------------------
+
+# create the data, state and tmp directories if needed
+$status = $config->make_directories();
+unless ( defined $status ) {
+  # can't read/write to options file, bail out
+  my $error = "FatalError: Problems creating data directories";
+  $log->error( $error );
+  throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
+} 
+
+
+# M A I N   O P T I O N S   H A N D L I N G ---------------------------------
+
+# grab current IP address
+my $ip = inet_ntoa(scalar(gethostbyname(hostname())));
+$log->debug("This machine as an IP address of $ip");
+
+if ( $config->get_state("gcn.unique_process") == 1 ) {
+  
+   #my %user_id;
+   #tie %user_id, "CfgTie::TieUser";
+   
+   # grab current user
+   #my $current_user = $user_id{$ENV{"USER"}};
+   #my $real_name = ${$current_user}{"GCOS"};
+
+   # server parameters
+   $config->set_option("server.host", $ip );
+   $config->set_option("server.port", 5184 ); 
+    
+   # user defaults
+   #$config->set_option("user.user_name", $ENV{"USER"} );
+   #$config->set_option("user.real_name", $real_name );
+   #$config->set_option("user.email_address", $ENV{"USER"}."@".hostdomain());
+   #$config->set_option("user.institution", "eSTAR Project" );
+
+   # user agentrameters
+   $config->set_option("ua.host", $ip );
+   $config->set_option("ua.port", 8000 );
+
+   # interprocess communication
+   $config->set_option("gcn.user", "agent" );
+   $config->set_option("gcn.passwd", "InterProcessCommunication" );
+
+   # connection options defaults
+   $config->set_option("connection.timeout", 5 );
+   $config->set_option("connection.proxy", 'NONE'  );
+    
+   # C O M M I T T   O P T I O N S  T O   F I L E S
+   # ----------------------------------------------
+   
+   # committ CONFIG and STATE changes
+   $log->warn("Initial default options being generated");
+   $log->warn("Committing options and state changes...");
+   $status = $config->write_option( );
+   $status = $config->write_state();
+}
+
 # C O M M A N D   L I N E   A R G U E M E N T S -----------------------------
 
 # grab options from command line
-my $status = GetOptions( "host=s"     => \$opt{"host"},
-                         "port=s"     => \$opt{"port"} );
+$status = GetOptions( "host=s"     => \$opt{"host"},
+                      "port=s"     => \$opt{"port"},
+                      "agent=s"    => \$opt{"agent"} );
 
 # default hostname
 unless ( defined $opt{"host"} ) {
    # localhost.localdoamin
    my $ip = inet_ntoa(scalar(gethostbyname(hostname())));
-   $log->debug("This machine as an IP address of $ip");
-   $opt{"host"} = $ip;
+   $opt{"host"} = $config->get_option("server.host");
+} else{
+   if ( defined $config->get_option("server.host") ) {
+      $log->warn("Warning: Resetting host from" . 
+              $config->get_option("server.host") . " to $opt{host}");
+   }           
+   $config->set_option("server.host", $opt{"host"});
 }
 
 # default port
 unless( defined $opt{"port"} ) {
    # default port for the GCN server
-   $opt{"port"} = 5184;   
+   $opt{"port"} = $config->get_option("server.port");   
+} else {
+   if ( defined $config->get_option("server.port") ) {
+      $log->warn("Warning: Resetting port from " . 
+              $config->get_option("server.port") . " to $opt{port}");
+   }
+   $config->set_option("server.port", $opt{"port"});
 }
 
+# default user agent location
+unless( defined $opt{"agent"} ) {
+   # default port for the GCN server
+   $opt{"agent"} = $config->get_option("ua.host");   
+} else {
+   $log->warn("Warning: Resetting port from " .
+             $config->get_option("ua.host") . " to $opt{agent}");
+   $config->set_option("ua.host", $opt{"agent"});
+}
+
+
 # M A I N   C O D E ----------------------------------------------------------
+ 
+# TCP/IP SERVER CALLBACK
+# ----------------------
+
+# Conenction callback for the TCP/IP socket, this grabs 
+# the incoming message from the GCN and handles it before
+# passing filtered observing requests to the user_agent.pl
+
+my $tcp_callback = sub { 
+   my $message = shift; 
+   $log->print( "TCP/IP Callback (\$tid = ".threads->tid().")" ); 
+   
+   if ( $$message[0] == TYPE_IM_ALIVE ) {
+       $log->print("Recieved a TYPE_IM_ALIVE packet at " . ctime() ); 
+                
+   } else {
+       $log->warn( "Recieved a packet of type $$message[0] at " . ctime() );   
+   
+   }
+   
+   
+   
+};
+
+   
+# TCP/IP SERVER
+# -------------
+
+# daemon process
+my $sock;
+
+# the thread in which we run the server process
+my $tcpip_thread;
+
+# anonymous subroutine which starts a SOAP server which will accept
+# incoming SOAP requests and route them to the appropriate module
+my $tcpip_server = sub {
+   my $thread_name = "TCP/IP Thread"; 
   
-my $sock = new IO::Socket::INET( 
-                  LocalHost => $opt{"host"},
-                  LocalPort => $opt{"port"},
+   $log->thread2($thread_name, "Starting server on " . 
+      $config->get_option( "server.host") . ":" .
+      $config->get_option( "server.port") . " (\$tid = ".threads->tid().")");  
+   
+   my $sock = new IO::Socket::INET( 
+                  LocalHost => $config->get_option("server.host"),
+                  LocalPort => $config->get_option("server.port"),
                   Proto     => 'tcp',
                   Listen    => 1,
                   Reuse     => 1,
                   Timeout   => 300,
                   Type      => SOCK_STREAM ); 
-                    
-die "Could not create socket: $!\n" unless $sock;
-#$sock->blocking(0);
+   
+   unless ( $sock ) {
+      # If we restart the node agent process quickly after a crash the port 
+      # will still be blocked by the operating system and we won't be able 
+      # to start the daemon. Other than the port being in use I can't see
+      # why we're going to end up here.
+      my $error = "$@";
+      chomp($error);
+      return "FatalError: $error";
+   };                    
 
-$log->debug("Starting server on $opt{host}:$opt{port}...\n");
-
-# wait until socket opens
-while ( my $listen = $sock->accept() ) {
+   # wait until socket opens
+   $log->thread2( $thread_name,  "Reading unbuffered from TCP/IP socket... " );
+   while ( my $listen = $sock->accept() ) {
     
-    $listen->blocking(0);
+      $listen->blocking(0);
         
-    my $status = 1;    
-    while( $status ) {
+       my $status = 1;    
+       while( $status ) {
     
-       my $length = 160; # GCN packets are 160 bytes long
-       my $buffer;  
-       my $bytes_read = sysread( $listen, $buffer, $length);
+          my $length = 160; # GCN packets are 160 bytes long
+          my $buffer;  
+          my $bytes_read = sysread( $listen, $buffer, $length);
      
-       next unless defined $bytes_read;
-       if ( $bytes_read > 0 ) {
+          next unless defined $bytes_read;
+          if ( $bytes_read > 0 ) {
  
-         $log->debug( "\nRecieved $bytes_read bytes on $opt{port} from " . 
-                      $listen->peerhost() );    
+            $log->debug( "\nRecieved $bytes_read bytes on $opt{port} from " . 
+                         $listen->peerhost() );    
                       
-          my @message = unpack( "N40", $buffer );
-          if ( $message[0] == TYPE_IM_ALIVE ) {
-             $log->print("Recieved a TYPE_IM_ALIVE packet at " . ctime() ); 
-          } else {
-             $log->warn("Recieved a packet of type $message[0] at " . ctime() );
-          }
-
-          # echo back the packet so GCN can monitor:
-          if( $message[0] != TYPE_KILL_SOCKET ) {
+             my @message = unpack( "N40", $buffer );
+             if ( $message[0] == TYPE_KILL_SOCKET ) {
+                $log->print(
+                   "Recieved a TYPE_KILL_SOCKET packet at " . ctime() );
+                $log->warn("Warning: Killing connection...");
+                $status = undef;
+                next;
+             } 
+             
              $log->debug( "Echoing $bytes_read bytes to " . 
-                          $listen->peerhost() );
+                       $listen->peerhost() );
              $listen->flush();
              print $listen $buffer;
              $listen->flush();
-          } else {
-             $log->print("Recieved a TYPE_KILL_SOCKET packet at " . ctime() );
-             $log->warn("Warning: Killing connection...");
+             
+              # callback to handle incoming RTML     
+             $log->thread2($thread_name, "Detaching thread..." );
+             my $callback_thread = 
+                    threads->create ( $tcp_callback, \@message );
+             $callback_thread->detach();               
+                
+          } elsif ( $bytes_read == 0 && $! != EWOULDBLOCK ) {
+             $log->warn("\nWarning: Recieved a 0 length packet");
+             $listen->flush();
+             print $listen $buffer;
+             $log->debug( 
+                 "Echoing $bytes_read bytes to " . $listen->peerhost() );
+             $listen->flush();
+                          
+             $status = undef;
+          }
+       
+          unless ( $listen->connected() ) {
+             $log->warn("\nWarning: Not connected, closing socket...");
              $status = undef;
           }    
-       } elsif ( $bytes_read == 0 && $! != EWOULDBLOCK ) {
-          $log->warn("\nWarning: Recieved a 0 length packet");
-          $listen->flush();
-          print $listen $buffer;
-          $log->debug( "Echoing $bytes_read bytes to " . $listen->peerhost() );
-          $listen->flush();
-                          
-          $status = undef;
-       }
-       
-       unless ( $listen->connected() ) {
-          $log->warn("\nWarning: Not connected, closing socket...");
-          $status = undef;
-       }    
     
-    }   
-    $log->warn("Warning: Closing socket connection to client");
-    close ($listen);
+       }   
+       $log->warn("Warning: Closing socket connection to client");
+       close ($listen);
     
-} 
+   } 
+
+};  
+
+# Spawn the TCP/IP server thread
+$log->print("Spawning TCP/IP Server thread...");
+$tcpip_thread = threads->create( $tcpip_server );
   
-  
+$status = $tcpip_thread->join() if defined $tcpip_thread;
+$log->warn( "Warning: TCP/IP exiting with bad status... ");
+$log->error( $status );
 $log->print("Exiting...");    
 exit; 
