@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: jach_agent.pl,v 1.11 2005/01/18 21:14:48 aa Exp $
+#     $Id: jach_agent.pl,v 1.12 2005/01/19 15:56:09 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -67,7 +67,7 @@ translation layer, which also handles external phase 0 discovery requests.
 
 =head1 REVISION
 
-$Id: jach_agent.pl,v 1.11 2005/01/18 21:14:48 aa Exp $
+$Id: jach_agent.pl,v 1.12 2005/01/19 15:56:09 aa Exp $
 
 =head1 AUTHORS
 
@@ -84,7 +84,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -162,8 +162,8 @@ use sigtrap qw/die normal-signals error-signals/;
 $|=1;					
 
 # signals
-$SIG{'INT'} = \&kill_agent;
-$SIG{'PIPE'} = 'IGNORE';
+#$SIG{'INT'} = \&kill_agent;
+#$SIG{'PIPE'} = 'IGNORE';
 
 # error bleeps?
 $OPT{"BLEEP"} = ESTAR__OK;
@@ -278,10 +278,6 @@ unless ( defined $status ) {
 # LOOKUP FILE
 # -----------
 $project = new eSTAR::JACH::Project();
-$project->set_project( "jach.project", $project_file );
-
-# save the name of the project.dat file into the options.dat file
-$config->set_option( "jach.project", $project_file );
 
 # READ PROJECT LIST FROM FILE (OR WEB SERVICE?)
 # ---------------------------------------------
@@ -296,7 +292,7 @@ $config->set_option( "jach.project", $project_file );
 my %projects;
 
 # Project ID number to password mappings
-$projects{"TJ03"} = "sicstran";
+$projects{"TJ03"} = "fainguat";
 $projects{"U/03B/D10"} = "strytess";
 
 # PROJECTS REFERENCED BY ESTAR USER ID
@@ -329,7 +325,7 @@ unless ( defined $status ) {
   my $error = "FatalError: Can not access project.dat file";
   throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
 } else {    
-  $log->debug("Project file: " . $config->get_option( "jach.project" ) );
+  $log->debug("Project file: " . $project->get_project( "file.name" ) );
 }
 
 # L A T E  L O A D I N G  M O D U L E S ------------------------------------- 
@@ -458,6 +454,7 @@ if ( ($#files - 1) == 0 ) {
 # M A I N   O P T I O N S   H A N D L I N G ---------------------------------
 
 my $ip = inet_ntoa(scalar(gethostbyname(hostname())));
+$log->debug("This machine as an IP address of $ip");
 
 if ( $config->get_state("jach.unique_process") == 1 ) {
 
@@ -551,7 +548,7 @@ my $soap_server = sub {
                       LocalPort     => $config->get_option( "server.port"),
                       Listen        => 5, 
                       Reuse         => 1 ) };    
-                    
+                 
    if ($@) {
       # If we restart the jach agent process quickly after a crash the port 
       # will still be blocked by the operating system and we won't be able 
@@ -793,6 +790,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: jach_agent.pl,v $
+# Revision 1.12  2005/01/19 15:56:09  aa
+# jach_agent.pl will now queue observations in the Science DB sucessfully. Added try{ } catch { }; blocks to SOAP::Handler to cathc errors, these should be added to the other Handler routines.
+#
 # Revision 1.11  2005/01/18 21:14:48  aa
 # Moved project file to singleton object
 #

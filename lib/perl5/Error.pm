@@ -17,7 +17,7 @@ use strict;
 use vars qw($VERSION);
 use 5.004;
 
-$VERSION = "0.14"; # $Id: Error.pm,v 1.1 2004/02/18 22:06:08 aa Exp $
+$VERSION = "0.14"; # $Id: Error.pm,v 1.2 2005/01/19 15:56:09 aa Exp $
 
 use overload (
 	'""'	   =>	'stringify',
@@ -381,7 +381,7 @@ sub try (&;$) {
 
     do {
 	local $Error::THROWN = undef;
-#        local $@ = undef;
+        local $@ = undef;
 
 	$ok = eval {
 	    if(wantarray) {

@@ -2,7 +2,7 @@
 <SpProg timestamp="1061980089" type="pr" subtype="none"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-  <ot_version>20030822</ot_version>
+  <ot_version>20040822</ot_version>
   <title>eStar startup</title>
   <meta_gui_collapsed>false</meta_gui_collapsed>
   <projectID>u/03b/d10</projectID>
@@ -13,7 +13,7 @@
   </SpSiteQualityObsComp>
   <SpMSB remaining="1" type="og" subtype="msb">
     <SpSiteQualityObsCompRef idref="1"/>
-    <library_version>$Revision: 1.1 $</library_version>
+    <library_version>$Revision: 1.2 $</library_version>
     <title>5pt jitter/offsets of 20arcsec</title>
     <meta_gui_collapsed>false</meta_gui_collapsed>
     <priority>99</priority>
@@ -42,7 +42,7 @@
     <SpObs msb="false" optional="true" remaining="1" type="ob" subtype="none">
       <chainedToNext>false</chainedToNext>
       <estimatedDuration units="seconds">246.0</estimatedDuration>
-      <library_version>$Revision: 1.1 $</library_version>
+      <library_version>$Revision: 1.2 $</library_version>
       <chainedToPrev>false</chainedToPrev>
       <title>make_skyflats</title>
       <meta_gui_collapsed>false</meta_gui_collapsed>

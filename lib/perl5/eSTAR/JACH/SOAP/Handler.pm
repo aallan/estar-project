@@ -6,6 +6,7 @@ use vars qw( @ISA %COOKIES );
 
 use SOAP::Lite;
 use eSTAR::JACH::Handler;
+use eSTAR::Error qw/:try/;
 
 @ISA = qw(eSTAR::JACH::Handler);
 
@@ -28,9 +29,22 @@ BEGIN {
             ->faultstring('Could not get object')
         unless $self;
         
-        my $smethod = "SUPER::$method";
-        my $res = $self->$smethod(@_);
+        my $exception;
+        my $res;
+        my @args = @_;
+        try {
+           my $smethod = "SUPER::$method";
+           $res = $self->$smethod(@args);
+        } otherwise {
+           $exception = shift;
+        };
         
+        if ( defined $exception ) {
+          my $error = "$exception";
+          chomp ( $error );
+          $res = "FatalError: $error";
+        }
+ 
         # die if we have a fault in the original method
         die SOAP::Fault
             ->faultcode('Server.ExecError')

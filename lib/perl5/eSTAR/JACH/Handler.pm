@@ -77,7 +77,7 @@ sub new {
   $run = eSTAR::JACH::Running::get_reference();
   $ua = eSTAR::UserAgent::get_reference();
   $config = eSTAR::Config::get_reference();
-  $project = eSTAR::Project::get_reference();
+  $project = eSTAR::JACH::Project::get_reference();
   
   if( $user and $passwd ) {
     return undef unless $self->set_user( user => $user, password => $passwd );
@@ -281,7 +281,7 @@ sub handle_rtml {
       print $@;
       my $error = "Error: Unable to parse RTML document";
       $log->error( $error );
-      return SOAP::Data->name('return', $error )->type('xsd:string');       
+      return $error;       
    } 
    
    # determine type
@@ -424,24 +424,22 @@ sub handle_rtml {
             "Warning: Problem re-serialising the \$observation_object");
       }
 
-      
       # pritn a warning line if it isn't observable    
       if ( $isobs == 0.0 ) {
         $log->warn( "Warning: score is zero, target unobservable" );
       }  
-              
+     
       # dump rtml to scalar
       my $score_response = $score_message->dump_rtml();
       #use Data::Dumper; print Dumper( $score_message );
 
-      
       # do a find and replace, munging the response, shouldn't need to do it?
       #$score_response =~ s/</&lt;/g;
                 
       # return the RTML document
       $log->debug("Returned RTML message");
       return SOAP::Data->name('return', $score_response )->type('base64');
-      
+
    } elsif ( $type eq "request" ) {
 
       # update observation object
@@ -627,8 +625,9 @@ sub handle_rtml {
       
          for my $msb ( $sp->msb ) {
             try {
-               $msb->setDateMax( $expire );
-               $log->debug( "Setting expiry time to $expire" );
+               my $tp = Time::Piece::gmtime( $expire->epoch() );
+               $msb->setDateMax( $tp );
+               $log->debug( "Setting expiry time to $tp" );
             } otherwise {
                my $error = shift;
                $log->warn( "Warning: Unable to set expiry time..." );
@@ -774,12 +773,12 @@ sub handle_rtml {
    
       # beats me what it is...?
       $log->debug("Returned 'UNKNOWN RTML TYPE' message");
-      return SOAP::Data->name('return', "UNKOWN RTML TYPE")->type('xsd:string');
+      return 
+         SOAP::Data->name('return',"UNKOWN RTML TYPE")->type('xsd:string');
    }
-   
-   
+
 }
-  
+ 
 
 # H A N D L E   D A T A ------------------------------------------------------
   
