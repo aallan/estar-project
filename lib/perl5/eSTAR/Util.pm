@@ -33,7 +33,7 @@ use eSTAR::Error qw /:try/;
 @EXPORT_OK = qw/make_cookie make_id freeze thaw melt 
              get_option set_option get_state set_state/;
 
-'$Revision: 1.7 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.8 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # This is the code that is used to generate cookies based on the user
 # name and password. It is NOT cryptographically sound, it is just a
@@ -153,8 +153,8 @@ sub freeze {
       # observation object in the handle_rtml() routine if the unique id
       # of the object isn't known (i.e. it doesn't exist as a file in
       # the state directory)
-      $main::log->warn( "Warning: Unable to serialise \$object");
-      $main::log->warn( "Warning: Can not write to "  . $state_dir); 
+      $log->warn( "Warning: Unable to serialise \$object");
+      $log->warn( "Warning: Can not write to "  . $state_dir); 
                          
       return ESTAR__ERROR                               
    } else {
@@ -237,7 +237,7 @@ sub melt {
            
    # delete the object
    unless ( unlink $file ) {
-      $main::log->warn( "Warning: Unable to unlink $file");
+      $log->warn( "Warning: Unable to unlink $file");
       return ESTAR__ERROR;
    }   
    
@@ -385,7 +385,7 @@ sub set_state {
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.7 2004/11/30 19:05:32 aa Exp $
+$Id: Util.pm,v 1.8 2004/12/21 17:02:47 aa Exp $
 
 =head1 AUTHORS
 

@@ -48,7 +48,7 @@ use Astro::SIMBAD::Query;
 use Astro::FITS::CFITSIO;
 use Astro::FITS::Header;
 use Astro::Catalog;
-my ($log, $process);
+my ($log, $process, $ua);
 
 # ==========================================================================
 # U S E R   A U T H E N T I C A T I O N
@@ -60,6 +60,7 @@ sub new {
   my $self = bless {}, $class;
   $log = eSTAR::Logging::get_reference();
   $process = eSTAR::Process::get_reference();
+  $ua = eSTAR::UserAgent::get_reference();
   
   if( $user and $passwd ) {
     return undef unless $self->set_user( user => $user, password => $passwd );
@@ -801,8 +802,8 @@ sub handle_rtml {
    my $message = new eSTAR::RTML::Parse( RTML => $rtml_message );
    my $id = $message->id();
    unless ( defined $id ) {
-      $main::error->error( "Error: Unable to parse the RTML" );
-      $main::error->error( $rtml . "\n" );
+      $log->error( "Error: Unable to parse the RTML" );
+      $log->error( $rtml . "\n" );
       return SOAP::Data->name('return', 'ERROR BAD RTML')->type('xsd:string');
    }   
 
@@ -949,7 +950,7 @@ sub handle_rtml {
       $log->debug( "Contacting " . 
                          $observation_object->node() ." host...");
       my $request = new HTTP::Request('GET', $image_url);
-      my $reply = $main::OPT{"http_agent"}->request($request);
+      my $reply = $ua->get_ua()->request($request);
     
       # check for valid reply
       if ( ${$reply}{"_rc"} eq 200 ) {

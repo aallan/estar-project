@@ -61,7 +61,7 @@ use Astro::FITS::Header::CFITSIO;
 use lib $ENV{"ESTAR_OMPLIB"};
 use OMP::SciProg;
 use OMP::SpServer;
-my ($log, $run);
+my ($log, $run, $ua);
 
 # ==========================================================================
 # U S E R   A U T H E N T I C A T I O N
@@ -73,6 +73,7 @@ sub new {
   my $self = bless {}, $class;
   $log = eSTAR::Logging::get_reference();
   $run = eSTAR::JACH::Running::get_reference();
+  $ua = eSTAR::UserAgent::get_reference();
   
   if( $user and $passwd ) {
     return undef unless $self->set_user( user => $user, password => $passwd );
@@ -889,7 +890,7 @@ sub handle_data {
    # ------------
    $log->debug( "Requesting catalogue: $data{Catalog}");
    my $catalog_request = new HTTP::Request('GET', $data{Catalog});
-   my $catalog_reply = $main::OPT{"http_agent"}->request($catalog_request);   
+   my $catalog_reply = $ua->get_ua()->request($catalog_request);   
 
    # check for valid reply
    if ( ${$catalog_reply}{"_rc"} eq 200 ) {
@@ -933,7 +934,7 @@ sub handle_data {
    # retrieve the file
    $log->debug( "Requesting FITS file...");
    my $fits_request = new HTTP::Request('GET', $image_url );
-   my $fits_reply = $main::OPT{"http_agent"}->request($fits_request);   
+   my $fits_reply = $ua->get_ua()->request($fits_request);   
  
    # check for valid reply
    if ( ${$fits_reply}{"_rc"} eq 200 ) {

@@ -3,7 +3,7 @@ package eSTAR::UA::Algorithm::SingleExposure;
 use strict;
 use vars qw/ $VERSION /;
 
-'$Revision: 1.1 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.2 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 use threads;
 use threads::shared;
@@ -13,6 +13,8 @@ use Carp;
 use eSTAR::UA::Constants qw/:status/;
 use eSTAR::Util;
 
+my ( $log );
+
 # C O N S T R U C T O R ----------------------------------------------------
 
 sub new {
@@ -21,6 +23,7 @@ sub new {
 
   # bless the header block into the class
   my $block = bless { OBS => undef }, $class;
+  $log = eSTAR::Logging::get_reference();
 
   return $block;
 
@@ -32,7 +35,7 @@ sub process_data {
   my $self = shift;
   my $id = shift;
 
-  $main::log->debug("Called process_data() from \$tid = ".threads->tid());
+  $log->debug("Called process_data() from \$tid = ".threads->tid());
   
   # THAW OBSERVATION
   # ================
@@ -47,7 +50,7 @@ sub process_data {
   # PROCESS DATA
   # ============
 
-  $main::log->debug("No processing needed...");
+  $log->debug("No processing needed...");
   
   
   # FREEZE OBSERVATION
@@ -56,7 +59,7 @@ sub process_data {
   # freeze the observation object
   my $status = freeze( $self->{OBS} ); 
   if ( $status == UA__ERROR ) {
-     $main::log->warn( 
+     $log->warn( 
          "Warning: Problem re-serialising the \$observation_object");
      return UA__ERROR;    
   }  

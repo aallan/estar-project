@@ -3,7 +3,7 @@ package eSTAR::UA::Algorithm::PhotometryFollowup;
 use strict;
 use vars qw/ $VERSION /;
 
-'$Revision: 1.1 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.2 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 use threads;
 use threads::shared;
@@ -24,6 +24,8 @@ use Astro::Catalog;
 use Astro::Catalog::Query::USNOA2;
 use Astro::Corlate;
 
+my ( $log );
+
 # C O N S T R U C T O R ----------------------------------------------------
 
 sub new {
@@ -32,6 +34,7 @@ sub new {
 
   # bless the header block into the class
   my $block = bless { OBS => undef }, $class;
+  $log = eSTAR::Logging::get_reference();
 
   return $block;
 
@@ -43,7 +46,7 @@ sub process_data {
   my $self = shift;
   my $id = shift;
 
-  $main::log->debug("Called process_data() from \$tid = ".threads->tid());
+  $log->debug("Called process_data() from \$tid = ".threads->tid());
 
   # START OF DATA PROCESSING ##############################################
   
@@ -60,7 +63,7 @@ sub process_data {
   # PROCESS DATA
   # ============
 
-  $main::log->print("Automatic Cross Correlation started...");
+  $log->print("Automatic Cross Correlation started...");
   my $header = $self->{OBS}->fits_header();
      
   # grab FITS headers
@@ -69,39 +72,39 @@ sub process_data {
   my $XPS = $header->itembyname( 'XPS' );
   my $YPS = $header->itembyname( 'YPS' );
   unless ( defined $FCRA && defined $FCDEC && defined $XPS && defined $YPS ) {
-     $main::log->warn( "Warning: FITS Header keywords not present" );
+     $log->warn( "Warning: FITS Header keywords not present" );
      $self->{OBS}->status("fits problem");                
      my $status = freeze( $self->{OBS} ); 
      if ( $status == UA__ERROR ) {
-        $main::log->warn( 
+        $log->warn( 
             "Warning: Problem re-serialising the \$self->{OBS}");
      }
-     $main::log->error( "Error: Returning a 'UA__ERROR'..." );
+     $log->error( "Error: Returning a 'UA__ERROR'..." );
      return UA__ERROR;    
   } 
   
   # RA & Dec         
   my $ra = $FCRA->value();
   my $dec = $FCDEC->value();
-  $main::log->debug("Field Centre: $ra, $dec");
+  $log->debug("Field Centre: $ra, $dec");
     
   # X-pixel scale   
   my $xscale = $XPS->value();
-  $main::log->debug("X Plate Scale: $xscale arcsec/pixel");
+  $log->debug("X Plate Scale: $xscale arcsec/pixel");
   
   # Y-pixel scale   
   my $yscale = $YPS->value();
-  $main::log->debug("Y Plate Scale: $yscale arcsec/pixel");
+  $log->debug("Y Plate Scale: $yscale arcsec/pixel");
  
   # field radius
-  my $radius = $main::CONFIG->param("usnoa2.radius"); 
-  my $nout = $main::CONFIG->param("usnoa2.nout"); 
+  my $radius = eSTAR::Util::get_option("usnoa2.radius"); 
+  my $nout = eSTAR::Util::get_option("usnoa2.nout"); 
              
   # proxy
-  my $proxy = $main::CONFIG->param("connection.proxy");
+  my $proxy = eSTAR::Util::get_option("connection.proxy");
   $proxy = "" if $proxy eq "NONE";   
                        
-  $main::log->debug("Querying ESO-ECF...");
+  $log->debug("Querying ESO-ECF...");
                   
   # grab USNO-A2 catalogue 
   # ----------------------
@@ -112,16 +115,16 @@ sub process_data {
                                                 Number => $nout );
              
   my $usnoa2_catalog = $usno->querydb();
-  $main::log->debug( $usnoa2_catalog->sizeof() . " stars returned");
+  $log->debug( $usnoa2_catalog->sizeof() . " stars returned");
                          
   # write to file
   my @out_mags = ( 'R' );
   my @out_cols = ( 'B-R' );            
              
   # USNO-A2 reference.cat
-  my $ref_file = File::Spec->catfile( $main::CONFIG->param("ua.tmp"), 
+  my $ref_file = File::Spec->catfile( eSTAR::Util::get_option("ua.tmp"), 
                                        "$id.corlate_ref.cat");
-  $main::log->debug("Writing reference catalogue to disk...");
+  $log->debug("Writing reference catalogue to disk...");
   my $status = $usnoa2_catalog->write_catalog( Format     => 'Cluster',  
                                                File       => $ref_file,  
                                                Magnitudes => \@out_mags, 
@@ -138,9 +141,9 @@ sub process_data {
   #print Dumper( $object_catalog ) ."\n\n"; 
    
   # object catalogue
-  my $obj_file = File::Spec->catfile( $main::CONFIG->param("ua.tmp"), 
+  my $obj_file = File::Spec->catfile( eSTAR::Util::get_option("ua.tmp"), 
                                     "$id.corlate_obj.cat");
-  $main::log->debug("Writing object catalogue to disk...");
+  $log->debug("Writing object catalogue to disk...");
   $status = $object_catalog->write_catalog( Format     => 'Cluster',  
                                             File       => $obj_file  );
                                     
@@ -148,37 +151,37 @@ sub process_data {
   # New CORLATE object
   # ------------------
    
-  $main::log->debug("Building corelation object...");
+  $log->debug("Building corelation object...");
   my $corlate = new Astro::Corlate(  Reference   => $ref_file,
                                      Observation => $obj_file  );
   
   # log file
-  my $log_file = File::Spec->catfile( $main::CONFIG->param("ua.tmp"), 
+  my $log_file = File::Spec->catfile( eSTAR::Util::get_option("ua.tmp"), 
                                         "$id.corlate_log.log");
   $corlate->logfile( $log_file );
 
   # fit catalog
-  my $fit_file = File::Spec->catfile( $main::CONFIG->param("ua.tmp"), 
+  my $fit_file = File::Spec->catfile( eSTAR::Util::get_option("ua.tmp"), 
                                       "$id.corlate_fit.fit");
   $corlate->fit( $fit_file );
                    
   # histogram
-  my $hist_file = File::Spec->catfile( $main::CONFIG->param("ua.tmp"), 
+  my $hist_file = File::Spec->catfile( eSTAR::Util::get_option("ua.tmp"), 
                                        "$id.corlate_hist.dat");
   $corlate->histogram( $hist_file );
                    
   # information
-  my $info_file = File::Spec->catfile( $main::CONFIG->param("ua.tmp"), 
+  my $info_file = File::Spec->catfile( eSTAR::Util::get_option("ua.tmp"), 
                                        "$id.corlate_info.dat");
   $corlate->information( $info_file );
                    
   # varaiable catalog
-  my $var_file = File::Spec->catfile( $main::CONFIG->param("ua.tmp"), 
+  my $var_file = File::Spec->catfile( eSTAR::Util::get_option("ua.tmp"), 
                                       "$id.corlate_var.cat");
   $corlate->variables( $var_file );
                    
   # data catalog
-  my $data_file = File::Spec->catfile( $main::CONFIG->param("ua.tmp"), 
+  my $data_file = File::Spec->catfile( eSTAR::Util::get_option("ua.tmp"), 
                                        "$id.corlate_fit.cat");
   $corlate->data( $data_file);
                    
@@ -186,38 +189,38 @@ sub process_data {
   # ---------------------
   my ($volume, $directories, $file); 
  
-  $main::log->debug("Starting cross correlation...");
+  $log->debug("Starting cross correlation...");
   ($volume, $directories, $file) = File::Spec->splitpath( $ref_file );
-  $main::log->debug("Temporary directory   : " . $directories);
-  $main::log->debug("Reference catalogue   : " . $file);
+  $log->debug("Temporary directory   : " . $directories);
+  $log->debug("Reference catalogue   : " . $file);
   
   ($volume, $directories, $file) = File::Spec->splitpath( $obj_file );
-  $main::log->debug("Observation catalogue : " . $file);
+  $log->debug("Observation catalogue : " . $file);
   
   ($volume, $directories, $file) = File::Spec->splitpath( $log_file );
-  $main::log->debug("Log file              : " . $file);
+  $log->debug("Log file              : " . $file);
   
   ($volume, $directories, $file) = File::Spec->splitpath( $fit_file );
-  $main::log->debug("X/Y Fit file          : " . $file);
+  $log->debug("X/Y Fit file          : " . $file);
   
   ($volume, $directories, $file) = File::Spec->splitpath( $hist_file );
-  $main::log->debug("Histogram file        : " . $file);
+  $log->debug("Histogram file        : " . $file);
   
   ($volume, $directories, $file) = File::Spec->splitpath( $info_file );
-  $main::log->debug("Information file      : " . $file);
+  $log->debug("Information file      : " . $file);
   
   ($volume, $directories, $file) = File::Spec->splitpath( $var_file );
-  $main::log->debug("Variable catalogue    : " . $file);
+  $log->debug("Variable catalogue    : " . $file);
   
   ($volume, $directories, $file) = File::Spec->splitpath( $data_file );
-  $main::log->debug("Colour data catalogue : " . $file);
+  $log->debug("Colour data catalogue : " . $file);
                               
                    
   # run the corelation routine
   # --------------------------
   my $status = UA__OK;
   try {
-     $main::log->debug("Called run_corlate()...");
+     $log->debug("Called run_corlate()...");
      $corlate->run_corlate();
   } otherwise {
      my $error = shift;
@@ -227,7 +230,7 @@ sub process_data {
      # grab the error line
      my $err = "$error";
      chomp($err);
-     $main::log->debug("Error: $err");
+     $log->debug("Error: $err");
   }; 
   
   # undef the Astro::Corlate object
@@ -236,14 +239,14 @@ sub process_data {
   # check for good status
   # ---------------------
   unless ( $status == UA__OK ) {
-     $main::log->warn( "Warning: Cross Correlation routine failed to run" );
+     $log->warn( "Warning: Cross Correlation routine failed to run" );
      $self->{OBS}->status("corlate problem");                
      my $status = freeze( $self->{OBS} ); 
      if ( $status == UA__ERROR ) {
-        $main::log->warn( 
+        $log->warn( 
             "Warning: Problem re-serialising the \$self->{OBS}");
      }
-     $main::log->error( "Error: Returning a 'UA__ERROR'..." );
+     $log->error( "Error: Returning a 'UA__ERROR'..." );
      return UA__ERROR;    
   }   
    
@@ -252,26 +255,26 @@ sub process_data {
   my $ref_cat = new Astro::Catalog( Format => 'Cluster',
                                     File   => $ref_file );
   unless ( defined $ref_cat ) {
-     $main::log->warn( "Warning: Reference Catalogue not created");
+     $log->warn( "Warning: Reference Catalogue not created");
   }        
   $self->{OBS}->reference_catalog( $ref_cat ); 
-  $main::log->debug("Reference catalogue has " . $ref_cat->sizeof() . " stars");
+  $log->debug("Reference catalogue has " . $ref_cat->sizeof() . " stars");
                                       
   my $var_cat = new Astro::Catalog( Format => 'Cluster',
                                     File   => $var_file );
   unless ( defined $ref_cat ) {
-     $main::log->warn( "Warning: Variable Star Catalogue not created");
+     $log->warn( "Warning: Variable Star Catalogue not created");
   }        
   $self->{OBS}->variable_catalog( $var_cat );
-  $main::log->debug("Variable catalogue has " . $var_cat->sizeof() . " stars");
+  $log->debug("Variable catalogue has " . $var_cat->sizeof() . " stars");
                        
   my $col_cat = new Astro::Catalog( Format => 'Cluster',
                                     File   => $data_file );
   unless ( defined $ref_cat ) {
-     $main::log->warn( "Warning: Colour Data Catalogue not created");
+     $log->warn( "Warning: Colour Data Catalogue not created");
   }        
   $self->{OBS}->data_catalog( $col_cat ); 
-  $main::log->debug("Colour catalogue has " . $col_cat->sizeof() . " stars");
+  $log->debug("Colour catalogue has " . $col_cat->sizeof() . " stars");
                      
   # stuff remaining files into observation object
   # ---------------------------------------------
@@ -279,7 +282,7 @@ sub process_data {
   my ($hist_string, $info_string);
                      
   unless ( open ( FILE, "<$log_file" ) ) {
-     $main::log->warn( "Warning: Can not open file $log_file");
+     $log->warn( "Warning: Can not open file $log_file");
   } else {
      undef $/;
      $log_string = <FILE>;
@@ -289,7 +292,7 @@ sub process_data {
   $self->{OBS}->corlate_log( $log_string );
                                 
   unless ( open ( FILE, "<$fit_file" ) ) {
-     $main::log->warn( "Warning: Can not open file $fit_file");
+     $log->warn( "Warning: Can not open file $fit_file");
   } else {
      undef $/;
      $fit_string = <FILE>;
@@ -299,7 +302,7 @@ sub process_data {
   $self->{OBS}->corlate_fit( $fit_string );
                                
   unless ( open ( FILE, "<$hist_file" ) ) {
-     $main::log->warn( "Warning: Can not open file $hist_file");
+     $log->warn( "Warning: Can not open file $hist_file");
   } else {
      undef $/;
      $hist_string = <FILE>;
@@ -309,7 +312,7 @@ sub process_data {
   $self->{OBS}->corlate_hist( $hist_string );
                      
   unless ( open ( FILE, "<$info_file" ) ) {
-     $main::log->warn( "Warning: Can not open file $info_file");
+     $log->warn( "Warning: Can not open file $info_file");
   } else {
      undef $/;
      $info_string = <FILE>;
@@ -322,11 +325,11 @@ sub process_data {
   # ----------------------------------------------
   my $number_var = $var_cat->sizeof();
   if ( $number_var == 1 ) {
-     $main::log->print("$number_var Variable Found"); 
+     $log->print("$number_var Variable Found"); 
   } elsif ( $number_var > 1 ) {
-     $main::log->print("$number_var Variables Found"); 
+     $log->print("$number_var Variables Found"); 
   } else {
-     $main::log->print("No Variables Found"); 
+     $log->print("No Variables Found"); 
   }   
     
   # FREEZE OBSERVATION
@@ -337,7 +340,7 @@ sub process_data {
   # followup obervations turn up while we are still creating new ones.
   my $status = freeze( $self->{OBS} ); 
   if ( $status == UA__ERROR ) {
-     $main::log->warn( 
+     $log->warn( 
          "Warning: Problem re-serialising the \$self->{OBS}");
      return UA__ERROR;    
   } 
@@ -349,10 +352,10 @@ sub process_data {
   #                  $hist_file,$info_file, $var_file, $data_file );
   #eval { unlink ( @file_list); };
   #if ( $@ ) {
-  #   $main::log->warn("Warning: Can not unlink files in " .
-  #                    $main::CONFIG->param("ua.tmp") );
-     $main::log->warn("Warning: Not unlinking files in " .
-                      $main::CONFIG->param("ua.tmp") );
+  #   $log->warn("Warning: Can not unlink files in " .
+  #                    eSTAR::Util::get_option("ua.tmp") );
+     $log->warn("Warning: Not unlinking files in " .
+                      eSTAR::Util::get_option("ua.tmp") );
   #}        
     
   # IF VARAIABLES > 0 THEN REQUEST AUTO OBSERVATIONS
@@ -372,7 +375,7 @@ sub process_data {
      # generate an observation request for each followup image required
      foreach my $j ( 1 ... $self->{OBS}->followup()) {
   
-        $main::log->print("Creating followup observation #" . $j . "..." );
+        $log->print("Creating followup observation #" . $j . "..." );
         
         my %observation;
         $observation{"user"} = $self->{OBS}->username();
@@ -398,9 +401,9 @@ sub process_data {
         }
 
         
-        $main::log->debug("Calling new_observation... " );
+        $log->debug("Calling new_observation... " );
         foreach my $key ( keys %observation ) {
-           $main::log->debug("$key => " . $observation{$key});
+           $log->debug("$key => " . $observation{$key});
         }
 
         # call the new_observation routine directly passing it a valid
@@ -412,14 +415,14 @@ sub process_data {
                             cookie => $cookie );
         my $soap_data = $handler->new_observation( %observation ); 
 
-        $main::log->print(
+        $log->print(
         "Returned control to eSTAR::UA::Algorithm::PhotometryFollowup object" );     
         
         # grab the string out of the returned SOAP::Data object, this isn't
         # particularly nice thing to have to do, and I'm not convinced its
         # going to work in every case, but may as well have a bash at it.
         my $soap_value = ${${$soap_data}{'_value'}}[0];
-        $main::log->debug("Got a '" . $soap_value . "' message");
+        $log->debug("Got a '" . $soap_value . "' message");
                 
      }
   }      
