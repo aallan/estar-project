@@ -8,7 +8,11 @@
 	  code with configurations changed. Need to find some way to grab
 	  some meta-classes from this so that the 4th generation stuff can
 	  actually be easier to write than is currently the case.
-	  	  
+	
+	* Added a client to generate a VOTable catalogue for a given radius
+	  around a given target. Used for deubgging and development of the
+	  WFCAM agent and Data Mining Daemon.
+	    	  
 2004-02-18 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * Inital skeleton installation of the WFCAM survey_agent.pl 
