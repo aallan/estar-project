@@ -22,7 +22,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: gcn_server.pl,v 1.13 2005/02/15 17:00:34 aa Exp $
+$Id: gcn_server.pl,v 1.14 2005/02/15 18:37:40 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -41,7 +41,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.13 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.14 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -252,7 +252,7 @@ if ( $config->get_state("gcn.unique_process") == 1 ) {
    $config->set_option("mailhost.name", 'butch' );
    $config->set_option("mailhost.domain", 'astro.ex.ac.uk' );
    $config->set_option("mailhost.timeout", 30 );
-   $config->set_option("mailhost.debug", 1 );   
+   $config->set_option("mailhost.debug", 0 );   
     
    # C O M M I T T   O P T I O N S  T O   F I L E S
    # ----------------------------------------------
@@ -271,9 +271,7 @@ $status = GetOptions( "host=s"     => \$opt{"host"},
                       "port=s"     => \$opt{"port"},
                       "user=s"     => \$opt{"user"},
                       "pass=s"     => \$opt{"pass"},
-                      "agent=s"    => \$opt{"agent"},
-                      "email=s"    => \$opt{"email_address"},
-                      "name=s"     => \$opt{"real_name"} );
+                      "agent=s"    => \$opt{"agent"} );
 
 # default hostname
 unless ( defined $opt{"host"} ) {
@@ -302,7 +300,7 @@ unless( defined $opt{"port"} ) {
 
 # default user agent location
 unless( defined $opt{"agent"} ) {
-   # default port for the GCN server
+   # default host for the user agent we're trying to connect to...
    $opt{"agent"} = $config->get_option("ua.host");   
 } else {
    $log->warn("Warning: Resetting port from " .
@@ -325,16 +323,6 @@ unless( defined $opt{"pass"} ) {
 } else{       
    $log->warn("Warning: Resetting password...");
    $config->set_option("gcn.passwd", $opt{"pass"} );
-}
-
-
-# only redifine the user's real name and email address if
-if( defined $opt{"email_address"} ) {
-   $log->warn("Warning: Resetting user email to $opt{email_address}");
-}
-
-if( defined $opt{"real_name"} ) {
-   $log->warn("Warning: Resetting user's real name to $opt{real_name}");
 }
 
 # T C P / I P   S E R V E R   C O D E --------------------------------------
@@ -431,7 +419,6 @@ my $tcp_callback = sub {
       # SWIFT XRT Position message
       # -------------------------------------
       } elsif ( $$message[0] == 67 ) {
-      #} elsif ( $$message[0] == 61 ) {
          $log->warn( "Recieved a TYPE_SWIFT_XRT_POSITION_SRC message " );   
          $log->warn( "trig_obs_num = " . $$message[4] );       
 
@@ -446,29 +433,23 @@ my $tcp_callback = sub {
          # Send a notification
          # -------------------
          
-         if ( defined $opt{real_name} && defined $opt{email_address} ) {
          
-            $log->print( "Sending notification email...");
-            
-            my $mail_body = 
-              "Recieved a TYPE_SWIFT_XRT_POSITION_SRC message\n" .
-              "Position RA $$message[7], Dec $$message[8]  +- $$message[11]\n" .
-              "\n" .
-              "This message indicates that the eSTAR system has recieved\n" . 
-              "a postion update alert and is currently attempting to place\n" .
-              "followup observations into the UKIRT queue. If you do not\n" .
-              "recieve notification that this has been successful you may\n" .
-              "wish to attempt manual followup.\n";
-      
-            eSTAR::Mail::send_mail( $opt{email_address}, $opt{real_name},
-                                    'aa@astro.ex.ac.uk',
-                                    'eSTAR ACK SWIFT XPT postion',
-                                    $mail_body );            
-
-         } else {
+         #$log->print( "Sending notification email...");
          
-             $log->warn("Warning: No email notification sent" );
-         }
+         #my $mail_body = 
+         #  "Recieved a TYPE_SWIFT_XRT_POSITION_SRC message\n" .
+         #  "Position $ra, $dec +- $error acrmin\n" .
+         #  "\n" .
+         #  "This message indicates that the eSTAR system has recieved\n" . 
+         #  "a postion update alert and is currently attempting to place\n" .
+         #  "followup observations into the UKIRT queue. If you do not\n" .
+         #  "recieve notification that this has been successful you may\n" .
+         #  "wish to attempt manual followup.\n";
+         #
+         #eSTAR::Mail::send_mail( $opt{email_address}, $opt{real_name},
+         #                        'aa@astro.ex.ac.uk',
+         #                        'eSTAR ACK SWIFT XPT postion',
+         #                        $mail_body );            
 
          # Make SOAP calls
          # ---------------
@@ -499,57 +480,7 @@ my $tcp_callback = sub {
          $soap->uri('urn:/user_agent'); 
          $soap->proxy($endpoint, cookie_jar => $cookie_jar);
 
-         # ==============================================================
-        
-         # Set the user_agent's username and email address if the 
-         # default was overridden by the gcn_server command line options.
-         
-         # This is a hack and needs to be sorted quickly!
-         
-         # ==============================================================
-         
-         $log->print("Making a SOAP conncetion for to set_option()...");
-        
-         my $result;
-         
-         if( defined $opt{real_name} ) {
-         
-           $log->debug(
-               "Making a SOAP conncetion to set_option(user.real_name) = " .
-               $opt{"real_name"} );
-           eval { $result = $soap->set_option( "user.real_name", 
-                                                 $opt{"real_name"} ); };
-                                                 
-           if ( $@ ) {
-              $log->warn("Warning: Problem connecting to user agent");
-              $log->error("Error: $@");
-           } else {
-              $log->print("Connection closed");  
-            
-           }                                       
-         
-         }
-
-         $log->print("Making a SOAP conncetion for to set_option()...");
-         
-         if( defined $opt{email_address} ) {
-          
-           $log->debug(
-             "Making a SOAP conncetion to set_option(user.email_address) = " .
-             $opt{"email_address"} );         
-           eval { $result = $soap->set_option( "user.email_address", 
-                                                 $opt{"email_address"} ); };
-                                                 
-           if ( $@ ) {
-              $log->warn("Warning: Problem connecting to user agent");
-              $log->error("Error: " . chomp($@) );
-           } else {
-              $log->debug("Connection closed...");  
-            
-           }                                       
-         
-         }   
-
+ 
          
          # Submit an inital burst followup block
          # -------------------------------------
