@@ -1,5 +1,16 @@
 2005-01-11 Alasdair Allan <aa@astro.ex.ac.uk>
 
+        * bin/user_agent.pl: Fulling working 3G user_agent.pl which will 
+          talk to the 2G node_agent.pl running on dn2.astro.ex.ac.uk. This 
+          user agent should be a lot more robust that the equivalent 2G 
+          version as a lot of the nastiest as been refactored out into
+          singleton classes.
+          
+        * bin/jach_agent.pl: Some refactoring, should now work (fully 3G?)
+          but doesn't run up due to problems with OMP::SciProg modules.  
+
+2005-01-10 Alasdair Allan <aa@astro.ex.ac.uk>
+
         * Extensive modifications to move the Config::Simple() backend into
           a singleton object. Modifications to user_agent.pl and to the
           eSTAR::UA::Handler to support the creation of an eSTAR::Config
