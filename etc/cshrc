@@ -2,29 +2,29 @@
 if ($?USER == 0 || $?prompt == 0) exit
 
 # eSTAR
-setenv ESTAR3_DIR /export/data/allan/third_generation
-setenv ESTAR3_DATA /export/data/allan/data
+setenv ESTAR3_DIR ${ESTAR_ROOT_DIR}/third_generation
+setenv ESTAR3_DATA ${ESTAR_ROOT_DIR}/allan/data
 setenv ESTAR3_PERL5LIB ${ESTAR3_DIR}/lib/perl5
 setenv LANG C
 
-setenv ESTAR_TKPGPLOT /export/data/pgplot
+setenv ESTAR_TKPGPLOT ${ESTAR_ROOT_DIR}/pgplot
 
 # Perl 5.8.3
-setenv ESTAR3_PERLBIN /export/data/allan/perl/bin/perl
-setenv MANPATH ${MANPATH}:/export/data/perl/man
+setenv ESTAR3_PERLBIN ${ESTAR_ROOT_DIR}/perl/bin/perl
+setenv MANPATH ${MANPATH}:${ESTAR_ROOT_DIR}/perl/man
 
 # PGPLOT
-setenv PGPLOT_DIR /export/data/allan/pgplot 
-setenv PGPLOT_FONT /export/data/allan/pgplot/grfont.dat
+setenv PGPLOT_DIR ${ESTAR_ROOT_DIR}pgplot 
+setenv PGPLOT_FONT ${ESTAR_ROOT_DIR}/pgplot/grfont.dat
 setenv PGPLOT_BUFFER yes 
 setenv PGPLOT_DEBUG yes 
 setenv PGPLOT_FOREGROUND white
 setenv PGPLOT_BACKGROUND black
 
 # OMP
-setenv ESTAR_OMPLIB  /export/data/allan/omp/msbserver   
+setenv ESTAR_OMPLIB  ${ESTAR_ROOT_DIR}/omp/msbserver   
 setenv OMP_CFG_DIR ${ESTAR_OMPLIB}/cfg
-setenv SYBASE /export/data/allan/sybase
+setenv SYBASE ${ESTAR_ROOT_DIR}/sybase
 setenv LANG C
 
 # Daemons & Agents
