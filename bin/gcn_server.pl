@@ -1,5 +1,7 @@
-#!/software/perl-5.8.6/bin/perl
+#!/software/perl-5.8.6/bin/perl -w
 
+use strict;
+use warnings;
 
 =head1 NAME
 
@@ -20,7 +22,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: gcn_server.pl,v 1.1 2005/02/02 21:11:55 aa Exp $
+$Id: gcn_server.pl,v 1.2 2005/02/04 01:00:04 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -29,7 +31,6 @@ All Rights Reserved.
 
 =cut  
 
-#use strict;
 use vars qw / $VERSION $log $process %opt /;
 
 # H A N D L E  V E R S I O N ----------------------------------------------- 
@@ -37,7 +38,7 @@ use vars qw / $VERSION $log $process %opt /;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -63,6 +64,7 @@ use GCN::Constants qw(:packet_types);
 
 # General modules
 use IO::Socket;
+use Errno qw(EWOULDBLOCK EINPROGRESS);
 use Net::Domain qw(hostname hostdomain);
 use Time::localtime;
 use Getopt::Long;
@@ -127,44 +129,59 @@ my $sock = new IO::Socket::INET(
                   LocalPort => $opt{"port"},
                   Proto     => 'tcp',
                   Listen    => 1,
-                  Reuse     => 1 ); 
+                  Reuse     => 1,
+                  Type      => SOCK_STREAM ); 
                     
 die "Could not create socket: $!\n" unless $sock;
+#$sock->blocking(0);
 
 $log->debug("Starting server on $opt{host}:$opt{port}...\n");
 
-while ( $listen = $sock->accept() ) {
+# wait until socket opens
+while ( my $listen = $sock->accept() ) {
+    
+    $listen->blocking(0);
         
-    my $length = 160; # GCN packets are 160 bytes long
-    my $buffer;  
-    $bytes_read = sysread( $listen, $buffer, $length);
-
-    $log->debug(
-     "\nRecieved $bytes_read bytes on $opt{port} from " . $listen->peerhost() );
+    my $status = 1;    
+    while( $status ) {
     
-    if ( $bytes_read > 0 ) {
-    
-       my @message = unpack( "N40", $buffer );
-       if ( $message[0] == TYPE_IM_ALIVE ) {
-          $log->print("Recieved a TYPE_IM_ALIVE packet at " . ctime() ); 
-       } else {
-          $log->warn("Recieved a packet of type $message[0] at " . ctime() );
-       }
+       my $length = 160; # GCN packets are 160 bytes long
+       my $buffer;  
+       my $bytes_read = sysread( $listen, $buffer, $length);
+     
+       next unless defined $bytes_read;
+       if ( $bytes_read > 0 ) {
+ 
+         $log->debug( "\nRecieved $bytes_read bytes on $opt{port} from " . 
+                      $listen->peerhost() );    
+                      
+          my @message = unpack( "N40", $buffer );
+          if ( $message[0] == TYPE_IM_ALIVE ) {
+             $log->print("Recieved a TYPE_IM_ALIVE packet at " . ctime() ); 
+          } else {
+             $log->warn("Recieved a packet of type $message[0] at " . ctime() );
+          }
 
-       # echo back the packet so GCN can monitor:
-       if( $message[0] != TYPE_KILL_SOCKET ) {
-          $log->debug("Echoing $bytes_read bytes to " . $listen->peerhost() );
-          $listen->flush();
-          print $listen $buffer;
-          $listen->flush();
-       } else {
-          $log->print("Recieved a TYPE_KILL_SOCKET packet at " . ctime() );
-       }    
-    } elsif ( $bytes_read == 0 ) {
-       $log->warn("Warning: Recieved a 0 length packet");
+          # echo back the packet so GCN can monitor:
+          if( $message[0] != TYPE_KILL_SOCKET ) {
+             $log->debug( "Echoing $bytes_read bytes to " . 
+                          $listen->peerhost() );
+             $listen->flush();
+             print $listen $buffer;
+             $listen->flush();
+          } else {
+             $log->print("Recieved a TYPE_KILL_SOCKET packet at " . ctime() );
+          }    
+       } elsif ( $bytes_read == 0 && $! != EWOULDBLOCK ) {
+          $log->warn("\nWarning: Recieved a 0 length packet");
+          #unless ( $listen->connected() ) {
+          #  $log->warn("Warning: Socket is no longer connected to remote host");
+            $status = undef;
+          #}  
+       }   
+    
     }   
-       
-    $log->debug("Closing socket");
+    $log->warn("Warning: Closing socket connection to client");
     close ($listen);
     
 } 
