@@ -4,22 +4,22 @@
 
 #+ 
 #  Name:
-#    wfcam_agent.pl
+#    data_miner.pl
 
 #  Purposes:
-#    Agent to control the JAC 5th pipeline backend database
+#    Data mining process for the JAC 5th pipeline backend database
 
 #  Language:
 #    Perl script
 
 #  Invocation:
-#    Invoked by source ${ESTAR3_DIR}/etc/wfcam_agent.csh
+#    Invoked by source ${ESTAR3_DIR}/etc/data_miner.csh
 
 #  Authors:
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: wfcam_agent.pl,v 1.5 2004/02/20 00:59:41 aa Exp $
+#     $Id: data_miner.pl,v 1.1 2004/02/20 00:59:41 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -49,21 +49,20 @@ my $status;
 
 =head1 NAME
 
-C<wfcam_agent.pl> - WFCAM survey agent
+C<data_miner.pl> - data mining process
 
 =head1 SYNOPSIS
 
-   wfcam_agent.pl [-vers]
+   data_miner.pl [-vers]
 
 =head1 DESCRIPTION
 
-C<wfcam_agent.pl> is main persitent component of the the eSTAR Project's
-WFCAM survey agent. It controls the JAC 5th pipeline backend database, 
-passing data mining jobs out to a seperate data ining process.
+C<data_miner.pl> is the data mining component of the the eSTAR Project's
+data mining process. It helps populate the survey agent's backend database.
 
 =head1 REVISION
 
-$Id: wfcam_agent.pl,v 1.5 2004/02/20 00:59:41 aa Exp $
+$Id: data_miner.pl,v 1.1 2004/02/20 00:59:41 aa Exp $
 
 =head1 AUTHORS
 
@@ -80,13 +79,13 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
     if (/^-vers/) {
-      print "\neSTAR WFCAM Agent Software:\n";
-      print "Agent Version $VERSION; PERL Version: $]\n";
+      print "\neSTAR Data Mining Software:\n";
+      print "Version $VERSION; PERL Version: $]\n";
       exit;
     }
   }
@@ -134,7 +133,7 @@ use Data::Dumper;
 
 # tag name of the current process, this identifies where log and 
 # status files for this process will be stored.
-my $process = new eSTAR::Process( "wfcam_agent" );  
+my $process = new eSTAR::Process( "data_miner" );  
 
 # C A T C H   S I G N A L S -------------------------------------------------
 
@@ -165,7 +164,7 @@ $log = new eSTAR::Logging( );
 $log->set_debug(ESTAR__DEBUG);
 
 # Start of log file
-$log->header("Starting WFCAM Survey Agent: Version $VERSION");
+$log->header("Starting Data Mining Process: Version $VERSION");
 
 # Check for threading
 $log->debug("Config: useithreads = " . $Config{'useithreads'});
@@ -206,10 +205,10 @@ unless ( defined $CONFIG ) {
 
 # store the options filename in the file itself, not sure why this is
 # useful but I'm sure it'll come in handly at some point.
-$CONFIG->param( "wfcam.options", $config_file );
+$CONFIG->param( "mining.options", $config_file );
 
 # commit basic defaults to Options file
-my $status = $CONFIG->write( $CONFIG->param( "wfcam.options" ) );
+my $status = $CONFIG->write( $CONFIG->param( "mining.options" ) );
 
 # A G E N T   S T A T E   F I L E --------------------------------------------
 
@@ -236,10 +235,10 @@ unless ( defined $STATE ) {
 }
 
 # store the state filename in the file itself...
-$STATE->param( "wfcam.state", $state_file );
+$STATE->param( "mining.state", $state_file );
 
 # and to the configuration file
-$CONFIG->param( "wfcam.state", $state_file );
+$CONFIG->param( "mining.state", $state_file );
 
 # HANDLE UNIQUE ID
 # ----------------
@@ -249,19 +248,19 @@ $CONFIG->param( "wfcam.state", $state_file );
 # we'll run out of ints, I guess that will be bad...
 
 my ( $number, $string );
-$number = $STATE->param( "wfcam.unique_process" ); 
+$number = $STATE->param( "mining.unique_process" ); 
 if ( $number eq '' ) {
   # $number is not defined correctly (first ever run of the program?)
-  $STATE->param( "wfcam.unique_process", 0 );
+  $STATE->param( "mining.unique_process", 0 );
   $number = 0; 
 }
 
 # increment ID number
 $number = $number + 1;
-$STATE->param( "wfcam.unique_process", $number );
+$STATE->param( "mining.unique_process", $number );
   
 # commit ID stuff to STATE file
-my $status = $STATE->write( $STATE->param( "wfcam.state" ) );
+my $status = $STATE->write( $STATE->param( "mining.state" ) );
 unless ( defined $status ) {
   # can't read/write to options file, bail out
   my $error = "FatalError: " . $Config::Simple::errstr;
@@ -269,25 +268,25 @@ unless ( defined $status ) {
   throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
 } else {    
   $log->debug("Unique process ID: updated " . 
-              $STATE->param( "wfcam.state" ) );
+              $STATE->param( "mining.state" ) );
 }
 
 # PID OF USER AGENT
 # -----------------
 
-# log the current $pid of the wfcam_agent.pl process to the state 
+# log the current $pid of the data_miner.pl process to the state 
 # file  so we can kill it from the SOAP server.
-$STATE->param( "wfcam.pid", getpgrp() );
+$STATE->param( "mining.pid", getpgrp() );
   
 # commit $pid to STATE file
-my $status = $STATE->write( $STATE->param( "wfcam.state" ) );
+my $status = $STATE->write( $STATE->param( "mining.state" ) );
 unless ( defined $status ) {
   # can't read/write to options file, bail out
   my $error = "FatalError: " . $Config::Simple::errstr;
   $log->error(chomp($error));
   throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
 } else {    
-  $log->debug("WFCAM Agent PID: " . $STATE->param( "wfcam.pid" ) );
+  $log->debug("Data Mining PID: " . $STATE->param( "mining.pid" ) );
 }
 
 # L A T E  L O A D I N G  M O D U L E S ------------------------------------- 
@@ -328,8 +327,8 @@ use Astro::SIMBAD::Query;
 #
 # eSTAR modules
 #
-use eSTAR::WFCAM::SOAP::Daemon;         # replacement for SOAP::Transport::HTTP::Daemon
-use eSTAR::WFCAM::SOAP::Handler; # SOAP layer ontop of handler class
+use eSTAR::Miner::SOAP::Daemon;  # replacement for SOAP::Transport::HTTP::Daemon
+use eSTAR::Miner::SOAP::Handler; # SOAP layer ontop of handler class
 
 
 # E S T A R   D A T A   D I R E C T O R Y -----------------------------------
@@ -343,7 +342,7 @@ if ( defined $ENV{"ESTAR3_DATA"} ) {
 
    if ( opendir (DIR, File::Spec->catdir($ENV{"ESTAR3_DATA"}) ) ) {
       # default to the ESTAR3_DATA directory
-      $CONFIG->param("wfcam.data", File::Spec->catdir($ENV{"ESTAR3_DATA"}) );
+      $CONFIG->param("mining.data", File::Spec->catdir($ENV{"ESTAR3_DATA"}) );
       closedir DIR;
       $log->debug("Verified \$ESTAR3_DATA directory " . $ENV{"ESTAR3_DATA"});
    } else {
@@ -355,7 +354,7 @@ if ( defined $ENV{"ESTAR3_DATA"} ) {
          
 } elsif ( opendir(TMP, File::Spec->tmpdir() ) ) {
       # fall back on the /tmp directory
-      $CONFIG->param("wfcam.data", File::Spec->tmpdir() );
+      $CONFIG->param("mining.data", File::Spec->tmpdir() );
       closedir TMP;
       $log->debug("Falling back to using /tmp as \$ESTAR3_DATA directory");
 } else {
@@ -375,8 +374,8 @@ my $state_dir =
 if ( opendir ( SDIR, $state_dir ) ) {
   
   # default to the ~/.estar/$process->get_process()/state directory
-  $CONFIG->param("wfcam.cache", $state_dir );
-  $STATE->param("wfcam.cache", $state_dir );
+  $CONFIG->param("mining.cache", $state_dir );
+  $STATE->param("mining.cache", $state_dir );
   $log->debug("Verified state directory ~/.estar/" .
               $process->get_process() . "/state");
   closedir SDIR;
@@ -385,8 +384,8 @@ if ( opendir ( SDIR, $state_dir ) ) {
   mkdir $state_dir, 0755;
   if ( opendir (SDIR, $state_dir ) ) {
      # default to the ~/.estar/$process->get_process()/state directory
-     $CONFIG->param("wfcam.cache", $state_dir );
-     $STATE->param("wfcam.cache", $state_dir );
+     $CONFIG->param("mining.cache", $state_dir );
+     $STATE->param("mining.cache", $state_dir );
      closedir SDIR;  
      $log->debug("Creating state directory ~/.estar/" .
                   $process->get_process() . "/state");
@@ -408,8 +407,8 @@ my $tmp_dir =
 if ( opendir ( TDIR, $tmp_dir ) ) {
   
   # default to the ~/.estar/$process->get_process()/tmp directory
-  $CONFIG->param("wfcam.tmp", $tmp_dir );
-  $STATE->param("wfcam.tmp", $tmp_dir );
+  $CONFIG->param("mining.tmp", $tmp_dir );
+  $STATE->param("mining.tmp", $tmp_dir );
   $log->debug("Verified tmp directory ~/.estar/" . 
               $process->get_process() . "/tmp");
   closedir TDIR;
@@ -418,8 +417,8 @@ if ( opendir ( TDIR, $tmp_dir ) ) {
   mkdir $tmp_dir, 0755;
   if ( opendir (TDIR, $tmp_dir ) ) {
      # default to the ~/.estar/$process/tmp directory
-     $CONFIG->param("wfcam.tmp", $tmp_dir );
-     $STATE->param("wfcam.tmp", $tmp_dir );
+     $CONFIG->param("mining.tmp", $tmp_dir );
+     $STATE->param("mining.tmp", $tmp_dir );
      closedir TDIR;  
      $log->debug("Creating tmp directory ~/.estar/" .
                  $process->get_process() . "/tmp");
@@ -451,10 +450,13 @@ $CONFIG->param("user.institution", "eSTAR Project" );
 
 # server parameters
 $CONFIG->param("server.host", $ip );
-$CONFIG->param("server.port", 8005 );
+$CONFIG->param("server.port", 8006 );
 
 # user agent parameters
 $CONFIG->param("agent.port", 8000 );
+
+# survey agent parameters
+$CONFIG->param("survey.port", 8005 );
 
 # interprocess communication
 $CONFIG->param("agent.user", "agent" );
@@ -489,7 +491,7 @@ $OPT{"http_agent"} = new LWP::UserAgent(
 
 # Configure User Agent                         
 $OPT{"http_agent"}->env_proxy();
-$OPT{"http_agent"}->agent( "eSTAR WFCAM Survey Agent /$VERSION (" 
+$OPT{"http_agent"}->agent( "eSTAR Data Mining Process /$VERSION (" 
                            . hostname() . "." . hostdomain() .")");
 
 # ===========================================================================
@@ -513,11 +515,11 @@ my $listener_thread;
 # anonymous subroutine which starts a SOAP server which will accept
 # incoming SOAP requests and route them to the appropriate module
 my $soap_server = sub {
-   my $thread_name = "WFCAM Server Thread";
+   my $thread_name = "Data Mining Thread";
    
    # create SOAP daemon
    $log->thread($thread_name, "Starting server (\$tid = ".threads->tid().")");  
-   $daemon = eval{ new eSTAR::WFCAM::SOAP::Daemon( 
+   $daemon = eval{ new eSTAR::Miner::SOAP::Daemon( 
                       LocalPort     => $CONFIG->param( "server.port"),
                       Listen        => 5, 
                       Reuse         => 1 ) };   
@@ -536,10 +538,10 @@ my $soap_server = sub {
    $log->thread($thread_name, "SOAP server at " . $daemon->url() );    
     
    # handlers directory
-   my $handler = "eSTAR::WFCAM::SOAP::Handler";
+   my $handler = "eSTAR::Miner::SOAP::Handler";
    
    # defined handlers for the server
-   $daemon->dispatch_with({ 'urn:/wfcam_agent' => $handler });
+   $daemon->dispatch_with({ 'urn:/data_miner' => $handler });
    $daemon->objects_by_reference( $handler );
       
    # handle it!
@@ -563,7 +565,7 @@ $listener_thread = threads->create( $soap_server );
 # on the join and try and exit gracefully.
 $status = $listener_thread->join() if defined $listener_thread;
 $log->error( $status );
-$log->warn( "Warning: WFCAM Survey Agent has been terminated abnormally..." );
+$log->warn( "Warning: Data mining process has been terminated abnormally..." );
 
 # tidy up
 END {
@@ -576,7 +578,7 @@ END {
 # A S S O C I A T E D   S U B R O U T I N E S 
 # ===========================================================================
 
-# anonymous subroutine which is called everytime the wfcam agent is
+# anonymous subroutine which is called everytime the data mining process is
 # terminated (ab)normally. Hopefully this will provide a clean exit.
 sub kill_agent {
    my $from = shift;
@@ -584,7 +586,7 @@ sub kill_agent {
    # Check to see whether we've been called via a SOAP message
    if (  $from == ESTAR__FATAL ) {  
       $log->debug("Calling kill_agent( ESTAR__FATAL )");
-      $log->warn("Warning: Shutting down agent after ESTAR__FATAL error...");
+      $log->warn("Warning: Shutting down process after ESTAR__FATAL error...");
    } else {
       $log->debug("Calling kill_agent( SIGINT )");
       $log->warn("Warning: Process interrupted, possible data loss...");
@@ -592,8 +594,8 @@ sub kill_agent {
    
    # committ CONFIG and STATE changes
    $log->warn("Warning: Committing options and state changes");
-   my $status = $CONFIG->write( $CONFIG->param( "wfcam.options" ) );
-   my $status = $STATE->write( $STATE->param( "wfcam.state" ) );
+   my $status = $CONFIG->write( $CONFIG->param( "mining.options" ) );
+   my $status = $STATE->write( $STATE->param( "mining.state" ) );
    
    # flush the error stack
    $log->debug("Flushing error stack...");
@@ -601,7 +603,7 @@ sub kill_agent {
    $error->flush() if defined $error;
     
    # kill the agent process
-   $log->print("Killing wfcam_agent processes...");
+   $log->print("Killing data_miner processes...");
 
    # close out log files
    $log->closeout();
@@ -612,7 +614,7 @@ sub kill_agent {
    }
 
    # kill -9 the agent process, hung threads should die screaming
-   killfam 9, ( $STATE->param( "wfcam.pid") );
+   killfam 9, ( $STATE->param( "mining.pid") );
    
    # close the door behind you!   
    exit;
@@ -620,24 +622,7 @@ sub kill_agent {
   
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
-# $Log: wfcam_agent.pl,v $
-# Revision 1.5  2004/02/20 00:59:41  aa
+# $Log: data_miner.pl,v $
+# Revision 1.1  2004/02/20 00:59:41  aa
 # Added a skeleton data mining process, it has a SOAP server on port 8006
-#
-# Revision 1.4  2004/02/20 00:42:29  aa
-# Made eSTAR::Logging a single instance class, and created an eSTAR::Process
-# class to keep track of the process name. This fixes the breaks in the
-# encapsulation we had with the second generation code, shouldn't need to
-# refer to $main::* variables at any point from now on.
-#
-# Revision 1.3  2004/02/19 23:39:12  aa
-# Removed bogus status line
-#
-# Revision 1.2  2004/02/19 23:33:54  aa
-# Inital skeleton of the WFCAM agent, with ping() and echo() methods
-# exposed by the Handler class. Currently using ForkAfterProcessing
-# instead of threads.
-#
-# Revision 1.1.1.1  2004/02/18 22:06:06  aa
-# Inital directory structure for eSTAR 3rd Generation Agents
 #

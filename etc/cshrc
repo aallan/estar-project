@@ -27,8 +27,11 @@ setenv OMP_CFG_DIR ${ESTAR_OMPLIB}/cfg
 setenv SYBASE /export/data/allan/sybase
 setenv LANG C
 
-# Commands
+# Daemons & Agents
 alias wfcam        'source ${ESTAR3_DIR}/etc/wfcam_agent.csh'
+alias miner        'source ${ESTAR3_DIR}/etc/data_miner.csh'
+
+# Client Software
 alias soap_client  '${ESTAR3_PERLBIN} ${ESTAR3_DIR}/bin/soap_client.pl'
 alias dump_users   '${ESTAR3_PERLBIN} ${ESTAR3_DIR}/bin/dump_users.pl'
 alias add_user     '${ESTAR3_PERLBIN} ${ESTAR3_DIR}/bin/add_user.pl'
