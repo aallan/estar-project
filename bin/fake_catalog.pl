@@ -1,4 +1,4 @@
-#!/home/perl/bin/perl
+#!/software/perl-5.8.6/bin/perl
 
 use Getopt::Long;
 use File::Spec;

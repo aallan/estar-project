@@ -1,4 +1,4 @@
-#!/home/perl/bin/perl
+#!/software/perl-5.8.6/bin/perl
   
   use strict;
   use lib $ENV{"ESTAR_PERL5LIB"};     

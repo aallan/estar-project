@@ -1,4 +1,4 @@
-#!/home/perl/bin/perl
+#!/software/perl-5.8.6/bin/perl
 
 # D O C U M E N T I O N ------------------------------------------------------
 
@@ -19,7 +19,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: wfcam_agent.pl,v 1.10 2004/12/21 17:05:59 aa Exp $
+#     $Id: wfcam_agent.pl,v 1.11 2005/01/11 14:24:51 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -63,7 +63,7 @@ passing data mining jobs out to a seperate data ining process.
 
 =head1 REVISION
 
-$Id: wfcam_agent.pl,v 1.10 2004/12/21 17:05:59 aa Exp $
+$Id: wfcam_agent.pl,v 1.11 2005/01/11 14:24:51 aa Exp $
 
 =head1 AUTHORS
 
@@ -80,7 +80,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.10 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -635,6 +635,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: wfcam_agent.pl,v $
+# Revision 1.11  2005/01/11 14:24:51  aa
+# Minor modifications
+#
 # Revision 1.10  2004/12/21 17:05:59  aa
 # Fixes to store the LWP::UserAgent in a single instance object and get rid of the last $main:: references in the handler code
 #
