@@ -22,7 +22,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: gcn_server.pl,v 1.8 2005/02/08 03:05:06 aa Exp $
+$Id: gcn_server.pl,v 1.9 2005/02/11 15:03:23 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -41,7 +41,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -345,8 +345,7 @@ my $tcp_callback = sub {
          $log->warn( "Recieved a TYPE_SWIFT_BAT_GRB_ALERT_SRC message " );       
          $log->warn( "trig_obs_num = " . $$message[4] );       
 
-
-   
+         
       # TYPE_SWIFT_BAT_GRB_POS_ACK_SRC (type 61)
       # SWIFT BAT GRB Position Acknowledge message
       # ------------------------------------------
@@ -355,6 +354,68 @@ my $tcp_callback = sub {
            "Recieved a TYPE_SWIFT_BAT_GRB_POS_ACK_SRC message ".
            "(trig_obs_num = " . $$message[4] .")" );       
         
+         $log->warn( "Possible GRB detected at $$message[7], $$message[8]" .
+                     " +- $$message[11]" );
+
+         # convert to sextuplets
+         my ( $ra, $dec, $error) = GCN::Util::convert_to_sextuplets(
+                                  $$message[7], $$message[8], $$message[11] );
+         $log->warn( "Possible GRB detected at $ra, $dec +- $error acrmin" ); 
+
+   
+         # check status flag
+         my $soln_status = $$message[18];
+         $log->warn("The solution status of this message is $$message[18]" );
+        
+         $log->debug("Repacking into a big-endian long...");
+         my $bit_string = pack("N", $$message[18] );
+         $log->debug("Unpacking to bit string...");
+         my $bit_string = unpack( "B32", $bit_string );
+
+         $log->debug("Chopping up the bit string...");
+         my @bits;
+         foreach my $i ( 0 ... 5 ) {
+            my $bit = chop( $bit_string );
+            push @bits, $bit;
+         }
+         
+         if ( $bits[0] == 1 ) {
+             $log->warn( "Message: A point source was found..." );
+             
+         } elsif ( $bits[1] == 1 ) {  
+             $log->warn( "Message: THIS TARGET IS A GAMMA RAY BURST" );
+          
+         } elsif ( $bits[2] == 1 ) { 
+             $log->warn( "Message: This is an interesting target..." );
+           
+         } elsif ( $bits[3] == 1 ) { 
+             $log->warn( "Message: This target is in the catalog..." );
+           
+         } elsif ( $bits[4] == 1 ) { 
+             $log->warn( "Message: This target is an image trigger..." );
+           
+         } elsif ( $bits[5] == 1 ) {   
+             $log->warn( "Message: THIS TARET IS NOT A GAMMA RAY BURST" );
+             
+         }          
+                                
+      # TYPE_SWIFT_BAT_GRB_POS_NACK_SRC (type 62)
+      # SWIFT BAT GRB Position NOT Acknowledge message
+      # ----------------------------------------------
+      } elsif ( $$message[0] == 62 ) {
+         $log->warn( "Recieved a TYPE_SWIFT_BAT_GRB_POS_NACK_SRC message " );
+         $log->warn( "trig_obs_num = " . $$message[4] );       
+
+
+         
+      # TYPE_SWIFT_XRT_POSITION_SRC (type 67)
+      # SWIFT XRT Position message
+      # -------------------------------------
+      } elsif ( $$message[0] == 67 ) {
+      #} elsif ( $$message[0] == 61 ) {
+         $log->warn( "Recieved a TYPE_SWIFT_XRT_POSITION_SRC message " );   
+         $log->warn( "trig_obs_num = " . $$message[4] );       
+
          $log->warn( "GRB detected at $$message[7], $$message[8]" .
                      " +- $$message[11]" );
 
@@ -388,8 +449,9 @@ my $tcp_callback = sub {
          $soap->uri('urn:/user_agent'); 
          $soap->proxy($endpoint, cookie_jar => $cookie_jar);
          
-         # grab result 
-         $log->print("Making a SOAP conncetion...");
+         # Submit an inital burst followup block
+         # -------------------------------------
+         $log->print("Making a SOAP conncetion for InitialBurstFollowup...");
          my $result;
          eval { $result = $soap->new_observation( 
                               user     => $config->get_option("gcn.user"),
@@ -406,25 +468,27 @@ my $tcp_callback = sub {
          } else {
             $log->print("Connection closed");      
          }
-                        
-      # TYPE_SWIFT_BAT_GRB_POS_NACK_SRC (type 62)
-      # SWIFT BAT GRB Position NOT Acknowledge message
-      # ----------------------------------------------
-      } elsif ( $$message[0] == 62 ) {
-         $log->warn( "Recieved a TYPE_SWIFT_BAT_GRB_POS_NACK_SRC message " );
-         $log->warn( "trig_obs_num = " . $$message[4] );       
-
-
          
-      # TYPE_SWIFT_XRT_POSITION_SRC (type 67)
-      # SWIFT XRT Position message
-      # -------------------------------------
-      } elsif ( $$message[0] == 67 ) {
-         $log->warn( "Recieved a TYPE_SWIFT_XRT_POSITION_SRC message " );   
-         $log->warn( "trig_obs_num = " . $$message[4] );       
-
-
-         
+         # Submit an burst followup block
+         # -------------------------------------
+         $log->print("Making a SOAP conncetion for BurstFollowup...");
+         my $result;
+         eval { $result = $soap->new_observation( 
+                              user     => $config->get_option("gcn.user"),
+                              pass     => $config->get_option("gcn.passwd"),
+                              type     => 'BurstFollowup',
+                              ra       => $ra,
+                              dec      => $dec,
+                              followup => 0,
+                              exposure => 30,
+                              passband => "k98" ); };
+         if ( $@ ) {
+            $log->warn("Warning: Problem connecting to user agent");
+            $log->error("Error: $@");
+         } else {
+            $log->print("Connection closed");      
+         } 
+                 
       # TYPE_SWIFT_XRT_CENTROID_SRC (type 71)
       # SWIFT XRT Position NOT Ack message (Centroid Error)
       # ---------------------------------------------------
