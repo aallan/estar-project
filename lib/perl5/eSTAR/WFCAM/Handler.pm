@@ -7,7 +7,7 @@ package eSTAR::WFCAM::Handler;
 use lib $ENV{"ESTAR3_PERL5LIB"};     
 
 use strict;
-use subs qw( new set_user ping echo );
+use subs qw( new set_user ping echo query_option set_option populate_db );
 
 #
 # Threading code (ithreads)
@@ -35,6 +35,11 @@ use eSTAR::SOAP::User;
 use eSTAR::Logging;
 use eSTAR::Constants qw/:all/;
 use eSTAR::Util;
+
+#
+# Astro modules
+#
+use Astro::Catalog;
 
 my $log;
 
@@ -114,7 +119,7 @@ sub set_user {
 }
 
 # ==========================================================================
-# H A N D L E R S 
+# T E S T  H A N D L E R S 
 # ==========================================================================
 
 # test function
@@ -157,6 +162,109 @@ sub echo {
 } 
 
 
+# ==========================================================================
+# O P T I O N S  H A N D L E R S 
+# ==========================================================================
+
+# test function
+sub query_option {
+   my $self = shift;
+
+   $log->debug("Called query_option() from \$tid = ".threads->tid());
+   
+   # not callable as a static method, so must have a value
+   # user object stored within             
+   unless ( my $user = $self->{_user}) {
+      $log->warn("SOAP Request: The object is missing user data.");
+      die SOAP::Fault
+         ->faultcode("Client.DataError")
+         ->faultstring("Client Error: The object is missing user data.")
+   }
+     
+   $log->debug("Returned ACK message");
+   return SOAP::Data->name('return', 'ACK')->type('xsd:string');
+} 
+
+sub set_option {
+   my $self = shift;
+
+   $log->debug("Called set_option() from \$tid = ".threads->tid());
+   
+   # not callable as a static method, so must have a value
+   # user object stored within             
+   unless ( my $user = $self->{_user}) {
+      $log->warn("SOAP Request: The object is missing user data.");
+      die SOAP::Fault
+         ->faultcode("Client.DataError")
+         ->faultstring("Client Error: The object is missing user data.")
+   }
+     
+   $log->debug("Returned ACK message");
+   return SOAP::Data->name('return', 'ACK')->type('xsd:string');
+} 
+
+# ==========================================================================
+# D A T A  H A N D L E R S 
+# ==========================================================================
+
+sub populate_db {
+   my $self = shift;
+   my @args = @_;
+   
+   $log->debug("Called populate_db() from \$tid = ".threads->tid());
+   
+   # CHECK FOR USER DATA
+   # ===================
+   
+   # not callable as a static method, so must have a value user object 
+   # stored within the class otherwise we'll return a SOAP Error            
+   unless ( my $user = $self->{_user}) {
+      $log->warn("SOAP Request: The object is missing user data.");
+      die SOAP::Fault
+         ->faultcode("Client.DataError")
+         ->faultstring("Client Error: The object is missing user data.")
+   }
+   
+   # PARSE SERIALISED CATALOGUE
+   # ==========================
+   
+   # Create an instance of Astro::Catalog object from the serialsed catalogue
+   my $catalog;
+   eval {$catalog = new Astro::Catalog(Format => "VOTable", Data => $args[0])};
+
+   # try and catch parsing errors here...
+   if( $@ ) {
+      $log->warn("Unable to parse serialised catalogue...");
+      $log->warn("Returned SOAP Error message");
+      die SOAP::Fault
+         ->faultcode("Client.DataError")
+         ->faultstring("Client Error: $@")
+   } 
+        
+   unless ( defined $catalog ) {
+      $log->warn("Unable to parse serialised catalogue...");
+      $log->warn("Returned SOAP Error message");
+      die SOAP::Fault
+         ->faultcode("Client.DataError")
+         ->faultstring("Client Error: Unable to parse serialised catalogue.")
+   }   
+   $log->debug("Catalogue has " . $catalog->sizeof() . " entries...");
+   
+   
+   
+   
+   
+   
+   
+   # RETURN OK MESSAGE TO CLIENT
+   # ===========================
+   
+   # return an OK message to the client
+   $log->debug("Returned OK message");
+   return SOAP::Data->name('return', "OK")->type('xsd:string');
+      
+}
+   
 1;                                
                   
                   

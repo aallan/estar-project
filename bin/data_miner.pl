@@ -19,7 +19,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: data_miner.pl,v 1.1 2004/02/20 00:59:41 aa Exp $
+#     $Id: data_miner.pl,v 1.2 2004/02/20 03:42:29 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -62,7 +62,7 @@ data mining process. It helps populate the survey agent's backend database.
 
 =head1 REVISION
 
-$Id: data_miner.pl,v 1.1 2004/02/20 00:59:41 aa Exp $
+$Id: data_miner.pl,v 1.2 2004/02/20 03:42:29 aa Exp $
 
 =head1 AUTHORS
 
@@ -79,7 +79,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -236,6 +236,9 @@ unless ( defined $STATE ) {
 
 # store the state filename in the file itself...
 $STATE->param( "mining.state", $state_file );
+
+# and the options filename
+$STATE->param( "mining.options", $config_file );
 
 # and to the configuration file
 $CONFIG->param( "mining.state", $state_file );
@@ -432,58 +435,69 @@ if ( opendir ( TDIR, $tmp_dir ) ) {
 
 # M A I N   O P T I O N S   H A N D L I N G ---------------------------------
 
-my %user_id;
-tie %user_id, "CfgTie::TieUser";
-   
-# grab current user
-my $current_user = $user_id{$ENV{"USER"}};
-my $real_name = ${$current_user}{"GCOS"};
+if ( $STATE->param("mining.unique_process") == 1 ) {
 
-# grab current IP address
-my $ip = inet_ntoa(scalar(gethostbyname(hostname())));
+   my %user_id;
+   tie %user_id, "CfgTie::TieUser";
+      
+   # grab current user
+   my $current_user = $user_id{$ENV{"USER"}};
+   my $real_name = ${$current_user}{"GCOS"};
+   
+   # grab current IP address
+   my $ip = inet_ntoa(scalar(gethostbyname(hostname())));
   
-# user defaults
-$CONFIG->param("user.user_name", $ENV{"USER"} );
-$CONFIG->param("user.real_name", $real_name );
-$CONFIG->param("user.email_address", $ENV{"USER"} . "@" .hostdomain() );
-$CONFIG->param("user.institution", "eSTAR Project" );
-
-# server parameters
-$CONFIG->param("server.host", $ip );
-$CONFIG->param("server.port", 8006 );
-
-# user agent parameters
-$CONFIG->param("agent.port", 8000 );
-
-# survey agent parameters
-$CONFIG->param("survey.port", 8005 );
-
-# interprocess communication
-$CONFIG->param("agent.user", "agent" );
-$CONFIG->param("agent.passwd", "InterProcessCommunication" );
-
-# USNO-A2 options defaults
-$CONFIG->param("usnoa2.radius", 10);
-$CONFIG->param("usnoa2.nout", 9000);
-$CONFIG->param("usnoa2.url", "archive.eso.org" );
-
-# 2MASS options defaults
-$CONFIG->param("2mass.radius", 4 );
-
-# SIMBAD option defaults
-$CONFIG->param("simbad.error", 5 );
-$CONFIG->param("simbad.units", "arcsec");
-$CONFIG->param("simbad.url", "simbad.u-strasbg.fr" );
+   # user defaults
+   $CONFIG->param("user.user_name", $ENV{"USER"} );
+   $CONFIG->param("user.real_name", $real_name );
+   $CONFIG->param("user.email_address", $ENV{"USER"} . "@" .hostdomain() );
+   $CONFIG->param("user.institution", "eSTAR Project" );
    
+   # server parameters
+   $CONFIG->param("server.host", $ip );
+   $CONFIG->param("server.port", 8006 );
+   
+   # user agent parameters
+   $CONFIG->param("agent.port", 8000 );
+   
+   # survey agent parameters
+   $CONFIG->param("survey.port", 8005 );
+   
+   # interprocess communication
+   $CONFIG->param("agent.user", "agent" );
+   $CONFIG->param("agent.passwd", "InterProcessCommunication" );
+
+   # USNO-A2 options defaults
+   $CONFIG->param("usnoa2.radius", 10);
+   $CONFIG->param("usnoa2.nout", 9000);
+   $CONFIG->param("usnoa2.url", "archive.eso.org" );
+   
+   # 2MASS options defaults
+   $CONFIG->param("2mass.radius", 4 );
+   
+   # SIMBAD option defaults
+   $CONFIG->param("simbad.error", 5 );
+   $CONFIG->param("simbad.units", "arcsec");
+   $CONFIG->param("simbad.url", "simbad.u-strasbg.fr" );
+   
+   # connection options defaults
+   $CONFIG->param("connection.timeout", 5 );
+   $CONFIG->param("connection.proxy", 'NONE'  );
+  
+   # C O M M I T T   O P T I O N S  T O   F I L E S
+   # ----------------------------------------------
+   
+   # committ CONFIG and STATE changes
+   $log->warn("Initial default options being generated");
+   $log->warn("Committing options and state changes...");
+   my $status = $CONFIG->write( $CONFIG->param( "mining.options" ) );
+   my $status = $STATE->write( $STATE->param( "mining.state" ) );
+}   
 # ===========================================================================
 # H T T P   U S E R   A G E N T 
 # ===========================================================================
 
 $log->debug("Creating an HTTP User Agent...");
-   
-# connection options defaults
-$CONFIG->param("connection.timeout", 5 );
-$CONFIG->param("connection.proxy", 'NONE'  );
 
 # Create HTTP User Agent
 $OPT{"http_agent"} = new LWP::UserAgent(
@@ -592,11 +606,6 @@ sub kill_agent {
       $log->warn("Warning: Process interrupted, possible data loss...");
    }
    
-   # committ CONFIG and STATE changes
-   $log->warn("Warning: Committing options and state changes");
-   my $status = $CONFIG->write( $CONFIG->param( "mining.options" ) );
-   my $status = $STATE->write( $STATE->param( "mining.state" ) );
-   
    # flush the error stack
    $log->debug("Flushing error stack...");
    my $error = eSTAR::Error->prior();
@@ -623,6 +632,13 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: data_miner.pl,v $
+# Revision 1.2  2004/02/20 03:42:29  aa
+# Changed configuration options so that default options are only generated
+# on the inital program run. If an option.dat and state.dat file already
+# exist the user's options aren't overwritten. This is now the default
+# behaviour for wfcam_agent.pl and data_miner.pl. Added "do nothing" hooks
+# to the Handler(s) to query and set options in the $CONFIG file.
+#
 # Revision 1.1  2004/02/20 00:59:41  aa
 # Added a skeleton data mining process, it has a SOAP server on port 8006
 #
