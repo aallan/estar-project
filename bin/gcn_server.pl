@@ -22,7 +22,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: gcn_server.pl,v 1.6 2005/02/07 22:20:18 aa Exp $
+$Id: gcn_server.pl,v 1.7 2005/02/08 00:23:00 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -41,7 +41,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -389,7 +389,7 @@ my $tcp_callback = sub {
          $soap->proxy($endpoint, cookie_jar => $cookie_jar);
          
          # grab result 
-         $log->debug("Making a SOAP connection...");
+         $log->print("Making a SOAP conncetion...");
          my $result;
          eval { $result = $soap->new_observation( 
                               user     => $config->get_option("gcn.user"),
@@ -403,7 +403,9 @@ my $tcp_callback = sub {
          if ( $@ ) {
             $log->warn("Warning: Problem connecting to user agent");
             $log->error("Error: $@");
-         }          
+         } else {
+            $log->print("Connection closed");      
+         }
                         
       # TYPE_SWIFT_BAT_GRB_POS_NACK_SRC (type 62)
       # SWIFT BAT GRB Position NOT Acknowledge message
