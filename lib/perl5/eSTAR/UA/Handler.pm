@@ -533,7 +533,7 @@ sub new_observation {
       my $soap = new SOAP::Lite();
   
       $soap->uri('urn:/node_agent'); 
-      $soap->proxy($endpoint, cookie_jar => $cookie_jar, timeout => 10);
+      $soap->proxy($endpoint, cookie_jar => $cookie_jar, timeout => 30);
     
       # report
       $log->print("Connecting to " . $NODES[$i] . "..." );
@@ -727,7 +727,7 @@ sub new_observation {
    my $soap = new SOAP::Lite();
   
    $soap->uri('urn:/node_agent'); 
-   $soap->proxy($endpoint, cookie_jar => $cookie_jar, timeout => 10);
+   $soap->proxy($endpoint, cookie_jar => $cookie_jar, timeout => 30);
     
    # report
    $log->print("Connecting to " . $best_node . "..." );

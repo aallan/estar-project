@@ -1331,7 +1331,7 @@ sub handle_data {
    my $soap = new SOAP::Lite();
   
    $soap->uri('urn:/user_agent'); 
-   $soap->proxy($endpoint, cookie_jar => $cookie_jar, timeout => 10);
+   $soap->proxy($endpoint, cookie_jar => $cookie_jar, timeout => 30);
    
    # report
    $log->print("Connecting to " . $host . "..." );
