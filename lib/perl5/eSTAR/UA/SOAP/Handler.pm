@@ -21,7 +21,7 @@ BEGIN {
   #print Dumper( %COOKIES );
   
   for my $method qw( ping echo new_observation handle_rtml get_option
-                     set_option  ) {
+                     set_option kill ) {
      eval "sub $method";
      *$method = sub {
         my $self = shift->new();

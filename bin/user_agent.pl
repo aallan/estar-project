@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: user_agent.pl,v 1.11 2005/02/15 20:41:23 aa Exp $
+#     $Id: user_agent.pl,v 1.12 2005/02/15 22:01:43 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -65,7 +65,7 @@ itself.
 
 =head1 REVISION
 
-$Id: user_agent.pl,v 1.11 2005/02/15 20:41:23 aa Exp $
+$Id: user_agent.pl,v 1.12 2005/02/15 22:01:43 aa Exp $
 
 =head1 AUTHORS
 
@@ -82,7 +82,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -342,8 +342,8 @@ if ( $config->get_state("ua.unique_process") == 1 ) {
    $config->set_option("server.port", 8000 );
 
    # burster agent parameters
-   $config->set_option("ba.host", $ip );
-   $config->set_option("ba.port", 8001 );
+   #$config->set_option("ba.host", $ip );
+   #$config->set_option("ba.port", 8001 );
 
    # interprocess communication
    #$config->set_option("ba.user", "agent" );
@@ -559,9 +559,10 @@ sub kill_agent {
    }
 
    # committ CONFIG and STATE changes
-   #$log->warn("Warning: Committing options and state changes");
-   #$config->write_option( );
-   #$config->write_state( );  
+   $log->warn("Warning: Committing options and state changes");
+   $config->reread();
+   $config->write_option( );
+   $config->write_state( );  
    
    # flush the error stack
    $log->debug("Flushing error stack...");
@@ -590,6 +591,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: user_agent.pl,v $
+# Revision 1.12  2005/02/15 22:01:43  aa
+# Fixed race conditions, see ChangeLog for details. Yuck!
+#
 # Revision 1.11  2005/02/15 20:41:23  aa
 # Fixed race conditions
 #

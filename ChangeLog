@@ -10,9 +10,20 @@
           
         * Bad race conditions with the configuration files again, I wish
           I'd never used them, horrible things. Moved User Agent to use the
-          ThreadOnAccept.pm module and forced rereads at the start of all
-          methods in Handler.pm (amongst other things). This seems to cure
-          the problems, at least for now.   
+          ThreadOnAccept.pm module and forced reread() at the start of all
+          methods in Handler.pm amongst other things. This seems to cure
+          the problems, at least for now.
+          
+        * Problem wasn't cured. It appears that when I killed the user_agent
+          process it left file handles to the options.dat and state.dat files
+          open. This meant I was getting "Open file handle detected. If you're
+          trying to parse another file, close() it first." errors from the
+          Config::Simple module. I'm not sure what was going on really, cured
+          this by forcing recreation of the Config::Simple object on reread()
+          inside eSTAR::Config. I think this should slove things, it seems
+          to have fixed both the race conditions and the flock'ing problem.
+          
+        * Yuck!  
           
 2005-02-14 Aladair Allan <aa@astro.ex.ac.uk>
 

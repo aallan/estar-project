@@ -8,7 +8,7 @@ use lib $ENV{"ESTAR_PERL5LIB"};
 
 use strict;
 use subs qw( new set_user ping echo new_observation handle_rtml get_option
-             set_option );
+             set_option kill);
 
 #
 # Threading code (ithreads)
@@ -247,6 +247,29 @@ sub echo {
    return SOAP::Data->name('return', "ECHO @args")->type('xsd:string');
 } 
 
+# a kludge
+sub kill {
+   my $self = shift;
+
+   $log->debug("Called kill() from \$tid = ".threads->tid());
+   
+   # not callable as a static method, so must have a value
+   # user object stored within             
+   unless ( my $user = $self->{_user}) {
+      $log->warn("SOAP Request: The object is missing user data");
+      return "The object is missing user data"
+   }
+   
+   $log->print("Spawning thread to kill agent...");
+   my $kill_thread = threads->create( sub { 
+                                       sleep 5; 
+                                       main::kill_agent( ESTAR__FATAL ); } );
+   $kill_thread->detach();
+     
+   $log->debug("Returned ACK message");
+   return SOAP::Data->name('return', 'ACK')->type('xsd:string');
+}
+ 
 # make a new observation
 sub new_observation {
    my $self = shift;
