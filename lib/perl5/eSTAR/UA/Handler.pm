@@ -801,8 +801,8 @@ sub handle_rtml {
    my $message = new eSTAR::RTML::Parse( RTML => $rtml_message );
    my $id = $message->id();
    unless ( defined $id ) {
-      $log->error( "Error: Unable to parse the RTML" );
-      $log->error( $rtml . "\n" );
+      $main::error->error( "Error: Unable to parse the RTML" );
+      $main::error->error( $rtml . "\n" );
       return SOAP::Data->name('return', 'ERROR BAD RTML')->type('xsd:string');
    }   
 
