@@ -35,7 +35,7 @@ use eSTAR::Error qw /:try/;
 @ISA = qw/Exporter/;
 @EXPORT_OK = qw/ current_instrument /;
 
-'$Revision: 1.1 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.2 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 
 sub current_instrument {
@@ -55,10 +55,10 @@ sub current_instrument {
       $log->warn("Warning: File $file not found");
       return undef;
    } else {
-      unless ( flock( INST, LOCK_EX ) ) {
-         $log->warn("Warning: unable to acquire exclusive lock: $!");
-         return undef;
-      } else {
+     # unless ( flock( INST, LOCK_EX ) ) {
+     #    $log->warn("Warning: unable to acquire exclusive lock: $!");
+     #    return undef;
+     # } else {
          
          my $xml = undef;
          {
@@ -76,7 +76,7 @@ sub current_instrument {
          $instrument = ${${${$document}[1]}[0]}{"name"};
           
          
-      } 
+     # } 
       
       return $instrument; 
       
@@ -90,7 +90,7 @@ sub current_instrument {
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.1 2005/03/22 22:06:23 aa Exp $
+$Id: Util.pm,v 1.2 2005/03/22 23:22:56 aa Exp $
 
 =head1 AUTHORS
 
