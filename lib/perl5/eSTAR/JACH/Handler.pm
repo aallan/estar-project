@@ -262,7 +262,11 @@ sub handle_rtml {
    my $document = shift;
 
    $log->debug("Called handle_rtml() from \$tid = ".threads->tid());
-   
+  
+   # debugging
+   #use Data::Dumper;
+   #print Dumper( $document );
+ 
    # not callable as a static method, so must have a value
    # user object stored within             
    unless ( my $user = $self->{_user}) {
@@ -282,8 +286,8 @@ sub handle_rtml {
       my $error = "Error: Unable to parse RTML document";
       $log->error( $error );
       return $error;       
-   } 
-   
+   }
+
    # determine type
    my $type = $rtml->determine_type();
    $log->debug( "Got a '" . $type . "' message");  
@@ -603,13 +607,18 @@ sub handle_rtml {
          }     
       
          # scan through MSBs
-         $log->debug( "Scanning through MSB templates" );
+         $log->debug( "Scanning through MSB templates looking for '" .
+                       $parsed->targettype() . "'" );
+         
          my $template;
          for my $m ( $sp->msb() ) {
             $log->debug( "Found template " . $m->msbtitle() );
-            if ( $m->msbtitle() eq $parsed->targettype() &&
+
+            my $looking_for = $parsed->targettype();
+            if ( $m->msbtitle()  =~ /$looking_for/ &&
                  $m->hasBlankTargets() ) {
-                 
+
+                 $log->debug( "Matched '" . $m->msbtitle() . "'" );
                  $template = $m;
             }
          }
