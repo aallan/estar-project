@@ -1,0 +1,34 @@
+eSTAR Telescope Agent Documentation
+  Author   : Alasdair Allan (aa@astro.ex.ac.uk)
+  Revision : $Id: README,v 1.1 2004/02/18 22:06:04 aa Exp $
+
+Where can I find more information?
+
+ More information about the eSTAR Project, and the roll of intelligent agents
+ in the robotic telescope network, see our web pages at http://www.estar.org.uk
+
+Authors
+
+ This package was written by Alasdair Allan <aa@astro.ex.ac.uk>, Brad
+ Cavangh <b.cavangh@jach.hawaii.edu> and Tim Jenness <timj@jach.hawaii.edu>.
+  
+Terms and Conditions
+
+ Use of this package implies acceptance of the terms and conditions of use
+ of the Astrophysical Data Service (ADS) Abstract Service, for full details
+ see http://adswww.harvard.edu/use.html
+
+License
+
+ This package is free software; you can redistribute it and/or modify it under
+ the terms of the GNU General Public License as published by the Free Software
+ Foundation; either version 2 of the License, or (at your option) any later
+ version.
+
+ This program is distributed in the hope that it will be useful,but WITHOUT ANY
+ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License along with
+ this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+ Place,Suite 330, Boston, MA  02111-1307, USA

@@ -1,0 +1,19 @@
+
+if ($?USER == 0 || $?prompt == 0) exit
+
+# eSTAR
+setenv ESTAR3_DIR /home/`whoami`/third_generation
+setenv ESTAR3_DATA /home/`whoami`/testing/estar
+setenv ESTAR3_PERL5LIB ${ESTAR3_DIR}/lib/perl5
+setenv LANG C
+
+# Perl 5.8.3
+setenv ESTAR3_PERLBIN /local/perl-5.8/bin/perl
+setenv MANPATH ${MANPATH}:/local/perl-5.8/perl/man
+
+# Commands
+alias wfcam        'source ${ESTAR3_DIR}/etc/wfcam_agent.csh'
+alias soap_client  '${ESTAR3_PERLBIN} ${ESTAR2_DIR}/bin/soap_client.pl'
+alias dump_users   '${ESTAR3_PERLBIN} ${ESTAR2_DIR}/bin/dump_users.pl'
+alias add_user     '${ESTAR3_PERLBIN} ${ESTAR2_DIR}/bin/add_user.pl'
+  

@@ -1,0 +1,10 @@
+2004-02-18 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * Inital skeleton installation of the WFCAM survey_agent.pl 
+          built. This package is going to be the first 3rd generation
+          agent built for the eSTAR project. Initally it should talk
+          to the current user_agent.pl and the rest of the 2nd generation
+          code, but if Robonet-1.0 goes ahead we'll need to refactor
+          the top level User Agent code as it's not robust enough for
+          general distribution to astronomers.
+          
