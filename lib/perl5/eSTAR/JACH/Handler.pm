@@ -616,13 +616,21 @@ sub handle_rtml {
             $log->debug( "Found template " . $m->msbtitle() );
 
             my $looking_for = $parsed->targetident();
-            if ( $m->msbtitle()  =~ /\b$looking_for/ &&
-                 $m->hasBlankTargets() ) {
+            if ( $m->msbtitle()  =~ /\b$looking_for/ ) {
+            
+            
+               $log->debug( "Matched '" . $m->msbtitle() . "'" );
+               if ( $m->hasBlankTargets() ) {
 
-                 $log->debug( "Matched '" . $m->msbtitle() . "'" );
+                 $log->debug( "Confirmed that this is a template MSB" );
                  $template = $m;
+               } else {
+                 $log->warn( "Warning: MSB does not have blank targets" );
+               }
+               
             }
          }
+           
          unless ( defined $template ) {
                
             # return the RTML document
