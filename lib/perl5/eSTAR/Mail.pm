@@ -38,7 +38,7 @@ use eSTAR::Util;
 @ISA = qw/Exporter/;
 @EXPORT_OK = qw/ send_mail /;
 
-'$Revision: 1.1 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.2 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 
 sub send_mail {
@@ -53,7 +53,7 @@ sub send_mail {
    my $config = eSTAR::Config::get_reference();
  
   
-   $log->debug( "Sending mail to $real_name <$email_address>" ); 
+   $log->debug( "Sending mail to $to_name <$to>" ); 
    
    my $smtp = new Net::SMTP( 
                      Host    => $config->get_option("mailhost.name"),
@@ -67,8 +67,8 @@ sub send_mail {
 
      $log->debug( "Talking to mailserver..." );
                     
-     $smtp->mail('allan@jach.hawaii.edu');
-     $smtp->to( $parsed->email() );
+     $smtp->mail( $from );
+     $smtp->to( $to );
 
      $smtp->data();
      $smtp->datasend("To: $to_name <$to>\n" );
@@ -92,7 +92,7 @@ sub send_mail {
 
 =head1 REVISION
 
-$Id: Mail.pm,v 1.1 2005/02/15 15:44:41 aa Exp $
+$Id: Mail.pm,v 1.2 2005/02/15 16:04:51 aa Exp $
 
 =head1 AUTHORS
 
