@@ -2,19 +2,34 @@
 if ($?USER == 0 || $?prompt == 0) exit
 
 # eSTAR
-#setenv ESTAR3_DIR /home/`whoami`/third_generation
-setenv ESTAR3_DIR /export/data/`whoami`
-setenv ESTAR3_DATA /home/`whoami`/testing/estar
+setenv ESTAR3_DIR /export/data/allan/third_generation
+setenv ESTAR3_DATA /export/data/allan/data
 setenv ESTAR3_PERL5LIB ${ESTAR3_DIR}/lib/perl5
 setenv LANG C
 
+setenv ESTAR_TKPGPLOT /export/data/pgplot
+
 # Perl 5.8.3
-setenv ESTAR3_PERLBIN /local/perl-5.8/bin/perl
-setenv MANPATH ${MANPATH}:/local/perl-5.8/perl/man
+setenv ESTAR3_PERLBIN /export/data/allan/perl/bin/perl
+setenv MANPATH ${MANPATH}:/export/data/perl/man
+
+# PGPLOT
+setenv PGPLOT_DIR /export/data/allan/pgplot 
+setenv PGPLOT_FONT /export/data/allan/pgplot/grfont.dat
+setenv PGPLOT_BUFFER yes 
+setenv PGPLOT_DEBUG yes 
+setenv PGPLOT_FOREGROUND white
+setenv PGPLOT_BACKGROUND black
+
+# OMP
+setenv ESTAR_OMPLIB  /export/data/allan/omp/msbserver   
+setenv OMP_CFG_DIR ${ESTAR_OMPLIB}/cfg
+setenv SYBASE /export/data/allan/sybase
+setenv LANG C
 
 # Commands
 alias wfcam        'source ${ESTAR3_DIR}/etc/wfcam_agent.csh'
-alias soap_client  '${ESTAR3_PERLBIN} ${ESTAR2_DIR}/bin/soap_client.pl'
-alias dump_users   '${ESTAR3_PERLBIN} ${ESTAR2_DIR}/bin/dump_users.pl'
-alias add_user     '${ESTAR3_PERLBIN} ${ESTAR2_DIR}/bin/add_user.pl'
+alias soap_client  '${ESTAR3_PERLBIN} ${ESTAR3_DIR}/bin/soap_client.pl'
+alias dump_users   '${ESTAR3_PERLBIN} ${ESTAR3_DIR}/bin/dump_users.pl'
+alias add_user     '${ESTAR3_PERLBIN} ${ESTAR3_DIR}/bin/add_user.pl'
   

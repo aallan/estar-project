@@ -7,7 +7,7 @@
 
 # Current Working Directory
 set pwd = `pwd`
-set homedir = "/home/`whoami`"      
+set homedir = "/export/data/allan"      
 
 # global tags
 set VERSION = "1.0"
@@ -42,6 +42,10 @@ set sybase = $<
 echo "${cyan}CFITSIO Installtion${normal}"
 echo -n "Path: "
 set cfitsio = $<
+
+echo "${cyan}Berkeley DB Installtion${normal}"
+echo -n "Path: "
+set dbdir = $<
 
 echo "${cyan}Exeter CVS Checkout${normal}"
 echo -n "Path: "

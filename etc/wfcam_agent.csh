@@ -21,12 +21,17 @@
 
 #  History:
 #     $Log: wfcam_agent.csh,v $
-#     Revision 1.1  2004/02/18 22:06:07  aa
-#     Initial revision
+#     Revision 1.2  2004/02/19 23:33:54  aa
+#     Inital skeleton of the WFCAM agent, with ping() and echo() methods
+#     exposed by the Handler class. Currently using ForkAfterProcessing
+#     instead of threads.
+#
+#     Revision 1.1.1.1  2004/02/18 22:06:07  aa
+#     Inital directory structure for eSTAR 3rd Generation Agents
 #
 
 #  Revision:
-#     $Id: wfcam_agent.csh,v 1.1 2004/02/18 22:06:07 aa Exp $
+#     $Id: wfcam_agent.csh,v 1.2 2004/02/19 23:33:54 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -47,16 +52,16 @@ else
 endif
 
 # set PGPLOT_DIR to point to the modified version of PGPLOT
-#if ($?ESTAR_TKPGPLOT) then
-#  setenv PGPLOT_DIR $ESTAR_TKPGPLOT
-#  echo "ESTAR_TKPGPLOT = ${ESTAR_TKPGPLOT}"
-#else
-#  echo " "
-#  echo "eSTAR Intelligent Agent Software -- (Version $pkgvers)"
-#  echo "PGPLOT could not be found, please install PGPLOT 5.2.2" 
-#  echo "patched for use of the /PTK driver (uses Tk::Pgplot 0.30)" 
-#  exit
-#endif
+if ($?ESTAR_TKPGPLOT) then
+  setenv PGPLOT_DIR $ESTAR_TKPGPLOT
+  echo "ESTAR_TKPGPLOT = ${ESTAR_TKPGPLOT}"
+else
+  echo " "
+  echo "eSTAR Intelligent Agent Software -- (Version $pkgvers)"
+  echo "PGPLOT could not be found, please install PGPLOT 5.2.2" 
+  echo "patched for use of the /PTK driver (uses Tk::Pgplot 0.30)" 
+  exit
+endif
       
 # Set up back door for the version number
 

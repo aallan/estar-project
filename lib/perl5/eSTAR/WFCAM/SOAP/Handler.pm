@@ -5,7 +5,8 @@ use strict;
 use vars qw( @ISA %COOKIES );
 
 use SOAP::Lite;
-use eSTAR::UA::Handler;
+use eSTAR::WFCAM::Handler;
+use eSTAR::Logging;
 
 @ISA = qw(eSTAR::WFCAM::Handler);
 
@@ -16,9 +17,9 @@ BEGIN {
   # class. The local versions catch errors that would otherwise be
   # simple text, and turn them into SOAP::Fault objects.
   
-  #use Data::Dumper; 
-  #print "eSTAR::WFCAM::SOAP::Handler\n";
-  #print Dumper( %COOKIES );
+  use Data::Dumper; 
+  print "eSTAR::WFCAM::SOAP::Handler\n";
+  print Dumper( %COOKIES );
   
   for my $method qw( ping echo ) {
      eval "sub $method";
@@ -59,7 +60,10 @@ sub new {
    return $class if ref($class);
    
    my $log = shift;
-   
+
+   #$main::log->thread2( "Handler Thread", 
+   # "Created new eSTAR::WFCAM::SOAP::Handler object");
+       
    my $self;
    # if there are no arguements, but available cookies, 
    # then that is the signal to use the cookies

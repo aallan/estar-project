@@ -19,7 +19,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: wfcam_agent.pl,v 1.1 2004/02/18 22:06:06 aa Exp $
+#     $Id: wfcam_agent.pl,v 1.2 2004/02/19 23:33:54 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -68,7 +68,7 @@ passing data mining jobs out to a seperate data ining process.
 
 =head1 REVISION
 
-$Id: wfcam_agent.pl,v 1.1 2004/02/18 22:06:06 aa Exp $
+$Id: wfcam_agent.pl,v 1.2 2004/02/19 23:33:54 aa Exp $
 
 =head1 AUTHORS
 
@@ -85,7 +85,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -326,7 +326,7 @@ use Astro::SIMBAD::Query;
 #
 # eSTAR modules
 #
-use eSTAR::SOAP::Daemon;         # replacement for SOAP::Transport::HTTP::Daemon
+use eSTAR::WFCAM::SOAP::Daemon;         # replacement for SOAP::Transport::HTTP::Daemon
 use eSTAR::WFCAM::SOAP::Handler; # SOAP layer ontop of handler class
 
 
@@ -509,8 +509,7 @@ my $soap_server = sub {
    
    # create SOAP daemon
    $log->thread($thread_name, "Starting server (\$tid = ".threads->tid().")");  
-   $daemon = eval{ new eSTAR::SOAP::Daemon( 
-                      Module        => 'WFCAM',
+   $daemon = eval{ new eSTAR::WFCAM::SOAP::Daemon( 
                       LocalPort     => $CONFIG->param( "server.port"),
                       Listen        => 5, 
                       Reuse         => 1 ) };   
@@ -524,6 +523,9 @@ my $soap_server = sub {
       chomp($error);
       return "FatalError: $error";
    };
+   
+   #$daemon->set_module( Module => "WFCAM" );
+   $log->thread($thread_name, "Setting module name to WFCAM" );    
    
    # print some info
    $log->thread($thread_name, "SOAP server at " . $daemon->url() );    
@@ -614,6 +616,11 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: wfcam_agent.pl,v $
-# Revision 1.1  2004/02/18 22:06:06  aa
-# Initial revision
+# Revision 1.2  2004/02/19 23:33:54  aa
+# Inital skeleton of the WFCAM agent, with ping() and echo() methods
+# exposed by the Handler class. Currently using ForkAfterProcessing
+# instead of threads.
+#
+# Revision 1.1.1.1  2004/02/18 22:06:06  aa
+# Inital directory structure for eSTAR 3rd Generation Agents
 #
