@@ -9,7 +9,9 @@
   use URI;
   use HTTP::Cookies;
   use Getopt::Long;
-  
+  use Net::Domain qw(hostname hostdomain);
+  use Socket;
+
   use lib $ENV{"ESTAR_PERL5LIB"};     
   use eSTAR::Util;
 
@@ -30,13 +32,13 @@
   # default hostname
   unless ( defined $host ) {
      # localhost.localdoamin
-     $host = "127.0.0.1";
+     $host = inet_ntoa(scalar(gethostbyname(hostname())));
   } 
 
   # default port
   unless( defined $port ) {
      # default port for the survey agent (e.g. WFCAM agent)
-     $port = 8005;   
+     $port = 8000;   
   }
   
   # need method
@@ -73,7 +75,7 @@
   # create SOAP connection
   my $soap = new SOAP::Lite();
   
-  $urn = "wfcam_agent" unless defined $urn;
+  $urn = "user_agent" unless defined $urn;
   $urn = "urn:/" . $urn;
   print "URN             : " . $urn . "\n";
   
