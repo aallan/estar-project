@@ -489,6 +489,7 @@ sub handle_rtml {
          $log->warn("Warning: eSTAR UserID doesn't map to JAC ProjectID");
          $log->debug("Rejecting observation request...");
          $observation_object->obs_reply( $reject_message );
+         $observation_object->status('reject');
          my $status = eSTAR::Util::freeze( $id, $observation_object ); 
          if ( $status == ESTAR__ERROR ) {
             $log->warn( 
@@ -598,6 +599,7 @@ sub handle_rtml {
             # return the RTML document
             $log->debug("Rejecting observation request...");
             $observation_object->obs_reply( $reject_message );
+            $observation_object->status('reject');
             my $status = eSTAR::Util::freeze( $id, $observation_object ); 
             if ( $status == ESTAR__ERROR ) {
                $log->warn( 
@@ -636,6 +638,7 @@ sub handle_rtml {
             # return the RTML document
             $log->debug("Rejecting observation request...");
             $observation_object->obs_reply( $reject_message );
+            $observation_object->status('reject');
             my $status = eSTAR::Util::freeze( $id, $observation_object ); 
             if ( $status == ESTAR__ERROR ) {
                $log->warn( 
@@ -710,6 +713,7 @@ sub handle_rtml {
             # return the RTML document
             $log->debug("Rejecting observation request...");
             $observation_object->obs_reply( $reject_message );
+            $observation_object->status('reject');
             my $status = eSTAR::Util::freeze( $id, $observation_object ); 
             if ( $status == ESTAR__ERROR ) {
                $log->warn( 
@@ -742,6 +746,7 @@ sub handle_rtml {
 # return the RTML document
 $log->debug("Rejecting observation request...");
 $observation_object->obs_reply( $reject_message );
+$observation_object->status('reject');
 my $status = eSTAR::Util::freeze( $id, $observation_object ); 
 if ( $status == ESTAR__ERROR ) {
    $log->warn( 
@@ -757,6 +762,7 @@ return SOAP::Data->name('return', $reject)->type('base64');
 #            $log->error( "Error: " .  $config->get_option( "dn.telescope") .
 #                               " does not have a $filter band filter.....");
 #            $observation_object->obs_reply( $reject_message ); 
+#            $observation_object->status('reject');
 #            my $status = eSTAR::Util::freeze( $id, $observation_object ); 
 #            if ( $status == ESTAR__ERROR ) {
 #               $log->warn( 
@@ -786,6 +792,7 @@ return SOAP::Data->name('return', $reject)->type('base64');
 #            # return the RTML document
 #            $log->debug("Rejecting observation request...");
 #            $observation_object->obs_reply( $reject_message );
+#            $observation_object->status('reject');
 #            my $status = eSTAR::Util::freeze( $id, $observation_object ); 
 #            if ( $status == ESTAR__ERROR ) {
 #               $log->warn( 
@@ -869,6 +876,7 @@ return SOAP::Data->name('return', $reject)->type('base64');
 #            # return the RTML document
 #            $log->debug("Rejecting observation request...");
 #            $observation_object->obs_reply( $reject_message );
+#            $observation_object->status('reject');
 #            my $status = eSTAR::Util::freeze( $id, $observation_object ); 
 #            if ( $status == ESTAR__ERROR ) {
 #               $log->warn( 
