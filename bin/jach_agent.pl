@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: jach_agent.pl,v 1.14 2005/02/02 20:44:03 aa Exp $
+#     $Id: jach_agent.pl,v 1.15 2005/02/11 15:03:07 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -67,7 +67,7 @@ translation layer, which also handles external phase 0 discovery requests.
 
 =head1 REVISION
 
-$Id: jach_agent.pl,v 1.14 2005/02/02 20:44:03 aa Exp $
+$Id: jach_agent.pl,v 1.15 2005/02/11 15:03:07 aa Exp $
 
 =head1 AUTHORS
 
@@ -84,7 +84,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.14 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.15 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -657,7 +657,6 @@ my $garbage = sub {
               # -------------------------
                
               #$log->warn("Warning: Going to retry connection to user_agent");
-         
               #
               # < INSERT RETRY CODE HERE >
               #
@@ -673,6 +672,32 @@ my $garbage = sub {
               # < INSERT CODE TO SEND FAIL MESSAGE TO USER AGENT HERE >
               # < INSERT CODE TO REMOVE OBS FROM RUNNING HERE >
               #
+           
+           
+           # CHECK FOR REJECTED OBSERVATION
+           # ------------------------------
+                      
+           } elsif ( ${${ $run->get_hash() }{$key}}{Status} eq "reject" &&
+                defined $observation_object ) {
+                
+              # This is a sanity check, rejected obsevrations shouldn't
+              # ever make it into the %running queue, but on occasion they
+              # seem to be being left around. This bit of code should tidy
+              # them under the carpet if this happens.
+              
+              $log->error( "Error: Message %key is of type 'reject'" );
+              $log->error( "Error: Discarding observation $key" );  
+              my $status = eSTAR::Util::melt( 
+                       $observation_object->id(), $observation_object ); 
+              if ( $status == ESTAR__ERROR ) {
+                 $log->warn( 
+                    "Warning: Problem deleting the \$observation_object");
+              } 
+        
+              $log->debug( "Removing " . $key. " from \%running..." );
+              delete ${ $run->get_hash() }{ $key };
+              next;               
+                
               
            # OBJECT DOESN'T DESERIALISE           
            # --------------------------
@@ -790,6 +815,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: jach_agent.pl,v $
+# Revision 1.15  2005/02/11 15:03:07  aa
+# Modified to clean out rejected messages from the state directory
+#
 # Revision 1.14  2005/02/02 20:44:03  aa
 # Spelling error fixed in documentation
 #
