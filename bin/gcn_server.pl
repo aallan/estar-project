@@ -22,7 +22,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: gcn_server.pl,v 1.7 2005/02/08 00:23:00 aa Exp $
+$Id: gcn_server.pl,v 1.8 2005/02/08 03:05:06 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -41,7 +41,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -394,12 +394,12 @@ my $tcp_callback = sub {
          eval { $result = $soap->new_observation( 
                               user     => $config->get_option("gcn.user"),
                               pass     => $config->get_option("gcn.passwd"),
-                              type     => 'InitalBurstFollowup',
+                              type     => 'InitialBurstFollowup',
                               ra       => $ra,
                               dec      => $dec,
                               followup => 0,
                               exposure => 30,
-                              passband => "j98" ); };
+                              passband => "k98" ); };
          if ( $@ ) {
             $log->warn("Warning: Problem connecting to user agent");
             $log->error("Error: $@");
