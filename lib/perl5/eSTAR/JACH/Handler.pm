@@ -325,8 +325,9 @@ sub handle_rtml {
                                       dec => $parsed->dec(),
                                       type => $parsed->equinox() );
       
-      my $scope = $config->get_option("dn.telescope");
-      $coords->telescope( $scope );
+      my $scope_obj = new Astro::Telescope( 
+                           $config->get_option("dn.telescope") );
+      my $scope = $coords->telescope( $scope_obj );
       
       # report the coordinates for the request
       #my $status = $coords->status();
@@ -358,13 +359,13 @@ sub handle_rtml {
       # check the telescope, and then the instrument we're specifically
       # using. For now lets just use the is_observable() method.
       
-      if( Astro::WaveBand::has_filter( "UIST" => $parsed->filter() ) ) {
+      if( Astro::WaveBand::has_filter( "UIST" => uc($parsed->filter()) ) ) {
       #if ( Astro::WaveBand::is_observable( 
       #    $config->get_option( "dn.telescope") => $parsed->filter() ) ) {
           
           # don't modify an already set $isobs
           $log->debug(  $config->get_option( "dn.telescope") . " has a " . 
-                      $parsed->filter() . " filter on an available instrument" );
+                   $parsed->filter() . " filter on an available instrument" );
       } else {
                          
           # $isobs must now be set to bad
@@ -386,7 +387,7 @@ sub handle_rtml {
              Institution => $parsed->institution(),
              Email       => $parsed->email() );
 
-      if ( defined $parsed->exposure() ) {
+     if ( defined $parsed->exposure() ) {
          
          # build a score request
          $score_message->score_response(
@@ -411,13 +412,15 @@ sub handle_rtml {
              Time   => $time_string );        
       }
 
+
       # push the reply into the observation_object
       $observation_object->score_reply( $score_message );
-      my $status = freeze( $observation_object ); 
+      my $status = eSTAR::Util::freeze( $id, $observation_object ); 
       if ( $status == ESTAR__ERROR ) {
          $log->warn( 
             "Warning: Problem re-serialising the \$observation_object");
       }
+
       
       # pritn a warning line if it isn't observable    
       if ( $isobs == 0.0 ) {
@@ -427,6 +430,7 @@ sub handle_rtml {
       # dump rtml to scalar
       my $score_response = $score_message->dump_rtml();
       #use Data::Dumper; print Dumper( $score_message );
+
       
       # do a find and replace, munging the response, shouldn't need to do it?
       #$score_response =~ s/</&lt;/g;
@@ -477,13 +481,13 @@ sub handle_rtml {
          $log->warn("Warning: eSTAR UserID doesn't map to JAC ProjectID");
          $log->debug("Rejecting observation request...");
          $observation_object->obs_reply( $reject_message );
-         my $status = freeze( $observation_object ); 
+         my $status = eSTAR::Util::freeze( $id, $observation_object ); 
          if ( $status == ESTAR__ERROR ) {
             $log->warn( 
                "Warning: Problem re-serialising the \$observation_object");
          }  
          $log->debug("Returned RTML 'reject' message");
-         return SOAP::Data->name('return', $reject)->type('bas64');
+         return SOAP::Data->name('return', $reject)->type('base64');
       
       }   
    
@@ -564,7 +568,7 @@ sub handle_rtml {
          $log->error( "Error: " .  $config->get_option( "dn.telescope") .
                             " does not have a $filter band filter.....");
          $observation_object->obs_reply( $reject_message ); 
-         my $status = freeze( $observation_object ); 
+         my $status = eSTAR::Util::freeze( $id, $observation_object ); 
          if ( $status == ESTAR__ERROR ) {
             $log->warn( 
                "Warning: Problem re-serialising the \$observation_object");
@@ -593,7 +597,7 @@ sub handle_rtml {
          # return the RTML document
          $log->debug("Rejecting observation request...");
          $observation_object->obs_reply( $reject_message );
-         my $status = freeze( $observation_object ); 
+         my $status = eSTAR::Util::freeze( $id, $observation_object ); 
          if ( $status == ESTAR__ERROR ) {
             $log->warn( 
                "Warning: Problem re-serialising the \$observation_object");
@@ -676,7 +680,7 @@ sub handle_rtml {
          # return the RTML document
          $log->debug("Rejecting observation request...");
          $observation_object->obs_reply( $reject_message );
-         my $status = freeze( $observation_object ); 
+         my $status = eSTAR::Util::freeze( $id, $observation_object ); 
          if ( $status == ESTAR__ERROR ) {
             $log->warn( 
                "Warning: Problem re-serialising the \$observation_object");
@@ -746,7 +750,7 @@ sub handle_rtml {
       
       # drop the reply into the observation object
       $observation_object->obs_reply( $confirm_message );
-      my $status = freeze( $observation_object ); 
+      my $status = eSTAR::Util::freeze( $id, $observation_object ); 
       if ( $status == ESTAR__ERROR ) {
          $log->warn( 
             "Warning: Problem re-serialising the \$observation_object");
@@ -1112,7 +1116,8 @@ sub handle_data {
       # reserialise the observation object
       $log->warn("Warning: Re-serialising the \$observation_object");
       $observation_object->status( 'retry' );
-      my $status = freeze( $observation_object ); 
+      my $id = $observation_object->id();
+      my $status = eSTAR::Util::freeze( $id, $observation_object ); 
       if ( $status == ESTAR__ERROR ) {
          $log->warn( 
             "Warning: Problem re-serialising the \$observation_object");
