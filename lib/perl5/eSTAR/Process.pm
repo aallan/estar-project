@@ -37,9 +37,9 @@ require Exporter;
 use vars qw/$VERSION @EXPORT @ISA/;
 
 @ISA = qw/Exporter/;
-@EXPORT = qw/set_process get_process get_reference get_urn/;
+@EXPORT = qw/set_process get_process get_urn/;
 
-'$Revision: 1.3 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.4 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 my $SINGLETON;
 
@@ -94,7 +94,7 @@ sub get_urn {
 
 =head1 REVISION
 
-$Id: Process.pm,v 1.3 2004/11/05 14:36:48 aa Exp $
+$Id: Process.pm,v 1.4 2005/02/07 17:15:40 aa Exp $
 
 =head1 AUTHORS
 

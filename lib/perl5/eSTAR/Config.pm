@@ -18,9 +18,9 @@ use vars qw/$VERSION @EXPORT @ISA/;
 @ISA = qw/Exporter/;
 @EXPORT = qw/ get_option set_option write_option get_nodes 
               get_state set_state write_state make_directories
-              get_reference get_data_dir get_state_dir get_tmp_dir /;
+              get_data_dir get_state_dir get_tmp_dir /;
 
-'$Revision: 1.3 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.4 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 my $SINGLETON;
 
