@@ -22,7 +22,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: gcn_server.pl,v 1.11 2005/02/14 21:52:36 aa Exp $
+$Id: gcn_server.pl,v 1.12 2005/02/15 15:44:41 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -41,7 +41,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -65,6 +65,7 @@ use eSTAR::Logging;
 use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:status/;
 use eSTAR::Util;
+use eSTAR::Mail;
 use eSTAR::Process;
 use eSTAR::Config;
 
@@ -77,7 +78,6 @@ use Config;
 use IO::Socket;
 use Errno qw(EWOULDBLOCK EINPROGRESS);
 use Net::Domain qw(hostname hostdomain);
-use Net::SMTP;
 use Time::localtime;
 use Getopt::Long;
 use Data::Dumper;
@@ -247,6 +247,12 @@ if ( $config->get_state("gcn.unique_process") == 1 ) {
    # connection options defaults
    $config->set_option("connection.timeout", 5 );
    $config->set_option("connection.proxy", 'NONE'  );
+  
+   # mail server
+   $config->set_option("mailhost.name", 'butch' );
+   $config->set_option("mailhost.domain", 'astro.ex.ac.uk' );
+   $config->set_option("mailhost.timeout", 30 );
+   $config->set_option("mailhost.debug", 1 );   
     
    # C O M M I T T   O P T I O N S  T O   F I L E S
    # ----------------------------------------------
@@ -521,44 +527,17 @@ my $tcp_callback = sub {
          
             $log->print( "Sending notification email...");
             
-            my $smtp = new Net::SMTP(  Host  => 'butch.astro.ex.ac.uk',
-                                       Hello => 'astro.ex.ac.uk',
-                                       Timeout => 30,
-                                       Debug   => 1,
-                                    );   
-    
-            if ( $@ ) {
-               $log->error("Error: $@");
-            } else {
-
-               $log->debug( "Talking to mailserver..." );
-                       
-               $smtp->mail('aa@astro.ex.ac.uk');
-               $smtp->to( $opt{email_address} );
-
-               $smtp->data();
-               $smtp->datasend("To: $opt{real_name} <$opt{email_address}>\n");
-               $smtp->datasend(
-               'From: eSTAR Project <aa@astro.ex.ac.uk>' . "\n");
-               $smtp->datasend("Subject: eSTAR ACK SWIFT XPT postion\n");
-               $smtp->datasend("\n");
-               $smtp->datasend(
-               "This message indicates that the eSTAR system has recieved\n");
-               $smtp->datasend(
-               "a postion update alert and is currently attempting to place\n");
-               $smtp->datasend(
-               "followup observations into the UKIRT queue. If you do not\n");
-               $smtp->datasend(
-               "recieve notification that this has been successful you may\n");
-               $smtp->datasend(
-               "wish to attempt manual followup.\n");             
-               $smtp->dataend();
-
-               $smtp->quit;
-  
-               $log->debug( "Conneciton closed..." );               
-
-            }
+            my $mail_body = 
+              "This message indicates that the eSTAR system has recieved\n" . 
+              "a postion update alert and is currently attempting to place\n" .
+              "followup observations into the UKIRT queue. If you do not\n" .
+              "recieve notification that this has been successful you may\n" .
+              "wish to attempt manual followup.\n";
+      
+            eSTAR::Mail::send_mail( $opt{email_address}, $opt{real_name},
+                                    'aa@astro.ex.ac.uk',
+                                    'eSTAR ACK SWIFT XPT postion',
+                                    $mail_body );            
 
          } else {
          

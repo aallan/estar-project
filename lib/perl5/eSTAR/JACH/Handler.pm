@@ -26,7 +26,6 @@ use Digest::MD5 'md5_hex';
 use Time::localtime;
 use Sys::Hostname;
 use Net::Domain qw(hostname hostdomain);
-use Net::SMTP;
 use Config::Simple;
 use Config::User;
 use Fcntl qw(:DEFAULT :flock);
@@ -47,6 +46,7 @@ use eSTAR::RTML::Parse;
 use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw/:status/;
 use eSTAR::Util;
+use eSTAR::Mail;
 use eSTAR::JACH::Running;
 use eSTAR::JACH::Project;
 use eSTAR::Config;
@@ -923,46 +923,18 @@ return SOAP::Data->name('return', $reject)->type('base64');
       # If the user has an email address we need to notify them
       # that an observation has been submitted into the queue
       
-      $log->debug( "Sending mail to " . 
-                   $parsed->name() . " <" . $parsed->email() . ">" );
-      my $smtp = new Net::SMTP(  Host  => 'ieie',
-                                 Hello => 'jach.hawaii.edu',
-                                 Timeout => 30,
-                                 Debug   => 1,
-                              );   
-    
-      if ( $@ ) {
-        $log->error("Error: $@");
-      } else {
-
-        $log->debug( "Talking to mailserver..." );
-                       
-        $smtp->mail('allan@jach.hawaii.edu');
-        $smtp->to( $parsed->email() );
-
-        $smtp->data();
-        $smtp->datasend("To: " . 
-                        $parsed->name() . " <" . $parsed->email() . ">\n" );
-        $smtp->datasend('From: eSTAR Project <allan@jach.hawaii.edu>' ."\n");
-        $smtp->datasend("Subject: eSTAR UKIRT queue submission\n");
-        $smtp->datasend("\n");
-        $smtp->datasend(
-          "An observation of type $targetident has been submitted\n");
-        $smtp->datasend(
-          "into the UKIRT queue as part of project " .
-          $project->get_project("user.".$username) . " as\n" );
-        $smtp->datasend(
-          "a result of a request by your eSTAR user agent. Please contact\n");
-        $smtp->datasend(
-          "the summit if you feel this request may be a mistake.\n");
-        $smtp->dataend();
-
-        $smtp->quit;
-  
-        $log->debug( "Conneciton closed..." );
-     
-      }
-                         
+      my $mail_body = 
+         "An observation of type $targetident has been submitted\n" .
+         "into the UKIRT queue as part of project " .
+         $project->get_project("user.".$username) . " as\n" .
+         "a result of a request by your eSTAR user agent. Please contact\n" .
+         "the summit if you feel this request may be a mistake.\n";
+      
+      eSTAR::Mail::send_mail( $parsed->email(), $parsed->name(),
+                              'allan@jach.hawaii.edu',
+                              'eSTAR UKIRT queue submission',
+                              $mail_body );
+ 
       # BUILD MESSAGE
       # -------------
       
