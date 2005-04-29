@@ -23,7 +23,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: node_agent.pl,v 1.1 2005/04/29 09:29:46 aa Exp $
+#     $Id: node_agent.pl,v 1.2 2005/04/29 11:33:46 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -69,7 +69,7 @@ have a duplicate copy of the current user database.
 
 =head1 REVISION
 
-$Id: node_agent.pl,v 1.1 2005/04/29 09:29:46 aa Exp $
+$Id: node_agent.pl,v 1.2 2005/04/29 11:33:46 aa Exp $
 
 =head1 AUTHORS
 
@@ -86,7 +86,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -431,7 +431,7 @@ my $soap_server = sub {
    # create SOAP daemon
    $log->thread($thread_name, "Starting server on port " . 
             $config->get_option( "soap.port") . " (\$tid = ".threads->tid().")");  
-   $daemon = eval{ new eSTAR::SOAP::NA::Daemon( 
+   $daemon = eval { new eSTAR::NA::SOAP::Daemon( 
                       LocalPort     => $config->get_option( "soap.port"),
                       Listen        => 5, 
                       Reuse         => 1 ) };   
@@ -450,7 +450,7 @@ my $soap_server = sub {
    $log->thread($thread_name, "SOAP server at " . $daemon->url() );
 
    # handlers directory
-   my $handler = "eSTAR::SOAP::NA::Handler";
+   my $handler = "eSTAR::NA::SOAP::Handler";
    
    # defined handlers for the server
    $daemon->dispatch_with({ 'urn:/node_agent' => $handler });
@@ -775,6 +775,9 @@ sub fudge_message {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: node_agent.pl,v $
+# Revision 1.2  2005/04/29 11:33:46  aa
+# Fixed but where the thread was silently dying because it couldn't find make_cookie() in eSTAR::Util::make_cookie() . I had this problem with the user_agent as well, and I still don't know how to fix it so I actually get proper error messages back.
+#
 # Revision 1.1  2005/04/29 09:29:46  aa
 # Added a port of the node_agent.pl and associated modules
 #

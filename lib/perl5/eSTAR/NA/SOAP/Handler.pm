@@ -21,14 +21,20 @@ BEGIN {
      *$method = sub {
         my $self = shift->new();
         
+        print 'In *$method = sub {}' . "\n";
+        
         # if we don't have a new object, die and report and error
         die SOAP::Fault
             ->faultcode('Server.RequestError')
             ->faultstring('Could not get object')
         unless $self;
         
+        print "gets here 1\n";
+        
         my $smethod = "SUPER::$method";
+        print "gets here 2\n";
         my $res = $self->$smethod(@_);
+        print "gets here 3\n";
         
         # die if we have a fault in the original method
         die SOAP::Fault
@@ -62,17 +68,21 @@ sub new {
    if( (! @_) and (keys %COOKIES) ) {
      
      # start by getting the basic, bare object
+     print "buidling SUPER class\n";
      $self = $class->SUPER::new();
      
      # then call set_user. It will die with a SOAP::Fault on any error
+     print "setting user\n";
      $self->set_user();
    
    } else {
    
+     print "no cookies, building SUPER class\n";
      $self = $class->SUPER::new(@_);
      
    }
    
+   print "returning self\n";
    $self;
 }
 

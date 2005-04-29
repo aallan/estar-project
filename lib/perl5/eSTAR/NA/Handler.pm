@@ -63,7 +63,7 @@ sub new {
   }
   
   $log->thread2( "Handler Thread", 
-    "Created new eSTAR::DN::Handler object (\$tid = ".threads->tid().")");
+    "Created new eSTAR::NA::Handler object (\$tid = ".threads->tid().")");
         
   return $self;
 }
@@ -71,6 +71,8 @@ sub new {
 # intialise and load specific user information into the main object
 sub set_user {
    my ($self, %args ) = @_;
+   
+   print "In set_user() in SUPER class\n";
    
    $self->{_user} = new eSTAR::SOAP::User();
    unless ( ref($self) and $args{user} and 
@@ -100,7 +102,7 @@ sub set_user {
    } elsif( $args{cookie} ) {
 
       unless( $args{cookie} eq 
-              make_cookie($args{user}, $self->{_user}->{passwd}) ) {
+              eSTAR::Util::make_cookie($args{user}, $self->{_user}->{passwd}) ) {
               
          undef $self->{_user};
 
