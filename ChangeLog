@@ -1,3 +1,10 @@
+2005-04-29 Aladair Allan <aa@astro.ex.ac.uk>
+
+        * bin/node_agent.pl: Added node_agent and supporting modules in
+          eSTAR::NA::*. This is a port of the old 2nd generation code base
+          used for the prototype discovery nodes and is needed to provide
+          an interim SOAP layer for LT, FTN and FTS.
+          
 2005-03-22 Aladair Allan <aa@astro.ex.ac.uk>
 
         * Location of the currently deployed instrument held in $INST_TYPE
