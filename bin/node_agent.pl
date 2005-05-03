@@ -23,7 +23,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: node_agent.pl,v 1.2 2005/04/29 11:33:46 aa Exp $
+#     $Id: node_agent.pl,v 1.3 2005/05/03 22:19:44 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -69,7 +69,7 @@ have a duplicate copy of the current user database.
 
 =head1 REVISION
 
-$Id: node_agent.pl,v 1.2 2005/04/29 11:33:46 aa Exp $
+$Id: node_agent.pl,v 1.3 2005/05/03 22:19:44 aa Exp $
 
 =head1 AUTHORS
 
@@ -86,7 +86,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -344,8 +344,8 @@ if ( $config->get_state("na.unique_process") == 1 ) {
    $config->set_option( "tcp.port", 2050 );
   
    # DN ERS server parameters
-   $config->set_option( "ers.host", $ip );
-   $config->set_option( "ers.port", 2220 );
+   $config->set_option( "ers.host", "161.72.57.3" );
+   $config->set_option( "ers.port", 8080 );
 
    # DN scheduler parameters
    $config->set_option( "scheduler.host", $ip );
@@ -496,7 +496,7 @@ my $tcp_callback = sub {
    
    # fudge the message
    my ( $host, $port, $ident ) = fudge_message( $rtml );  
-   
+      
    # grab it from the global lookup hash
    my $original = $LOOK->param( "id.$ident" );
    
@@ -507,9 +507,8 @@ my $tcp_callback = sub {
    $rtml =~ s/$current/$original/;
    
    # grab host and port number from updated line
-   
    ( $host, $port, $ident ) = fudge_message( $rtml );  
-
+   
    $log->debug("Reply address: " . $host . ":" . $port);   
               
    # end point
@@ -517,9 +516,9 @@ my $tcp_callback = sub {
    my $uri = new URI($endpoint);
    
    # create a user/passwd cookie
-   my $cookie = make_cookie( $config->get_option( "ua.user" ), 
+   my $cookie = eSTAR::Util::make_cookie( $config->get_option( "ua.user" ), 
                              $config->get_option( "ua.passwd" ) );
-  
+    
    my $cookie_jar = HTTP::Cookies->new();
    $cookie_jar->set_cookie( 0, user => $cookie, '/', 
                               $uri->host(), $uri->port());
@@ -770,11 +769,15 @@ sub fudge_message {
    }
    
    return ( undef, undef, undef );
-}                    
+}    
+           
 
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: node_agent.pl,v $
+# Revision 1.3  2005/05/03 22:19:44  aa
+# Modified node_agent.pl to work with LT only
+#
 # Revision 1.2  2005/04/29 11:33:46  aa
 # Fixed but where the thread was silently dying because it couldn't find make_cookie() in eSTAR::Util::make_cookie() . I had this problem with the user_agent as well, and I still don't know how to fix it so I actually get proper error messages back.
 #
