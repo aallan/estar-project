@@ -43,6 +43,9 @@ use eSTAR::Constants qw/:all/;
 use eSTAR::Util;
 use eSTAR::Mail;
 use eSTAR::Config;
+use eSTAR::RTML;
+use eSTAR::RTML::Parse;
+
 my ($log, $process, $ua, $config);
 
 # ==========================================================================
@@ -71,9 +74,7 @@ sub new {
 # intialise and load specific user information into the main object
 sub set_user {
    my ($self, %args ) = @_;
-   
-   print "In set_user() in SUPER class\n";
-   
+      
    $self->{_user} = new eSTAR::SOAP::User();
    unless ( ref($self) and $args{user} and 
             $self->{_user}->get_user($args{user})) {
@@ -165,7 +166,7 @@ sub handle_rtml {
    # -----------------
    my $file = 
       File::Spec->catfile( Config::User->Home(), '.estar', 
-                           $process, 'lookup.dat' );
+                           $process->get_process(), 'lookup.dat' );
      
    my $LOOK = new Config::Simple( syntax   => 'ini',
                                   mode     => O_RDWR|O_CREAT );
@@ -181,8 +182,8 @@ sub handle_rtml {
    if ( open ( CONFIG, "$file" ) ) {
       close( CONFIG );
       $LOOK->read( $file );
-   }    
-   
+   }  
+      
    # GRAB MESSAGE
    # ------------
    
@@ -191,18 +192,18 @@ sub handle_rtml {
    # stuff it into global lookup hash
    my $line = "<IntelligentAgent host=\"$host\" port=\"$port\">";
    $LOOK->param( "id.$ident", $line );
-     
+   
    # commit ID stuff to STATE file
    my $status = $LOOK->write( $file );
    unless ( defined $status ) {
       # can't read/write to options file, bail out
       my $error = $Config::Simple::errstr;
-      $log->error(chomp($error));
+      $log->error("$error");
       throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
    } else {    
       $log->debug('Lookup table: updated ' . $file ) ;
    }                       
-        
+   
    # change the hostname and port in the rtml
    $log->debug( "Replacing $host:$port with ". 
                          $config->get_option( "tcp.host" ) . ":" .
@@ -214,6 +215,36 @@ sub handle_rtml {
    $rtml =~ s/$port/$current_port/;
         
    #$log->debug( "\n" . $rtml );   
+   
+   # FIX USER AND PROJECT
+   # --------------------
+   
+   my $parsed;
+   eval { my $object = new eSTAR::RTML( Source => $rtml );
+          $parsed = new eSTAR::RTML::Parse( RTML => $object ) };
+   if ( $@ ) {
+      my $error = "Error: Unable to parse RTML file...";
+      $log->error( "$@" );
+      $log->error( $error );
+      $log->error( "\nRTML File:\n$rtml" );
+      throw eSTAR::Error::FatalError($error, ESTAR__FATAL);            
+   }   
+   
+   my $original_user = $parsed->user();
+   
+   $log->debug( "Original user: $original_user" );
+   
+   my ( $new_user, $new_project );
+   if ( $original_user eq "estar" ) {
+      $new_user = "TEST/estar";
+      $new_project = "TEA01";
+   } else {   
+      $new_user = $original_user;
+      $new_project = "";
+   }   
+   
+   $rtml = fudge_user( $rtml, $new_user );  
+   $rtml = fudge_project( $rtml, $new_project );  
    
    # SEND TO ERS
    # -----------
@@ -296,6 +327,7 @@ sub handle_rtml {
    # return an RTML response to the user_agent
 
    $log->debug("Returned RTML response");
+   
    return SOAP::Data->name('return', $response )->type('xsd:string');
 
 } 
@@ -766,7 +798,54 @@ sub fudge_message {
    }
    
    return ( undef, undef, undef );
-}                     
+} 
+
+
+sub fudge_user {
+   my $rtml = shift;
+   my $user = shift;
+   
+   my @message = split( /\n/, $rtml );
+   
+   $log->debug("Called fudge_user( $user )...");
+   
+   my $new_rtml;
+   foreach my $i ( 0 ... $#message ) {
+     if ( $message[$i] =~ "<User>" ) {
+        if ( $message[$i] =~ "</User>" ) {
+           $message[$i] = "<User>$user</User>";
+        } else {
+           my $error = "Unable to parse <User></User> field from document";
+           throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
+        }     
+     }
+     $new_rtml = $new_rtml . $message[$i] . "\n";
+     
+   }
+   return $new_rtml;
+}     
+
+
+sub fudge_project {
+   my $rtml = shift;
+   my $project_id = shift;
+   
+   my @message = split( /\n/, $rtml );
+   
+   $log->debug("Called fudge_project_id( $project_id )...");
+   
+   my $new_rtml;
+   foreach my $i ( 0 ... $#message ) {
+     if ( $message[$i] =~ "<Project />" ) {  
+        
+        $message[$i] = "<Project>$project_id</Project>";
+     }
+     $new_rtml = $new_rtml . $message[$i] . "\n";
+   }
+   
+   return $new_rtml;
+}
+                      
                   
 1;                                
                   
