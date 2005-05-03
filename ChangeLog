@@ -1,3 +1,11 @@
+2005-05-03 Aladair Allan <aa@astro.ex.ac.uk>
+
+        * bin/node_agent.pl: Fixed bugs
+        
+        * eSTAR/NA/Handler.pm: Fixed bugs and added mapping for user and
+          project ID (at least at a very basic hardwired level). This is
+          a horrible kludge and needs to be fixed at some point.
+
 2005-04-29 Aladair Allan <aa@astro.ex.ac.uk>
 
         * bin/node_agent.pl: Added node_agent and supporting modules in
@@ -8,13 +16,20 @@
 2005-03-22 Aladair Allan <aa@astro.ex.ac.uk>
 
         * Location of the currently deployed instrument held in $INST_TYPE
-          environment variable. For UKIRT instrument file is $INST_TYPE/ukirt
+          environment variable. For UKIRT instrument.xml file is located in
+          the $INST_TYPE/ukirt directory.
           
         * JACH/Handler.pm: Added check for instrument type to the template
           handling code.
           
         * eSTAR/JACH/Util.pm: Method to check the XML file containing the
-          current instrument.    
+          current instrument.
+          
+        * GCN/Util.pm: Fixed bug in unpacking negative declination values.
+          Need to repack the value into a big endian ordered byte, unpack
+          into a little-endian ordered byte and then convert to a signed
+          long integer. NB: The convert_to_sextuples() routine will break
+          on a big endian machine (such as a Sparc Station).      
 
 2005-02-15 Aladair Allan <aa@astro.ex.ac.uk>
 
