@@ -35,11 +35,22 @@ use eSTAR::Error qw /:try/;
 @ISA = qw/Exporter/;
 @EXPORT_OK = qw/ convert_to_sextuplets /;
 
-'$Revision: 1.1 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.2 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 
 sub convert_to_sextuplets {
    my ($ra, $dec, $error ) = @_;
+
+   my $log = eSTAR::Logging::get_reference();
+   
+   
+   $log->debug("Repacking declination ($dec) into a big-endian long...");
+   $dec = pack("N", $dec );
+   $log->debug("Repacking declination into a small-endian long...");
+   $dec = pack("V", unpack( "N", $dec ) );
+   
+   $dec = unpack( "l", $dec);
+   $log->debug("Unpacking to signed long integer ($dec)...");
    
    # convert RA to sextuplets
    my $ra_deg = $ra/10000.0;
@@ -95,7 +106,7 @@ sub convert_to_sextuplets {
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.1 2005/02/07 21:36:50 aa Exp $
+$Id: Util.pm,v 1.2 2005/05/03 22:22:50 aa Exp $
 
 =head1 AUTHORS
 
