@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: user_agent.pl,v 1.12 2005/02/15 22:01:43 aa Exp $
+#     $Id: user_agent.pl,v 1.13 2005/05/05 13:54:40 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -65,7 +65,7 @@ itself.
 
 =head1 REVISION
 
-$Id: user_agent.pl,v 1.12 2005/02/15 22:01:43 aa Exp $
+$Id: user_agent.pl,v 1.13 2005/05/05 13:54:40 aa Exp $
 
 =head1 AUTHORS
 
@@ -82,7 +82,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.13 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -411,7 +411,8 @@ $ua->set_ua( $lwp );
 # list of "default" known nodes
 #$config->set_option( "nodes.Exeter", "dn2.astro.ex.ac.uk" );
 #$config->set_option( "nodes.LJM", "150.204.240.111" );
-$config->set_option( "nodes.UKIRT", "estar.ukirt.jach.hawaii.edu" );
+#$config->set_option( "nodes.UKIRT", "estar.ukirt.jach.hawaii.edu" );
+$config->set_option( "nodes.LTproxy", "estar.astro.ex.ac.uk" );
 #$config->set_option( "nodes.Test", "127.0.0.1" );
 $status = $config->write_option( );
 
@@ -591,6 +592,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: user_agent.pl,v $
+# Revision 1.13  2005/05/05 13:54:40  aa
+# Working node_agent for LT and FTN. Changes to user_agent to support new RTML tags (see ChangeLog)
+#
 # Revision 1.12  2005/02/15 22:01:43  aa
 # Fixed race conditions, see ChangeLog for details. Yuck!
 #

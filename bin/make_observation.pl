@@ -20,7 +20,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: make_observation.pl,v 1.2 2005/02/02 20:43:44 aa Exp $
+$Id: make_observation.pl,v 1.3 2005/05/05 13:54:40 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -37,7 +37,7 @@ use vars qw / $VERSION $log /;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -118,7 +118,14 @@ my $status = GetOptions( "host=s"     => \$opt{"host"},
                          "mag=s"      => \$observation{"magnitude"},
                          "passband=s" => \$observation{"passband"},
                          "type=s"     => \$observation{"type"},
-                         "followup=s" => \$observation{"followup"} );
+                         "followup=s" => \$observation{"followup"},
+                         "groupcount=s" => \$observation{"groupcount"},
+                         "starttime=s" => \$observation{"starttime"},
+                         "endtime=s" => \$observation{"endtime"},
+                         "seriescount=s" => \$observation{"seriescount"},
+                         "interval=s" => \$observation{"interval"},
+                         "tolerance=s" => \$observation{"tolerance"},
+                          );
 
 # default hostname
 unless ( defined $opt{"host"} ) {

@@ -395,6 +395,45 @@ sub new_observation {
    # check we have a passband, assume V-band if undefined
    $observation{'passband'} = 'V' unless defined $observation{'passband'};
    
+   # if series count is defined and we have no time constraint then we should
+   # generate some, if the interval or tolerance for the series isn't defined
+   # we should generate those as well
+   if ( defined $observation{'seriescount'} ) {
+   
+      unless ( defined $observation{'starttime'} && 
+               defined $observation{'endtime' } ) {
+      
+         my $year = 1900 + localtime->year();
+         my $month = localtime->mon() + 1;
+         my $day = localtime->mday();
+         my $dayplusone = $day + 1;
+               
+         # mid-afternoon local till 24 hours later 
+         $observation{'starttime'} = "$year-$month-$day" . "T12:00:00";
+         $observation{'endtime'} = "$year-$month-$dayplusone" . "T12:00:00";
+               
+      }         
+   
+      unless ( defined $observation{'interval'} ) {
+      
+         # derived from the time available (around 6 hours a night)
+         $observation{'interval'} = 6.0/$observation{'seriescount'};
+         
+         # convert to seconds
+         $observation{'interval'} = $observation{'interval'}*60.0*60.0; 
+         $observation{'interval'} = $observation{'interval'} . "S";
+      }
+      
+      unless ( defined $observation{'tolerance'} ) {
+      
+          # derive from the interval, about half that!
+          $observation{'tolerance'} = $observation{'interval'}/2.0;
+          $observation{'tolerance'} = $observation{'tolerance'} . "S";
+      
+      }
+   }
+   
+   
    # UNIQUE ID
    # ---------
    
@@ -491,27 +530,161 @@ sub new_observation {
 
    if ( defined $observation{'exposure'} ) {
       
-      # build a score request
-      $score_message->score_observation(
-          Target => $observation{'target'},
-          TargetIdent => $observation{'type'},
-          RA       => $observation{'ra'},
-          Dec      => $observation{'dec'},
-          Exposure => $observation{'exposure'},
-          Filter   => $observation{'passband'}  );
+      if ( defined $observation{ 'groupcount' } &&
+                defined $observation{ 'seriescount' } ) {
+                
+          $score_message->score_observation(
+              Target         => $observation{'target'},
+              TargetIdent    => $observation{'type'},
+              RA             => $observation{'ra'},
+              Dec            => $observation{'dec'},
+              Exposure       => $observation{'exposure'},
+              Filter         => $observation{'passband'},
+              GroupCount     => $observation{'groupcount'},
+              TimeConstraint => [ $observation{'starttime'},
+                                  $observation{'endtime'} ],
+              SeriesCount    => $observation{'seriescount'},
+              Interval       => $observation{'interval'},
+              Tolerance      => $observation{'tolerance'} );  
+
+      } elsif ( defined $observation{ 'groupcount' } &&
+                defined $observation{ 'starttime' } &&
+                defined $observation{ 'endtime' } ) {
+                
+         # we have a monitoring group with a time contraint       
+        $score_message->score_observation(
+              Target         => $observation{'target'},
+              TargetIdent    => $observation{'type'},
+              RA             => $observation{'ra'},
+              Dec            => $observation{'dec'},
+              Exposure       => $observation{'exposure'},
+              Filter         => $observation{'passband'},
+              TimeConstraint => [ $observation{'starttime'},
+                                  $observation{'endtime'} ] );
+                                                          
+      } elsif ( defined $observation{'groupcount'} ) {
+
+          # build a score request
+          $score_message->score_observation(
+              Target         => $observation{'target'},
+              TargetIdent    => $observation{'type'},
+              RA             => $observation{'ra'},
+              Dec            => $observation{'dec'},
+              Exposure       => $observation{'exposure'},
+              Filter         => $observation{'passband'},
+              GroupCount     => $observation{'groupcount'} );      
+     
+              
+      } elsif ( defined $observation{ 'seriescount' } ) {
+      
+         # we can assume that there is a timeconstraint => [ x, y ] and
+         # an interval and tolerance because we'll create default ones
+          $score_message->score_observation(
+              Target         => $observation{'target'},
+              TargetIdent    => $observation{'type'},
+              RA             => $observation{'ra'},
+              Dec            => $observation{'dec'},
+              Exposure       => $observation{'exposure'},
+              Filter         => $observation{'passband'},
+              TimeConstraint => [ $observation{'starttime'},
+                                  $observation{'endtime'} ],
+              SeriesCount    => $observation{'seriescount'},
+              Interval       => $observation{'interval'},
+              Tolerance      => $observation{'tolerance'} );            
+                
+      } else {         
+      
+          # build a score request
+          $score_message->score_observation(
+              Target => $observation{'target'},
+              TargetIdent => $observation{'type'},
+              RA       => $observation{'ra'},
+              Dec      => $observation{'dec'},
+              Exposure => $observation{'exposure'},
+              Filter   => $observation{'passband'}  );
+      }
              
    } elsif ( defined $observation{'signaltonoise'} && 
              defined $observation{'magnitude'} ) {
+
+      if ( defined $observation{ 'groupcount' } &&
+                defined $observation{ 'seriescount' } ) {
+          $score_message->score_observation(
+              Target         => $observation{'target'},
+              TargetIdent    => $observation{'type'},
+              RA             => $observation{'ra'},
+              Dec            => $observation{'dec'},,
+              Snr    => $observation{'signaltonoise'},
+              Flux   => $observation{'magnitude'},
+              Filter         => $observation{'passband'},
+              GroupCount     => $observation{'groupcount'},
+              TimeConstraint => [ $observation{'starttime'},
+                                  $observation{'endtime'} ],
+              SeriesCount    => $observation{'seriescount'},
+              Interval       => $observation{'interval'},
+              Tolerance      => $observation{'tolerance'} );
+ 
+      } elsif ( defined $observation{ 'groupcount' } &&
+                defined $observation{ 'starttime' } &&
+                defined $observation{ 'endtime' } ) {
+                
+         # we have a monitoring group with a time contraint       
+        $score_message->score_observation(
+              Target         => $observation{'target'},
+              TargetIdent    => $observation{'type'},
+              RA             => $observation{'ra'},
+              Dec            => $observation{'dec'},,
+              Snr    => $observation{'signaltonoise'},
+              Flux   => $observation{'magnitude'},
+              Filter         => $observation{'passband'},
+              TimeConstraint => [ $observation{'starttime'},
+                                  $observation{'endtime'} ] ); 
+                                                              
+      } elsif ( defined $observation{'groupcount'} ) {
+
+          # build a score request
+          $score_message->score_observation(
+              Target         => $observation{'target'},
+              TargetIdent    => $observation{'type'},
+              RA             => $observation{'ra'},
+              Dec            => $observation{'dec'},,
+              Snr    => $observation{'signaltonoise'},
+              Flux   => $observation{'magnitude'},
+              Filter         => $observation{'passband'},
+              GroupCount     => $observation{'groupcount'} );      
       
-      # build a score request
-      $score_message->score_observation(
-          Target => $observation{'target'},
-          TargetIdent => $observation{'type'},
-          RA     => $observation{'ra'},
-          Dec    => $observation{'dec'},
-          Snr    => $observation{'signaltonoise'},
-          Flux   => $observation{'magnitude'},
-          Filter   => $observation{'passband'} );        
+
+              
+      } elsif ( defined $observation{ 'seriescount' } ) {
+      
+         # we can assume that there is a timeconstraint => [ x, y ] and
+         # an interval and tolerance because we'll create default ones
+          $score_message->score_observation(
+              Target         => $observation{'target'},
+              TargetIdent    => $observation{'type'},
+              RA             => $observation{'ra'},
+              Dec            => $observation{'dec'},,
+              Snr    => $observation{'signaltonoise'},
+              Flux   => $observation{'magnitude'},
+              Filter         => $observation{'passband'},
+              TimeConstraint => [ $observation{'starttime'},
+                                  $observation{'endtime'} ],
+              SeriesCount    => $observation{'seriescount'},
+              Interval       => $observation{'interval'},
+              Tolerance      => $observation{'tolerance'} );                            
+                
+      } else { 
+      
+          # build a score request
+          $score_message->score_observation(
+              Target => $observation{'target'},
+              TargetIdent => $observation{'type'},
+              RA     => $observation{'ra'},
+              Dec    => $observation{'dec'},
+              Snr    => $observation{'signaltonoise'},
+              Flux   => $observation{'magnitude'},
+              Filter   => $observation{'passband'} );        
+      }
    }
    
    $observation_object->score_request( $score_message );      
@@ -587,6 +760,7 @@ sub new_observation {
       my $ers_reply;
       eval { $ers_reply = new eSTAR::RTML( Source => $reply ); };
       if ( $@ ) {
+         $log->error("Error: $@");
          $log->error("Error: Unable to parse ERS reply, not XML?" );
          next;    
       }
@@ -696,8 +870,80 @@ sub new_observation {
              Email       => $score_request->email() );
 
    if ( defined $observation{'exposure'} ) {
-             
-      $observe_message->request_observation(
+
+      if ( defined $observation{ 'groupcount' } &&
+                defined $observation{ 'seriescount' } ) {
+                
+          $observe_message->request_observation(
+                Target   => $score_request->target(),
+                TargetIdent => $observation{'type'},
+                RA       => $score_request->ra(),
+                Dec      => $score_request->dec(),
+                Score    => $score_reply->score(),
+                Time     => $score_reply->time(),
+                Exposure => $score_request->exposure(),
+                Filter   => $score_request->filter(),
+                GroupCount     => $score_reply->group_count(),
+                TimeConstraint => [ $score_reply->start_time(),
+                                  $score_reply->end_time() ],
+                SeriesCount    => $score_reply->series_count(),
+                Interval       => $score_reply->interval(),
+                Tolerance      => $score_reply->tolerance() );   
+   
+    } elsif ( defined $observation{ 'groupcount' } &&
+                defined $observation{ 'starttime' } &&
+                defined $observation{ 'endtime' } ) {
+                
+         # we have a monitoring group with a time contraint       
+          $observe_message->request_observation(
+                Target   => $score_request->target(),
+                TargetIdent => $observation{'type'},
+                RA       => $score_request->ra(),
+                Dec      => $score_request->dec(),
+                Score    => $score_reply->score(),
+                Time     => $score_reply->time(),
+                Exposure => $score_request->exposure(),
+                Filter   => $score_request->filter(),
+                GroupCount     => $score_reply->group_count(),
+                TimeConstraint => [ $score_reply->start_time(),
+                                  $score_reply->end_time() ]  ); 
+                                                            
+      } elsif ( defined $observation{'groupcount'} ) {
+
+          # build a score request
+          $observe_message->request_observation(
+                Target   => $score_request->target(),
+                TargetIdent => $observation{'type'},
+                RA       => $score_request->ra(),
+                Dec      => $score_request->dec(),
+                Score    => $score_reply->score(),
+                Time     => $score_reply->time(),
+                Exposure => $score_request->exposure(),
+                Filter   => $score_request->filter(),
+                GroupCount     => $score_reply->group_count() );       
+              
+      } elsif ( defined $observation{ 'seriescount' } ) {
+      
+         # we can assume that there is a timeconstraint => [ x, y ] and
+         # an interval and tolerance because we'll create default ones
+          $observe_message->request_observation(
+                Target   => $score_request->target(),
+                TargetIdent => $observation{'type'},
+                RA       => $score_request->ra(),
+                Dec      => $score_request->dec(),
+                Score    => $score_reply->score(),
+                Time     => $score_reply->time(),
+                Exposure => $score_request->exposure(),
+                Filter   => $score_request->filter(),
+                TimeConstraint => [ $score_reply->start_time(),
+                                  $score_reply->end_time() ],
+                SeriesCount    => $score_reply->series_count(),
+                Interval       => $score_reply->interval(),
+                Tolerance      => $score_reply->tolerance() );                    
+                
+      } else {  
+
+          $observe_message->request_observation(
                 Target   => $score_request->target(),
                 TargetIdent => $observation{'type'},
                 RA       => $score_request->ra(),
@@ -706,10 +952,88 @@ sub new_observation {
                 Time     => $score_reply->time(),
                 Exposure => $score_request->exposure(),
                 Filter   => $score_request->filter()  );
+     
+     }
                   
    } elsif ( defined $observation{'signaltonoise'} && 
              defined $observation{'magnitude'} ) {
-             
+
+      if ( defined $observation{ 'groupcount' } &&
+                defined $observation{ 'seriescount' } ) {
+                
+          $observe_message->request_observation(
+                Target   => $score_request->target(),
+                TargetIdent => $observation{'type'},
+                RA       => $score_request->ra(),
+                Dec      => $score_request->dec(),
+                Score    => $score_reply->score(),
+                Time     => $score_reply->time(),
+                Snr      => $score_request->snr(),
+                Flux     => $score_request->flux(),
+                Filter   => $score_request->filter(),
+                GroupCount     => $score_reply->group_count(),
+                TimeConstraint => [ $score_reply->start_time(),
+                                  $score_reply->end_time() ],
+                SeriesCount    => $score_reply->series_count(),
+                Interval       => $score_reply->interval(),
+                Tolerance      => $score_reply->tolerance() );   
+   
+    } elsif ( defined $observation{ 'groupcount' } &&
+                defined $observation{ 'starttime' } &&
+                defined $observation{ 'endtime' } ) {
+                
+         # we have a monitoring group with a time contraint       
+          $observe_message->request_observation(
+                Target   => $score_request->target(),
+                TargetIdent => $observation{'type'},
+                RA       => $score_request->ra(),
+                Dec      => $score_request->dec(),
+                Score    => $score_reply->score(),
+                Time     => $score_reply->time(),
+                Snr      => $score_request->snr(),
+                Flux     => $score_request->flux(),
+                Filter   => $score_request->filter(),
+                GroupCount     => $score_reply->group_count(),
+                TimeConstraint => [ $score_reply->start_time(),
+                                  $score_reply->end_time() ]  ); 
+                                                            
+      } elsif ( defined $observation{'groupcount'} ) {
+
+          # build a score request
+          $observe_message->request_observation(
+                Target   => $score_request->target(),
+                TargetIdent => $observation{'type'},
+                RA       => $score_request->ra(),
+                Dec      => $score_request->dec(),
+                Score    => $score_reply->score(),
+                Time     => $score_reply->time(),
+                Snr      => $score_request->snr(),
+                Flux     => $score_request->flux(),
+                Filter   => $score_request->filter(),
+                GroupCount     => $score_reply->group_count() );       
+              
+      } elsif ( defined $observation{ 'seriescount' } ) {
+      
+         # we can assume that there is a timeconstraint => [ x, y ] and
+         # an interval and tolerance because we'll create default ones
+          $observe_message->request_observation(
+                Target   => $score_request->target(),
+                TargetIdent => $observation{'type'},
+                RA       => $score_request->ra(),
+                Dec      => $score_request->dec(),
+                Score    => $score_reply->score(),
+                Time     => $score_reply->time(),
+                Snr      => $score_request->snr(),
+                Flux     => $score_request->flux(),
+                Filter   => $score_request->filter(),
+                TimeConstraint => [ $score_reply->start_time(),
+                                  $score_reply->end_time() ],
+                SeriesCount    => $score_reply->series_count(),
+                Interval       => $score_reply->interval(),
+                Tolerance      => $score_reply->tolerance() );                    
+                
+      } else {  
+
       $observe_message->request_observation(
                 Target   => $score_request->target(),
                 TargetIdent => $observation{'type'},
@@ -719,7 +1043,11 @@ sub new_observation {
                 Time     => $score_reply->time(),
                 Snr      => $score_request->snr(),
                 Flux     => $score_request->flux(),
-                Filter   => $score_request->filter()    );                   
+                Filter   => $score_request->filter()    );    
+     
+      }
+
+                
    }
    
    # PUSH IT INTO THE OBSERVATION OBJECT
@@ -829,6 +1157,7 @@ sub new_observation {
                               $mail_body ); 
       }      
       
+      $log->error("Error: $@");
       $log->error( $error );
       return SOAP::Data->name('return', $error )->type('xsd:string');           
    }
@@ -982,7 +1311,7 @@ sub handle_rtml {
    # check we have a valid user object            
    unless ( my $user = $self->{_user}) {
       $log->warn("SOAP Request: The object is missing user data");
-      return "The object is missing user data"
+      return "The object is missing user data";
    }
    
    # Message Validation

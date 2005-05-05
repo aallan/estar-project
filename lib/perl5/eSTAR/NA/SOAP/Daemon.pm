@@ -6,12 +6,14 @@ use threads::shared;
 use strict;
 use vars qw(@ISA);
 
-use SOAP::Transport::HTTP::Daemon::ForkAfterProcessing;
+#use SOAP::Transport::HTTP::Daemon::ForkAfterProcessing;
+use SOAP::Transport::HTTP::Daemon::ThreadOnAccept;
 
 # Code based on WishList::Daemon.pm taken from "Programming Web
 # Sercies with Perl" by Ray & Kulchenko.
 
-@ISA = qw(SOAP::Transport::HTTP::Daemon::ForkAfterProcessing);
+#@ISA = qw(SOAP::Transport::HTTP::Daemon::ForkAfterProcessing);
+@ISA = qw(SOAP::Transport::HTTP::Daemon::ThreadOnAccept);
 
 # request() is the only method that needs overloading in order for
 # this Daemon class to handle the authentication. All cookie headers

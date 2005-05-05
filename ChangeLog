@@ -1,3 +1,10 @@
+2005-05-05 Aladair Allan <aa@astro.ex.ac.uk>
+
+        * Working node agent for LT & FTN. Integrated changes to eSTAR::RTML
+          to support new RTMl tags into the user agent and associated handlers.
+          
+        * bin/node_agen.pl: Moved to threaded SOAP server from forking version.
+
 2005-05-03 Aladair Allan <aa@astro.ex.ac.uk>
 
         * bin/node_agent.pl: Fixed bugs

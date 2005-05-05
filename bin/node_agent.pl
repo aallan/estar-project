@@ -23,7 +23,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: node_agent.pl,v 1.3 2005/05/03 22:19:44 aa Exp $
+#     $Id: node_agent.pl,v 1.4 2005/05/05 13:54:40 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -69,7 +69,7 @@ have a duplicate copy of the current user database.
 
 =head1 REVISION
 
-$Id: node_agent.pl,v 1.3 2005/05/03 22:19:44 aa Exp $
+$Id: node_agent.pl,v 1.4 2005/05/05 13:54:40 aa Exp $
 
 =head1 AUTHORS
 
@@ -86,7 +86,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -442,7 +442,6 @@ my $soap_server = sub {
       # to start the daemon. Other than the port being in use I can't see
       # why we're going to end up here.
       my $error = "$@";
-      chomp($error);
       return "FatalError: $error";
    };
    
@@ -775,6 +774,9 @@ sub fudge_message {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: node_agent.pl,v $
+# Revision 1.4  2005/05/05 13:54:40  aa
+# Working node_agent for LT and FTN. Changes to user_agent to support new RTML tags (see ChangeLog)
+#
 # Revision 1.3  2005/05/03 22:19:44  aa
 # Modified node_agent.pl to work with LT only
 #

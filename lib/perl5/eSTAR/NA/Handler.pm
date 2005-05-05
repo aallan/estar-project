@@ -183,7 +183,9 @@ sub handle_rtml {
       close( CONFIG );
       $LOOK->read( $file );
    }  
-      
+   
+   #use Data::Dumper; print Dumper( $LOOK ); 
+   
    # GRAB MESSAGE
    # ------------
    
@@ -192,6 +194,8 @@ sub handle_rtml {
    # stuff it into global lookup hash
    my $line = "<IntelligentAgent host=\"$host\" port=\"$port\">";
    $LOOK->param( "id.$ident", $line );
+
+   #use Data::Dumper; print Dumper( $LOOK ); 
    
    # commit ID stuff to STATE file
    my $status = $LOOK->write( $file );
@@ -256,7 +260,8 @@ sub handle_rtml {
    my $sock = new IO::Socket::INET( 
                            PeerAddr => $config->get_option( "ers.host" ),
                            PeerPort => $config->get_option( "ers.port" ),
-                           Proto    => "tcp" );
+                           Proto    => "tcp",
+                           Timeout => $config->get_option( "connection.timeout" ) );
    my ( $response );                        
    unless ( $sock ) {
       
@@ -268,6 +273,8 @@ sub handle_rtml {
       return SOAP::Data->name('return', "ERROR: $error" )->type('xsd:string');
    
    } else { 
+ 
+      $log->print("Sending RTML to ERS\n$rtml");
  
       # work out message length
       my $bytes = pack( "N", length($rtml) );
@@ -322,12 +329,12 @@ sub handle_rtml {
    # ------------------
    
    # do a find and replace, munging the response, shouldn't need to do it?
+   $log->debug( "Returned RTML message\n$response");
    $response =~ s/</&lt;/g;
    
    # return an RTML response to the user_agent
 
    $log->debug("Returned RTML response");
-   
    return SOAP::Data->name('return', $response )->type('xsd:string');
 
 } 
