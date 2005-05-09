@@ -559,6 +559,7 @@ sub new_observation {
               Dec            => $observation{'dec'},
               Exposure       => $observation{'exposure'},
               Filter         => $observation{'passband'},
+              GroupCount     => $observation{'groupcount'},
               TimeConstraint => [ $observation{'starttime'},
                                   $observation{'endtime'} ] );
                                                           
@@ -591,7 +592,21 @@ sub new_observation {
               SeriesCount    => $observation{'seriescount'},
               Interval       => $observation{'interval'},
               Tolerance      => $observation{'tolerance'} );            
+
+      } elsif ( defined $observation{ 'starttime' } &&
+                defined $observation{ 'endtime' } ) {
                 
+         # we have a monitoring group with a time contraint       
+        $score_message->score_observation(
+              Target         => $observation{'target'},
+              TargetIdent    => $observation{'type'},
+              RA             => $observation{'ra'},
+              Dec            => $observation{'dec'},
+              Exposure       => $observation{'exposure'},
+              Filter         => $observation{'passband'},
+              TimeConstraint => [ $observation{'starttime'},
+                                  $observation{'endtime'} ] );
+                               
       } else {         
       
           # build a score request
@@ -613,7 +628,7 @@ sub new_observation {
               Target         => $observation{'target'},
               TargetIdent    => $observation{'type'},
               RA             => $observation{'ra'},
-              Dec            => $observation{'dec'},,
+              Dec            => $observation{'dec'},
               Snr    => $observation{'signaltonoise'},
               Flux   => $observation{'magnitude'},
               Filter         => $observation{'passband'},
@@ -633,7 +648,7 @@ sub new_observation {
               Target         => $observation{'target'},
               TargetIdent    => $observation{'type'},
               RA             => $observation{'ra'},
-              Dec            => $observation{'dec'},,
+              Dec            => $observation{'dec'},
               Snr    => $observation{'signaltonoise'},
               Flux   => $observation{'magnitude'},
               Filter         => $observation{'passband'},
@@ -647,7 +662,7 @@ sub new_observation {
               Target         => $observation{'target'},
               TargetIdent    => $observation{'type'},
               RA             => $observation{'ra'},
-              Dec            => $observation{'dec'},,
+              Dec            => $observation{'dec'},
               Snr    => $observation{'signaltonoise'},
               Flux   => $observation{'magnitude'},
               Filter         => $observation{'passband'},
@@ -663,7 +678,7 @@ sub new_observation {
               Target         => $observation{'target'},
               TargetIdent    => $observation{'type'},
               RA             => $observation{'ra'},
-              Dec            => $observation{'dec'},,
+              Dec            => $observation{'dec'},
               Snr    => $observation{'signaltonoise'},
               Flux   => $observation{'magnitude'},
               Filter         => $observation{'passband'},
@@ -672,7 +687,22 @@ sub new_observation {
               SeriesCount    => $observation{'seriescount'},
               Interval       => $observation{'interval'},
               Tolerance      => $observation{'tolerance'} );                            
+
+      } elsif ( defined $observation{ 'starttime' } &&
+                defined $observation{ 'endtime' } ) {
                 
+         # we have a monitoring group with a time contraint       
+        $score_message->score_observation(
+              Target         => $observation{'target'},
+              TargetIdent    => $observation{'type'},
+              RA             => $observation{'ra'},
+              Dec            => $observation{'dec'},
+              Snr    => $observation{'signaltonoise'},
+              Flux   => $observation{'magnitude'},
+              Filter         => $observation{'passband'},
+              TimeConstraint => [ $observation{'starttime'},
+                                  $observation{'endtime'} ] );
+                                
       } else { 
       
           # build a score request
@@ -940,7 +970,22 @@ sub new_observation {
                 SeriesCount    => $score_reply->series_count(),
                 Interval       => $score_reply->interval(),
                 Tolerance      => $score_reply->tolerance() );                    
+ 
+    } elsif ( defined $observation{ 'starttime' } &&
+                defined $observation{ 'endtime' } ) {
                 
+         # we have a monitoring group with a time contraint       
+          $observe_message->request_observation(
+                Target   => $score_request->target(),
+                TargetIdent => $observation{'type'},
+                RA       => $score_request->ra(),
+                Dec      => $score_request->dec(),
+                Score    => $score_reply->score(),
+                Time     => $score_reply->time(),
+                Exposure => $score_request->exposure(),
+                Filter   => $score_request->filter(),
+                TimeConstraint => [ $score_reply->start_time(),
+                                  $score_reply->end_time() ]  );                 
       } else {  
 
           $observe_message->request_observation(
@@ -1030,8 +1075,24 @@ sub new_observation {
                                   $score_reply->end_time() ],
                 SeriesCount    => $score_reply->series_count(),
                 Interval       => $score_reply->interval(),
-                Tolerance      => $score_reply->tolerance() );                    
+                Tolerance      => $score_reply->tolerance() ); 
+                                   
+    } elsif ( defined $observation{ 'starttime' } &&
+                defined $observation{ 'endtime' } ) {
                 
+         # we have a monitoring group with a time contraint       
+          $observe_message->request_observation(
+                Target   => $score_request->target(),
+                TargetIdent => $observation{'type'},
+                RA       => $score_request->ra(),
+                Dec      => $score_request->dec(),
+                Score    => $score_reply->score(),
+                Time     => $score_reply->time(),
+                Snr      => $score_request->snr(),
+                Flux     => $score_request->flux(),
+                Filter   => $score_request->filter(),
+                TimeConstraint => [ $score_reply->start_time(),
+                                  $score_reply->end_time() ]  );                  
       } else {  
 
       $observe_message->request_observation(
