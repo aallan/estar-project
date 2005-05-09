@@ -1,9 +1,27 @@
+2005-05-09 Aladair Allan <aa@astro.ex.ac.uk>
+
+        * eSTAR/UA/Algorithim/ExoPlanetMonitor.pm: Added, simple copy of
+          the SingleExposure algorithim block for now. Need to look into the
+          way we generate Automatic followup IDs and how we associate eSTAR
+          unique IDs and the OGLE ID. Also need a garbage collection thread
+          for the user agent (in a similar fashion to the incomplete one in
+          the jach_agent).
+
+2005-05-06 Aladair Allan <aa@astro.ex.ac.uk>
+
+        * bin/node_agent.pl: Fixed buffer overflow error in the TCP/IP server
+          of the node agent.
+          
+        * eSTAR/UA/Handler.pm: Fixed time constraint on teh construction of
+          and submission of score and observation request messages  
+
 2005-05-05 Aladair Allan <aa@astro.ex.ac.uk>
 
         * Working node agent for LT & FTN. Integrated changes to eSTAR::RTML
-          to support new RTMl tags into the user agent and associated handlers.
+          to support new RTML tags into the user agent and associated handlers.
           
         * bin/node_agen.pl: Moved to threaded SOAP server from forking version.
+        
 
 2005-05-03 Aladair Allan <aa@astro.ex.ac.uk>
 
