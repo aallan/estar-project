@@ -23,7 +23,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: node_agent.pl,v 1.4 2005/05/05 13:54:40 aa Exp $
+#     $Id: node_agent.pl,v 1.5 2005/05/09 12:39:21 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -69,7 +69,7 @@ have a duplicate copy of the current user database.
 
 =head1 REVISION
 
-$Id: node_agent.pl,v 1.4 2005/05/05 13:54:40 aa Exp $
+$Id: node_agent.pl,v 1.5 2005/05/09 12:39:21 aa Exp $
 
 =head1 AUTHORS
 
@@ -86,7 +86,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -344,7 +344,9 @@ if ( $config->get_state("na.unique_process") == 1 ) {
    $config->set_option( "tcp.port", 2050 );
   
    # DN ERS server parameters
-   $config->set_option( "ers.host", "161.72.57.3" );
+   #$config->set_option( "ers.host", "161.72.57.3" );
+   #$config->set_option( "ers.port", 8080 );
+   $config->set_option( "ers.host", "132.160.98.239" );
    $config->set_option( "ers.port", 8080 );
 
    # DN scheduler parameters
@@ -613,14 +615,22 @@ my $tcpip_server = sub {
       # read network ordered long int
       $bytes_read = sysread( $listen, $length, 4 );
       $length = unpack( "N", $length );
-      $log->thread2( $thread_name,  "Message is $length characters" );
       
-      # read message
-      $bytes_read = sysread( $listen, $buffer, $length);
+      if ( $length > 512000 ) {
+         $log->error( "Error: Message length is > 512000 characters" );
+         $log->error( "Error: Message claims to be $length long" );
+         $log->warn( "Warning: Discarding bogus message" );
+      } else {   
+         
+         $log->thread2( $thread_name,  "Message is $length characters" );
+      
+         # read message
+         $bytes_read = sysread( $listen, $buffer, $length);
        
-      # callback to handle incoming RTML     
-      my $callback_thread = threads->create ( $tcp_callback, $buffer );
-      $callback_thread->detach();
+         # callback to handle incoming RTML     
+         my $callback_thread = threads->create ( $tcp_callback, $buffer );
+         $callback_thread->detach();
+      }    
   } 
         
 };
@@ -774,6 +784,9 @@ sub fudge_message {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: node_agent.pl,v $
+# Revision 1.5  2005/05/09 12:39:21  aa
+# Fixed buffer overflow error in node_agent.pl
+#
 # Revision 1.4  2005/05/05 13:54:40  aa
 # Working node_agent for LT and FTN. Changes to user_agent to support new RTML tags (see ChangeLog)
 #
