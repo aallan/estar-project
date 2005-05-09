@@ -22,7 +22,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: gcn_server.pl,v 1.14 2005/02/15 18:37:40 aa Exp $
+$Id: gcn_server.pl,v 1.15 2005/05/09 13:43:49 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -41,7 +41,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.14 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.15 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -319,7 +319,7 @@ unless( defined $opt{"user"} ) {
 
 # default user and password location
 unless( defined $opt{"pass"} ) {
-   $opt{"user"} = $config->get_option("gcn.passwd");
+   $opt{"pass"} = $config->get_option("gcn.passwd");
 } else{       
    $log->warn("Warning: Resetting password...");
    $config->set_option("gcn.passwd", $opt{"pass"} );
