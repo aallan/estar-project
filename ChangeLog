@@ -11,7 +11,16 @@
           try and get rid of non-quoted string in IntelligentAgent tag as they
           don't parse using XML::Parser
           
-        * eSTAR/NA/Handler.pm: Ditto for the handler class...    
+        * eSTAR/NA/Handler.pm: Ditto for the handler class...
+        
+        * Fixed a bunch of fairly hideous bugs. 
+        
+        * bin/query_agent.pl: To go along with configure_agent.pl to allow us
+          to get back values as well as set them in the agent code while it is
+          still running.
+          
+        * Need to rework the way returned messages are handled bu the UA/Handler
+          at the moment this doesn't work very well...      
         
 2005-05-09 Aladair Allan <aa@astro.ex.ac.uk>
 
