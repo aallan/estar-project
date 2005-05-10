@@ -193,6 +193,8 @@ sub handle_rtml {
         
    # stuff it into global lookup hash
    my $line = "<IntelligentAgent host=\"$host\" port=\"$port\">";
+   
+   #print "LINE: $line";
    $LOOK->param( "id.$ident", $line );
 
    #use Data::Dumper; print Dumper( $LOOK ); 
@@ -249,8 +251,8 @@ sub handle_rtml {
       $new_project = "";
    }   
    
-   $rtml = fudge_user( $rtml, $new_user );  
-   $rtml = fudge_project( $rtml, $new_project );  
+   $rtml = eSTAR::Util::fudge_user( $rtml, $new_user );  
+   $rtml = eSTAR::Util::fudge_project( $rtml, $new_project );  
    
    # SEND TO ERS
    # -----------
@@ -318,24 +320,31 @@ sub handle_rtml {
         
    # stuff it into global lookup hash
    my $original = $LOOK->param( "id.$ident" );
-   
+     
    # change the hostname and port in the rtml
    $log->debug( "Replacing original <IntelligentAgent> XML tag" ) ;
 
    my $current = "<IntelligentAgent host=\"$host\" port=\"$port\">";
    $response =~ s/$current/$original/;
+ 
+    
+   #print "CURRENT: $current\n";
+   #print "ORIGINAL: $original\n";
+        
+   #$log->debug( "\n" . $response );   
    
    # make sure we have quote marks around the host and port numbers
    my $nonvalid = "<IntelligentAgent host=$host port=$port>";
    if ( $response =~ $nonvalid ) {
-      $log->warn( "Warning: Invalid string in XML, replacing with valid..." );
-      $log->warn( "Warning: $nonvalid" );
-      my $validstring = "<IntelligentAgent host=\"$host\" port=\"$port\">";
-      $response =~ s/$validstring/$nonvalid/;
-   }   
-        
-   #$log->debug( "\n" . $response );   
-   
+      $log->debug( "Performing kludge to work round invalid XML" );
+      #$log->warn( "Warning: Invalid string in XML, replacing with valid..." );
+      #$log->warn( "Warning: $nonvalid" );
+      my $validstring = 
+        "<IntelligentAgent host=" . '"' . $host . '"' . 
+                         " port=" . '"' . $port . '"' . ">";
+      $response =~ s/$nonvalid/$validstring/;
+   }    
+      
    # SEND TO USER_AGENT
    # ------------------
    

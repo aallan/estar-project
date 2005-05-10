@@ -23,7 +23,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: node_agent.pl,v 1.6 2005/05/10 17:56:20 aa Exp $
+#     $Id: node_agent.pl,v 1.7 2005/05/10 20:45:44 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -69,7 +69,7 @@ have a duplicate copy of the current user database.
 
 =head1 REVISION
 
-$Id: node_agent.pl,v 1.6 2005/05/10 17:56:20 aa Exp $
+$Id: node_agent.pl,v 1.7 2005/05/10 20:45:44 aa Exp $
 
 =head1 AUTHORS
 
@@ -86,7 +86,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -495,7 +495,7 @@ my $tcp_callback = sub {
    # HANDLE MESSAGE
    # --------------
    
-   print "\n\n\n$rtml\n\n\n";
+   #print "\n\n\n$rtml\n\n\n";
    
    # fudge the message
    my ( $host, $port, $ident ) = eSTAR::Util::fudge_message( $rtml );  
@@ -509,21 +509,27 @@ my $tcp_callback = sub {
    my $current = "<IntelligentAgent host=\"$host\" port=\"$port\">";
    $rtml =~ s/$current/$original/;
    
+   #print "CURRENT: $current\n";
+   #print "ORIGINAL: $original\n";
+   
    # grab host and port number from updated line
    ( $host, $port, $ident ) = eSTAR::Util::fudge_message( $rtml );  
    
    $log->debug("Reply address: " . $host . ":" . $port);   
    
+   #print "\n\n\n$rtml\n\n\n";
+
    # make sure we have quote marks around the host and port numbers
    my $nonvalid = "<IntelligentAgent host=$host port=$port>";
    if ( $rtml =~ $nonvalid ) {
-      $log->warn( "Warning: Invalid string in XML, replacing with valid..." );
-      $log->warn( "Warning: $nonvalid" );
-      my $validstring = "<IntelligentAgent host=\"$host\" port=\"$port\">";
-      $rtml =~ s/$validstring/$nonvalid/;
-   }
-   
-   print "\n\n\n$rtml\n\n\n";
+      $log->debug( "Performing kludge to work round invalid XML" );
+      #$log->warn( "Warning: Invalid string in XML, replacing with valid..." );
+      #$log->warn( "Warning: $nonvalid" );
+      my $validstring = 
+        "<IntelligentAgent host=" . '"' . $host . '"' . 
+                         " port=" . '"' . $port . '"' . ">";
+      $rtml =~ s/$nonvalid/$validstring/;
+   } 
               
    # end point
    my $endpoint = "http://" . $host . ":" . $port;
@@ -737,6 +743,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: node_agent.pl,v $
+# Revision 1.7  2005/05/10 20:45:44  aa
+# Fixed bogus XML problem? Not actually sure why this was occuring so added a kludge to get round it. Oh dear...
+#
 # Revision 1.6  2005/05/10 17:56:20  aa
 # Checkpoint save, see ChangeLog
 #
