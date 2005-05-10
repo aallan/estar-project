@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: user_agent.pl,v 1.14 2005/05/09 12:43:09 aa Exp $
+#     $Id: user_agent.pl,v 1.15 2005/05/10 20:47:06 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -65,7 +65,7 @@ itself.
 
 =head1 REVISION
 
-$Id: user_agent.pl,v 1.14 2005/05/09 12:43:09 aa Exp $
+$Id: user_agent.pl,v 1.15 2005/05/10 20:47:06 aa Exp $
 
 =head1 AUTHORS
 
@@ -82,7 +82,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.14 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.15 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -366,7 +366,7 @@ if ( $config->get_state("ua.unique_process") == 1 ) {
    $config->set_option("simbad.url", "simbad.u-strasbg.fr" );
 
    # connection options defaults
-   $config->set_option("connection.timeout", 5 );
+   $config->set_option("connection.timeout", 20 );
    $config->set_option("connection.proxy", 'NONE'  );
   
    # mail server
@@ -593,6 +593,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: user_agent.pl,v $
+# Revision 1.15  2005/05/10 20:47:06  aa
+# Increased default timeout, the Robonet ERS take bloody ages to talk back to us, bummer!
+#
 # Revision 1.14  2005/05/09 12:43:09  aa
 # Updated account information to work on FTN
 #
