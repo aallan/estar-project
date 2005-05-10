@@ -20,7 +20,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: ogle_fetch.pl,v 1.2 2005/05/10 00:25:10 aa Exp $
+$Id: ogle_fetch.pl,v 1.3 2005/05/10 14:36:35 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -37,7 +37,7 @@ use vars qw / $VERSION /;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -444,10 +444,10 @@ unless ( ${$reply}{"_rc"} eq 200 ) {
   throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
 }
 
+# V A L I D A T E   R E P L Y -----------------------------------------------
+ 
 # we should have a reply
 my @page = split "\n", ${$reply}{_content};
-
-print Dumper( @page );
 
 # Validate our reply, certain strings should be in certain places. If 
 # they aren't in the right place then 
@@ -465,7 +465,6 @@ foreach my $i ( 0 ... $#headers ) {
    $headers[$i] =~ s/^\s+//g;
    $headers[$i] =~ s/\s+$//g;
 }
-print Dumper( @headers );
 
 # check things, if they aren't right throw an error
 unless ( $headers[0] eq "rank" &&
@@ -488,6 +487,8 @@ unless ( $headers[0] eq "rank" &&
    throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
 }   
 
+# P A R S E   D A T A -----------------------------------------------------
+
 # loop through the remaining part of the table and discard any rows which
 # aren't data (the repeated "rank" lines are annoying special cases and 
 # have to be removed from the list).
@@ -495,6 +496,7 @@ my @data;
 foreach my $j ( 11 ... $#page ) {
    last if $page[$j] =~ "</table>"; # end of the data table
    next if $page[$j] =~ "rank";     # non-data line
+   next if $page[$j] eq "<tr>";     # non-data line
    
    my @columns = split "<td>", $page[$j];
    shift @columns;
@@ -516,7 +518,7 @@ foreach my $j ( 11 ... $#page ) {
    # get URL
    my $url = $columns[1];
    $url =~ s/<a href=//;
-   $url =~ s/>OGLE-\n+-blg-\n+<\/a>//;
+   $url =~ s/>OGLE-\d+-blg-\d+<\/a>//;
    
    # get number of exposures
    my $num = $columns[6];
@@ -528,22 +530,294 @@ foreach my $j ( 11 ... $#page ) {
    $read =~ s/\+\d+\)=\d+s$//;
    my $exp = $columns[6];
    $exp =~ s/^\d+x\(\d+\+//;
-   $exp =~ s/\)=\ds$//; 
+   $exp =~ s/\)=\d+s$//; 
    
-   my $time = $read + $exp; 
+   #my $time = $read + $exp; 
+   my $time = $exp; 
    
-   # build the hash entry
-   my $ref = { ID => $key, URL => $url, Number => $num, Time => $time };
-   push @data, $ref;
+   # don't bother to add it to the hash if we aren't going to observe it
+   unless ( $num == 0 ) {
    
-   #print "\$j = $j\n\n";
-   #print Dumper( @columns );
-   #print "\nKey = $key\nURL = $url\nNum = $num\nRead = $read\nExp = $exp\nTime = $time\n";
-   #print "\n\n\n";
+      # build the hash entry
+      my $ref = {ID => $key, URL => $url, SeriesCount => $num, Time => $time};
+      push @data, $ref;
+   }   
+
+}
+
+# F E T C H   D A T A   P A G E S -------------------------------------------
+
+foreach my $m ( 0 ... $#data ) {
+
+   # skip pages that we won't observe anyway
+   my $data_url = ${$data[$m]}{URL};
+   $log->debug("URL = $data_url" );
+   $log->debug("Fetching page..." );
+   my $data_page;
+   eval { $data_page = $ua->get_ua()->get( $data_url ) };
+
+   # we're fucked, live with it
+   if ( $@ ) {
+      $log->error( "Error: $@" );
+      $log->error( "Exiting with bad status..." );
+      throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
+   }   
+
+   # We successfully made a request but it returned bad status
+   unless ( ${$data_page}{"_rc"} eq 200 ) {
+     # the network connection failed?      
+     $log->error( "Error: (${$reply}{_rc}): ${$data_page}{_msg}");
+     throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
+   }
+
+   # we should have a reply
+   my @data_return = split "\n", ${$data_page}{_content};
+
+   
+   # use the headers from line 11 of the page
+   my @dat_head = split "<td>", $data_return[4];
+
+   # get rid of the first <tr>
+   shift @dat_head;
+
+   foreach my $i ( 0 ... $#dat_head ) {
+       $dat_head[$i] =~ s/^\s+//g;
+       $dat_head[$i] =~ s/\s+$//g;
+   }   
+
+   # check things, if they aren't right throw an error
+   unless ( $dat_head[0] eq "PRIORITY" &&
+            $dat_head[1] eq "RA(J2000)" &&
+            $dat_head[2] eq "Dec(J2000)" &&
+            $dat_head[3] eq "I(t)" &&
+            $dat_head[4] eq "A(t)" &&
+            $dat_head[5] eq "A_max" &&
+            $dat_head[6] eq "t - t0" &&
+            $dat_head[7] eq "t_E" &&
+            $dat_head[8] eq "chi^2/N" &&
+            $dat_head[9] eq "delta chi^2" &&
+            $dat_head[10] eq "Remarks*"  ) {
+      my $error = "Error: Page does not parse correctly";
+      $log->error( "Retrieved HTML:\n" );
+      foreach my $i ( 0 ... $#data_return ) {
+         $log->error( $data_return[$i] );
+      }         
+      $log->error( $error );
+      throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
+   }   
+   
+   # grab the next line
+   my @values = split "<td>", $data_return[5];
+
+   # get rid of the first <tr>
+   shift @values;
+
+   # get rid of trailing <tr>, why does it have a trailing <tr>?
+   $values[10] =~ s/<tr>//;
+
+   foreach my $i ( 0 ... $#values ) {
+       $values[$i] =~ s/^\s+//g;
+       $values[$i] =~ s/\s+$//g;
+   }   
+   
+   # Append RA & Dec to $data[$m}
+   my $ra = $values[1];
+   $ra =~ s/:/ /g;
+   ${$data[$m]}{RA} = $ra;
+
+   my $dec = $values[2];
+   $dec =~ s/:/ /g;
+   ${$data[$m]}{Dec} = $dec;   
+
+}
+
+# F I X   G R O U P C O U N T S --------------------------------------------
+
+# we have all the necessary data to schedule the observations now, however
+# it's likely that some of the exposure times are greater then 120 seconds
+# which is the maximum *right now* for the FTN. So we munge the exposure 
+# times so this isn't going to generate multiruns we didn't know about.
+
+
+foreach my $n ( 0 ... $#data ) {
+
+   $count = 0;
+   while ( ${$data[$n]}{Time} > 120 ) {
+      ${$data[$n]}{Time} = ${$data[$n]}{Time}/2.0;
+      $count = $count + 1;
+   }
+   if ( $count > 0 ) {
+      ${$data[$n]}{GroupCount} = $count*2;
+   }      
 
 }
 
 print Dumper ( @data );
 
+
+# O B S E V R A T I O N   R E Q U E S T S   T O   U S E R   A G E N T -------
+
+my $interval = 6.0/${$data[$n]}{SeriesCount};
+my $tolerance = $interval/2.0;
+
+my $year = 1900 + localtime->year();
+my $month = localtime->mon() + 1;
+my $day = localtime->mday();
+my $dayplusone = $day + 1;
+      
+# mid-afternoon local till 24 hours later 
+my $start_time = "$year-$month-$day" . "T12:00:00";
+my $end_time = "$year-$month-$dayplusone" . "T12:00:00";
+
+
+foreach my $n ( 0 ... $#data ) {
+
+   #print Dumper ( $data[$n] );
+   
+   $log->print("Building observation object for ${$data[$n]}{ID}" );
+   $log->print("Co-ordinates (RA ${$data[$n]}{RA}, Dec ${$data[$n]}{Dec}" .")");
+    
+   my %observation;
+   if ( defined ${$data[$n]}{GroupCount} &&
+        ${$data[$n]}{SeriesCount} == 1 ) {
+
+      $log->print( "We have an single observation group of " . 
+                   ${$data[$n]}{GroupCount} .  " exposures of " . 
+                   ${$data[$n]}{Time} . "s");
+         %observation = ( user          => $config->get_option("of.user"),
+                          pass          => $config->get_option("of.passwd"),
+                          ra            => ${$data[$n]}{RA},
+                          dec           => ${$data[$n]}{Dec},
+                          target        => ${$data[$n]}{ID},
+                          exposure      => ${$data[$n]}{Time},
+                          passband      => "R",
+                          type          => "ExoPlanetMonitor",
+                          followup      => 0,
+                          groupcount    => ${$data[$n]}{GroupCount},
+                          starttime     => $start_time,
+                          endtime       => $end_time,
+                          seriescount   => ${$data[$n]}{SeriesCount} );
+          
+   } elsif ( defined ${$data[$n]}{GroupCount} &&
+             ${$data[$n]}{SeriesCount} > 1 ) {
+
+      $log->print("We have a series of " . ${$data[$n]}{SeriesCount} .
+                  " groups of " . ${$data[$n]}{GroupCount} . 
+                  " exposures of " . ${$data[$n]}{Time} . "s" );
+         %observation = ( user          => $config->get_option("of.user"),
+                          pass          => $config->get_option("of.passwd"),
+                          ra            => ${$data[$n]}{RA},
+                          dec           => ${$data[$n]}{Dec},
+                          target        => ${$data[$n]}{ID},
+                          exposure      => ${$data[$n]}{Time},
+                          passband      => "R",
+                          type          => "ExoPlanetMonitor",
+                          followup      => 0,
+                          groupcount    => ${$data[$n]}{GroupCount},
+                          starttime     => $start_time,
+                          endtime       => $end_time,
+                          seriescount   => ${$data[$n]}{SeriesCount},
+                          interval      => $interval,
+                          tolerance     => $tolerance );
+                    
+          
+                          
+   } elsif ( ${$data[$n]}{SeriesCount} == 1 ) {                       
+     
+      $log->print("We have a single exposure of  " . 
+                  ${$data[$n]}{Time} . "s");
+         %observation = ( user          => $config->get_option("of.user"),
+                          pass          => $config->get_option("of.passwd"),
+                          ra            => ${$data[$n]}{RA},
+                          dec           => ${$data[$n]}{Dec},
+                          target        => ${$data[$n]}{ID},
+                          exposure      => ${$data[$n]}{Time},
+                          passband      => "R",
+                          type          => "ExoPlanetMonitor",
+                          followup      => 0,
+                          groupcount    => ${$data[$n]}{GroupCount},
+                          starttime     => $start_time,
+                          endtime       => $end_time );
+   } else {
+   
+      $log->print("We have a series of " . ${$data[$n]}{SeriesCount} . 
+                  " exposures of " . ${$data[$n]}{Time} . "s");
+         %observation = ( user          => $config->get_option("of.user"),
+                          pass          => $config->get_option("of.passwd"),
+                          ra            => ${$data[$n]}{RA},
+                          dec           => ${$data[$n]}{Dec},
+                          target        => ${$data[$n]}{ID},
+                          exposure      => ${$data[$n]}{Time},
+                          passband      => "R",
+                          type          => "ExoPlanetMonitor",
+                          followup      => 0,
+                          starttime     => $start_time,
+                          endtime       => $end_time,
+                          seriescount   => ${$data[$n]}{SeriesCount},
+                          interval      => $interval,
+                          tolerance     => $tolerance );   
+   
+   }
+   
+   # build endpoint
+   my $endpoint = "http://" . $config->get_option("ua.host") . 
+                  ":" . $config->get_option("ua.port");
+   my $uri = new URI($endpoint);
+
+   $log->debug("Connecting to server at $endpoint");
+
+
+   # create authentication cookie
+   $log->debug( "Creating authentication token for " .
+                $config->get_option("of.user"));
+   my $cookie = 
+        eSTAR::Util::make_cookie( $config->get_option("of.user"),
+                                  $config->get_option("of.passwd") );
   
+   my $cookie_jar = HTTP::Cookies->new();
+   $cookie_jar->set_cookie(0, user => $cookie, '/', $uri->host(), $uri->port());
+
+   # create SOAP connection
+   $log->print("Building SOAP client...");
+ 
+   # create SOAP connection
+   my $soap = new SOAP::Lite();
+   $soap->uri('urn:/user_agent'); 
+   $soap->proxy($endpoint, cookie_jar => $cookie_jar);
+
+   $log->debug("Calling new_observation( ) in 'urn:/user_agent' at $endpoint" );
+   #foreach my $key ( keys %observation ) {
+   #  $log->print("                         $key => " . $observation{$key});
+   #}
+    
+    
+   # grab the result 
+   my $soap_result;
+   #eval { $soap_result = $soap->new_observation( %observation ); };
+   
+   # check for coding errors
+   #if ( $@ ) {
+   #  my $error = "Error $@";
+   #  $log->error( $error );
+   #  throw eSTAR::Error::FatalError( $error, ESTAR__FATAL);
+   #}
+  
+   # Check for transport errors
+   #$log->debug("Transport Status = " . $soap->transport()->status() );
+   #unless ($result->fault() ) {
+   #  $log->print("SOAP Result (" . $soap_result->result() .")" );
+   #} else {
+   #  my $error = "Error: " . $soap_result->faultstring();
+   #  $log->error("Error: Fault code = " . $soap_result->faultcode() );
+   #  $log->error( $error );
+   #  throw eSTAR::Error::FatalError( $error, ESTAR__FATAL);
+   #}  
+  
+
+
+}
+
+
+# T I M E   A T   T H E   B A R ---------------------------------------------
+ 
 exit;

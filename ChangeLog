@@ -1,3 +1,9 @@
+2005-05-10 Aladair Allan <aa@astro.ex.ac.uk>
+
+        * bin/ogle_fetch.pl: Now correctly parses KDH's web pages and retrieves
+          a list of targets, then queues thes up with the user_agent using the
+          new_observation() method.
+        
 2005-05-09 Aladair Allan <aa@astro.ex.ac.uk>
 
         * eSTAR/UA/Algorithim/ExoPlanetMonitor.pm: Added, simple copy of
