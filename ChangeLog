@@ -6,6 +6,9 @@
           unique IDs and the OGLE ID. Also need a garbage collection thread
           for the user agent (in a similar fashion to the incomplete one in
           the jach_agent).
+          
+        * bin/ogle_fetch.pl: Basic script to grab and parse KDH's observing
+          priorities web pages.  
 
 2005-05-06 Aladair Allan <aa@astro.ex.ac.uk>
 
