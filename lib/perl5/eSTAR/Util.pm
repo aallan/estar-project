@@ -33,12 +33,11 @@ use eSTAR::Config;
 use eSTAR::Error qw /:try/;
 
 @ISA = qw/Exporter/;
-@EXPORT_OK = qw/ make_cookie make_id 
-                 freeze thaw melt 
-                 query_simbad 
-                 fudge_message fudge_user fudge_project/;
+@EXPORT_OK = 
+      qw/ make_cookie make_id freeze thaw melt query_simbad 
+          fudge_message fudge_user fudge_project /;
 
-'$Revision: 1.11 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.12 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # This is the code that is used to generate cookies based on the user
 # name and password. It is NOT cryptographically sound, it is just a
@@ -375,7 +374,6 @@ sub fudge_message {
    return ( undef, undef, undef );
 } 
 
-
 sub fudge_user {
    my $rtml = shift;
    my $user = shift;
@@ -388,7 +386,7 @@ sub fudge_user {
    
    $log->debug("Called fudge_user( $user )...");
    
-   my $new_rtml;
+   my $new_rtml = "";
    foreach my $i ( 0 ... $#message ) {
      if ( $message[$i] =~ "<User>" ) {
         if ( $message[$i] =~ "</User>" ) {
@@ -412,19 +410,14 @@ sub fudge_project {
    # grab references to single instance objects
    my $log = eSTAR::Logging::get_reference();
    my $process = eSTAR::Process::get_reference();
-      
+   $log->debug("Called fudge_project( $project_id )...");
+     
    my @message = split( /\n/, $rtml );
-   
-   $log->debug("Called fudge_project_id( $project_id )...");
-   
-   my $new_rtml;
+      
+   my $new_rtml = "";
    foreach my $i ( 0 ... $#message ) {
      if ( $message[$i] =~ "<Project />" ) {  
-        
         $message[$i] = "<Project>$project_id</Project>";
-     } else {
-           my $error = "Unable to parse <Project /> field from document";
-           throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
      } 
      $new_rtml = $new_rtml . $message[$i] . "\n";
    }
@@ -436,7 +429,7 @@ sub fudge_project {
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.11 2005/05/10 17:56:20 aa Exp $
+$Id: Util.pm,v 1.12 2005/05/10 20:46:21 aa Exp $
 
 =head1 AUTHORS
 
