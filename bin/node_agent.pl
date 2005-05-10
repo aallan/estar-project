@@ -23,7 +23,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: node_agent.pl,v 1.5 2005/05/09 12:39:21 aa Exp $
+#     $Id: node_agent.pl,v 1.6 2005/05/10 17:56:20 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -69,7 +69,7 @@ have a duplicate copy of the current user database.
 
 =head1 REVISION
 
-$Id: node_agent.pl,v 1.5 2005/05/09 12:39:21 aa Exp $
+$Id: node_agent.pl,v 1.6 2005/05/10 17:56:20 aa Exp $
 
 =head1 AUTHORS
 
@@ -86,7 +86,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -481,7 +481,7 @@ my $tcp_callback = sub {
    # -----------------
    my $file = 
       File::Spec->catfile( Config::User->Home(), '.estar', 
-                           $process, 'lookup.dat' );
+                           $process->get_process(), 'lookup.dat' );
      
    my $LOOK = new Config::Simple( filename => $file, mode=>O_RDONLY );
 
@@ -495,8 +495,10 @@ my $tcp_callback = sub {
    # HANDLE MESSAGE
    # --------------
    
+   print "\n\n\n$rtml\n\n\n";
+   
    # fudge the message
-   my ( $host, $port, $ident ) = fudge_message( $rtml );  
+   my ( $host, $port, $ident ) = eSTAR::Util::fudge_message( $rtml );  
       
    # grab it from the global lookup hash
    my $original = $LOOK->param( "id.$ident" );
@@ -508,9 +510,20 @@ my $tcp_callback = sub {
    $rtml =~ s/$current/$original/;
    
    # grab host and port number from updated line
-   ( $host, $port, $ident ) = fudge_message( $rtml );  
+   ( $host, $port, $ident ) = eSTAR::Util::fudge_message( $rtml );  
    
    $log->debug("Reply address: " . $host . ":" . $port);   
+   
+   # make sure we have quote marks around the host and port numbers
+   my $nonvalid = "<IntelligentAgent host=$host port=$port>";
+   if ( $rtml =~ $nonvalid ) {
+      $log->warn( "Warning: Invalid string in XML, replacing with valid..." );
+      $log->warn( "Warning: $nonvalid" );
+      my $validstring = "<IntelligentAgent host=\"$host\" port=\"$port\">";
+      $rtml =~ s/$validstring/$nonvalid/;
+   }
+   
+   print "\n\n\n$rtml\n\n\n";
               
    # end point
    my $endpoint = "http://" . $host . ":" . $port;
@@ -719,71 +732,14 @@ sub kill_agent {
    
    # close the door behind you!   
    exit;
-} 
-  
-                                
-# A S S O C I A T E D   S U B R O U T I N E S ------------------------------
-
-# grabs the origin host, port and identity of the message from the RTML
-
-sub fudge_message {
-   my $rtml = shift;
-   my @message = split( /\n/, $rtml );
-   
-   $log->debug("Called fudge_message()...");
-   
-   my ( $host, $port, $ident );
-   foreach my $i ( 0 ... $#message ) {
-     if ( $message[$i] =~ "<IntelligentAgent" ) {
-        
-        # grab host and port number
-        $host = $message[$i];
-        $port = $message[$i];
-        
-        # grab hostname
-        my $host_index = index( $message[$i], q/host=/ );
-        my $host = substr( $message[$i], $host_index, 
-                                         length($message[$i])-$host_index );
-        my $start_index = index( $host, q/"/ );         
-        my $port_index = index( $host, q/port=/ );
-        $host = substr( $host, $start_index+1, $port_index-$start_index-1 );
-        my $last_index = rindex( $host, q/"/ );         
-        $host = substr( $host, 0, $last_index );
-        
-        # grab port number
-        $port_index = index( $message[$i], q/port=/ );
-        $last_index = rindex( $message[$i], q/"/ );
-        my $port = substr( $message[$i], $port_index, $last_index-$port_index );
-        $start_index = index( $port, q/"/ );
-        $last_index = rindex( $message[$i], q/"/ );
-        $port = substr( $port, $start_index+1, $last_index-$start_index-1 );
-
-        $log->debug("Reply address: " . $host . ":" . $port);
-
-        # grab unique identity
-        my $tag_start = index( $rtml, q/<IntelligentAgent/ );
-        my $tag_end = index( $rtml, q/<\/IntelligentAgent/ );
-        
-        $ident = substr( $rtml, $tag_start, $tag_end-$tag_start );
-        my $quot_index = index ( $ident, q/>/ );
-        $ident = substr( $ident, $quot_index+1, length($ident)-$quot_index);
-        $ident =~ s/\n//g;
-        $ident =~ s/\s+//g;
-
-        $log->debug("Identifier: $ident");
-        return ( $host, $port, $ident );
-
-                    
-     }   
-   }
-   
-   return ( undef, undef, undef );
-}    
-           
+}                                
 
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: node_agent.pl,v $
+# Revision 1.6  2005/05/10 17:56:20  aa
+# Checkpoint save, see ChangeLog
+#
 # Revision 1.5  2005/05/09 12:39:21  aa
 # Fixed buffer overflow error in node_agent.pl
 #

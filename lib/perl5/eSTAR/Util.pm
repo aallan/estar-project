@@ -33,9 +33,12 @@ use eSTAR::Config;
 use eSTAR::Error qw /:try/;
 
 @ISA = qw/Exporter/;
-@EXPORT_OK = qw/ make_cookie make_id freeze thaw melt query_simbad/;
+@EXPORT_OK = qw/ make_cookie make_id 
+                 freeze thaw melt 
+                 query_simbad 
+                 fudge_message fudge_user fudge_project/;
 
-'$Revision: 1.10 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.11 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # This is the code that is used to generate cookies based on the user
 # name and password. It is NOT cryptographically sound, it is just a
@@ -294,13 +297,146 @@ sub query_simbad {
    return $simbad_result;
 };
 
+# grabs the origin host, port and identity of the message from the RTML
 
+sub fudge_message {
+   my $rtml = shift;
+   my @message = split( /\n/, $rtml );
+
+
+   # grab references to single instance objects
+   my $log = eSTAR::Logging::get_reference();
+   my $process = eSTAR::Process::get_reference();
+      
+   $log->debug("Called fudge_message()...");
+   
+   my ( $host, $port, $ident );
+   foreach my $i ( 0 ... $#message ) {
+     if ( $message[$i] =~ "<IntelligentAgent" ) {
+        
+        my ( $host_index, $port_index, $start_index, $last_index );
+        
+        # grab hostname
+        if ( $message[$i] =~ 'host="' ) {
+           $host_index = index( $message[$i], q/host=/ );
+           $host = substr( $message[$i], $host_index, 
+                                         length($message[$i])-$host_index );
+           $start_index = index( $host, q/"/ );         
+           $port_index = index( $host, q/port=/ );
+           $host = substr( $host, $start_index+1, $port_index-$start_index-1 );
+           $last_index = rindex( $host, q/"/ );         
+           $host = substr( $host, 0, $last_index );
+        } else {
+           $host_index = index( $message[$i], q/host=/ );
+           $host = substr( $message[$i], $host_index, 
+                                         length($message[$i])-$host_index );
+           $start_index = index( $host, q/=/ );         
+           $port_index = index( $host, q/ / );
+           $host = substr( $host, $start_index+1, $port_index-$start_index );
+           $last_index = rindex( $host, q/"/ );         
+           $host = substr( $host, 0, $last_index );        
+        }  
+        
+        # grab port number
+        if ( $message[$i] =~ 'port="' ) {
+           $port_index = index( $message[$i], q/port=/ );
+           $last_index = rindex( $message[$i], q/"/ );
+           $port = substr( $message[$i], $port_index, $last_index-$port_index );
+           $start_index = index( $port, q/"/ );
+           $last_index = rindex( $message[$i], q/"/ );
+           $port = substr( $port, $start_index+1, $last_index-$start_index-1 );
+        } else {
+           $port_index = index( $message[$i], q/port=/ );
+           $last_index = rindex( $message[$i], '>' );
+           $port = substr( $message[$i], $port_index, $last_index-$port_index );
+           $start_index = index( $port, q/=/ );
+           $last_index = index( $port, '>' );
+           $port = substr( $port, $start_index+1, $last_index-$start_index-1 );
+        }  
+        $log->debug("Reply address: " . $host . ":" . $port);
+
+        # grab unique identity
+        my $tag_start = index( $rtml, q/<IntelligentAgent/ );
+        my $tag_end = index( $rtml, q/<\/IntelligentAgent/ );
+        
+        $ident = substr( $rtml, $tag_start, $tag_end-$tag_start );
+        my $quot_index = index ( $ident, q/>/ );
+        $ident = substr( $ident, $quot_index+1, length($ident)-$quot_index);
+        $ident =~ s/\n//g;
+        $ident =~ s/\s+//g;
+
+        $log->debug("Identifier: $ident");
+        return ( $host, $port, $ident );
+
+                    
+     }   
+   }
+   
+   return ( undef, undef, undef );
+} 
+
+
+sub fudge_user {
+   my $rtml = shift;
+   my $user = shift;
+
+   # grab references to single instance objects
+   my $log = eSTAR::Logging::get_reference();
+   my $process = eSTAR::Process::get_reference();
+      
+   my @message = split( /\n/, $rtml );
+   
+   $log->debug("Called fudge_user( $user )...");
+   
+   my $new_rtml;
+   foreach my $i ( 0 ... $#message ) {
+     if ( $message[$i] =~ "<User>" ) {
+        if ( $message[$i] =~ "</User>" ) {
+           $message[$i] = "<User>$user</User>";
+        } else {
+           my $error = "Unable to parse <User></User> field from document";
+           throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
+        }     
+     }
+     $new_rtml = $new_rtml . $message[$i] . "\n";
+     
+   }
+   return $new_rtml;
+}     
+
+
+sub fudge_project {
+   my $rtml = shift;
+   my $project_id = shift;
+
+   # grab references to single instance objects
+   my $log = eSTAR::Logging::get_reference();
+   my $process = eSTAR::Process::get_reference();
+      
+   my @message = split( /\n/, $rtml );
+   
+   $log->debug("Called fudge_project_id( $project_id )...");
+   
+   my $new_rtml;
+   foreach my $i ( 0 ... $#message ) {
+     if ( $message[$i] =~ "<Project />" ) {  
+        
+        $message[$i] = "<Project>$project_id</Project>";
+     } else {
+           my $error = "Unable to parse <Project /> field from document";
+           throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
+     } 
+     $new_rtml = $new_rtml . $message[$i] . "\n";
+   }
+   
+   return $new_rtml;
+}
 
 =back
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.10 2005/01/11 14:22:53 aa Exp $
+$Id: Util.pm,v 1.11 2005/05/10 17:56:20 aa Exp $
 
 =head1 AUTHORS
 

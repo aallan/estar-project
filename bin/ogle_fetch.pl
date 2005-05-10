@@ -20,7 +20,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: ogle_fetch.pl,v 1.3 2005/05/10 14:36:35 aa Exp $
+$Id: ogle_fetch.pl,v 1.4 2005/05/10 17:56:20 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -37,7 +37,7 @@ use vars qw / $VERSION /;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -652,7 +652,7 @@ foreach my $n ( 0 ... $#data ) {
 
 }
 
-print Dumper ( @data );
+#print Dumper ( @data );
 
 
 # O B S E V R A T I O N   R E Q U E S T S   T O   U S E R   A G E N T -------
@@ -671,6 +671,9 @@ my $end_time = "$year-$month-$dayplusone" . "T12:00:00";
 
 
 foreach my $n ( 0 ... $#data ) {
+
+   my $counter = $n+1;
+   $log->print("\nBuilding observation request $counter of " . scalar(@data) );
 
    #print Dumper ( $data[$n] );
    
@@ -803,7 +806,7 @@ foreach my $n ( 0 ... $#data ) {
    #}
   
    # Check for transport errors
-   #$log->debug("Transport Status = " . $soap->transport()->status() );
+   #$log->print("Transport Status = " . $soap->transport()->status() );
    #unless ($result->fault() ) {
    #  $log->print("SOAP Result (" . $soap_result->result() .")" );
    #} else {

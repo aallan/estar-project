@@ -3,6 +3,15 @@
         * bin/ogle_fetch.pl: Now correctly parses KDH's web pages and retrieves
           a list of targets, then queues thes up with the user_agent using the
           new_observation() method.
+          
+        * eSTAR/Util.pm: Refactored fudge_message into the utility class along
+          with modifications to handle unquoted host name and port number.
+          
+        * bin/node_agent.pl: Moved fudge_message to Util.pm and modified to
+          try and get rid of non-quoted string in IntelligentAgent tag as they
+          don't parse using XML::Parser
+          
+        * eSTAR/NA/Handler.pm: Ditto for the handler class...    
         
 2005-05-09 Aladair Allan <aa@astro.ex.ac.uk>
 

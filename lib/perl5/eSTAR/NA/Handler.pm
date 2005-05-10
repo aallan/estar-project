@@ -8,7 +8,7 @@ use lib $ENV{"ESTAR_PERL5LIB"};
 
 use strict;
 use subs qw( new set_user ping handle_rtml query_ldap 
-             query_schedule query_webcam fudge_message );
+             query_schedule query_webcam  );
 
 #
 # Threading code (ithreads)
@@ -189,7 +189,7 @@ sub handle_rtml {
    # GRAB MESSAGE
    # ------------
    
-   my ( $host, $port, $ident ) = fudge_message( $rtml );  
+   my ( $host, $port, $ident ) = eSTAR::Util::fudge_message( $rtml );  
         
    # stuff it into global lookup hash
    my $line = "<IntelligentAgent host=\"$host\" port=\"$port\">";
@@ -312,7 +312,7 @@ sub handle_rtml {
    # modifiy the response to include the correct IA information
    $log->debug("Updating host information...");   
 
-   ( $host, $port, $ident ) = fudge_message( $response );  
+   ( $host, $port, $ident ) = eSTAR::Util::fudge_message( $response );  
    
    # grab the original IntelligentAgent tage from lookup hash
         
@@ -324,6 +324,15 @@ sub handle_rtml {
 
    my $current = "<IntelligentAgent host=\"$host\" port=\"$port\">";
    $response =~ s/$current/$original/;
+   
+   # make sure we have quote marks around the host and port numbers
+   my $nonvalid = "<IntelligentAgent host=$host port=$port>";
+   if ( $response =~ $nonvalid ) {
+      $log->warn( "Warning: Invalid string in XML, replacing with valid..." );
+      $log->warn( "Warning: $nonvalid" );
+      my $validstring = "<IntelligentAgent host=\"$host\" port=\"$port\">";
+      $response =~ s/$validstring/$nonvalid/;
+   }   
         
    #$log->debug( "\n" . $response );   
    
@@ -750,112 +759,8 @@ sub query_webcam {
    return SOAP::Data->name('return', 'FAILED' )->type('xsd:string');
    
 }
-                              
-# A S S O C I A T E D   S U B R O U T I N E S ------------------------------
+                             
 
-# grabs the origin host, port and identity of the message from the RTML
-
-sub fudge_message {
-   my $rtml = shift;
-   my @message = split( /\n/, $rtml );
-   
-   $log->debug("Called fudge_message()...");
-   
-   my ( $host, $port, $ident );
-   foreach my $i ( 0 ... $#message ) {
-     if ( $message[$i] =~ "<IntelligentAgent" ) {
-        
-        # grab host and port number
-        $host = $message[$i];
-        $port = $message[$i];
-        
-        # grab hostname
-        my $host_index = index( $message[$i], q/host=/ );
-        my $host = substr( $message[$i], $host_index, 
-                                         length($message[$i])-$host_index );
-        my $start_index = index( $host, q/"/ );         
-        my $port_index = index( $host, q/port=/ );
-        $host = substr( $host, $start_index+1, $port_index-$start_index-1 );
-        my $last_index = rindex( $host, q/"/ );         
-        $host = substr( $host, 0, $last_index );
-        
-        # grab port number
-        $port_index = index( $message[$i], q/port=/ );
-        $last_index = rindex( $message[$i], q/"/ );
-        my $port = substr( $message[$i], $port_index, $last_index-$port_index );
-        $start_index = index( $port, q/"/ );
-        $last_index = rindex( $message[$i], q/"/ );
-        $port = substr( $port, $start_index+1, $last_index-$start_index-1 );
-
-        $log->debug("Reply address: " . $host . ":" . $port);
-
-        # grab unique identity
-        my $tag_start = index( $rtml, q/<IntelligentAgent/ );
-        my $tag_end = index( $rtml, q/<\/IntelligentAgent/ );
-        
-        $ident = substr( $rtml, $tag_start, $tag_end-$tag_start );
-        my $quot_index = index ( $ident, q/>/ );
-        $ident = substr( $ident, $quot_index+1, length($ident)-$quot_index);
-        $ident =~ s/\n//g;
-        $ident =~ s/\s+//g;
-
-        $log->debug("Identifier: $ident");
-        return ( $host, $port, $ident );
-
-                    
-     }   
-   }
-   
-   return ( undef, undef, undef );
-} 
-
-
-sub fudge_user {
-   my $rtml = shift;
-   my $user = shift;
-   
-   my @message = split( /\n/, $rtml );
-   
-   $log->debug("Called fudge_user( $user )...");
-   
-   my $new_rtml;
-   foreach my $i ( 0 ... $#message ) {
-     if ( $message[$i] =~ "<User>" ) {
-        if ( $message[$i] =~ "</User>" ) {
-           $message[$i] = "<User>$user</User>";
-        } else {
-           my $error = "Unable to parse <User></User> field from document";
-           throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
-        }     
-     }
-     $new_rtml = $new_rtml . $message[$i] . "\n";
-     
-   }
-   return $new_rtml;
-}     
-
-
-sub fudge_project {
-   my $rtml = shift;
-   my $project_id = shift;
-   
-   my @message = split( /\n/, $rtml );
-   
-   $log->debug("Called fudge_project_id( $project_id )...");
-   
-   my $new_rtml;
-   foreach my $i ( 0 ... $#message ) {
-     if ( $message[$i] =~ "<Project />" ) {  
-        
-        $message[$i] = "<Project>$project_id</Project>";
-     }
-     $new_rtml = $new_rtml . $message[$i] . "\n";
-   }
-   
-   return $new_rtml;
-}
-                      
-                  
 1;                                
                   
                   
