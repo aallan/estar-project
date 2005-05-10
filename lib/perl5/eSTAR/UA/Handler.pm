@@ -1412,7 +1412,6 @@ sub handle_rtml {
      $observation_object->id( $id );
      $observation_object->type( $message->type() );
    }      
-   $observation_object->status('returned');
      
         
    # UPDATE MESSAGE
@@ -1438,6 +1437,7 @@ sub handle_rtml {
       # look to stop things getting mucked up
       $log->debug( "Storing 'update' RTML in \$observation_object");
       $observation_object->update($message);
+      $observation_object->status('update');
       
       # re-serialise the object
       my $status = eSTAR::Util::freeze( $id, $observation_object ); 
@@ -1465,7 +1465,26 @@ sub handle_rtml {
          $log->warn( 
             "Warning: Problem re-serialising the \$observation_object");
       } 
-  
+      
+   # FAILED MESSAGE
+   # ============== 
+   } elsif ( $type eq "failed" ) { 
+     
+      $log->warn( "Warning: Got an 'failed' message...");      
+      $log->warn( "Storing 'failed' RTML in \$observation_object");
+     
+      # we have a reject at this late stage, replace the obs_reply object
+      # with the rejection message, shouldn't happen, but on occasion the
+      # DN does do "late rejection", no idea why.
+      $observation_object->obs_reply($message); 
+      $observation_object->status('failed');        
+       
+      # re-serialise the object
+      my $status = eSTAR::Util::freeze( $id, $observation_object ); 
+      if ( $status == ESTAR__ERROR ) {
+         $log->warn( 
+            "Warning: Problem re-serialising the \$observation_object");
+      }   
    # ABORT MESSAGE
    # =============
    } elsif ( $type eq "abort" ) { 
@@ -1488,6 +1507,7 @@ sub handle_rtml {
    } elsif ( $type eq "observation" ) {   
       $log->debug( "Storing 'observation' RTML in \$observation_object");
       $observation_object->observation($message);
+      $observation_object->status('returned');
   
       # Parse FITS header block
       # -----------------------
