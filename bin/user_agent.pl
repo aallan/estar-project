@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: user_agent.pl,v 1.15 2005/05/10 20:47:06 aa Exp $
+#     $Id: user_agent.pl,v 1.16 2005/05/12 08:21:17 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -65,7 +65,7 @@ itself.
 
 =head1 REVISION
 
-$Id: user_agent.pl,v 1.15 2005/05/10 20:47:06 aa Exp $
+$Id: user_agent.pl,v 1.16 2005/05/12 08:21:17 aa Exp $
 
 =head1 AUTHORS
 
@@ -82,7 +82,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.15 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.16 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -412,8 +412,8 @@ $ua->set_ua( $lwp );
 #$config->set_option( "nodes.Exeter", "dn2.astro.ex.ac.uk" );
 #$config->set_option( "nodes.LJM", "150.204.240.111" );
 #$config->set_option( "nodes.UKIRT", "estar.ukirt.jach.hawaii.edu" );
-#$config->set_option( "nodes.LTproxy", "estar.astro.ex.ac.uk" );
-$config->set_option( "nodes.FTNproxy", "estar.astro.ex.ac.uk" );
+$config->set_option( "nodes.LTproxy", "estar.astro.ex.ac.uk" );
+$config->set_option( "nodes.FTNproxy", "estar2.astro.ex.ac.uk" );
 #$config->set_option( "nodes.Test", "127.0.0.1" );
 $status = $config->write_option( );
 
@@ -593,6 +593,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: user_agent.pl,v $
+# Revision 1.16  2005/05/12 08:21:17  aa
+# Added both FTN and LT proxy hosts to nodes list
+#
 # Revision 1.15  2005/05/10 20:47:06  aa
 # Increased default timeout, the Robonet ERS take bloody ages to talk back to us, bummer!
 #
