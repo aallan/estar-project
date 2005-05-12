@@ -20,7 +20,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: ogle_fetch.pl,v 1.4 2005/05/10 17:56:20 aa Exp $
+$Id: ogle_fetch.pl,v 1.5 2005/05/12 08:21:45 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -37,7 +37,7 @@ use vars qw / $VERSION /;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -223,7 +223,7 @@ if ( $config->get_state("of.unique_process") == 1 ) {
    $config->set_option("of.url", "cgi/~cdbs/optimise.pl");
 
    # connection options defaults
-   $config->set_option("connection.timeout", 5 );
+   $config->set_option("connection.timeout", 20 );
    $config->set_option("connection.proxy", 'NONE'  );
   
    # mail server
@@ -657,20 +657,22 @@ foreach my $n ( 0 ... $#data ) {
 
 # O B S E V R A T I O N   R E Q U E S T S   T O   U S E R   A G E N T -------
 
-my $interval = 6.0/${$data[$n]}{SeriesCount};
-my $tolerance = $interval/2.0;
-
 my $year = 1900 + localtime->year();
 my $month = localtime->mon() + 1;
 my $day = localtime->mday();
 my $dayplusone = $day + 1;
       
 # mid-afternoon local till 24 hours later 
-my $start_time = "$year-$month-$day" . "T12:00:00";
-my $end_time = "$year-$month-$dayplusone" . "T12:00:00";
+my $start_time = "$year-$month-$day" . "T16:00:00";
+my $end_time = "$year-$month-$dayplusone" . "T16:00:00";
 
 
 foreach my $n ( 0 ... $#data ) {
+
+   my $interval = 6.0*60.0*60.0/${$data[$n]}{SeriesCount};
+   my $tolerance = $interval/2.0;
+   $interval = $interval . "S";
+   $tolerance = $tolerance . "S";
 
    my $counter = $n+1;
    $log->print("\nBuilding observation request $counter of " . scalar(@data) );
@@ -738,7 +740,6 @@ foreach my $n ( 0 ... $#data ) {
                           passband      => "R",
                           type          => "ExoPlanetMonitor",
                           followup      => 0,
-                          groupcount    => ${$data[$n]}{GroupCount},
                           starttime     => $start_time,
                           endtime       => $end_time );
    } else {
@@ -789,32 +790,32 @@ foreach my $n ( 0 ... $#data ) {
    $soap->proxy($endpoint, cookie_jar => $cookie_jar);
 
    $log->debug("Calling new_observation( ) in 'urn:/user_agent' at $endpoint" );
-   #foreach my $key ( keys %observation ) {
-   #  $log->print("                         $key => " . $observation{$key});
-   #}
+   foreach my $key ( keys %observation ) {
+     $log->print("                         $key => " . $observation{$key});
+   }
     
     
    # grab the result 
    my $soap_result;
-   #eval { $soap_result = $soap->new_observation( %observation ); };
+   eval { $soap_result = $soap->new_observation( %observation ); };
    
    # check for coding errors
-   #if ( $@ ) {
-   #  my $error = "Error $@";
-   #  $log->error( $error );
-   #  throw eSTAR::Error::FatalError( $error, ESTAR__FATAL);
-   #}
+   if ( $@ ) {
+     my $error = "Error $@";
+     $log->error( $error );
+     throw eSTAR::Error::FatalError( $error, ESTAR__FATAL);
+   }
   
    # Check for transport errors
-   #$log->print("Transport Status = " . $soap->transport()->status() );
-   #unless ($result->fault() ) {
-   #  $log->print("SOAP Result (" . $soap_result->result() .")" );
-   #} else {
-   #  my $error = "Error: " . $soap_result->faultstring();
-   #  $log->error("Error: Fault code = " . $soap_result->faultcode() );
-   #  $log->error( $error );
-   #  throw eSTAR::Error::FatalError( $error, ESTAR__FATAL);
-   #}  
+   $log->print("Transport Status = " . $soap->transport()->status() );
+   unless ($soap_result->fault() ) {
+     $log->print("SOAP Result (" . $soap_result->result() .")" );
+   } else {
+     my $error = "Error: " . $soap_result->faultstring();
+     $log->error("Error: Fault code = " . $soap_result->faultcode() );
+     $log->error( $error );
+     throw eSTAR::Error::FatalError( $error, ESTAR__FATAL);
+   }  
   
 
 
