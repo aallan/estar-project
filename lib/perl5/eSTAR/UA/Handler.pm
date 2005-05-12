@@ -314,8 +314,8 @@ sub new_observation {
    # check that RA and Dec are defined, either has been resolved using
    # Sesame, or was passed as part of the %observation hash object
    
-   
-   if ( defined $observation{'target'}  && $observation{'target'} ne '') {
+   unless ( defined $observation{'ra'} && defined $observation{'dec'} ) {
+    if ( defined $observation{'target'}  && $observation{'target'} ne '' ) {
    
      # resolve using Sesame
      $log->debug("Contacting CDS Sesame...");
@@ -372,6 +372,7 @@ sub new_observation {
      }
      $log->debug("Resolved $observation{'target'} to (" .
                        $observation{'ra'} . ", " .  $observation{'dec'} . ")" );     
+    }
    }
     
    # check we have valid RA & Dec
@@ -774,6 +775,7 @@ sub new_observation {
                SOAP::Data->name('query', $score_rtml )->type('xsd:string')); };
       if ( $@ ) {
          $log->warn("Warning: Failed to connect to " . $NODES[$i] );
+         $log->warn("Warning: Skipping to next node..."  );
          next;    
       }
    
@@ -1179,6 +1181,7 @@ sub new_observation {
       
       
       $log->error( $error );
+      $log->error( "Error: Could not connect to best scoring node..." );
       return SOAP::Data->name('return', $error )->type('xsd:string'); 
    }
    
@@ -1508,7 +1511,17 @@ sub handle_rtml {
       $log->debug( "Storing 'observation' RTML in \$observation_object");
       $observation_object->observation($message);
       $observation_object->status('returned');
-  
+
+      # CHECK-POINT save - re-serialise the object
+      my $status = eSTAR::Util::freeze( $id, $observation_object );
+      if ( $status == ESTAR__ERROR ) {
+            $log->warn( 
+            "Warning: Problem re-serialising the \$observation_object");
+      } else {
+         $log->debug(
+       "Check-point, \$observation_object has been serialised.");
+      }
+         
       # Parse FITS header block
       # -----------------------
       $log->debug("Reading FITS Header Cards...");
@@ -1610,7 +1623,7 @@ sub handle_rtml {
         # the network conenction failed      
         $log->error(
           "Error: (${$reply}{_rc}): Failed to establish network connection");
-        $log->error( "Error:" . ${$reply}{_msg} );
+        $log->error( "Error: " . ${$reply}{_msg} );
 
       }
       
@@ -1620,17 +1633,24 @@ sub handle_rtml {
       my $catalog = $message->catalogue();
  
       # read catalog file        
-      my $cluster = new Astro::Catalog( Format => 'Cluster', Data => $catalog );
-      $log->debug("Parsed Cluster catalogue (" . 
-                        $cluster->sizeof() ." lines)");
+      my $cluster;
+      eval { $cluster = new Astro::Catalog( Format => 'Cluster', Data => $catalog ); 
+             $log->debug("Parsed Cluster catalogue (" . 
+                         $cluster->sizeof() ." lines)");  };
+      if ( $@ ) {
+         my $error = "$@";
+         $log->error( "Error: $error" );
+      } else {                      
  
-      # stuffing into observation object
-      $observation_object->catalog( $cluster ); 
+         # stuffing into observation object
+         $observation_object->catalog( $cluster ); 
+      }
+      
       
       # re-serialise the object
       my $status = eSTAR::Util::freeze( $id, $observation_object );
       if ( $status == ESTAR__ERROR ) {
-         $log->warn( 
+            $log->warn( 
             "Warning: Problem re-serialising the \$observation_object");
       } else {
          $log->debug(
@@ -1648,8 +1668,9 @@ sub handle_rtml {
       # why this might be the case, so lets risk it for now. Just try and
       # remember this be a problem if we're getting trashed state files
       my $obs_type = $observation_object->type();
-      if( $obs_type =~ "Automatic" ) {
-         $log->print("Identified automatic followup observation...");
+      if( $obs_type =~ "Automatic" ||
+          $obs_type =~ "FollowupTo" ) {
+         $log->print("Identified followup observation...");
          my $old_id = $obs_type;
          my $index = index($old_id, " "); 
          $old_id = substr( $old_id, $index+1, length($old_id)-$index );
@@ -1772,7 +1793,22 @@ sub handle_rtml {
          }
       }
 
-   } # end of elsif ( $type eq "observation" )
+   
+   # INCOMPLETE MESSAGE
+   # ==================    
+   } elsif ( $type eq "incomplete" ) {   
+      $log->debug( "Storing 'incomplete' RTML in \$observation_object");
+      $observation_object->observation($message);
+      $observation_object->status('incomplete'); 
+     
+      # re-serialise the object
+      my $status = eSTAR::Util::freeze( $id, $observation_object ); 
+      if ( $status == ESTAR__ERROR ) {
+         $log->warn( 
+            "Warning: Problem re-serialising the \$observation_object");
+      }  
+            
+   }   # end of elsif ( $type eq "incomplete" )
    
    $log->debug( "Returning 'ACK' message" );
    return SOAP::Data->name('return', 'ACK')->type('xsd:string');
