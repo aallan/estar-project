@@ -51,6 +51,7 @@ use Astro::FITS::CFITSIO;
 use Astro::FITS::Header;
 use Astro::Catalog;
 use Astro::Catalog::Query::Sesame;
+
 my ($log, $process, $ua, $config);
 
 # ==========================================================================

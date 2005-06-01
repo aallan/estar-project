@@ -28,7 +28,7 @@ use Net::Domain qw(hostname hostdomain);
 use Config::Simple;
 use Config::User;
 use Data::Dumper;
-use Fcntl ':flock';
+use Fcntl qw(:DEFAULT :flock);
 
 # 
 # eSTAR modules
@@ -38,13 +38,15 @@ use eSTAR::Logging;
 use eSTAR::Constants qw/:all/;
 use eSTAR::Util;
 use eSTAR::Process;
+use eSTAR::Mail;
+use eSTAR::Config;
 
 #
 # Astro modules
 #
 use Astro::Catalog;
 
-my $log;
+my ($log, $process, $ua, $config);
 
 # ==========================================================================
 # U S E R   A U T H E N T I C A T I O N
@@ -55,7 +57,10 @@ sub new {
   
   my $self = bless {}, $class;
   $log = eSTAR::Logging::get_reference();
-  
+  $process = eSTAR::Process::get_reference();
+  $ua = eSTAR::UserAgent::get_reference();
+  $config = eSTAR::Config::get_reference();
+    
   if( $user and $passwd ) {
     return undef unless $self->set_user( user => $user, password => $passwd );
   }
@@ -188,7 +193,7 @@ sub get_option {
    # grab the arguement telling us what we're looking for...
    my $option = shift;
 
-   my $value = eSTAR::Util::get_option( $option );
+   my $value = $config->get_option( $option );
    if ( $value == ESTAR__ERROR ) {
       $log->error("Error: Unable to get value from configuration file" );
       die SOAP::Fault

@@ -3,6 +3,14 @@
         * bin/correlation_daemon.pl: Stub of the correlation daemon that will
 	  be doing the cross-correlation between the intra- and inter-frame
 	  comparisons for the WFCAM survey agent.
+	  
+	* bin/wfcam_agent.pl: Updated to use the 3rd generation code base.
+	
+	* bin/data_miner.pl: Updated to use the 3rd generation code base.
+	
+	* eSTAR/WFCAM/*.pm: Updated to use the 3rd generation code base.
+	
+	* eSTAR/Miner/*.pm: Updated to use the 3rd generation code base.
 	   
 2005-05-10 Aladair Allan <aa@astro.ex.ac.uk>
 

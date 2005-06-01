@@ -26,7 +26,7 @@ use Net::Domain qw(hostname hostdomain);
 use Config::Simple;
 use Config::User;
 use Data::Dumper;
-use Fcntl ':flock';
+use Fcntl qw(:DEFAULT :flock);
 
 # 
 # eSTAR modules
@@ -35,16 +35,17 @@ use eSTAR::SOAP::User;
 use eSTAR::Logging;
 use eSTAR::Constants qw/:all/;
 use eSTAR::Util qw//;
+use eSTAR::Mail;
+use eSTAR::Config;
 
 # 
 # Astro modules
 #
 use Astro::Catalog;
 use Astro::Catalog::Query::SIMBAD;
-
 use Astro::SIMBAD::Query;
 
-my $log;
+my ($log, $process, $ua, $config);
 
 # ==========================================================================
 # U S E R   A U T H E N T I C A T I O N
@@ -55,7 +56,10 @@ sub new {
   
   my $self = bless {}, $class;
   $log = eSTAR::Logging::get_reference();
-  
+  $process = eSTAR::Process::get_reference();
+  $ua = eSTAR::UserAgent::get_reference();
+  $config = eSTAR::Config::get_reference();
+    
   if( $user and $passwd ) {
     return undef unless $self->set_user( user => $user, password => $passwd );
   }
@@ -188,7 +192,7 @@ sub get_option {
    # grab the arguement telling us what we're looking for...
    my $option = shift;
 
-   my $value = eSTAR::Util::get_option( $option );
+   my $value = $config->get_option( $option );
    if ( $value == ESTAR__ERROR ) {
       $log->error("Error: Unable to get value from configuration file" );
       die SOAP::Fault
@@ -200,10 +204,11 @@ sub get_option {
    return SOAP::Data->name('return', $value )->type('xsd:string');
 } 
 
+
 sub set_option {
    my $self = shift;
 
-   $log->debug("Called set_option() from \$tid = ".threads->tid());
+   $log->debug("Called set_option() from \$tid = ".threads->tid());   
    $config->reread();
    
    # not callable as a static method, so must have a value
@@ -217,6 +222,7 @@ sub set_option {
    
    my $option = shift;
    my $value = shift;
+
 
    $log->debug("Setting $option = $value");
    my $status = $config->set_option( $option, $value );
@@ -238,6 +244,7 @@ sub set_option {
 
    $log->debug("Returned STATUS message" );
    return SOAP::Data->name('return', ESTAR__OK )->type('xsd:integer');
+
 } 
 
 # ==========================================================================
@@ -299,7 +306,7 @@ sub handle_objects {
       	
       # Check each Star
       # ---------------
-      my $error = eSTAR::Util::get_option( "simbad.error" );
+      my $error = $config->get_option( "simbad.error" );
       $log->debug("Searching SIMBAD at $error arcsec...");
       foreach my $i ( 0 ... $catalog->sizeof()-1 ) {
    

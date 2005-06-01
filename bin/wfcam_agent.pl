@@ -19,7 +19,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: wfcam_agent.pl,v 1.11 2005/01/11 14:24:51 aa Exp $
+#     $Id: wfcam_agent.pl,v 1.12 2005/06/01 23:59:15 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -40,7 +40,7 @@ use strict;
 #  %OPT      - Options hash for things we don't want to be persistant
 #  $log      - Handle for logging object
 
-use vars qw / $VERSION $CONFIG $STATE %OPT $log /;
+use vars qw / $VERSION %OPT $log $config /;
 
 # local status variable
 my $status;
@@ -63,7 +63,7 @@ passing data mining jobs out to a seperate data ining process.
 
 =head1 REVISION
 
-$Id: wfcam_agent.pl,v 1.11 2005/01/11 14:24:51 aa Exp $
+$Id: wfcam_agent.pl,v 1.12 2005/06/01 23:59:15 aa Exp $
 
 =head1 AUTHORS
 
@@ -80,7 +80,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -117,6 +117,7 @@ use eSTAR::Constants qw /:all/;
 use eSTAR::Util;
 use eSTAR::Process;
 use eSTAR::UserAgent;
+use eSTAR::Config;
 
 #
 # Config modules
@@ -132,11 +133,19 @@ use CfgTie::TieUser;
 #
 use Config;
 use Data::Dumper;
+use Fcntl qw(:DEFAULT :flock);
 
 # tag name of the current process, this identifies where log and 
 # status files for this process will be stored.
 my $process = new eSTAR::Process( "wfcam_agent" );  
+
+# tag name of the current process, this identifies where log and 
+# status files for this process will be stored.
 $process->set_version( $VERSION );
+
+# need to use the generic "node_agent" urn instead of the process
+# id in this case...
+$process->set_urn( "wfcam_agent" );
 
 # C A T C H   S I G N A L S -------------------------------------------------
 
@@ -182,118 +191,76 @@ if ( $Config{'useithreads'} ne "define" ) {
    throw eSTAR::Error::FatalError($error, ESTAR__FATAL);      
 }
 
-# A G E N T  C O N F I G  F I L E --------------------------------------------
+# A G E N T  C O N F I G U R A T I O N ----------------------------------------
 
 # OPTIONS FILE
 # ------------
 
 # Load in previously saved options, should be in a file in the users home 
-# directory. If not there, we go with the defaults.
-
-# grab users home directory and define options filename
-my $config_file = 
- File::Spec->catfile( Config::User->Home(), '.estar', 
-                      $process->get_process(), 'options.dat' );
-
-# open (or create) the options file
-$log->debug("Reading configuration from $config_file");
-$CONFIG = new Config::Simple( filename => $config_file, mode=>O_RDWR|O_CREAT );
-
-unless ( defined $CONFIG ) {
-   # can't read/write to options file, bail out
-   my $error = "FatalError: " . $Config::Simple::errstr;
-   $log->error(chomp($error));
-   throw eSTAR::Error::FatalError($error, ESTAR__FATAL);      
-}
-
-# store the options filename in the file itself, not sure why this is
-# useful but I'm sure it'll come in handly at some point.
-$CONFIG->param( "wfcam.options", $config_file );
-
-# commit basic defaults to Options file
-my $status = $CONFIG->write( $CONFIG->param( "wfcam.options" ) );
-
-# A G E N T   S T A T E   F I L E --------------------------------------------
+# directory. If not there, we go with the defaults and commit basic defaults 
+# to Options file
 
 # STATE FILE
 # ----------
 
-# To a certain extent the agentmust be persitant state. This is saved and 
-# stored in the users home directory using Config::Simple.
+# To a certain extent the UA must be persitant state, it needs to know about
+# observations previously taken, the current unique ID (this is vital) and
+# a bunch of other stuff. This is saved and stored in the users home directory 
+# using Config::Simple.
 
-# grab users home directory and define options filename
-my $state_file = 
-  File::Spec->catfile(Config::User->Home(), '.estar', 
-                      $process->get_process(), 'state.dat' );
+$config = new eSTAR::Config(  );  
 
-# open (or create) the options file
-$log->debug("Reading agent state from $state_file");
-$STATE = new Config::Simple( filename => $state_file, mode=>O_RDWR|O_CREAT );
+# A G E N T   S T A T E   F I L E --------------------------------------------
 
-unless ( defined $STATE ) {
-   # can't read/write to state file, scream and shout!
-   my $error = "FatalError: " . $Config::Simple::errstr;
-   $log->error(chomp($error));
-   throw eSTAR::Error::FatalError($error, ESTAR__FATAL);      
-}
-
-# store the state filename in the file itself...
-$STATE->param( "wfcam.state", $state_file );
-
-# and the options filename
-$STATE->param( "wfcam.options", $config_file );
-
-# and to the configuration file
-$CONFIG->param( "wfcam.state", $state_file );
 
 # HANDLE UNIQUE ID
 # ----------------
   
-# create a unique ID for each process, increment every time an process is
+# create a unique ID for each UA process, increment every time an UA is
 # created and save it immediately to the state file, of course eventually 
 # we'll run out of ints, I guess that will be bad...
 
 my ( $number, $string );
-$number = $STATE->param( "wfcam.unique_process" ); 
-if ( $number eq '' ) {
+$number = $config->get_state( "wfcam.unique_process" ); 
+unless ( defined $number ) {
   # $number is not defined correctly (first ever run of the program?)
-  $STATE->param( "wfcam.unique_process", 0 );
   $number = 0; 
 }
 
 # increment ID number
 $number = $number + 1;
-$STATE->param( "wfcam.unique_process", $number );
+$config->set_state( "wfcam.unique_process", $number );
+$log->debug("Setting wfcam.unique_process = $number"); 
   
 # commit ID stuff to STATE file
-my $status = $STATE->write( $STATE->param( "wfcam.state" ) );
+$status = $config->write_state();
 unless ( defined $status ) {
   # can't read/write to options file, bail out
-  my $error = "FatalError: " . $Config::Simple::errstr;
-  $log->error(chomp($error));
+  my $error = "FatalError: Can not read or write to state.dat file";
+  $log->error( $error );
   throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
 } else {    
-  $log->debug("Unique process ID: updated " . 
-              $STATE->param( "wfcam.state" ) );
+  $log->debug("Unique process ID: updated state.dat file" );
 }
 
 # PID OF USER AGENT
 # -----------------
 
-# log the current $pid of the wfcam_agent.pl process to the state 
+# log the current $pid of the user_agent.pl process to the state 
 # file  so we can kill it from the SOAP server.
-$STATE->param( "wfcam.pid", getpgrp() );
+$config->set_state( "wfcam.pid", getpgrp() );
   
 # commit $pid to STATE file
-my $status = $STATE->write( $STATE->param( "wfcam.state" ) );
+$status = $config->write_state();
 unless ( defined $status ) {
   # can't read/write to options file, bail out
-  my $error = "FatalError: " . $Config::Simple::errstr;
-  $log->error(chomp($error));
+  my $error = "FatalError: Can not read or write to state.dat file";
+  $log->error( $error );
   throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
 } else {    
-  $log->debug("WFCAM Agent PID: " . $STATE->param( "wfcam.pid" ) );
+  $log->debug("WFCAM Agent PID: " . $config->get_state( "wfcam.pid" ) );
 }
+
 
 # L A T E  L O A D I N G  M O D U L E S ------------------------------------- 
 
@@ -337,108 +304,24 @@ use eSTAR::WFCAM::SOAP::Daemon;  # replaces for SOAP::Transport::HTTP::Daemon
 use eSTAR::WFCAM::SOAP::Handler; # SOAP layer ontop of handler class
 
 
-# E S T A R   D A T A   D I R E C T O R Y -----------------------------------
+# M A K E   D I R E C T O R I E S -------------------------------------------
 
-# Grab the $ESTAR_DATA enivronment variable and confirm that this directory
-# exists and can be written to by the user, if $ESTAR_DATA isn't defined we
-# fallback to using the temporary directory /tmp.
-
-# Grab something for DATA directory
-if ( defined $ENV{"ESTAR_DATA"} ) {
-
-   if ( opendir (DIR, File::Spec->catdir($ENV{"ESTAR_DATA"}) ) ) {
-      # default to the ESTAR_DATA directory
-      $CONFIG->param("wfcam.data", File::Spec->catdir($ENV{"ESTAR_DATA"}) );
-      closedir DIR;
-      $log->debug("Verified \$ESTAR_DATA directory " . $ENV{"ESTAR_DATA"});
-   } else {
-      # Shouldn't happen?
-      my $error = "Cannot open $ENV{ESTAR_DATA} for incoming files";
-      $log->error($error);
-      throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
-   }  
-         
-} elsif ( opendir(TMP, File::Spec->tmpdir() ) ) {
-      # fall back on the /tmp directory
-      $CONFIG->param("wfcam.data", File::Spec->tmpdir() );
-      closedir TMP;
-      $log->debug("Falling back to using /tmp as \$ESTAR_DATA directory");
-} else {
-   # Shouldn't happen?
-   my $error = "Cannot open any directory for incoming files.";
-   $log->error($error);
-   throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
+# create the data, state and tmp directories if needed
+$status = $config->make_directories();
+unless ( defined $status ) {
+  # can't read/write to options file, bail out
+  my $error = "FatalError: Problems creating data directories";
+  $log->error( $error );
+  throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
 } 
-
-# A G E N T   S T A T E  D I R E C T O R Y ----------------------------------
-
-# This directory where the agent caches its objects between runs
-my $state_dir = 
-   File::Spec->catdir( Config::User->Home(), ".estar", 
-                       $process->get_process(), "state");
-
-if ( opendir ( SDIR, $state_dir ) ) {
-  
-  # default to the ~/.estar/$process->get_process()/state directory
-  $CONFIG->param("wfcam.cache", $state_dir );
-  $STATE->param("wfcam.cache", $state_dir );
-  $log->debug("Verified state directory ~/.estar/" .
-              $process->get_process() . "/state");
-  closedir SDIR;
-} else {
-  # make the directory
-  mkdir $state_dir, 0755;
-  if ( opendir (SDIR, $state_dir ) ) {
-     # default to the ~/.estar/$process->get_process()/state directory
-     $CONFIG->param("wfcam.cache", $state_dir );
-     $STATE->param("wfcam.cache", $state_dir );
-     closedir SDIR;  
-     $log->debug("Creating state directory ~/.estar/" .
-                  $process->get_process() . "/state");
-  } else {
-     # can't open or create it, odd huh?
-     my $error = "Cannot make directory " . $state_dir;
-     $log->error( $error );
-     throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
-  }
-} 
-            
-# A G E N T   T E M P  D I R E C T O R Y ----------------------------------
-
-# This directory where the agent drops temporary files
-my $tmp_dir = 
-   File::Spec->catdir( Config::User->Home(), ".estar", 
-                       $process->get_process(), "tmp");
-
-if ( opendir ( TDIR, $tmp_dir ) ) {
-  
-  # default to the ~/.estar/$process->get_process()/tmp directory
-  $CONFIG->param("wfcam.tmp", $tmp_dir );
-  $STATE->param("wfcam.tmp", $tmp_dir );
-  $log->debug("Verified tmp directory ~/.estar/" . 
-              $process->get_process() . "/tmp");
-  closedir TDIR;
-} else {
-  # make the directory
-  mkdir $tmp_dir, 0755;
-  if ( opendir (TDIR, $tmp_dir ) ) {
-     # default to the ~/.estar/$process/tmp directory
-     $CONFIG->param("wfcam.tmp", $tmp_dir );
-     $STATE->param("wfcam.tmp", $tmp_dir );
-     closedir TDIR;  
-     $log->debug("Creating tmp directory ~/.estar/" .
-                 $process->get_process() . "/tmp");
-  } else {
-     # can't open or create it, odd huh?
-     my $error = "Cannot make directory " . $tmp_dir;
-     $log->error( $error );
-     throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
-  }
-}  
 
 # M A I N   O P T I O N S   H A N D L I N G ---------------------------------
 
-if ( $STATE->param("wfcam.unique_process") == 1 ) {
+# grab current IP address
+my $ip = inet_ntoa(scalar(gethostbyname(hostname())));
+$log->debug("This machine as an IP address of $ip");
+
+if ( $config->get_state("wfcam.unique_process") == 1 ) {
 
    my %user_id;
    tie %user_id, "CfgTie::TieUser";
@@ -446,43 +329,40 @@ if ( $STATE->param("wfcam.unique_process") == 1 ) {
    # grab current user
    my $current_user = $user_id{$ENV{"USER"}};
    my $real_name = ${$current_user}{"GCOS"};
-   
-   # grab current IP address
-   my $ip = inet_ntoa(scalar(gethostbyname(hostname())));   
-     
+  
    # user defaults
-   $CONFIG->param("user.user_name", $ENV{"USER"} );
-   $CONFIG->param("user.real_name", $real_name );
-   $CONFIG->param("user.email_address", $ENV{"USER"} . "@" .hostdomain() );
-   $CONFIG->param("user.institution", "eSTAR Project" );
+   $config->set_option("user.user_name", $ENV{"USER"} );
+   $config->set_option("user.real_name", $real_name );
+   $config->set_option("user.email_address", $ENV{"USER"} . "@" .hostdomain() );
+   $config->set_option("user.institution", "eSTAR Project" );
 
    # server parameters
-   $CONFIG->param("server.host", $ip );
-   $CONFIG->param("server.port", 8005 );
+   $config->set_option("server.host", $ip );
+   $config->set_option("server.port", 8005 );
 
    # user agent parameters
-   $CONFIG->param("agent.port", 8000 );
+   $config->set_option("agent.port", 8000 );
 
    # interprocess communication
-   $CONFIG->param("agent.user", "agent" );
-   $CONFIG->param("agent.passwd", "InterProcessCommunication" );
+   $config->set_option("agent.user", "agent" );
+   $config->set_option("agent.passwd", "InterProcessCommunication" );
 
    # USNO-A2 options defaults
-   $CONFIG->param("usnoa2.radius", 10);
-   $CONFIG->param("usnoa2.nout", 9000);
-   $CONFIG->param("usnoa2.url", "archive.eso.org" );
+   $config->set_option("usnoa2.radius", 10);
+   $config->set_option("usnoa2.nout", 9000);
+   $config->set_option("usnoa2.url", "archive.eso.org" );
 
    # 2MASS options defaults
-   $CONFIG->param("2mass.radius", 4 );
+   $config->set_option("2mass.radius", 4 );
 
    # SIMBAD option defaults
-   $CONFIG->param("simbad.error", 5 );
-   $CONFIG->param("simbad.units", "arcsec");
-   $CONFIG->param("simbad.url", "simbad.u-strasbg.fr" );
+   $config->set_option("simbad.error", 5 );
+   $config->set_option("simbad.units", "arcsec");
+   $config->set_option("simbad.url", "simbad.u-strasbg.fr" );
    
    # connection options defaults
-   $CONFIG->param("connection.timeout", 5 );
-   $CONFIG->param("connection.proxy", 'NONE'  );   
+   $config->set_option("connection.timeout", 5 );
+   $config->set_option("connection.proxy", 'NONE'  );   
   
    # C O M M I T T   O P T I O N S  T O   F I L E S
    # ----------------------------------------------
@@ -490,8 +370,8 @@ if ( $STATE->param("wfcam.unique_process") == 1 ) {
    # committ CONFIG and STATE changes
    $log->warn("Initial default options being generated");
    $log->warn("Committing options and state changes...");
-   my $status = $CONFIG->write( $CONFIG->param( "wfcam.options" ) );
-   my $status = $STATE->write( $STATE->param( "wfcam.state" ) );
+   $status = $config->write_option( );
+   $status = $config->write_state();
 }
       
 # ===========================================================================
@@ -499,14 +379,16 @@ if ( $STATE->param("wfcam.unique_process") == 1 ) {
 # ===========================================================================
 
 $log->debug("Creating an HTTP User Agent...");
+ 
 
 # Create HTTP User Agent
-my $lwp = new LWP::UserAgent( timeout => $CONFIG->param( "connection.timeout" ));
+my $lwp = new LWP::UserAgent( 
+                timeout => $config->get_option( "connection.timeout" ));
 
 # Configure User Agent                         
-$lpw->env_proxy();
+$lwp->env_proxy();
 $lwp->agent( "eSTAR WFCAM Survey Agent /$VERSION (" 
-             . hostname() . "." . hostdomain() .")");
+            . hostname() . "." . hostdomain() .")");
 
 my $ua = new eSTAR::UserAgent(  );  
 $ua->set_ua( $lwp );
@@ -537,7 +419,7 @@ my $soap_server = sub {
    # create SOAP daemon
    $log->thread($thread_name, "Starting server (\$tid = ".threads->tid().")");  
    $daemon = eval{ new eSTAR::WFCAM::SOAP::Daemon( 
-                      LocalPort     => $CONFIG->param( "server.port"),
+                      LocalPort     => $config->get_option( "server.port"),
                       Listen        => 5, 
                       Reuse         => 1 ) };   
                     
@@ -609,24 +491,31 @@ sub kill_agent {
       $log->warn("Warning: Process interrupted, possible data loss...");
    }
    
+  # committ CONFIG and STATE changes
+   $log->warn("Warning: Committing options and state changes");
+   $config->reread();
+   $config->write_option( );
+   $config->write_state( );  
+   
    # flush the error stack
    $log->debug("Flushing error stack...");
    my $error = eSTAR::Error->prior();
    $error->flush() if defined $error;
     
    # kill the agent process
-   $log->print("Killing wfcam_agent processes...");
+   $log->print("Killing user_agent processes...");
 
    # close out log files
    $log->closeout();
    
    # ring my bell, baby
-   if ( $OPT{"BLEEP"} == ESTAR__OK ) {
-     for (1..10) {print STDOUT "\a"; select undef,undef,undef,0.2}
-   }
+   #if ( $OPT{"BLEEP"} == ESTAR__OK ) {
+   #  for (1..10) {print STDOUT "\a"; select undef,undef,undef,0.2}
+   #}
 
    # kill -9 the agent process, hung threads should die screaming
-   killfam 9, ( $STATE->param( "wfcam.pid") );
+   killfam 9, ( $config->get_state( "wfcam.pid") );
+   #$log->warn( "Warning: Not calling killfam 9" );
    
    # close the door behind you!   
    exit;
@@ -635,6 +524,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: wfcam_agent.pl,v $
+# Revision 1.12  2005/06/01 23:59:15  aa
+# Updates to handle new 3rd generation code base
+#
 # Revision 1.11  2005/01/11 14:24:51  aa
 # Minor modifications
 #
