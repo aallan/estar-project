@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -79,8 +79,6 @@ $process->set_version( $VERSION );
 # Get date and time
 my $date = scalar(localtime);
 my $host = hostname;
-
-print "date: $date\n";
 
 # L O G G I N G --------------------------------------------------------------
 
@@ -456,7 +454,7 @@ sub kill_process {
    #}
 
    # kill -9 the agent process, hung threads should die screaming
-#   killfam 9, ( $config->get_state( "corr.pid") );
+   #killfam 9, ( $config->get_state( "corr.pid") );
    #$log->warn( "Warning: Not calling killfam 9" );
 
    # close the door behind you!
@@ -546,8 +544,8 @@ sub check_data_dir {
   my $pattern = '\.ok$';
   my $openstatus = opendir( my $DATADIR, $directory );
   if( ! $openstatus ) {
-    my $error = "Error: Could not open data directory: $!";
-    $log->error( $error );
+    my $error = "Could not open ORAC-DR data directory $directory: $!";
+    $log->error( "Error: $error" );
     throw eSTAR::Error::FatalError( $error, ESTAR__FATAL );
   }
 
