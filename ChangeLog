@@ -1,3 +1,9 @@
+2005-06-03 Brad Cavanagh <bradc@jach.hawaii.edu>
+
+        * bin/correlation_daemon.pl: Flag file monitoring routines now
+          working correctly, monitoring threads 2 - 4 turned off for
+          debugging purposes.
+ 
 2005-06-02 Aladair Allan <aa@astro.ex.ac.uk>
 
         * bin/correlation_daemon.pl: Stub of the correlation daemon that will
