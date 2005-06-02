@@ -5,7 +5,7 @@ use strict;
 
 # G L O B A L S -------------------------------------------------------------
 
-use vars qw / $log $process $config $VERSION  %opt /;
+use vars qw / $log $process $config $VERSION  %OPT /;
 
 # local status variable
 my $status;
@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -32,7 +32,7 @@ BEGIN {
 # ===========================================================================
 
 # push $VERSION into %OPT
-$opt{"VERSION"} = $VERSION;
+$OPT{"VERSION"} = $VERSION;
 
 # L O A D I N G -------------------------------------------------------------
 
@@ -63,8 +63,6 @@ use SOAP::Lite;
 use Digest::MD5 'md5_hex';
 use URI;
 use HTTP::Cookies;
-use Proc::Simple;
-use Proc::Killfam;
 
 # Astronomy modules
 use Astro::Catalog;
@@ -81,21 +79,8 @@ $process->set_version( $VERSION );
 # Get date and time
 my $date = scalar(localtime);
 my $host = hostname;
-   
-# C A T C H   S I G N A L S -------------------------------------------------
 
-#  Catch as many signals as possible so that the END{} blocks work correctly
-use sigtrap qw/die normal-signals error-signals/;
-
-# make unbuffered
-$|=1;					
-
-# signals
-$SIG{'INT'} = \&kill_process;
-$SIG{'PIPE'} = 'IGNORE';
-
-# error bleeps?
-$opt{"BLEEP"} = ESTAR__OK;
+print "date: $date\n";
 
 # L O G G I N G --------------------------------------------------------------
 
@@ -103,8 +88,8 @@ $opt{"BLEEP"} = ESTAR__OK;
 # -------------
 
 # start the log system
-print "Starting logging...\n\n";
 $log = new eSTAR::Logging( $process->get_process() );
+print "Starting logging...";
 
 # Toggle debugging in the log system, passing ESTAR__QUIET will turn off 
 # debugging while ESTAR__DEBUG will turn it on.
@@ -235,107 +220,193 @@ if ( $config->get_state("corr.unique_process") == 1 ) {
 # C O M M A N D   L I N E   A R G U E M E N T S -----------------------------
 
 # grab options from command line
-$status = GetOptions( "user=s"     => \$opt{"user"},
-                      "pass=s"     => \$opt{"pass"},
-                      "agent=s"    => \$opt{"db"} );
+$status = GetOptions( "user=s"     => \$OPT{"user"},
+                      "pass=s"     => \$OPT{"pass"},
+                      "agent=s"    => \$OPT{"db"},
+                      "from=s"     => \$OPT{'from'},
+                      "ut=s"       => \$OPT{'ut'}, );
 
 
 # default user agent location
-unless( defined $opt{"db"} ) {
+unless( defined $OPT{"db"} ) {
    # default host for the user agent we're trying to connect to...
-   $opt{"db"} = $config->get_option("db.host");   
+   $OPT{"db"} = $config->get_option("db.host");   
 } else {
    $log->warn("Warning: Resetting port from " .
-             $config->get_option("db.host") . " to $opt{db}");
-   $config->set_option("db.host", $opt{"db"});
+             $config->get_option("db.host") . " to $OPT{db}");
+   $config->set_option("db.host", $OPT{"db"});
 }
 
 # default user and password location
-unless( defined $opt{"user"} ) {
-   $opt{"user"} = $config->get_option("corr.user");
+unless( defined $OPT{"user"} ) {
+   $OPT{"user"} = $config->get_option("corr.user");
 } else{       
    $log->warn("Warning: Resetting username from " .
-             $config->get_option("corr.user") . " to $opt{user}");
-   $config->set_option("corr.user", $opt{"user"} );
+             $config->get_option("corr.user") . " to $OPT{user}");
+   $config->set_option("corr.user", $OPT{"user"} );
 }
 
 # default user and password location
-unless( defined $opt{"pass"} ) {
-   $opt{"pass"} = $config->get_option("corr.passwd");
+unless( defined $OPT{"pass"} ) {
+   $OPT{"pass"} = $config->get_option("corr.passwd");
 } else{       
    $log->warn("Warning: Resetting password...");
-   $config->set_option("corr.passwd", $opt{"pass"} );
+   $config->set_option("corr.passwd", $OPT{"pass"} );
 }
 
+# Default starting observation number.
+unless( defined( $OPT{'from'} ) ) {
+  $OPT{'from'} = 1;
+}
+
+# Default UT date.
+unless( defined( $OPT{'ut'} ) ) {
+}
+
+
 # ===========================================================================
-# C A L L B A C K 
+# C A L L B A C K S
 # ===========================================================================
 
 # thread in which the callback runs
-my $callback_thread;
+my $correlation_callback_thread;
+my $fileloop_callback_thread;
 
-# callback from main loop which monitors the flag files
-my $callback = sub {
+# callback which does the correlation.
+my $correlation_callback = sub {
    # everything passed to the callback is a filename, honest!
    my @files = @_;
-   
+
    # spawn the correlation threads
-   my ( @threads, @variable_catalogs );
+   my @threads;
+   my @variable_catalogs;
    foreach my $i ( 0 ... $#files ) {
-   
-   
+
+
    }
-   
+
    # wait for all threads to rejoin
-   
-   
+
+
    # merge catalogues into one single variable catalogue list
-   # removing duplicate entries (based on RA and Dec alone?)
-   
-   
+   # removing duplicate entries (based on RA and Dec alone...)
+
+
    # dispatch list of variables, and list of all stars to DB web 
    # service via a SOAP call. We'll pass the lists as Astro::Catalog
    # objects to avoid any sort of information loss. We can do this
    # because we're running all Perl. If we need interoperability
    # later, we'll move to document literal.
-   
-   
+
+
    return ESTAR__OK;
-   
+
+};
+
+my $fileloop_callback = sub {
+  my $starting_obsnum = shift;
+  my $camera = shift;
+
+  my $utdate = "20050528";
+
+  my $obsnum = $starting_obsnum;
+
+  my @catalog_flags = ();
+
+  while( 1 ) {
+    my $flag;
+    $obsnum = flag_loop( $utdate, $obsnum, $camera );
+    my $catalog_file = cat_file_from_bits( $utdate, $obsnum, $camera );
+    push @catalog_flags, $catalog_file;
+
+    # Read in the header of the FITS file, check to see if we're
+    # at the end of a microstep sequence or not.
+    my $header = new Astro::FITS::Header::CFITSIO( File => $catalog_file );
+    tie my %keywords, "Astro::FITS::Header", $header, tiereturnsref => 1;
+    my $nustep = $keywords{'NUSTEP'};
+    my $ustep_position = $keywords{'USTEP_I'};
+    if( $ustep_position == $nustep &&
+        $nustep != 1 ) {
+
+      # We're at the end of a microstep sequence, so spawn off a thread
+      # to do the correlation.
+      $log->print( "Spawning correlation_callback() to handle catalogue correlation..." );
+      $correlation_callback_thread = threads->create( $correlation_callback );
+      @catalog_flags = ();
+    }
+    if( $nustep == 1 ) {
+      @catalog_flags = ();
+    }
+  }
 };
 
 # ===========================================================================
-# M A I N   L O O P 
+# M A I N   L O O P
 # ===========================================================================
 
-$log->print( "Entering main loop..." );
-my $exit_code;
-while ( !$exit_code ) {
-
-   # look for flag file creation
-   
-   # check to see what type of flag file we have got
-   #if ( ) {
-      # We have a 4 position jitter
-      
-      
-   #   $log->print("Spawning callback() to handle catalogues...");
-   #   $callback_thread = threads->create( $callback );
-   
-   #} elsif ( ) {
-      # We have a 9 position jitter
-      
-      
-   #   $log->print("Spawning callback() to handle catalogues...");
-   #   $callback_thread = threads->create( $callback );
-      
-   #} 
-   
+for( 1..4 ) {
+  $fileloop_callback_thread = threads->create( &$fileloop_callback( $_ ) );
 }
 
+#
+#while ( !$exit_code ) {
+
+#  # look for flag file creation
+#  my $flag;
+#  $obsnum = flag_loop( $utdate, $obsnum );
+#  my $catalog_file = cat_file_from_bits( $utdate, $obsnum );
+#  push @catalog_flags, $catalog_file;
+
+#  # Read in the header of the FITS file, check to see if we're
+#  # at the end of a microstep sequence or not.
+#  my $header = new Astro::FITS::Header::CFITSIO( File => $catalog_file );
+#  tie my %keywords, "Astro::FITS::Header", $header, tiereturnsref => 1;
+#  my $nustep = $keywords{'NUSTEP'};
+#  my $ustep_position = $keywords{'USTEP_I'};
+#  if( $ustep_position == $nustep &&
+#      $nustep != 1 ) {
+
+#    # We're at the end of a microstep sequence, so spawn off a thread
+#    # to do the correlation.
+#    $log->print( "Spawning callback() to handle catalogue correlation..." );
+#    $callback_thread = threads->create( $callback );
+#    @catalog_flags = ();
+
+#  }
+
+#  if( $nustep == 1 ) {
+#    @catalog_flags = ();
+#  }
+
+  # Look for the mosaic catalogue flag file.
+#  my $mosaic_flag = mosaic_flag( $utdate, $obsnum );
+
+  # check to see what type of flag file we have got
+#  if ( defined( $mosaic_flag ) &&
+#       scalar( @catalog_flags ) == 4 ) {
+
+    # We have a 4 position jitter
+#    $log->print("Spawning callback() to handle catalogues...");
+#    $callback_thread = threads->create( $callback );
+
+#    @catalog_flags = ();
+
+#  } elsif ( defined( $mosaic_flag ) &&
+#            scalar( @catalog_flags ) == 9 ) {
+
+    # We have a 9 position jitter
+#    $log->print("Spawning callback() to handle catalogues...");
+#    $callback_thread = threads->create( $callback );
+
+#    @catalog_flags = ();
+
+#  }
+
+#}
+
 
 # ===========================================================================
-# E N D 
+# E N D
 # ===========================================================================
 
 # tidy up
@@ -346,19 +417,19 @@ END {
 }
 
 # ===========================================================================
-# A S S O C I A T E D   S U B R O U T I N E S 
+# A S S O C I A T E D   S U B R O U T I N E S
 # ===========================================================================
 
 # anonymous subroutine which is called everytime the process is
 # terminated (ab)normally. Hopefully this will provide a clean exit.
 sub kill_process {
    my $from = shift;
-   
-   if ( $from eq ESTAR__FATAL ) {  
-      $log->debug("Calling kill_process( ESTAR__FATAL )");
+
+   if ( $from eq ESTAR__FATAL ) {
+      $log->debug("Calling kill_agent( ESTAR__FATAL )");
       $log->warn("Warning: Shutting down agent after ESTAR__FATAL error...");
    } else {
-      $log->debug("Calling kill_process( SIGINT )");
+      $log->debug("Calling kill_agent( SIGINT )");
       $log->warn("Warning: Process interrupted, possible data loss...");
    }
 
@@ -366,32 +437,144 @@ sub kill_process {
    $log->warn("Warning: Committing options and state changes");
    $config->reread();
    $config->write_option( );
-   $config->write_state( );  
-   
+   $config->write_state( );
+
    # flush the error stack
    $log->debug("Flushing error stack...");
    my $error = eSTAR::Error->prior();
    $error->flush() if defined $error;
-    
+
    # kill the agent process
    $log->print("Killing correlation_daemon processes...");
 
    # close out log files
    $log->closeout();
-   
+
    # ring my bell, baby
    #if ( $OPT{"BLEEP"} == ESTAR__OK ) {
    #  for (1..10) {print STDOUT "\a"; select undef,undef,undef,0.2}
    #}
 
    # kill -9 the agent process, hung threads should die screaming
-   killfam 9, ( $config->get_state( "corr.pid") );
+#   killfam 9, ( $config->get_state( "corr.pid") );
    #$log->warn( "Warning: Not calling killfam 9" );
-   
-   # close the door behind you!   
+
+   # close the door behind you!
    exit;
-} 
+}
 
-# T I M E   A T   T H E   B A R  -------------------------------------------
+=item B<flag_loop>
 
+=cut
 
+sub flag_loop {
+  my $utdate = shift;
+  my $obsnum = shift;
+  my $camera = shift;
+
+  my $directory = $config->get_option( "corr.camera${camera}_directory" );
+
+  while( 1 ) {
+    my $flagfile = flag_from_bits( $utdate, $obsnum, $camera );
+
+    my $filename = File::Spec->catfile( $directory, $flagfile );
+    last if( -e $filename );
+
+    # File hasn't been found, so check the directory for any files
+    # that might have observation numbers after this one.
+    my $next = check_data_dir( $obsnum - 1, $directory );
+
+    if( defined( $next ) ) {
+      if( $next != $obsnum ) {
+        $obsnum = $next;
+        last;
+      }
+    }
+
+    sleep( 2 );
+
+  }
+
+#  return flag_from_bits( $utdate, $obsnum, $camera, $mosaic_flag );
+
+}
+
+=item B<flag_from_bits>
+
+Returns the name of the flag file.
+
+  $filename = flag_from_bits( $utdate, $obsnum, $camera );
+
+The three arguments are all mandatory. The first is the UT date in
+YYYYMMDD format, the second is the observation number, and the third
+is the WFCAM camera number.
+
+This subroutine returns a string containing the filename. It does not
+include the directory in which the file will be found.
+
+=cut
+
+sub flag_from_bits {
+  my $utdate = shift;
+  my $obsnum = shift;
+  my $camera = shift;
+
+  my $prefix = $config->get_option( "corr.camera${camera}_prefix" );
+
+  $obsnum = "0" x ( 5 - length( $obsnum ) ) . $obsnum;
+  return "." . $prefix . $utdate . "_" . $obsnum . ".ok";
+}
+
+=item B<check_data_dir>
+
+Checks the data directory for the existence of files created after
+the requested observation number.
+
+  $next = check_data_dir( $obsnum, $directory );
+
+If there are no files written after the requested observation number,
+this subroutine will return undef. Otherwise it will return the next
+observation number that is higher than the requested one.
+
+=cut
+
+sub check_data_dir {
+  my $obsnum = shift;
+  my $directory = shift;
+
+  # Only look for .ok files.
+  my $pattern = '\.ok$';
+  my $openstatus = opendir( my $DATADIR, $directory );
+  if( ! $openstatus ) {
+    my $error = "Error: Could not open data directory: $!";
+    $log->error( $error );
+    throw eSTAR::Error::FatalError( $error, ESTAR__FATAL );
+  }
+
+  # Get a sorted list of observation numbers. Note that this assumes
+  # that flag files have the format _NNNNN.ok, where NNNNN is the
+  # observation number.
+  my @sort = sort { $a <=> $b }
+               map { $_ =~ /_(\d+)\.ok$/; $1 }
+                 grep { /$pattern/ } readdir( $DATADIR );
+  closedir( $DATADIR );
+
+  # Now go through the list of observation numbers and find out if
+  # there's one that's higher than the observation number we were
+  # given.
+  my $next = undef;
+  foreach( @sort ) {
+    if( $_ > $obsnum ) {
+      $next = $_;
+      last;
+    }
+  }
+
+  # Return. Make sure we return an int so that we don't return something
+  # like "00003".
+  if( defined( $next ) ) {
+    return int( $next );
+  } else {
+    return undef;
+  }
+}
