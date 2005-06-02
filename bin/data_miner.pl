@@ -19,7 +19,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: data_miner.pl,v 1.7 2005/06/01 23:59:15 aa Exp $
+#     $Id: data_miner.pl,v 1.8 2005/06/02 00:53:57 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -60,7 +60,7 @@ data mining process. It helps populate the survey agent's backend database.
 
 =head1 REVISION
 
-$Id: data_miner.pl,v 1.7 2005/06/01 23:59:15 aa Exp $
+$Id: data_miner.pl,v 1.8 2005/06/02 00:53:57 aa Exp $
 
 =head1 AUTHORS
 
@@ -77,7 +77,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -113,6 +113,7 @@ use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:all/;
 use eSTAR::Util;
 use eSTAR::Process;
+use eSTAR::UserAgent;
 
 #
 # Config modules
@@ -525,6 +526,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: data_miner.pl,v $
+# Revision 1.8  2005/06/02 00:53:57  aa
+# Shipping to summit
+#
 # Revision 1.7  2005/06/01 23:59:15  aa
 # Updates to handle new 3rd generation code base
 #
