@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -55,6 +55,7 @@ use Config;
 use IO::Socket;
 use Errno qw(EWOULDBLOCK EINPROGRESS);
 use Net::Domain qw(hostname hostdomain);
+use DateTime;
 use Time::localtime;
 use Getopt::Long;
 use Data::Dumper;
@@ -67,6 +68,7 @@ use HTTP::Cookies;
 # Astronomy modules
 use Astro::Catalog;
 use Astro::Correlate;
+use Astro::FITS::Header::CFITSIO;
 
 # tag name of the current process, this identifies where log and 
 # status files for this process will be stored.
@@ -79,6 +81,10 @@ $process->set_version( $VERSION );
 # Get date and time
 my $date = scalar(localtime);
 my $host = hostname;
+my $datetime = DateTime->now;
+my $currentut = $datetime->ymd('');
+
+=======
 
 # L O G G I N G --------------------------------------------------------------
 
@@ -259,8 +265,11 @@ unless( defined( $OPT{'from'} ) ) {
 
 # Default UT date.
 unless( defined( $OPT{'ut'} ) ) {
+  $OPT{'ut'} = $currentut;
 }
 
+my $starting_obsnum = $OPT{'from'};
+my $starting_ut = $OPT{'ut'};
 
 # ===========================================================================
 # C A L L B A C K S
@@ -268,7 +277,6 @@ unless( defined( $OPT{'ut'} ) ) {
 
 # thread in which the callback runs
 my $correlation_callback_thread;
-my $fileloop_callback_thread;
 
 # callback which does the correlation.
 my $correlation_callback = sub {
@@ -305,7 +313,9 @@ my $fileloop_callback = sub {
   my $starting_obsnum = shift;
   my $camera = shift;
 
-  my $utdate = "20050528";
+print "beginning fileloop_callback for camera $camera\n";
+
+  my $utdate = $starting_ut;
 
   my $obsnum = $starting_obsnum;
 
@@ -314,7 +324,9 @@ my $fileloop_callback = sub {
   while( 1 ) {
     my $flag;
     $obsnum = flag_loop( $utdate, $obsnum, $camera );
+print "found flag file for observation $obsnum\n";
     my $catalog_file = cat_file_from_bits( $utdate, $obsnum, $camera );
+print "pushing $catalog_file onto stack\n";
     push @catalog_flags, $catalog_file;
 
     # Read in the header of the FITS file, check to see if we're
@@ -335,6 +347,9 @@ my $fileloop_callback = sub {
     if( $nustep == 1 ) {
       @catalog_flags = ();
     }
+
+    $obsnum++;
+
   }
 };
 
@@ -343,65 +358,12 @@ my $fileloop_callback = sub {
 # ===========================================================================
 
 for( 1..4 ) {
-  $fileloop_callback_thread = threads->create( &$fileloop_callback( $_ ) );
+  $log->debug("Creating fileloop_callback thread $_ of 4");
+  my $fileloop_callback_thread = 
+             threads->create( $fileloop_callback, $starting_obsnum, $_ );
+  $fileloop_callback_thread->detach();
+  $log->warn("Warning: Detatching thread $_ of 4");
 }
-
-#
-#while ( !$exit_code ) {
-
-#  # look for flag file creation
-#  my $flag;
-#  $obsnum = flag_loop( $utdate, $obsnum );
-#  my $catalog_file = cat_file_from_bits( $utdate, $obsnum );
-#  push @catalog_flags, $catalog_file;
-
-#  # Read in the header of the FITS file, check to see if we're
-#  # at the end of a microstep sequence or not.
-#  my $header = new Astro::FITS::Header::CFITSIO( File => $catalog_file );
-#  tie my %keywords, "Astro::FITS::Header", $header, tiereturnsref => 1;
-#  my $nustep = $keywords{'NUSTEP'};
-#  my $ustep_position = $keywords{'USTEP_I'};
-#  if( $ustep_position == $nustep &&
-#      $nustep != 1 ) {
-
-#    # We're at the end of a microstep sequence, so spawn off a thread
-#    # to do the correlation.
-#    $log->print( "Spawning callback() to handle catalogue correlation..." );
-#    $callback_thread = threads->create( $callback );
-#    @catalog_flags = ();
-
-#  }
-
-#  if( $nustep == 1 ) {
-#    @catalog_flags = ();
-#  }
-
-  # Look for the mosaic catalogue flag file.
-#  my $mosaic_flag = mosaic_flag( $utdate, $obsnum );
-
-  # check to see what type of flag file we have got
-#  if ( defined( $mosaic_flag ) &&
-#       scalar( @catalog_flags ) == 4 ) {
-
-    # We have a 4 position jitter
-#    $log->print("Spawning callback() to handle catalogues...");
-#    $callback_thread = threads->create( $callback );
-
-#    @catalog_flags = ();
-
-#  } elsif ( defined( $mosaic_flag ) &&
-#            scalar( @catalog_flags ) == 9 ) {
-
-    # We have a 9 position jitter
-#    $log->print("Spawning callback() to handle catalogues...");
-#    $callback_thread = threads->create( $callback );
-
-#    @catalog_flags = ();
-
-#  }
-
-#}
-
 
 # ===========================================================================
 # E N D
@@ -476,6 +438,7 @@ sub flag_loop {
     my $flagfile = flag_from_bits( $utdate, $obsnum, $camera );
 
     my $filename = File::Spec->catfile( $directory, $flagfile );
+
     last if( -e $filename );
 
     # File hasn't been found, so check the directory for any files
@@ -492,6 +455,8 @@ sub flag_loop {
     sleep( 2 );
 
   }
+
+  return $obsnum;
 
 #  return flag_from_bits( $utdate, $obsnum, $camera, $mosaic_flag );
 
@@ -521,6 +486,17 @@ sub flag_from_bits {
 
   $obsnum = "0" x ( 5 - length( $obsnum ) ) . $obsnum;
   return "." . $prefix . $utdate . "_" . $obsnum . ".ok";
+}
+
+sub cat_file_from_bits {
+  my $utdate = shift;
+  my $obsnum = shift;
+  my $camera = shift;
+
+  my $prefix = $config->get_option( "corr.camera${camera}_prefix" );
+
+  $obsnum = "0" x ( 5 - length( $obsnum ) ) . $obsnum;
+  return $prefix . $utdate . "_" . $obsnum . "_cat.fit";
 }
 
 =item B<check_data_dir>
