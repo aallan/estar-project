@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -32,7 +32,7 @@ BEGIN {
 # ===========================================================================
 
 # push $VERSION into %OPT
-$OPT{"VERSION"} = $VERSION;
+$opt{"VERSION"} = $VERSION;
 
 # L O A D I N G -------------------------------------------------------------
 
@@ -258,7 +258,7 @@ unless( defined $opt{"pass"} ) {
 my $callback_thread;
 
 # callback from main loop which monitors the flag files
-my $callback = {
+my $callback = sub {
    # everything passed to the callback is a filename, honest!
    my @files = @_;
    
