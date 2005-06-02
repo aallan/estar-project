@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -374,34 +374,3 @@ sub kill_process {
    # close the door behind you!   
    exit;
 } 
-
-sub intra_flag_from_bits {
-  unless ( scalar(@_) == 3 ) {
-     my $errror = 
-        "Wrong number of arguements: intra_flag_from_bits(ut, obsnum, camnum)";
-     $log->error( "Error: $error" );
-     throw eSTAR::Error::FatalError( $error, ESTAR__FATAL );
-  }
-  my $utdate = shift;
-  my $obsnum = shift;
-  my $camnum = shift;
-
-  my $fname = flag_from_bits( $utdate, $obsnum, $camnum );
-  my $directory = $config->get_option( "corr.camera${camnum}_data_directory" );
-  if( ! defined( $$directory ) ) {
-    my $error = "Could not retrieve data directory from configuration " .
-                "options for WFCAM camera $camnum"
-    $log->error( "Error: $error" );
-    throw eSTAR::Error::FatalError( $error, ESTAR__FATAL );
-  }
-  
-  my $directory = $config->get_option( "corr.camera${camnum}.data_directory" );
-  if( ! defined(   
-  my $prefix = $config->get_option( "corr.camera${camnum}.prefix" );
-  if( ! defined( $prefix ) ) {
-    my $error = "Could not retrieve filename prefix from configuration " .
-                "options for WFCAM camera $camnum";
-    $log->error( "Error: $error" );
-    throw eSTAR::Error::FatalError( $error, ESTAR__FATAL );
-  }
-}  
