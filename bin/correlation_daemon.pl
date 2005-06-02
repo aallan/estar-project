@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.10 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -91,7 +91,7 @@ my $currentut = $datetime->ymd('');
 
 # start the log system
 $log = new eSTAR::Logging( $process->get_process() );
-print "Starting logging...";
+print "Starting logging...\n\n";
 
 # Toggle debugging in the log system, passing ESTAR__QUIET will turn off 
 # debugging while ESTAR__DEBUG will turn it on.
