@@ -2,7 +2,7 @@ package eSTAR::Config;
 
 
 use strict;
-use warnings;
+#use warnings;
 
 require Exporter;
 use Config::Simple;
@@ -20,7 +20,7 @@ use vars qw/$VERSION @EXPORT @ISA/;
               get_state set_state write_state make_directories
               get_data_dir get_state_dir get_tmp_dir /;
 
-'$Revision: 1.6 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.7 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 my $SINGLETON;
 
