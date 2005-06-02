@@ -4,7 +4,7 @@ package eSTAR::WFCAM::Handler;
 # acts as a container class for eSTAR::SOAP::User class which handles
 # authentication.
 
-use lib $ENV{"ESTAR3_PERL5LIB"};     
+use lib $ENV{"ESTAR_PERL5LIB"};     
 
 use strict;
 use subs qw( new set_user ping echo get_option set_option
