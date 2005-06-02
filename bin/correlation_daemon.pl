@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -261,13 +261,8 @@ unless( defined( $OPT{'from'} ) ) {
   $OPT{'from'} = 1;
 }
 
-# Default UT date.
-unless( defined( $OPT{'ut'} ) ) {
-  $OPT{'ut'} = $currentut;
-}
-
 my $starting_obsnum = $OPT{'from'};
-my $starting_ut = $OPT{'ut'};
+my $starting_ut = get_utdate();
 
 # ===========================================================================
 # C A L L B A C K S
@@ -322,17 +317,21 @@ print "beginning fileloop_callback for camera $camera\n";
   while( 1 ) {
     my $flag;
     $obsnum = flag_loop( $utdate, $obsnum, $camera );
-print "found flag file for observation $obsnum\n";
-    my $catalog_file = cat_file_from_bits( $utdate, $obsnum, $camera );
-print "pushing $catalog_file onto stack\n";
+    $log->debug( "Found flag file for observation $obsnum for camera $camera." );
+    my $catalog_file = File::Spec->catfile( $config->get_option( "corr.camera${camera}_directory" ),
+                                            cat_file_from_bits( $utdate, $obsnum, $camera ) );
+    $log->debug( "Pushing $catalog_file onto stack." );
     push @catalog_flags, $catalog_file;
 
     # Read in the header of the FITS file, check to see if we're
     # at the end of a microstep sequence or not.
+    $log->debug( "Reading $catalog_file" );
     my $header = new Astro::FITS::Header::CFITSIO( File => $catalog_file );
     tie my %keywords, "Astro::FITS::Header", $header, tiereturnsref => 1;
-    my $nustep = $keywords{'NUSTEP'};
-    my $ustep_position = $keywords{'USTEP_I'};
+
+    my $nustep = $keywords{'SUBHEADERS'}->[0]->{'NUSTEP'};
+    my $ustep_position = $keywords{'SUBHEADERS'}->[0]->{'USTEP_I'};
+    $log->debug("FITS headers: nustep: $nustep ustep_pos: $ustep_position");
     if( $ustep_position == $nustep &&
         $nustep != 1 ) {
 
@@ -355,12 +354,16 @@ print "pushing $catalog_file onto stack\n";
 # M A I N   L O O P
 # ===========================================================================
 
-for( 1..4 ) {
+for( 1..1 ) {
   $log->debug("Creating fileloop_callback thread $_ of 4");
   my $fileloop_callback_thread = 
-             threads->create( $fileloop_callback, $starting_obsnum, $_ );
+        threads->create( $fileloop_callback, $starting_obsnum, $_ );
   $fileloop_callback_thread->detach();
   $log->warn("Warning: Detatching thread $_ of 4");
+}
+
+while(1) {
+  sleep( 50 );
 }
 
 # ===========================================================================
@@ -414,7 +417,7 @@ sub kill_process {
    #}
 
    # kill -9 the agent process, hung threads should die screaming
-   #killfam 9, ( $config->get_state( "corr.pid") );
+#   killfam 9, ( $config->get_state( "corr.pid") );
    #$log->warn( "Warning: Not calling killfam 9" );
 
    # close the door behind you!
@@ -436,12 +439,12 @@ sub flag_loop {
     my $flagfile = flag_from_bits( $utdate, $obsnum, $camera );
 
     my $filename = File::Spec->catfile( $directory, $flagfile );
-
+    $log->debug( "Looking for flag file named $filename..." );
     last if( -e $filename );
 
     # File hasn't been found, so check the directory for any files
     # that might have observation numbers after this one.
-    my $next = check_data_dir( $obsnum - 1, $directory );
+    my $next = check_data_dir( $obsnum - 1, $directory, $camera );
 
     if( defined( $next ) ) {
       if( $next != $obsnum ) {
@@ -455,8 +458,6 @@ sub flag_loop {
   }
 
   return $obsnum;
-
-#  return flag_from_bits( $utdate, $obsnum, $camera, $mosaic_flag );
 
 }
 
@@ -494,7 +495,7 @@ sub cat_file_from_bits {
   my $prefix = $config->get_option( "corr.camera${camera}_prefix" );
 
   $obsnum = "0" x ( 5 - length( $obsnum ) ) . $obsnum;
-  return $prefix . $utdate . "_" . $obsnum . "_cat.fit";
+  return $prefix . $utdate . "_" . $obsnum . "_sf_st_cat.fit";
 }
 
 =item B<check_data_dir>
@@ -502,7 +503,7 @@ sub cat_file_from_bits {
 Checks the data directory for the existence of files created after
 the requested observation number.
 
-  $next = check_data_dir( $obsnum, $directory );
+  $next = check_data_dir( $obsnum, $directory, $camera );
 
 If there are no files written after the requested observation number,
 this subroutine will return undef. Otherwise it will return the next
@@ -513,9 +514,14 @@ observation number that is higher than the requested one.
 sub check_data_dir {
   my $obsnum = shift;
   my $directory = shift;
+  my $camera = shift;
+
+  my $utdate = get_utdate();
 
   # Only look for .ok files.
-  my $pattern = '\.ok$';
+  my $prefix = $config->get_option( "corr.camera${camera}_prefix" );
+  my $pattern = $prefix . $utdate . '_\d{5}\.ok$';
+
   my $openstatus = opendir( my $DATADIR, $directory );
   if( ! $openstatus ) {
     my $error = "Could not open ORAC-DR data directory $directory: $!";
@@ -527,7 +533,7 @@ sub check_data_dir {
   # that flag files have the format _NNNNN.ok, where NNNNN is the
   # observation number.
   my @sort = sort { $a <=> $b }
-               map { $_ =~ /_(\d+)\.ok$/; $1 }
+               map { $_ =~ /_(\d+)\.ok$/o; $1 }
                  grep { /$pattern/ } readdir( $DATADIR );
   closedir( $DATADIR );
 
@@ -548,5 +554,14 @@ sub check_data_dir {
     return int( $next );
   } else {
     return undef;
+  }
+}
+
+sub get_utdate {
+  if( defined( $OPT{'ut'} ) ) {
+    return $OPT{'ut'};
+  } else {
+    my $datetime = DateTime->now;
+    return $datetime->ymd('');
   }
 }
