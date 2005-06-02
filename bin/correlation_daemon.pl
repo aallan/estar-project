@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.10 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -83,8 +83,6 @@ my $date = scalar(localtime);
 my $host = hostname;
 my $datetime = DateTime->now;
 my $currentut = $datetime->ymd('');
-
-=======
 
 # L O G G I N G --------------------------------------------------------------
 
