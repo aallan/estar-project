@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -79,7 +79,21 @@ $process->set_version( $VERSION );
 # Get date and time
 my $date = scalar(localtime);
 my $host = hostname;
+   
+# C A T C H   S I G N A L S -------------------------------------------------
 
+#  Catch as many signals as possible so that the END{} blocks work correctly
+use sigtrap qw/die normal-signals error-signals/;
+
+# make unbuffered
+$|=1;					
+
+# signals
+$SIG{'INT'} = \&kill_process;
+$SIG{'PIPE'} = 'IGNORE';
+
+# error bleeps?
+$OPT{"BLEEP"} = ESTAR__OK;
 
 # L O G G I N G --------------------------------------------------------------
 
@@ -87,6 +101,7 @@ my $host = hostname;
 # -------------
 
 # start the log system
+print "Starting logging...\n\n";
 $log = new eSTAR::Logging( $process->get_process() );
 
 # Toggle debugging in the log system, passing ESTAR__QUIET will turn off 
@@ -338,10 +353,10 @@ sub kill_process {
    my $from = shift;
    
    if ( $from eq ESTAR__FATAL ) {  
-      $log->debug("Calling kill_agent( ESTAR__FATAL )");
+      $log->debug("Calling kill_process( ESTAR__FATAL )");
       $log->warn("Warning: Shutting down agent after ESTAR__FATAL error...");
    } else {
-      $log->debug("Calling kill_agent( SIGINT )");
+      $log->debug("Calling kill_process( SIGINT )");
       $log->warn("Warning: Process interrupted, possible data loss...");
    }
 
@@ -374,3 +389,7 @@ sub kill_process {
    # close the door behind you!   
    exit;
 } 
+
+# T I M E   A T   T H E   B A R  -------------------------------------------
+
+
