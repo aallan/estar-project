@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -291,27 +291,28 @@ my $callback = sub {
 # M A I N   L O O P 
 # ===========================================================================
 
+$log->print( "Entering main loop..." );
 my $exit_code;
 while ( !$exit_code ) {
 
    # look for flag file creation
    
    # check to see what type of flag file we have got
-   if ( ) {
+   #if ( ) {
       # We have a 4 position jitter
       
       
-      $log->print("Spawning callback() to handle catalogues...");
-      $callback_thread = threads->create( $callback );
+   #   $log->print("Spawning callback() to handle catalogues...");
+   #   $callback_thread = threads->create( $callback );
    
-   } elsif ( ) {
+   #} elsif ( ) {
       # We have a 9 position jitter
       
       
-      $log->print("Spawning callback() to handle catalogues...");
-      $callback_thread = threads->create( $callback );
+   #   $log->print("Spawning callback() to handle catalogues...");
+   #   $callback_thread = threads->create( $callback );
       
-   } 
+   #} 
    
 }
 
@@ -403,4 +404,4 @@ sub intra_flag_from_bits {
     $log->error( "Error: $error" );
     throw eSTAR::Error::FatalError( $error, ESTAR__FATAL );
   }
-  
+}  
