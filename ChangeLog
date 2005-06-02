@@ -4,6 +4,8 @@
 	  be doing the cross-correlation between the intra- and inter-frame
 	  comparisons for the WFCAM survey agent.
 	  
+	* etc/correlation_daemon.csh: Startup script for the above.  
+	  
 	* bin/wfcam_agent.pl: Updated to use the 3rd generation code base.
 	
 	* bin/data_miner.pl: Updated to use the 3rd generation code base.
