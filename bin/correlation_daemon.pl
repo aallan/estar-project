@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -63,6 +63,8 @@ use SOAP::Lite;
 use Digest::MD5 'md5_hex';
 use URI;
 use HTTP::Cookies;
+use Proc::Simple;
+use Proc::Killfam;
 
 # Astronomy modules
 use Astro::Catalog;
@@ -93,7 +95,7 @@ $SIG{'INT'} = \&kill_process;
 $SIG{'PIPE'} = 'IGNORE';
 
 # error bleeps?
-$OPT{"BLEEP"} = ESTAR__OK;
+$opt{"BLEEP"} = ESTAR__OK;
 
 # L O G G I N G --------------------------------------------------------------
 
