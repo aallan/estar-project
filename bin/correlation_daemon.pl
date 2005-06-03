@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.13 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.14 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -169,7 +169,7 @@ unless ( defined $status ) {
   $log->error( $error );
   throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
 } else {    
-  $log->debug("GCN Server PID: " . $config->get_state( "corr.pid" ) );
+  $log->debug("Correlation Daemon PID: " . $config->get_state( "corr.pid" ) );
 }
 
 # M A K E   D I R E C T O R I E S -------------------------------------------
@@ -226,7 +226,8 @@ $status = GetOptions( "user=s"     => \$OPT{"user"},
                       "pass=s"     => \$OPT{"pass"},
                       "agent=s"    => \$OPT{"db"},
                       "from=s"     => \$OPT{'from'},
-                      "ut=s"       => \$OPT{'ut'}, );
+                      "ut=s"       => \$OPT{'ut'},
+                      "camera=s"   => \$OPT{'camera'}, );
 
 
 # default user agent location
@@ -263,6 +264,14 @@ unless( defined( $OPT{'from'} ) ) {
 
 my $starting_obsnum = $OPT{'from'};
 my $starting_ut = get_utdate();
+
+# default user and password location
+unless( defined $OPT{"camera"} ) {
+   $OPT{"camera"} = $config->get_option("corr.camera");
+} else{
+   $log->warn("Warning: Resetting password...");
+   $config->set_option("corr.passwd", $OPT{"pass"} );
+}
 
 # ===========================================================================
 # C A L L B A C K S
@@ -366,17 +375,22 @@ my $fileloop_callback = sub {
 # M A I N   L O O P
 # ===========================================================================
 
-for( 1..1 ) {
+my $pid;
+for( 1 .. 1 ) {
   $log->debug("Creating fileloop_callback thread $_ of 4");
-  my $fileloop_callback_thread = 
-        threads->create( $fileloop_callback, $starting_obsnum, $_ );
-  $fileloop_callback_thread->detach();
-  $log->warn("Warning: Detatching thread $_ of 4");
+  
+  $pid = fork();
+  unless ( defined $pid && $pid != 0 ) {
+     # we're the parent, start the rest of the processes
+     next;
+     
+  }
+  
+  # From this point on, we are the child.
+  fileloop_callback( $starting_obsnum, $_ );
 }
 
-while(1) {
-  sleep( 50 );
-}
+$log->print( "Parent process terminating..." );
 
 # ===========================================================================
 # E N D
@@ -386,6 +400,7 @@ while(1) {
 END {
    # we must have generated an error somewhere to have gotten here,
    # run the exit code to clean(ish)ly shutdown the agent.
+   
    kill_process( ESTAR__FATAL );
 }
 
@@ -423,15 +438,7 @@ sub kill_process {
    # close out log files
    $log->closeout();
 
-   # ring my bell, baby
-   #if ( $OPT{"BLEEP"} == ESTAR__OK ) {
-   #  for (1..10) {print STDOUT "\a"; select undef,undef,undef,0.2}
-   #}
-
-   # kill -9 the agent process, hung threads should die screaming
-#   killfam 9, ( $config->get_state( "corr.pid") );
-   #$log->warn( "Warning: Not calling killfam 9" );
-
+  
    # close the door behind you!
    exit;
 }
