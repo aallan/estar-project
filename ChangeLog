@@ -1,8 +1,13 @@
-2005-06-03 Brad Cavanagh <bradc@jach.hawaii.edu>
+2005-06-03 Alasdair Allan <aa@astro.ex.ac.uk> &
+           Brad Cavanagh <bradc@jach.hawaii.edu> 
 
         * bin/correlation_daemon.pl: Flag file monitoring routines now
-          working correctly, monitoring threads 2 - 4 turned off for
-          debugging purposes.
+          working correctly, inital stab at correlation
+	  
+	* etc/correlation_daemon.pl: Moved from threaded (or at one stage
+	  a forking model) to a one process per camera model with the fork
+	  happing from the csh startup script. Monitoring threads 2 - 4 turned
+	  off for debugging purposes.
  
 2005-06-02 Aladair Allan <aa@astro.ex.ac.uk>
 
