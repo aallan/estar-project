@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.26 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.27 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -381,7 +381,7 @@ sub correlate {
                    
       # data catalog
       my $data_file = File::Spec->catfile( $config->get_tmp_dir(), 
-                                       "$id_corlate_fit.cat");
+                                      $id . "_corlate_fit.cat");
       $corlate->data( $data_file);
                    
       # Astro::Corlate inputs
