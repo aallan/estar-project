@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.18 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.19 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -68,6 +68,7 @@ use HTTP::Cookies;
 # Astronomy modules
 use Astro::Catalog;
 use Astro::Correlate;
+use Astro::Corlate;
 use Astro::FITS::Header::CFITSIO;
 
 # tag name of the current process, this identifies where log and 
@@ -307,22 +308,137 @@ sub correlate {
                                           File => $_ ) } @files;
 
   # Correlate.
-  foreach my $i ( 0 .. ( $#catalogs - 1 ) ) {
-    foreach my $j ( ( $i + 1 ) .. ( $#catalogs ) ) {
-print "correlating catalog $i with $j\n";
-      my $cat1 = $catalogs[$i];
-print "catalog 1 has " . $cat1->sizeof . " objects before.\n";
-      my $cat2 = $catalogs[$j];
-print "catalog 2 has " . $cat2->sizeof . " objects before.\n";
-      my $corr = new Astro::Correlate( catalog1 => $cat1,
-                                       catalog2 => $cat2,
-                                       method => 'FINDOFF',
-                                     );
+# foreach my $i ( 0 .. ( $#catalogs - 1 ) ) {
+#    foreach my $j ( ( $i + 1 ) .. ( $#catalogs ) ) {
+#      print "correlating catalog $i with $j\n";
+#      my $cat1 = $catalogs[$i];
+#      print "catalog 1 has " . $cat1->sizeof . " objects before.\n";
+#      my $cat2 = $catalogs[$j];
+#      print "catalog 2 has " . $cat2->sizeof . " objects before.\n";
+#      my $corr = new Astro::Correlate( catalog1 => $cat1,
+#                                       catalog2 => $cat2,
+#                                       method => 'FINDOFF',
+#                                     );
 #      $corr->verbose( 1 );
-      ( my $corrcat1, my $corrcat2 ) = $corr->correlate;
+#      ( my $corrcat1, my $corrcat2 ) = $corr->correlate;
+#
+#      print "catalog 1 has " . $cat1->sizeof . " objects before, " . $corrcat1->sizeof . " objects after.\n";
+#
+#    }
+#  }
 
-      print "catalog 1 has " . $cat1->sizeof . " objects before, " . $corrcat1->sizeof . " objects after.\n";
+ foreach my $i ( 0 .. ( $#catalogs - 1 ) ) {
+    foreach my $j ( ( $i + 1 ) .. ( $#catalogs ) ) {
+      print "correlating catalog $i with $j\n";
+    
+      # object catalogue
+      my ($voli,$diri,$filei) = File::Spec->splitpath( $catalog[$i] );
+      my ($volj,$dirj,$filej) = File::Spec->splitpath( $catalog[$j] );
+      $filei =~ s/\.fit//;
+      $filej =~ s/\.fit//;
+      
+      my $id = "$i_with_$j_cam$camera_proc$$";
+      
+      my $camera = $OPT{'camera'};
+      my $file_i = File::Spec->catfile( $config->get_tmp_dir(), 
+                                        "$filei_$id.cat");
+      my $file_j = File::Spec->catfile( $config->get_tmp_dir(), 
+                                        "$filej_$id.cat");
+									       
+      $log->debug("Writing catalogue $file_i to disk...");
+      $catalog[$i]->write_catalog( Format => 'Cluster', File => $file_i );
+      $log->debug("Writing catalogue $file_j to disk...");
+      $catalog[$i]->write_catalog( Format => 'Cluster', File => $file_j ); 
+      
+      $log->debug("Building corelation object...");
+      my $corlate = new Astro::Corlate(  Reference   => $file_i,
+                                         Observation => $file_j  );
+  
+      # log file
+      my $log_file = File::Spec->catfile( $config->get_tmp_dir(), 
+                                          "$id.corlate_log.log");
+      $corlate->logfile( $log_file );
 
+      # fit catalog
+      my $fit_file = File::Spec->catfile( $config->get_tmp_dir(), 
+                                          "$id.corlate_fit.fit");
+      $corlate->fit( $fit_file );
+                   
+      # histogram
+      my $hist_file = File::Spec->catfile( $config->get_tmp_dir(), 
+                                       "$id.corlate_hist.dat");
+      $corlate->histogram( $hist_file );
+                   
+      # information
+      my $info_file = File::Spec->catfile( $config->get_tmp_dir(), 
+                                       "$id.corlate_info.dat");
+      $corlate->information( $info_file );
+                   
+      # varaiable catalog
+      my $var_file = File::Spec->catfile( $config->get_tmp_dir(), 
+                                      "$id.corlate_var.cat");
+      $corlate->variables( $var_file );
+                   
+      # data catalog
+      my $data_file = File::Spec->catfile( $config->get_tmp_dir(), 
+                                       "$id.corlate_fit.cat");
+      $corlate->data( $data_file);
+                   
+      # Astro::Corlate inputs
+      # ---------------------
+      my ($volume, $directories, $file); 
+ 
+      $log->debug("Starting cross correlation...");
+      ($volume, $directories, $file) = File::Spec->splitpath( $file_i );
+      $log->debug("Temporary directory   : " . $directories);
+      $log->debug("Reference catalogue   : " . $file);
+  
+      ($volume, $directories, $file) = File::Spec->splitpath( $file_j );
+      $log->debug("Observation catalogue : " . $file);
+  
+      ($volume, $directories, $file) = File::Spec->splitpath( $log_file );
+      $log->debug("Log file              : " . $file);
+  
+      ($volume, $directories, $file) = File::Spec->splitpath( $fit_file );
+      $log->debug("X/Y Fit file          : " . $file);
+  
+      ($volume, $directories, $file) = File::Spec->splitpath( $hist_file );
+      $log->debug("Histogram file        : " . $file);
+  
+      ($volume, $directories, $file) = File::Spec->splitpath( $info_file );
+      $log->debug("Information file      : " . $file);
+  
+      ($volume, $directories, $file) = File::Spec->splitpath( $var_file );
+      $log->debug("Variable catalogue    : " . $file);
+  
+      ($volume, $directories, $file) = File::Spec->splitpath( $data_file );
+      $log->debug("Colour data catalogue : " . $file);   
+      
+      # run the corelation routine
+      # --------------------------
+      my $status = ESTAR__OK;
+      try {
+         $log->debug("Called run_corlate()...");
+         $corlate->run_corlate();
+      } otherwise {
+         my $error = shift;
+         eSTAR::Error->flush if defined $error;
+         $status = ESTAR__ERROR;
+                
+         # grab the error line
+         my $err = "$error";
+         chomp($err);
+         $log->debug("Error: $err");
+      }; 
+  
+      # undef the Astro::Corlate object
+      $corlate = undef;
+  
+      # check for good status
+      # ---------------------
+      unless ( $status == ESTAR__OK ) {
+         $log->warn( "Warning: Cross Correlation routine failed to run" );
+      }
     }
   }
 
