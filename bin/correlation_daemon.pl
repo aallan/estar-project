@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.23 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.24 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -343,7 +343,7 @@ sub correlate {
       my $file_i = File::Spec->catfile( $config->get_tmp_dir(), 
                                         $filei ."_" . "$id.cat");
       my $file_j = File::Spec->catfile( $config->get_tmp_dir(), 
-                                        "$filej ."_" . "$id.cat");
+                                        $filej ."_" . "$id.cat");
 									       
       $log->debug("Writing catalogue $file_i to disk...");
       $catalogs[$i]->write_catalog( Format => 'Cluster', File => $file_i );
