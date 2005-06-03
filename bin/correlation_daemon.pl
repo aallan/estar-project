@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.16 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.17 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -292,14 +292,19 @@ sub correlate {
   # Correlate.
   foreach my $i ( 0 .. ( $#catalogs - 1 ) ) {
     foreach my $j ( ( $i + 1 ) .. ( $#catalogs ) ) {
-      my $corr = new Astro::Correlate( catalog1 => $catalogs[$i],
-                                       catalog2 => $catalogs[$j],
+print "correlating catalog $i with $j\n";
+      my $cat1 = $catalogs[$i];
+print "catalog 1 has " . $cat1->sizeof . " objects before.\n";
+      my $cat2 = $catalogs[$j];
+print "catalog 2 has " . $cat2->sizeof . " objects before.\n";
+      my $corr = new Astro::Correlate( catalog1 => $cat1,
+                                       catalog2 => $cat2,
                                        method => 'FINDOFF',
                                      );
-      $corr->verbose( 1 );
+#      $corr->verbose( 1 );
       ( my $corrcat1, my $corrcat2 ) = $corr->correlate;
 
-      print "catalog 1 has " . $catalogs[$i]->sizeof . " objects before, " . $corrcat1->sizeof . " objects after.\n";
+      print "catalog 1 has " . $cat1->sizeof . " objects before, " . $corrcat1->sizeof . " objects after.\n";
 
     }
   }
