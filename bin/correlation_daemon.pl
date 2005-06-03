@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.17 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.18 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -208,6 +208,23 @@ if ( $config->get_state("corr.unique_process") == 1 ) {
    $config->set_option("mailhost.domain", 'jach.hawaii.edu' );
    $config->set_option("mailhost.timeout", 30 );
    $config->set_option("mailhost.debug", 0 );   
+   
+   # instrument defaults
+   $config->set_option("corr.camera1_prefix", "w" );
+   $config->set_option("corr.camera1_directory",  
+                       $config->get_option( "dir.data" ) );
+   
+   $config->set_option("corr.camera2_prefix", "x" );
+   $config->set_option("corr.camera1_directory",  
+                       $config->get_option( "dir.data" ) );
+   
+   $config->set_option("corr.camera3_prefix", "y" );
+   $config->set_option("corr.camera1_directory",  
+                       $config->get_option( "dir.data" ) ); 
+   
+   $config->set_option("corr.camera4_prefix", "z" );
+   $config->set_option("corr.camera1_directory",  
+                       $config->get_option( "dir.data" ) );
     
    # C O M M I T T   O P T I O N S  T O   F I L E S
    # ----------------------------------------------
