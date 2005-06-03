@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.25 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.26 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -356,32 +356,32 @@ sub correlate {
   
       # log file
       my $log_file = File::Spec->catfile( $config->get_tmp_dir(), 
-                                          "$id.corlate_log.log");
+                                          $id . "_corlate_log.log");
       $corlate->logfile( $log_file );
 
       # fit catalog
       my $fit_file = File::Spec->catfile( $config->get_tmp_dir(), 
-                                          "$id.corlate_fit.fit");
+                                          $id . "_corlate_fit.fit");
       $corlate->fit( $fit_file );
                    
       # histogram
       my $hist_file = File::Spec->catfile( $config->get_tmp_dir(), 
-                                       "$id.corlate_hist.dat");
+                                       $id . "_corlate_hist.dat");
       $corlate->histogram( $hist_file );
                    
       # information
       my $info_file = File::Spec->catfile( $config->get_tmp_dir(), 
-                                       "$id.corlate_info.dat");
+                                       $id . "_corlate_info.dat");
       $corlate->information( $info_file );
                    
       # varaiable catalog
       my $var_file = File::Spec->catfile( $config->get_tmp_dir(), 
-                                      "$id.corlate_var.cat");
+                                      $id . "_corlate_var.cat");
       $corlate->variables( $var_file );
                    
       # data catalog
       my $data_file = File::Spec->catfile( $config->get_tmp_dir(), 
-                                       "$id.corlate_fit.cat");
+                                       "$id_corlate_fit.cat");
       $corlate->data( $data_file);
                    
       # Astro::Corlate inputs
