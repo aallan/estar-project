@@ -20,6 +20,9 @@
 
 #  History:
 #     $Log: correlation_daemon.csh,v $
+#     Revision 1.3  2005/06/03 02:34:00  cavanagh
+#     sort of working...
+#
 #     Revision 1.2  2005/06/03 02:24:08  cavanagh
 #     spawn off four processes, one for each WFCAM camera
 #
@@ -28,7 +31,7 @@
 #
 
 #  Revision:
-#     $Id: correlation_daemon.csh,v 1.2 2005/06/03 02:24:08 cavanagh Exp $
+#     $Id: correlation_daemon.csh,v 1.3 2005/06/03 02:34:00 cavanagh Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -65,6 +68,9 @@ if (! $?ESTAR_PERL5LIB) then
   echo "ESTAR_PERL5LIB = ${ESTAR_PERL5LIB} (Warning)"
 endif
 
+source /star/etc/cshrc
+source /star/etc/login
+
 # These are perl programs
 
 if (-e $PERL ) then
@@ -85,9 +91,9 @@ if (-e $PERL ) then
   echo "Please wait..."
   echo "Starting JACH Correlation Daemon (${ia_args} )"
   ${PERL} ${ESTAR_DIR}/bin/correlation_daemon.pl -camera 1 ${ia_args} &
-  ${PERL} ${ESTAR_DIR}/bin/correlation_daemon.pl -camera 2 ${ia_args} &
-  ${PERL} ${ESTAR_DIR}/bin/correlation_daemon.pl -camera 3 ${ia_args} &
-  ${PERL} ${ESTAR_DIR}/bin/correlation_daemon.pl -camera 4 ${ia_args} &
+#  ${PERL} ${ESTAR_DIR}/bin/correlation_daemon.pl -camera 2 ${ia_args} &
+#  ${PERL} ${ESTAR_DIR}/bin/correlation_daemon.pl -camera 3 ${ia_args} &
+#  ${PERL} ${ESTAR_DIR}/bin/correlation_daemon.pl -camera 4 ${ia_args} &
 
 else
   echo " "

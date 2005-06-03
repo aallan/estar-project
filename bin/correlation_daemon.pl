@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.15 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.16 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -292,9 +292,6 @@ sub correlate {
   # Correlate.
   foreach my $i ( 0 .. ( $#catalogs - 1 ) ) {
     foreach my $j ( ( $i + 1 ) .. ( $#catalogs ) ) {
-      my $cat1 = $catalogs[$i];
-      my $cat2 = $catalogs[$j];
-
       my $corr = new Astro::Correlate( catalog1 => $catalogs[$i],
                                        catalog2 => $catalogs[$j],
                                        method => 'FINDOFF',
@@ -302,7 +299,7 @@ sub correlate {
       $corr->verbose( 1 );
       ( my $corrcat1, my $corrcat2 ) = $corr->correlate;
 
-      print "catalog 1 has " . $cat1->sizeof . " objects before, " . $corrcat1->sizeof . " objects after.\n";
+      print "catalog 1 has " . $catalogs[$i]->sizeof . " objects before, " . $corrcat1->sizeof . " objects after.\n";
 
     }
   }
@@ -325,6 +322,7 @@ sub correlate {
 # M A I N   L O O P
 # ===========================================================================
 
+my $camera = $OPT{'camera'};
 $log->debug( "Beginning file loop for camera $camera." );
 
 my $utdate = $starting_ut;
