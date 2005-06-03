@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.13 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -268,37 +268,46 @@ my $starting_ut = get_utdate();
 # C A L L B A C K S
 # ===========================================================================
 
-# thread in which the callback runs
-my $correlation_callback_thread;
 
-# callback which does the correlation.
-my $correlation_callback = sub {
-   # everything passed to the callback is a filename, honest!
-   my @files = @_;
+sub correlate {
+  my $files_arrayref = shift;
+  my @files = @$files_arrayref;
 
-   # spawn the correlation threads
-   my @threads;
-   my @variable_catalogs;
-   foreach my $i ( 0 ... $#files ) {
+  # Form Astro::Catalog objects from the list of files.
+  my @threads;
+  my @variable_catalogs;
+  my @catalogs = map{ new Astro::Catalog( Format => 'FITSTable',
+                                          File => $_ ) } @files;
+
+  # Correlate.
+  foreach my $i ( 0 .. ( $#catalogs - 1 ) ) {
+    foreach my $j ( ( $i + 1 ) .. ( $#catalogs ) ) {
+      my $cat1 = $catalogs[$i];
+      my $cat2 = $catalogs[$j];
+
+      my $corr = new Astro::Correlate( catalog1 => $catalogs[$i],
+                                       catalog2 => $catalogs[$j],
+                                       method => 'FINDOFF',
+                                     );
+      $corr->verbose( 1 );
+      ( my $corrcat1, my $corrcat2 ) = $corr->correlate;
+
+      print "catalog 1 has " . $cat1->sizeof . " objects before, " . $corrcat1->sizeof . " objects after.\n";
+
+    }
+  }
+
+  # merge catalogues into one single variable catalogue list
+  # removing duplicate entries (based on RA and Dec alone...)
 
 
-   }
+  # dispatch list of variables, and list of all stars to DB web 
+  # service via a SOAP call. We'll pass the lists as Astro::Catalog
+  # objects to avoid any sort of information loss. We can do this
+  # because we're running all Perl. If we need interoperability
+  # later, we'll move to document literal.
 
-   # wait for all threads to rejoin
-
-
-   # merge catalogues into one single variable catalogue list
-   # removing duplicate entries (based on RA and Dec alone...)
-
-
-   # dispatch list of variables, and list of all stars to DB web 
-   # service via a SOAP call. We'll pass the lists as Astro::Catalog
-   # objects to avoid any sort of information loss. We can do this
-   # because we're running all Perl. If we need interoperability
-   # later, we'll move to document literal.
-
-
-   return ESTAR__OK;
+  return ESTAR__OK;
 
 };
 
@@ -306,13 +315,13 @@ my $fileloop_callback = sub {
   my $starting_obsnum = shift;
   my $camera = shift;
 
-print "beginning fileloop_callback for camera $camera\n";
+  $log->debug( "Beginning fileloop_callback for camera $camera." );
 
   my $utdate = $starting_ut;
 
   my $obsnum = $starting_obsnum;
 
-  my @catalog_flags = ();
+  my @catalog_files = ();
 
   while( 1 ) {
     my $flag;
@@ -321,7 +330,7 @@ print "beginning fileloop_callback for camera $camera\n";
     my $catalog_file = File::Spec->catfile( $config->get_option( "corr.camera${camera}_directory" ),
                                             cat_file_from_bits( $utdate, $obsnum, $camera ) );
     $log->debug( "Pushing $catalog_file onto stack." );
-    push @catalog_flags, $catalog_file;
+    push @catalog_files, $catalog_file;
 
     # Read in the header of the FITS file, check to see if we're
     # at the end of a microstep sequence or not.
@@ -338,11 +347,14 @@ print "beginning fileloop_callback for camera $camera\n";
       # We're at the end of a microstep sequence, so spawn off a thread
       # to do the correlation.
       $log->print( "Spawning correlation_callback() to handle catalogue correlation..." );
-      $correlation_callback_thread = threads->create( $correlation_callback );
-      @catalog_flags = ();
+
+      # Correlate without a new thread.
+      correlate( \@catalog_files );
+
+      @catalog_files = ();
     }
     if( $nustep == 1 ) {
-      @catalog_flags = ();
+      @catalog_files = ();
     }
 
     $obsnum++;
