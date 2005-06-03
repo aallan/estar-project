@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.20 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.21 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -337,7 +337,7 @@ sub correlate {
       $filei =~ s/\.fit//;
       $filej =~ s/\.fit//;
       
-      my $id = $i . "_with_" .$j . "_cam" . $camera . "_proc" . $$";
+      my $id = $i . "_with_" .$j . "_cam" . $camera . "_proc" . $$;
       
       my $camera = $OPT{'camera'};
       my $file_i = File::Spec->catfile( $config->get_tmp_dir(), 
