@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.24 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.25 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -332,8 +332,8 @@ sub correlate {
       print "correlating catalog $i with $j\n";
     
       # object catalogue
-      my ($voli,$diri,$filei) = File::Spec->splitpath( $catalogs[$i] );
-      my ($volj,$dirj,$filej) = File::Spec->splitpath( $catalogs[$j] );
+      my ($voli,$diri,$filei) = File::Spec->splitpath( $files[$i] );
+      my ($volj,$dirj,$filej) = File::Spec->splitpath( $files[$j] );
       $filei =~ s/\.fit//;
       $filej =~ s/\.fit//;
       
