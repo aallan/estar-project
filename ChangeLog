@@ -1,8 +1,18 @@
+2005-06-03 Alasdair Allan <aa@astro.ex.ac.uk> 
+
+        * bin/correlation_daemon.pl: Replaced the Astro::Correlate loop with
+	  one using Astro::Corlate. Setup is okay, with valid Cluster catalogs
+	  being written, but it hangs during the run_corlate() method. Looking
+	  at the Astro::Corlate test harness this occurs then as well, although
+	  the pure Fortran driver routines work fine. There isn't anything
+	  wrong with the Fortran, it looks like there is something wrong with
+	  the XS harness or some other thing we're doing inside this routine.
+	  
 2005-06-03 Alasdair Allan <aa@astro.ex.ac.uk> &
            Brad Cavanagh <bradc@jach.hawaii.edu> 
 
         * bin/correlation_daemon.pl: Flag file monitoring routines now
-          working correctly, inital stab at correlation
+          working correctly, inital stab at correlation routines.
 	  
 	* etc/correlation_daemon.pl: Moved from threaded (or at one stage
 	  a forking model) to a one process per camera model with the fork
