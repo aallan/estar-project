@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.14 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.15 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -269,8 +269,9 @@ my $starting_ut = get_utdate();
 unless( defined $OPT{"camera"} ) {
    $OPT{"camera"} = $config->get_option("corr.camera");
 } else{
-   $log->warn("Warning: Resetting password...");
-   $config->set_option("corr.passwd", $OPT{"pass"} );
+   $log->warn("Warning: Resetting camera from " .
+             $config->get_option("corr.camera") . " to $OPT{camera}");
+   $config->set_option("corr.camera", $OPT{"camera"} );
 }
 
 # ===========================================================================
@@ -320,76 +321,53 @@ sub correlate {
 
 };
 
-my $fileloop_callback = sub {
-  my $starting_obsnum = shift;
-  my $camera = shift;
-
-  $log->debug( "Beginning fileloop_callback for camera $camera." );
-
-  my $utdate = $starting_ut;
-
-  my $obsnum = $starting_obsnum;
-
-  my @catalog_files = ();
-
-  while( 1 ) {
-    my $flag;
-    $obsnum = flag_loop( $utdate, $obsnum, $camera );
-    $log->debug( "Found flag file for observation $obsnum for camera $camera." );
-    my $catalog_file = File::Spec->catfile( $config->get_option( "corr.camera${camera}_directory" ),
-                                            cat_file_from_bits( $utdate, $obsnum, $camera ) );
-    $log->debug( "Pushing $catalog_file onto stack." );
-    push @catalog_files, $catalog_file;
-
-    # Read in the header of the FITS file, check to see if we're
-    # at the end of a microstep sequence or not.
-    $log->debug( "Reading $catalog_file" );
-    my $header = new Astro::FITS::Header::CFITSIO( File => $catalog_file );
-    tie my %keywords, "Astro::FITS::Header", $header, tiereturnsref => 1;
-
-    my $nustep = $keywords{'SUBHEADERS'}->[0]->{'NUSTEP'};
-    my $ustep_position = $keywords{'SUBHEADERS'}->[0]->{'USTEP_I'};
-    $log->debug("FITS headers: nustep: $nustep ustep_pos: $ustep_position");
-    if( $ustep_position == $nustep &&
-        $nustep != 1 ) {
-
-      # We're at the end of a microstep sequence, so spawn off a thread
-      # to do the correlation.
-      $log->print( "Spawning correlation_callback() to handle catalogue correlation..." );
-
-      # Correlate without a new thread.
-      correlate( \@catalog_files );
-
-      @catalog_files = ();
-    }
-    if( $nustep == 1 ) {
-      @catalog_files = ();
-    }
-
-    $obsnum++;
-
-  }
-};
-
 # ===========================================================================
 # M A I N   L O O P
 # ===========================================================================
 
-my $pid;
-for( 1 .. 1 ) {
-  $log->debug("Creating fileloop_callback thread $_ of 4");
-  
-  $pid = fork();
-  unless ( defined $pid && $pid != 0 ) {
-     # we're the parent, start the rest of the processes
-     next;
-     
-  }
-  
-  # From this point on, we are the child.
-  fileloop_callback( $starting_obsnum, $_ );
-}
+$log->debug( "Beginning file loop for camera $camera." );
 
+my $utdate = $starting_ut;
+my $obsnum = $starting_obsnum;
+my @catalog_files = ();
+
+while( 1 ) {
+  my $flag;
+  $obsnum = flag_loop( $utdate, $obsnum, $camera );
+  $log->debug( "Found flag file for observation $obsnum for camera $camera." );
+  my $catalog_file = File::Spec->catfile( $config->get_option( "corr.camera${camera}_directory" ),
+  					  cat_file_from_bits( $utdate, $obsnum, $camera ) );
+  $log->debug( "Pushing $catalog_file onto stack." );
+  push @catalog_files, $catalog_file;
+
+  # Read in the header of the FITS file, check to see if we're
+  # at the end of a microstep sequence or not.
+  $log->debug( "Reading $catalog_file" );
+  my $header = new Astro::FITS::Header::CFITSIO( File => $catalog_file );
+  tie my %keywords, "Astro::FITS::Header", $header, tiereturnsref => 1;
+
+  my $nustep = $keywords{'SUBHEADERS'}->[0]->{'NUSTEP'};
+  my $ustep_position = $keywords{'SUBHEADERS'}->[0]->{'USTEP_I'};
+  $log->debug("FITS headers: nustep: $nustep ustep_pos: $ustep_position");
+  if( $ustep_position == $nustep &&
+      $nustep != 1 ) {
+
+    # We're at the end of a microstep sequence, so spawn off a thread
+    # to do the correlation.
+    $log->print( "Spawning correlation_callback() to handle catalogue correlation..." );
+
+    # Correlate without a new thread.
+    correlate( \@catalog_files );
+
+    @catalog_files = ();
+  }
+  if( $nustep == 1 ) {
+    @catalog_files = ();
+  }
+
+  $obsnum++;
+
+}
 $log->print( "Parent process terminating..." );
 
 # ===========================================================================
