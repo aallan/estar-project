@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.19 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.20 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -332,12 +332,12 @@ sub correlate {
       print "correlating catalog $i with $j\n";
     
       # object catalogue
-      my ($voli,$diri,$filei) = File::Spec->splitpath( $catalog[$i] );
-      my ($volj,$dirj,$filej) = File::Spec->splitpath( $catalog[$j] );
+      my ($voli,$diri,$filei) = File::Spec->splitpath( $catalogs[$i] );
+      my ($volj,$dirj,$filej) = File::Spec->splitpath( $catalogs[$j] );
       $filei =~ s/\.fit//;
       $filej =~ s/\.fit//;
       
-      my $id = "$i_with_$j_cam$camera_proc$$";
+      my $id = $i . "_with_" .$j . "_cam" . $camera . "_proc" . $$";
       
       my $camera = $OPT{'camera'};
       my $file_i = File::Spec->catfile( $config->get_tmp_dir(), 
@@ -346,9 +346,9 @@ sub correlate {
                                         "$filej_$id.cat");
 									       
       $log->debug("Writing catalogue $file_i to disk...");
-      $catalog[$i]->write_catalog( Format => 'Cluster', File => $file_i );
+      $catalogs[$i]->write_catalog( Format => 'Cluster', File => $file_i );
       $log->debug("Writing catalogue $file_j to disk...");
-      $catalog[$i]->write_catalog( Format => 'Cluster', File => $file_j ); 
+      $catalogs[$j]->write_catalog( Format => 'Cluster', File => $file_j ); 
       
       $log->debug("Building corelation object...");
       my $corlate = new Astro::Corlate(  Reference   => $file_i,
