@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.29 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.30 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -326,11 +326,11 @@ sub correlate {
       $log->debug(  "Catalogue 1 has " . $cat1->sizeof . " objects before " .
          " matching and " . $corrcat1->sizeof . " objects afterwards." );
       $log->debug(  "Catalogue 1 has " . $cat2->sizeof . " objects before " .
-         " matching and " . $corrcat3->sizeof . " objects afterwards." );	 
+         " matching and " . $corrcat2->sizeof . " objects afterwards." );	 
 
 
       $log->print("Matching catalogues...)";
-      my @vars = match_catalogs( $corr_catalog_1, $corr_catalog_2 );
+      my @vars = match_catalogs( $corrcat1, $corrcat2 );
   
       if ( defined $vars[0] ) {
          $log->print("The following stars are possible variables:");
@@ -700,7 +700,7 @@ sub clip_wmean {
    #   integer, intent(out):: reject
    #   integer, intent(in)::npoints
 
-   my ( $wmean, $redchi, $chisq );
+   my ( $wmean, $redchi, $chisq, $reject );
    
    if ( $#data <= 1 ) {
       $wmean = 0;
@@ -718,8 +718,8 @@ sub clip_wmean {
 
    $redchi = 0;
    $wmean = $sumav / $sumerr;
-   foreach my $i ( 0 ... $#data ) {
-      $redchi = $redchi + pow( ( ($data[$i]-$wmean)/$error[$i] ) ,2);
+   foreach my $j ( 0 ... $#data ) {
+      $redchi = $redchi + pow( ( ($data[$j]-$wmean)/$error[$j] ) ,2);
    }
    $redchi = $redchi / scalar(@data);
 
@@ -759,7 +759,7 @@ sub clip_wmean {
       #      "wmean = $wmean\nreject=$reject\n";
       
       # Work out the chi-squared for the new fit.
-      $redchi_new = 0.0;
+      my $redchi_new = 0.0;
       foreach my $j ( 0 ... $#data ) {
          if ( pow((($data[$j]-$wmean)/$error[$j]),2) < (4.0*$redchi ) ) {
              $redchi_new = $redchi_new + pow((($data[$j]-$wmean)/$error[$j]),2);
