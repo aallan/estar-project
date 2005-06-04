@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.37 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.38 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -734,7 +734,7 @@ sub match_catalogs {
   # variable star. Marshal the @ids and build a list of possible variables
   my @vars;
   foreach my $m ( 0 ... $#sigmas ) {
-     if( $sigmas[$m] > $config->get_option( "corr.sigma_limit" ) {
+     if( $sigmas[$m] > $config->get_option( "corr.sigma_limit" ) ) {
          push @vars, $ids[$m];  
      }	
   }  
