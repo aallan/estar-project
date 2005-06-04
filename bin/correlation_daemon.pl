@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.32 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.33 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -654,8 +654,8 @@ sub match_catalogs {
      my $diff_mag = $mag1 - $mag2;
      my $diff_err = sqrt ( pow( $err1, 2) + pow( $err2, 2) );
      
-     #print "STAR $id1,$id2 has $mag1 +- $err1 and $mag2 +- $err2\n";     	
-     #print "     $diff_mag +- $diff_err\n";     	
+     print "STAR $id1,$id2 has $mag1 +- $err1 and $mag2 +- $err2\n";     	
+     print "     $diff_mag +- $diff_err\n";     	
     
      push @data, $diff_mag;
      push @errors, $diff_err;
