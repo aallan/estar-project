@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.30 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.31 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -329,7 +329,7 @@ sub correlate {
          " matching and " . $corrcat2->sizeof . " objects afterwards." );	 
 
 
-      $log->print("Matching catalogues...)";
+      $log->print("Matching catalogues...");
       my @vars = match_catalogs( $corrcat1, $corrcat2 );
   
       if ( defined $vars[0] ) {
@@ -733,18 +733,18 @@ sub clip_wmean {
       $sumav = 0;
       $sumerr = 0;
       
-      foreach my $i ( 0 ... $#data ) {
+      foreach my $j ( 0 ... $#data ) {
       
-         if ( pow((($data[$i]-$wmean)/$error[$i]),2) < (4.0*$redchi ) ) {
+         if ( pow((($data[$j]-$wmean)/$error[$j]),2) < (4.0*$redchi ) ) {
              # Here we allow points in if their contribution to chi-squared
              # is less than 4 times the reduced chi squared, from the last fit
 	     
-	     #print "Star $i contributes\n";
-             $sumav = $sumav + ( $data[$i]/pow($error[$i],2));
-             $sumerr = $sumerr + (1.0/pow($error[$i],2));
+	     #print "Star $j contributes\n";
+             $sumav = $sumav + ( $data[$j]/pow($error[$j],2));
+             $sumerr = $sumerr + (1.0/pow($error[$j],2));
          } else {
 	     
-	     #print "Star $i rejected\n";
+	     #print "Star $j rejected\n";
              $reject = $reject + 1;
          }
       }
@@ -760,9 +760,9 @@ sub clip_wmean {
       
       # Work out the chi-squared for the new fit.
       my $redchi_new = 0.0;
-      foreach my $j ( 0 ... $#data ) {
-         if ( pow((($data[$j]-$wmean)/$error[$j]),2) < (4.0*$redchi ) ) {
-             $redchi_new = $redchi_new + pow((($data[$j]-$wmean)/$error[$j]),2);
+      foreach my $k ( 0 ... $#data ) {
+         if ( pow((($data[$k]-$wmean)/$error[$k]),2) < (4.0*$redchi ) ) {
+             $redchi_new = $redchi_new + pow((($data[$k]-$wmean)/$error[$k]),2);
          }
       }
       
