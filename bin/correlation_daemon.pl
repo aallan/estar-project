@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.31 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.32 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -623,8 +623,11 @@ sub match_catalogs {
      my $id1 = $star1->id();
      
      my $err1 = sqrt( $mag1 );
+     $err1 = $mag1 + $err1;
+     
      $mag1 = -2.5*log10( $mag1 );
      $err1 = abs ( -2.5*log10( $err1 ) );
+     $err1 = $err1 - $mag1;
           
      # Find the corresponding STAR in Catalogue 2
      
@@ -641,9 +644,12 @@ sub match_catalogs {
      $mag2 = pow( (-$mag2/2.5), 10);
      my $id2 = $star2->id();
      
-     my $err2 = sqrt( $mag2 );    
+     my $err2 = sqrt( $mag2 );  
+     $err2 = $mag2 + $err2;
+       
      $mag2 = -2.5*log10( $mag2 );
      $err2 = abs ( -2.5*log10( $err2 ) );     
+     $err2 = $err2 - $mag2;
      
      my $diff_mag = $mag1 - $mag2;
      my $diff_err = sqrt ( pow( $err1, 2) + pow( $err2, 2) );
