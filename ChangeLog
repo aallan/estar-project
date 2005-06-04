@@ -1,4 +1,23 @@
-2005-06-03 Alasdair Allan <aa@astro.ex.ac.uk> 
+2005-06-03 Alasdair Allan <aa@astro.ex.ac.uk> &
+           Brad Cavanagh <bradc@jach.hawaii.edu> 
+
+        * bin/correlation_daemon.pl: Removed the Astro::Corlate code and
+	  replaced with a mixture of Astro::Correlate and home grown Perl
+	  code. While not as sophiticated as the f95 code this will give 
+	  us a first cut at the variable star detection in a single waveband.
+	  This code will not do multi-colour detection, so if there is a
+	  colour term in the variability it will not detect it.
+	  
+	  Working correlation routine, the correlation_daemon.pl now does
+	  full intra-frame correlation, creating a list of variable and 
+	  new objects. Still need to merge the initial lists to create a
+	  list of "all" objects. For now we can just pass back one of the
+	  four/nine frames as this list as we'll need to do further
+	  development on Astro::Catalog to allow us to do this...
+	  
+	* eSTAR/Logging.pm: Added a print_ncr() method.
+	    
+2005-06-02 Alasdair Allan <aa@astro.ex.ac.uk> 
 
         * bin/correlation_daemon.pl: Replaced the Astro::Correlate loop with
 	  one using Astro::Corlate. Setup is okay, with valid Cluster catalogs
@@ -8,7 +27,7 @@
 	  wrong with the Fortran, it looks like there is something wrong with
 	  the XS harness or some other thing we're doing inside this routine.
 	  
-2005-06-03 Alasdair Allan <aa@astro.ex.ac.uk> &
+2005-06-02 Alasdair Allan <aa@astro.ex.ac.uk> &
            Brad Cavanagh <bradc@jach.hawaii.edu> 
 
         * bin/correlation_daemon.pl: Flag file monitoring routines now
@@ -19,7 +38,7 @@
 	  happing from the csh startup script. Monitoring threads 2 - 4 turned
 	  off for debugging purposes.
  
-2005-06-02 Aladair Allan <aa@astro.ex.ac.uk>
+2005-06-01 Aladair Allan <aa@astro.ex.ac.uk>
 
         * bin/correlation_daemon.pl: Stub of the correlation daemon that will
 	  be doing the cross-correlation between the intra- and inter-frame

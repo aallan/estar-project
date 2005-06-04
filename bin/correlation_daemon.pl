@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.39 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.40 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -373,7 +373,7 @@ sub correlate {
       if ( defined $vars[0] ) {
         $log->print_ncr("The following stars are possible variables:");
         foreach my $i ( 0 ... $#vars ) {
-          $log->print( " ID $vars[$i]" );
+          $log->print_ncr( " ID $vars[$i]" );
 	  
 	  my $star_from1 = $corrcat1->popstarbyid( $vars[$i] );
 	  $var_objects->pushstar( $star_from1 );
@@ -390,7 +390,8 @@ sub correlate {
 
   $log->print( "Found " . $new_objects->sizeof() . 
                " objects that did not match spatially between catalogues." );
-  $log->print( "Found " . $var_objects->sizeof() . 
+  my $number_of_variables = $var_objects->sizeof() / 2;
+  $log->print( "Found " . $number_of_variables . 
                " objects that may be potential variable stars." );
 	       
   # merge catalogues into one single variable catalogue list
