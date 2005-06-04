@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.36 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.37 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -366,16 +366,16 @@ sub correlate {
 
       # look for variable stars
       $log->print("Matching catalogues...");
-      @vars = match_catalogs( $corrcat1, $corrcat2 );
+      my @vars = match_catalogs( $corrcat1, $corrcat2 );
 
       if ( defined $vars[0] ) {
         $log->print_ncr("The following stars are possible variables:");
         foreach my $i ( 0 ... $#vars ) {
           $log->print( " ID $vars[$i]" );
 	  
-	  my $star_from1 = $corrcat1->popstarbyid( $vars[$id] );
+	  my $star_from1 = $corrcat1->popstarbyid( $vars[$i] );
 	  $var_objects->pushstar( $star_from1 );
-	  my $star_from2 = $corrcat1->popstarbyid( $vars[$id] );
+	  my $star_from2 = $corrcat1->popstarbyid( $vars[$i] );
 	  $var_objects->pushstar( $star_from2 );
 	  	  
         }
@@ -410,7 +410,7 @@ sub correlate {
 # M A I N   L O O P
 # ===========================================================================
 
-my $camera = $config->get_option{"corr.camera"};
+my $camera = $config->get_option("corr.camera");
 $log->debug( "Beginning file loop for camera $camera." );
 
 my $utdate = $starting_ut;
