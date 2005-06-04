@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.34 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.35 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -64,6 +64,7 @@ use SOAP::Lite;
 use Digest::MD5 'md5_hex';
 use URI;
 use HTTP::Cookies;
+use Storable qw/ dclone /;
 use Math::Libm qw(:all);
 
 # Astronomy modules
@@ -217,15 +218,15 @@ if ( $config->get_state("corr.unique_process") == 1 ) {
                        $config->get_option( "dir.data" ) );
    
    $config->set_option("corr.camera2_prefix", "x" );
-   $config->set_option("corr.camera1_directory",  
+   $config->set_option("corr.camera2_directory",  
                        $config->get_option( "dir.data" ) );
    
    $config->set_option("corr.camera3_prefix", "y" );
-   $config->set_option("corr.camera1_directory",  
+   $config->set_option("corr.camera2_directory",  
                        $config->get_option( "dir.data" ) ); 
    
    $config->set_option("corr.camera4_prefix", "z" );
-   $config->set_option("corr.camera1_directory",  
+   $config->set_option("corr.camera2_directory",  
                        $config->get_option( "dir.data" ) );
     
    # C O M M I T T   O P T I O N S  T O   F I L E S
@@ -307,42 +308,63 @@ sub correlate {
   my @variable_catalogs;
   my @catalogs = map{ new Astro::Catalog( Format => 'FITSTable',
                                           File => $_ ) } @files;
+  my $new_objects = new Astro::Catalog;
 
-  # Correlate.
+  # Correlate, finding objects that are not in one catalogue but are
+  # in another.
   foreach my $i ( 0 .. ( $#catalogs - 1 ) ) {
     foreach my $j ( ( $i + 1 ) .. ( $#catalogs ) ) {
-      $log->print("Correlating catalog $i with $j...");
-      my $cat1 = $catalogs[$i];
-      $log->debug("Catalog 1 has " . $cat1->sizeof . " objects");
-      my $cat2 = $catalogs[$j];
-      $log->debug("Catalog 2 has " . $cat2->sizeof . " objects");
+      my $cat1 = dclone($catalogs[$i]);
+      my $cat2 = dclone($catalogs[$j]);
       my $corr = new Astro::Correlate( catalog1 => $cat1,
-				       catalog2 => $cat2,
-				       method => 'FINDOFF',
-				     );
-      $corr->verbose( 1 );
+                                       catalog2 => $cat2,
+                                       method => 'FINDOFF',
+                                     );
+
       ( my $corrcat1, my $corrcat2 ) = $corr->correlate;
 
-      $log->debug(  "Catalogue 1 has " . $cat1->sizeof . " objects before " .
-         " matching and " . $corrcat1->sizeof . " objects afterwards." );
-      $log->debug(  "Catalogue 1 has " . $cat2->sizeof . " objects before " .
-         " matching and " . $corrcat2->sizeof . " objects afterwards." );	 
+      $log->debug( "Catalogue 1 has " . $cat1->sizeof . " objects before" .
+                   " matching and " . $corrcat1->sizeof . " objects afterwards." );
+      $log->debug( "Catalogue 2 has " . $cat2->sizeof . " objects before" .
+                   " matching and " . $corrcat2->sizeof . " objects afterwards." );
 
+      # Now, get a list of objects that -didn't- match between the two
+      # catalogues.
+      foreach my $star ( $corrcat1->stars ) {
+        $star->comment =~ /^Old ID: (\d+)$/;
+        my $oldid = $1;
+        my $origstar = $cat1->popstarbyid( $oldid );
+      }
+      foreach my $star ( $corrcat2->stars ) {
+        $star->comment =~ /^Old ID: (\d+)$/;
+        my $oldid = $1;
+        my $origstar = $cat2->popstarbyid( $oldid );
+      }
+
+      # $cat1 and $cat2 are now catalogues of objects that did not match
+      # between the two input catalogues. Merge them into the "new_objects"
+      # catalogue.
+      my @cat1objects = $cat1->stars;
+      my @cat2objects = $cat2->stars;
+      $new_objects->pushstar( @cat1objects );
+      $new_objects->pushstar( @cat2objects );
 
       $log->print("Matching catalogues...");
       my @vars = match_catalogs( $corrcat1, $corrcat2 );
-  
+
       if ( defined $vars[0] ) {
-         $log->print("The following stars are possible variables:");
-         foreach my $i ( 0 ... $#vars ) {
-	    $log->print( "   Star ID $vars[$i]" );
-	 }
+        $log->print("The following stars are possible variables:");
+        foreach my $i ( 0 ... $#vars ) {
+          $log->print( "   Star ID $vars[$i]" );
+        }
       } else {
-         $log->print("No stars vary at the 3 sigma level");	 
-      } 	    
-      
+        $log->print("No stars vary at the 3 sigma level");	 
+      }
     }
   }
+
+  $log->print( "Found " . $new_objects->sizeof() . " objects that did not match" .
+               " spatially between catalogues." );
 
   # merge catalogues into one single variable catalogue list
   # removing duplicate entries (based on RA and Dec alone...)
@@ -654,8 +676,8 @@ sub match_catalogs {
      my $diff_mag = $mag1 - $mag2;
      my $diff_err = sqrt ( pow( $err1, 2) + pow( $err2, 2) );
      
-     print "STAR $id1,$id2 has $mag1 +- $err1 and $mag2 +- $err2\n";     	
-     print "     $diff_mag +- $diff_err\n";     	
+#     print "STAR $id1,$id2 has $mag1 +- $err1 and $mag2 +- $err2\n";     	
+#     print "     $diff_mag +- $diff_err\n";     	
     
      push @data, $diff_mag;
      push @errors, $diff_err;
@@ -673,7 +695,7 @@ sub match_catalogs {
   my @sigmas;
   foreach my $k ( 0 ... $#data ) {
      $sigmas[$k] = abs( ( $data[$k] - $wmean ) / $errors[$k] );
-     print "sigma $k = $sigmas[$k]\n";
+#     print "sigma $k = $sigmas[$k]\n";
   }
   
   # loop through @sigmas, if $sigma[$m] is > 3 then this is probably a
