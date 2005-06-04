@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.38 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.39 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -317,6 +317,8 @@ sub correlate {
   my $files_arrayref = shift;
   my @files = @$files_arrayref;
 
+  my $sigma_limit = $config->get_option("corr.sigma_limit");
+  
   # Form Astro::Catalog objects from the list of files.
   my @threads;
   my @variable_catalogs;
@@ -381,8 +383,7 @@ sub correlate {
         }
 	$log->print("");
       } else {
-        $log->print( "No stars vary at the " . 
-	     $config->get_option("corr.sigma_limit") . " sigma level");	 
+        $log->print( "No stars vary at the " . $sigma_limit . " sigma level");	 
       }
     }
   }
@@ -659,6 +660,8 @@ sub get_utdate {
 sub match_catalogs {
   my $cat1 = shift;
   my $cat2 = shift;
+  
+  my $sigma_limit = $config->get_option( "corr.sigma_limit" );
 
   # Deep clone the catalogues so we can popstarbyid
   my $corr1 = dclone($cat1);
@@ -734,7 +737,7 @@ sub match_catalogs {
   # variable star. Marshal the @ids and build a list of possible variables
   my @vars;
   foreach my $m ( 0 ... $#sigmas ) {
-     if( $sigmas[$m] > $config->get_option( "corr.sigma_limit" ) ) {
+     if( $sigmas[$m] > $sigma_limit ) {
          push @vars, $ids[$m];  
      }	
   }  
