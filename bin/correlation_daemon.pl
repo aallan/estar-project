@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.28 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.29 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -64,6 +64,7 @@ use SOAP::Lite;
 use Digest::MD5 'md5_hex';
 use URI;
 use HTTP::Cookies;
+use Math::Libm qw(:all);
 
 # Astronomy modules
 use Astro::Catalog;
@@ -310,11 +311,11 @@ sub correlate {
   # Correlate.
   foreach my $i ( 0 .. ( $#catalogs - 1 ) ) {
     foreach my $j ( ( $i + 1 ) .. ( $#catalogs ) ) {
-      print "correlating catalog $i with $j\n";
+      $log->print("Correlating catalog $i with $j...");
       my $cat1 = $catalogs[$i];
-      print "catalog 1 has " . $cat1->sizeof . " objects before.\n";
+      $log->debug("Catalog 1 has " . $cat1->sizeof . " objects");
       my $cat2 = $catalogs[$j];
-      print "catalog 2 has " . $cat2->sizeof . " objects before.\n";
+      $log->debug("Catalog 2 has " . $cat2->sizeof . " objects");
       my $corr = new Astro::Correlate( catalog1 => $cat1,
 				       catalog2 => $cat2,
 				       method => 'FINDOFF',
@@ -322,131 +323,24 @@ sub correlate {
       $corr->verbose( 1 );
       ( my $corrcat1, my $corrcat2 ) = $corr->correlate;
 
-      $log->print(  "Catalogue 1 has " . $cat1->sizeof . " objects before, " .
+      $log->debug(  "Catalogue 1 has " . $cat1->sizeof . " objects before " .
          " matching and " . $corrcat1->sizeof . " objects afterwards." );
-      $log->print(  "Catalogue 1 has " . $cat2->sizeof . " objects before, " .
+      $log->debug(  "Catalogue 1 has " . $cat2->sizeof . " objects before " .
          " matching and " . $corrcat3->sizeof . " objects afterwards." );	 
 
 
-      print Dumper( $corrcat1 );
-      print Dumper( $corrcat2 );
+      $log->print("Matching catalogues...)";
+      my @vars = match_catalogs( $corr_catalog_1, $corr_catalog_2 );
+  
+      if ( defined $vars[0] ) {
+         $log->print("The following stars are possible variables:");
+         foreach my $i ( 0 ... $#vars ) {
+	    $log->print( "   Star ID $vars[$i]" );
+	 }
+      } else {
+         $log->print("No stars vary at the 3 sigma level");	 
+      } 	    
       
-    }
-  }
-
-# foreach my $i ( 0 .. ( $#catalogs - 1 ) ) {
-#    foreach my $j ( ( $i + 1 ) .. ( $#catalogs ) ) {
-#      print "correlating catalog $i with $j\n";
-#    
-#      # object catalogue
-#      my ($voli,$diri,$filei) = File::Spec->splitpath( $files[$i] );
-#      my ($volj,$dirj,$filej) = File::Spec->splitpath( $files[$j] );
-#      $filei =~ s/\.fit//;
-#      $filej =~ s/\.fit//;
-#      
-#      my $id = $i . "_with_" .$j . "_cam" . $OPT{'camera'} . "_proc" . $$;
-#      
-#      my $camera = $OPT{'camera'};
-#      my $file_i = File::Spec->catfile( $config->get_tmp_dir(), 
-#                                        $filei ."_" . "$id.cat");
-#      my $file_j = File::Spec->catfile( $config->get_tmp_dir(), 
-#                                        $filej ."_" . "$id.cat");
-#									       
-#      $log->debug("Writing catalogue $file_i to disk...");
-#      $catalogs[$i]->write_catalog( Format => 'Cluster', File => $file_i );
-#      $log->debug("Writing catalogue $file_j to disk...");
-#      $catalogs[$j]->write_catalog( Format => 'Cluster', File => $file_j ); 
-#      
-#      $log->debug("Building corelation object...");
-#      my $corlate = new Astro::Corlate(  Reference   => $file_i,
-#                                         Observation => $file_j  );
-#  
-#      # log file
-#      my $log_file = File::Spec->catfile( $config->get_tmp_dir(), 
-#                                          $id . "_corlate_log.log");
-#      $corlate->logfile( $log_file );
-#
-#      # fit catalog
-#      my $fit_file = File::Spec->catfile( $config->get_tmp_dir(), 
-#                                          $id . "_corlate_fit.fit");
-#      $corlate->fit( $fit_file );
-#                   
-#      # histogram
-#      my $hist_file = File::Spec->catfile( $config->get_tmp_dir(), 
-#                                       $id . "_corlate_hist.dat");
-#      $corlate->histogram( $hist_file );
-#                   
-#      # information
-#      my $info_file = File::Spec->catfile( $config->get_tmp_dir(), 
-#                                       $id . "_corlate_info.dat");
-#      $corlate->information( $info_file );
-#                   
-#      # varaiable catalog
-#      my $var_file = File::Spec->catfile( $config->get_tmp_dir(), 
-#                                      $id . "_corlate_var.cat");
-#      $corlate->variables( $var_file );
-#                   
-#      # data catalog
-#      my $data_file = File::Spec->catfile( $config->get_tmp_dir(), 
-#                                      $id . "_corlate_fit.cat");
-#      $corlate->data( $data_file);
-#                   
-#      # Astro::Corlate inputs
-#      # ---------------------
-#      my ($volume, $directories, $file); 
-# 
-#      $log->debug("Starting cross correlation...");
-#      ($volume, $directories, $file) = File::Spec->splitpath( $file_i );
-#      $log->debug("Temporary directory   : " . $directories);
-#      $log->debug("Reference catalogue   : " . $file);
-#  
-#      ($volume, $directories, $file) = File::Spec->splitpath( $file_j );
-#      $log->debug("Observation catalogue : " . $file);
-#  
-#      ($volume, $directories, $file) = File::Spec->splitpath( $log_file );
-#      $log->debug("Log file              : " . $file);
-#  
-#      ($volume, $directories, $file) = File::Spec->splitpath( $fit_file );
-#      $log->debug("X/Y Fit file          : " . $file);
-#  
-#      ($volume, $directories, $file) = File::Spec->splitpath( $hist_file );
-#      $log->debug("Histogram file        : " . $file);
-#  
-#      ($volume, $directories, $file) = File::Spec->splitpath( $info_file );
-#      $log->debug("Information file      : " . $file);
-#  
-#      ($volume, $directories, $file) = File::Spec->splitpath( $var_file );
-#      $log->debug("Variable catalogue    : " . $file);
-#  
-#      ($volume, $directories, $file) = File::Spec->splitpath( $data_file );
-#      $log->debug("Colour data catalogue : " . $file);   
-#      
-#      # run the corelation routine
-#      # --------------------------
-#      my $status = ESTAR__OK;
-#      try {
-#         $log->debug("Called run_corlate()...");
-#         $corlate->run_corlate();
-#      } otherwise {
-#         my $error = shift;
-#         eSTAR::Error->flush if defined $error;
-#         $status = ESTAR__ERROR;
-#                
-#         # grab the error line
-#         my $err = "$error";
-#         chomp($err);
-#         $log->debug("Error: $err");
-#      }; 
-#  
-#      # undef the Astro::Corlate object
-#      $corlate = undef;
-#  
-#      # check for good status
-#      # ---------------------
-#      unless ( $status == ESTAR__OK ) {
-#         $log->warn( "Warning: Cross Correlation routine failed to run" );
-#      }
-
     }
   }
 
@@ -479,8 +373,9 @@ while( 1 ) {
   my $flag;
   $obsnum = flag_loop( $utdate, $obsnum, $camera );
   $log->debug( "Found flag file for observation $obsnum for camera $camera." );
-  my $catalog_file = File::Spec->catfile( $config->get_option( "corr.camera${camera}_directory" ),
-  					  cat_file_from_bits( $utdate, $obsnum, $camera ) );
+  my $catalog_file = File::Spec->catfile( 
+                       $config->get_option( "corr.camera${camera}_directory" ),
+                       cat_file_from_bits( $utdate, $obsnum, $camera ) );
   $log->debug( "Pushing $catalog_file onto stack." );
   push @catalog_files, $catalog_file;
 
@@ -498,7 +393,8 @@ while( 1 ) {
 
     # We're at the end of a microstep sequence, so spawn off a thread
     # to do the correlation.
-    $log->print( "Spawning correlation_callback() to handle catalogue correlation..." );
+    $log->print( 
+       "Spawning correlation_callback() to handle catalogue correlation..." );
 
     # Correlate without a new thread.
     correlate( \@catalog_files );
@@ -706,3 +602,189 @@ sub get_utdate {
     return $datetime->ymd('');
   }
 }
+
+# -------------------------------------------------------------------------
+# F I T T  I N G   R O U T I N E S 
+# -------------------------------------------------------------------------
+
+
+sub match_catalogs {
+   my $corr1 = shift;
+   my $corr2 = shift;
+   
+  my (@data, @errors, @ids); 
+  foreach my $i ( 0 ... $corr1->sizeof() - 1 ) {
+     
+     # Grab magnitude for STAR from Catalogue 1
+     my $star1 = $corr1->starbyindex( $i );
+     
+     my $mag1 = $star1->get_magnitude('unknown');
+     $mag1 = pow( (-$mag1/2.5), 10);
+     my $id1 = $star1->id();
+     
+     my $err1 = sqrt( $mag1 );
+     $mag1 = -2.5*log10( $mag1 );
+     $err1 = abs ( -2.5*log10( $err1 ) );
+          
+     # Find the corresponding STAR in Catalogue 2
+     
+     my @stars2 = $corr2->popstarbyid( $id1 );
+     unless ( scalar(@stars2) == 1 ) {
+        print "Duplicate IDs, yuck...\n";
+	#print Dumper( @stars2 );
+	exit;
+     }
+     my $star2 = $stars2[0];
+     
+     # Grab magnitude for STAR from Catalogue 2     
+     my $mag2 = $star2->get_magnitude('unknown');
+     $mag2 = pow( (-$mag2/2.5), 10);
+     my $id2 = $star2->id();
+     
+     my $err2 = sqrt( $mag2 );    
+     $mag2 = -2.5*log10( $mag2 );
+     $err2 = abs ( -2.5*log10( $err2 ) );     
+     
+     my $diff_mag = $mag1 - $mag2;
+     my $diff_err = sqrt ( pow( $err1, 2) + pow( $err2, 2) );
+     
+     #print "STAR $id1,$id2 has $mag1 +- $err1 and $mag2 +- $err2\n";     	
+     #print "     $diff_mag +- $diff_err\n";     	
+    
+     push @data, $diff_mag;
+     push @errors, $diff_err;
+     push @ids, $id1;
+     
+  }
+  
+  my ( $wmean, $redchi, $reject ) = clip_wmean( \@data, \@errors );
+  #print "$wmean, $redchi, $reject\n";
+  
+  # loop through the @data array and subtract the $wmean and then 
+  # divide by the corresponding @error value. This will give us an
+  # array containing sigma values. Any @sigma > than 3 or 4 is probably
+  # a variable.
+  my @sigmas;
+  foreach my $k ( 0 ... $#data ) {
+     $sigmas[$k] = abs( ( $data[$k] - $wmean ) / $errors[$k] );
+     print "sigma $k = $sigmas[$k]\n";
+  }
+  
+  # loop through @sigmas, if $sigma[$m] is > 3 then this is probably a
+  # variable star. Marshal the @ids and build a list of possible variables
+  my @vars;
+  foreach my $m ( 0 ... $#sigmas ) {
+     if( $sigmas[$m] > 3 ) {
+         push @vars, $ids[$m];  
+     }	
+  }  
+  
+  #print Dumper( @vars );
+  return @vars;
+  
+}  
+  
+
+sub clip_wmean {
+   my $data_ref = shift;
+   my $error_ref = shift;
+   
+   my @data = @$data_ref;
+   my @error = @$error_ref;
+   
+   # Takes a data and error array and returns a weighted mean a reduced
+   # chi-squared value and the number of points rejected by the algorithim
+
+   #   real, dimension(:), intent(in)::data, error
+   #   real, intent(out):: wmean, redchi
+   #   integer, intent(out):: reject
+   #   integer, intent(in)::npoints
+
+   my ( $wmean, $redchi, $chisq );
+   
+   if ( $#data <= 1 ) {
+      $wmean = 0;
+      $redchi = 0;
+      $reject = 0;
+      return ( $wmean, $redchi, $reject );
+   }
+
+   my $sumav = 0;
+   my $sumerr = 0;
+   foreach my $i ( 0 ... $#data ) {
+      $sumav = $sumav + $data[$i] / ( pow ( $error[$i], 2) );
+      $sumerr = $sumerr + ( 1.0 / pow ( $error[$i], 2) );
+   }
+
+   $redchi = 0;
+   $wmean = $sumav / $sumerr;
+   foreach my $i ( 0 ... $#data ) {
+      $redchi = $redchi + pow( ( ($data[$i]-$wmean)/$error[$i] ) ,2);
+   }
+   $redchi = $redchi / scalar(@data);
+
+   #print "sumav = $sumav\nsumerr = $sumerr\nredchi = $redchi\n".
+   #      "wmean = $wmean\n";
+
+   my $flag;
+   while ( ! $flag ) {
+      
+      $reject = 0;
+      $sumav = 0;
+      $sumerr = 0;
+      
+      foreach my $i ( 0 ... $#data ) {
+      
+         if ( pow((($data[$i]-$wmean)/$error[$i]),2) < (4.0*$redchi ) ) {
+             # Here we allow points in if their contribution to chi-squared
+             # is less than 4 times the reduced chi squared, from the last fit
+	     
+	     #print "Star $i contributes\n";
+             $sumav = $sumav + ( $data[$i]/pow($error[$i],2));
+             $sumerr = $sumerr + (1.0/pow($error[$i],2));
+         } else {
+	     
+	     #print "Star $i rejected\n";
+             $reject = $reject + 1;
+         }
+      }
+      
+      if( $sumerr == 0.0 ) {
+         $wmean = 0.0;
+      } else { 
+         $wmean = $sumav/$sumerr;
+      }
+      
+      #print "sumav = $sumav\nsumerr = $sumerr\nredchi = $redchi\n".
+      #      "wmean = $wmean\nreject=$reject\n";
+      
+      # Work out the chi-squared for the new fit.
+      $redchi_new = 0.0;
+      foreach my $j ( 0 ... $#data ) {
+         if ( pow((($data[$j]-$wmean)/$error[$j]),2) < (4.0*$redchi ) ) {
+             $redchi_new = $redchi_new + pow((($data[$j]-$wmean)/$error[$j]),2);
+         }
+      }
+      
+      if ( scalar(@data) - $reject == 0.0 ) {
+         $redchi_new = 0.0;
+      } else {	 
+         $redchi_new = $redchi_new/(scalar(@data) - $reject);
+      }
+      
+      if ( $redchi == 0.0 ) {
+         $flag = 1;
+	 next;      
+      
+      } elsif (abs($redchi-$redchi_new)/$redchi < 1.0e-06) {
+         $flag = 1;
+	 next;
+      }	 
+      $redchi = $redchi_new;
+   }
+   
+   return ( $wmean, $redchi, $reject );
+   
+}
+
+
