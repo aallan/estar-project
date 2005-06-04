@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.35 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.36 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -222,12 +222,15 @@ if ( $config->get_state("corr.unique_process") == 1 ) {
                        $config->get_option( "dir.data" ) );
    
    $config->set_option("corr.camera3_prefix", "y" );
-   $config->set_option("corr.camera2_directory",  
+   $config->set_option("corr.camera3_directory",  
                        $config->get_option( "dir.data" ) ); 
    
    $config->set_option("corr.camera4_prefix", "z" );
-   $config->set_option("corr.camera2_directory",  
+   $config->set_option("corr.camera4_directory",  
                        $config->get_option( "dir.data" ) );
+		       
+   $config->set_option("corr.sigma_limit", "3" );
+		       
     
    # C O M M I T T   O P T I O N S  T O   F I L E S
    # ----------------------------------------------
@@ -247,7 +250,8 @@ $status = GetOptions( "user=s"     => \$OPT{"user"},
                       "agent=s"    => \$OPT{"db"},
                       "from=s"     => \$OPT{'from'},
                       "ut=s"       => \$OPT{'ut'},
-                      "camera=s"   => \$OPT{'camera'}, );
+                      "camera=s"   => \$OPT{'camera'},
+		      "sigma=s"    => \$OPT{'sigma'} );
 
 
 # default user agent location
@@ -285,7 +289,17 @@ unless( defined( $OPT{'from'} ) ) {
 my $starting_obsnum = $OPT{'from'};
 my $starting_ut = get_utdate();
 
-# default user and password location
+# default sigma limit
+unless( defined $OPT{"sigma"} ) {
+   $OPT{"sigma"} = $config->get_option("corr.sigma_limit");
+} else{
+   $log->warn("Warning: Resetting variable star detection limit " .
+              " to $OPT{sigma} sigma");
+   $config->set_option("corr.sigma_limit", $OPT{"sigma"} );
+}
+
+
+# default camera
 unless( defined $OPT{"camera"} ) {
    $OPT{"camera"} = $config->get_option("corr.camera");
 } else{
@@ -309,6 +323,7 @@ sub correlate {
   my @catalogs = map{ new Astro::Catalog( Format => 'FITSTable',
                                           File => $_ ) } @files;
   my $new_objects = new Astro::Catalog;
+  my $var_objects = new Astro::Catalog;
 
   # Correlate, finding objects that are not in one catalogue but are
   # in another.
@@ -349,23 +364,34 @@ sub correlate {
       $new_objects->pushstar( @cat1objects );
       $new_objects->pushstar( @cat2objects );
 
+      # look for variable stars
       $log->print("Matching catalogues...");
-      my @vars = match_catalogs( $corrcat1, $corrcat2 );
+      @vars = match_catalogs( $corrcat1, $corrcat2 );
 
       if ( defined $vars[0] ) {
-        $log->print("The following stars are possible variables:");
+        $log->print_ncr("The following stars are possible variables:");
         foreach my $i ( 0 ... $#vars ) {
-          $log->print( "   Star ID $vars[$i]" );
+          $log->print( " ID $vars[$i]" );
+	  
+	  my $star_from1 = $corrcat1->popstarbyid( $vars[$id] );
+	  $var_objects->pushstar( $star_from1 );
+	  my $star_from2 = $corrcat1->popstarbyid( $vars[$id] );
+	  $var_objects->pushstar( $star_from2 );
+	  	  
         }
+	$log->print("");
       } else {
-        $log->print("No stars vary at the 3 sigma level");	 
+        $log->print( "No stars vary at the " . 
+	     $config->get_option("corr.sigma_limit") . " sigma level");	 
       }
     }
   }
 
-  $log->print( "Found " . $new_objects->sizeof() . " objects that did not match" .
-               " spatially between catalogues." );
-
+  $log->print( "Found " . $new_objects->sizeof() . 
+               " objects that did not match spatially between catalogues." );
+  $log->print( "Found " . $var_objects->sizeof() . 
+               " objects that may be potential variable stars." );
+	       
   # merge catalogues into one single variable catalogue list
   # removing duplicate entries (based on RA and Dec alone...)
 
@@ -384,7 +410,7 @@ sub correlate {
 # M A I N   L O O P
 # ===========================================================================
 
-my $camera = $OPT{'camera'};
+my $camera = $config->get_option{"corr.camera"};
 $log->debug( "Beginning file loop for camera $camera." );
 
 my $utdate = $starting_ut;
@@ -631,8 +657,12 @@ sub get_utdate {
 
 
 sub match_catalogs {
-   my $corr1 = shift;
-   my $corr2 = shift;
+  my $cat1 = shift;
+  my $cat2 = shift;
+
+  # Deep clone the catalogues so we can popstarbyid
+  my $corr1 = dclone($cat1);
+  my $corr2 = dclone($cat2);
    
   my (@data, @errors, @ids); 
   foreach my $i ( 0 ... $corr1->sizeof() - 1 ) {
@@ -655,9 +685,11 @@ sub match_catalogs {
      
      my @stars2 = $corr2->popstarbyid( $id1 );
      unless ( scalar(@stars2) == 1 ) {
-        print "Duplicate IDs, yuck...\n";
-	#print Dumper( @stars2 );
-	exit;
+        my $error = "There are multiple stars with the same ID ($id1) " . 
+	            "in catalogue 2. This is a fatal error and should " .
+		    " not occur as FINDOFF should renumber the entries.";
+        $log->error( "Error: $error" );
+        throw eSTAR::Error::FatalError( $error, ESTAR__FATAL );
      }
      my $star2 = $stars2[0];
      
@@ -702,12 +734,15 @@ sub match_catalogs {
   # variable star. Marshal the @ids and build a list of possible variables
   my @vars;
   foreach my $m ( 0 ... $#sigmas ) {
-     if( $sigmas[$m] > 3 ) {
+     if( $sigmas[$m] > $config->get_option( "corr.sigma_limit" ) {
          push @vars, $ids[$m];  
      }	
   }  
   
   #print Dumper( @vars );
+  
+  # return a list of star IDs which are potiential variable stars
+  # to the main code...
   return @vars;
   
 }  

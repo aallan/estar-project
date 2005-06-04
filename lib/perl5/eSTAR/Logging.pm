@@ -20,7 +20,7 @@ package eSTAR::Logging;
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: Logging.pm,v 1.4 2004/03/05 20:47:33 cavanagh Exp $
+#     $Id: Logging.pm,v 1.5 2005/06/04 03:23:33 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2001 University of Exeter. All Rights Reserved.
@@ -55,7 +55,7 @@ and state system.
 
 use strict;
 use vars qw/ $VERSION /;
-use subs qw/ new set_debug print header thread thread2 warn 
+use subs qw/ new set_debug print print_ncr header thread thread2 warn 
              error debug debug_ncr debug_overtype_ncr closeout /;
 
 use File::Spec;
@@ -66,7 +66,7 @@ use Carp;
 use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:status/;
 
-'$Revision: 1.4 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.5 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # G L O B A L S ------------------------------------------------------------
 
@@ -250,7 +250,7 @@ sub configure {
 
 =head1 REVISION
 
-$Id: Logging.pm,v 1.4 2004/03/05 20:47:33 cavanagh Exp $
+$Id: Logging.pm,v 1.5 2005/06/04 03:23:33 aa Exp $
 
 =head1 METHODS
 
@@ -306,6 +306,30 @@ sub print {
   print $string . "\n";
   
 }   
+   
+  
+=item B<print_ncr>
+
+Normal messages
+
+=cut
+
+sub print_ncr {
+  my $self = shift;
+  my $string = shift;
+   
+  # open file and print to file
+  my $file = $self->{STD};
+  if ( open( STD, ">>$file") ) {
+     print STD $string . "\n";
+  }
+  close STD;  
+  
+  # print to screen if debugging turned on
+  print $string;
+} 
+   
+   
    
 =item B<header>
 
