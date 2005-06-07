@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.40 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.41 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -322,8 +322,16 @@ sub correlate {
   # Form Astro::Catalog objects from the list of files.
   my @threads;
   my @variable_catalogs;
-  my @catalogs = map{ new Astro::Catalog( Format => 'FITSTable',
-                                          File => $_ ) } @files;
+  my @catalogs;
+  if( $files[0] =~ /\.fit$/ ) {
+    @catalogs = map{ new Astro::Catalog( Format => 'FITSTable',
+                                         File => $_ ) } @files;
+    $log->debug( "Got catalogues in binary FITS table format." );
+  } elsif( $files[0] =~ /\.cat$/ ) {
+    @catalogs = map{ new Astro::Catalog( Format => 'Cluster',
+                                         File => $_ ) } @files;
+    $log->debug( "Got catalogues in Cluster format." );
+  }
   my $new_objects = new Astro::Catalog;
   my $var_objects = new Astro::Catalog;
 
@@ -333,9 +341,11 @@ sub correlate {
     foreach my $j ( ( $i + 1 ) .. ( $#catalogs ) ) {
       my $cat1 = dclone($catalogs[$i]);
       my $cat2 = dclone($catalogs[$j]);
+      $log->debug( "Correlating catalogues $i and $j to find new objects..." );
       my $corr = new Astro::Correlate( catalog1 => $cat1,
                                        catalog2 => $cat2,
                                        method => 'FINDOFF',
+                                       verbose => 1,
                                      );
 
       ( my $corrcat1, my $corrcat2 ) = $corr->correlate;
@@ -374,26 +384,26 @@ sub correlate {
         $log->print_ncr("The following stars are possible variables:");
         foreach my $i ( 0 ... $#vars ) {
           $log->print_ncr( " ID $vars[$i]" );
-	  
-	  my $star_from1 = $corrcat1->popstarbyid( $vars[$i] );
-	  $var_objects->pushstar( $star_from1 );
-	  my $star_from2 = $corrcat1->popstarbyid( $vars[$i] );
-	  $var_objects->pushstar( $star_from2 );
-	  	  
+
+          my $star_from1 = $corrcat1->popstarbyid( $vars[$i] );
+          $var_objects->pushstar( $star_from1 );
+          my $star_from2 = $corrcat1->popstarbyid( $vars[$i] );
+          $var_objects->pushstar( $star_from2 );
+
         }
-	$log->print("");
+        $log->print("");
       } else {
-        $log->print( "No stars vary at the " . $sigma_limit . " sigma level");	 
+        $log->print( "No stars vary at the " . $sigma_limit . " sigma level");
       }
     }
   }
 
-  $log->print( "Found " . $new_objects->sizeof() . 
+  $log->print( "Found " . $new_objects->sizeof() .
                " objects that did not match spatially between catalogues." );
   my $number_of_variables = $var_objects->sizeof() / 2;
-  $log->print( "Found " . $number_of_variables . 
+  $log->print( "Found " . $number_of_variables .
                " objects that may be potential variable stars." );
-	       
+
   # merge catalogues into one single variable catalogue list
   # removing duplicate entries (based on RA and Dec alone...)
 
@@ -420,38 +430,42 @@ my $obsnum = $starting_obsnum;
 my @catalog_files = ();
 
 while( 1 ) {
-  my $flag;
+  my $spawn_correlation = 0;
   $obsnum = flag_loop( $utdate, $obsnum, $camera );
   $log->debug( "Found flag file for observation $obsnum for camera $camera." );
-  my $catalog_file = File::Spec->catfile( 
+  my $catalog_file = File::Spec->catfile(
                        $config->get_option( "corr.camera${camera}_directory" ),
                        cat_file_from_bits( $utdate, $obsnum, $camera ) );
   $log->debug( "Pushing $catalog_file onto stack." );
   push @catalog_files, $catalog_file;
 
-  # Read in the header of the FITS file, check to see if we're
-  # at the end of a microstep sequence or not.
-  $log->debug( "Reading $catalog_file" );
-  my $header = new Astro::FITS::Header::CFITSIO( File => $catalog_file );
-  tie my %keywords, "Astro::FITS::Header", $header, tiereturnsref => 1;
+  if( $catalog_file =~ /\.fit$/ ) {
 
-  my $nustep = $keywords{'SUBHEADERS'}->[0]->{'NUSTEP'};
-  my $ustep_position = $keywords{'SUBHEADERS'}->[0]->{'USTEP_I'};
-  $log->debug("FITS headers: nustep: $nustep ustep_pos: $ustep_position");
-  if( $ustep_position == $nustep &&
-      $nustep != 1 ) {
+    # Read in the header of the FITS file, check to see if we're
+    # at the end of a microstep sequence or not.
+    $log->debug( "Reading $catalog_file" );
+    my $header = new Astro::FITS::Header::CFITSIO( File => $catalog_file );
+    tie my %keywords, "Astro::FITS::Header", $header, tiereturnsref => 1;
 
-    # We're at the end of a microstep sequence, so spawn off a thread
-    # to do the correlation.
-    $log->print( 
-       "Spawning correlation_callback() to handle catalogue correlation..." );
+    my $nustep = $keywords{'SUBHEADERS'}->[0]->{'NUSTEP'};
+    my $ustep_position = $keywords{'SUBHEADERS'}->[0]->{'USTEP_I'};
+    $log->debug("FITS headers: nustep: $nustep ustep_pos: $ustep_position");
+    if( $ustep_position == $nustep && $nustep != 1 ) {
 
-    # Correlate without a new thread.
-    correlate( \@catalog_files );
-
-    @catalog_files = ();
+      $spawn_correlation = 1;
+    }
+    if( $nustep == 1 ) {
+      @catalog_files = ();
+    }
+  } elsif( $catalog_file =~ /\.cat$/ ) {
+    if( scalar( @catalog_files ) == 2 ) {
+      $spawn_correlation = 1;
+    }
   }
-  if( $nustep == 1 ) {
+
+  if( $spawn_correlation ) {
+    $log->print( "Spawing correlation process..." );
+    correlate( \@catalog_files );
     @catalog_files = ();
   }
 
@@ -582,7 +596,8 @@ sub cat_file_from_bits {
   my $prefix = $config->get_option( "corr.camera${camera}_prefix" );
 
   $obsnum = "0" x ( 5 - length( $obsnum ) ) . $obsnum;
-  return $prefix . $utdate . "_" . $obsnum . "_sf_st_cat.fit";
+#  return $prefix . $utdate . "_" . $obsnum . "_st_cat.fit";
+  return $prefix . $utdate . "_" . $obsnum . "_mos.cat";
 }
 
 =item B<check_data_dir>
@@ -674,16 +689,17 @@ sub match_catalogs {
      # Grab magnitude for STAR from Catalogue 1
      my $star1 = $corr1->starbyindex( $i );
      
-     my $mag1 = $star1->get_magnitude('unknown');
-     $mag1 = pow( (-$mag1/2.5), 10);
+     my $mag1 = $star1->get_magnitude('K');
+     my $err1 = $star1->get_errors('K');
+#     $mag1 = pow( (-$mag1/2.5), 10);
      my $id1 = $star1->id();
      
-     my $err1 = sqrt( $mag1 );
-     $err1 = $mag1 + $err1;
+#     my $err1 = sqrt( $mag1 );
+#     $err1 = $mag1 + $err1;
      
-     $mag1 = -2.5*log10( $mag1 );
-     $err1 = abs ( -2.5*log10( $err1 ) );
-     $err1 = abs( $err1 ) - abs ($mag1 ) ;
+#     $mag1 = -2.5*log10( $mag1 );
+#     $err1 = abs ( -2.5*log10( $err1 ) );
+#     $err1 = abs( $err1 ) - abs ($mag1 ) ;
           
      # Find the corresponding STAR in Catalogue 2
      
@@ -698,22 +714,23 @@ sub match_catalogs {
      my $star2 = $stars2[0];
      
      # Grab magnitude for STAR from Catalogue 2     
-     my $mag2 = $star2->get_magnitude('unknown');
-     $mag2 = pow( (-$mag2/2.5), 10);
+     my $mag2 = $star2->get_magnitude('K');
+     my $err2 = $star2->get_errors( 'K');
+#     $mag2 = pow( (-$mag2/2.5), 10);
      my $id2 = $star2->id();
      
-     my $err2 = sqrt( $mag2 );  
-     $err2 = $mag2 + $err2;
+#     my $err2 = sqrt( $mag2 );  
+#     $err2 = $mag2 + $err2;
        
-     $mag2 = -2.5*log10( $mag2 );
-     $err2 = abs ( -2.5*log10( $err2 ) );     
-     $err2 = abs ($err2) - abs ($mag2) ;
+#     $mag2 = -2.5*log10( $mag2 );
+#     $err2 = abs ( -2.5*log10( $err2 ) );     
+#     $err2 = abs ($err2) - abs ($mag2) ;
      
      my $diff_mag = $mag1 - $mag2;
      my $diff_err = sqrt ( pow( $err1, 2) + pow( $err2, 2) );
      
-#     print "STAR $id1,$id2 has $mag1 +- $err1 and $mag2 +- $err2\n";     	
-#     print "     $diff_mag +- $diff_err\n";     	
+     print "STAR $id1,$id2 has $mag1 +- $err1 and $mag2 +- $err2\n";     	
+     print "     $diff_mag +- $diff_err\n";     	
     
      push @data, $diff_mag;
      push @errors, $diff_err;
