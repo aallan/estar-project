@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.43 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.44 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -231,7 +231,7 @@ if ( $config->get_state("corr.unique_process") == 1 ) {
                        $config->get_option( "dir.data" ) );
 		       
    $config->set_option("corr.sigma_limit", "3" );
-   $config->set_option("corr.maxsep", "3" ); # 3 arc seconds
+   $config->set_option("corr.maxsep", "2.0" ); # 2.0 arc seconds
 		       
     
    # C O M M I T T   O P T I O N S  T O   F I L E S
@@ -306,8 +306,7 @@ unless( defined $OPT{"camera"} ) {
    $OPT{"camera"} = $config->get_option("corr.camera")
       if defined $config->get_option("corr.camera");
 } else{
-   $log->warn("Warning: Resetting camera from " .
-             $config->get_option("corr.camera") . " to $OPT{camera}");
+   $log->warn("Warning: Resetting camera number to $OPT{camera}");
    $config->set_option("corr.camera", $OPT{"camera"} );
 }
 
@@ -344,6 +343,10 @@ sub correlate {
   
   foreach my $i ( 0 .. ( $#catalogs - 1 ) ) {
     foreach my $j ( ( $i + 1 ) .. ( $#catalogs ) ) {
+    
+      # LOOK FOR NEW OBJECTS
+      # --------------------
+      
       $log->print("Looking for new objects (catalogues $i & $j)...");
 
       my $cat1 = dclone($catalogs[$i]);
@@ -428,7 +431,9 @@ sub correlate {
       # push to new objects catalog            	 
       $new_objects->pushstar( @cat1objects, @cat2objects );
 
-      # look for variable stars
+      # LOOK FOR VARIABLE STARS
+      # -----------------------
+      
       $log->print("Looking for variable stars (catalogues $i & $j)...");
       my @vars = match_catalogs( $corrcat1, $corrcat2 );
 
@@ -587,6 +592,12 @@ sub correlate {
   # because we're running all Perl. If we need interoperability
   # later, we'll move to document literal.
   
+  use Data::Dumper;
+  print "\n\nNEW OBJECT CATALOGUE\n\n";
+  print Dumper( $new_object_catalogue );
+  print "\n\nVAR OBJECT CATALOGUE\n\n";
+  print Dumper( $var_object_catalogue );
+  exit;  
 
   
   # Send good status
