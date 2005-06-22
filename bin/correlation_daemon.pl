@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.42 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.43 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -475,6 +475,7 @@ sub correlate {
   my $new_object_catalogue = new Astro::Catalog();
   my $var_object_catalogue = new Astro::Catalog();
 
+  my $separation = $config->get_option( "corr.maxsep" );
   $log->print("Merging new star detections...");
   my @deleted;
   foreach my $i ( 0 ... ( $new_objects->sizeof() - 1 ) ) {
@@ -491,10 +492,10 @@ sub correlate {
 	 
 	 $log->debug( "Comparing star $i with star $j" );
 	 
-         if ( $star1->within( $star2, $config->get_option( "corr.maxsep" ))) {
+         if ( $star1->within( $star2, $separation ) ) {
 	 
 	    $log->debug( "Star $i and star $j are within the merge radius of " .
-	                 $config->get_option( "corr.maxsep" ) . " arcsec" );
+	                 $separation . " arcsec" );
 	    $log->debug( "Merging flux(es) from star $j into star $i");
 	    my $fluxes1 = $star1->fluxes();
 	    my $fluxes2 = $star2->fluxes();
@@ -541,10 +542,10 @@ sub correlate {
 	 
 	 $log->debug( "Comparing star $i with star $j" );
 	 
-         if ( $star1->within( $star2, $config->get_option( "corr.maxsep" ))) {
+         if ( $star1->within( $star2, $separation) ) {
 	 
 	    $log->debug( "Star $i and star $j are within the merge radius of " .
-	                 $config->get_option( "corr.maxsep" ) . " arcsec" );
+	                 $separation . " arcsec" );
 	    $log->debug( "Merging flux(es) from star $j into star $i");
 	    my $fluxes1 = $star1->fluxes();
 	    my $fluxes2 = $star2->fluxes();
@@ -865,17 +866,17 @@ sub match_catalogs {
      # Grab magnitude for STAR from Catalogue 1
      my $star1 = $corr1->starbyindex( $i );
      
-     my $mag1 = $star1->get_magnitude('K');
-     my $err1 = $star1->get_errors('K');
-#     $mag1 = pow( (-$mag1/2.5), 10);
+     my $mag1 = $star1->get_magnitude('unknown');
+#     my $err1 = $star1->get_errors('unknown');
+     $mag1 = pow( (-$mag1/2.5), 10);
      my $id1 = $star1->id();
      
-#     my $err1 = sqrt( $mag1 );
-#     $err1 = $mag1 + $err1;
+     my $err1 = sqrt( $mag1 );
+     $err1 = $mag1 + $err1;
      
-#     $mag1 = -2.5*log10( $mag1 );
-#     $err1 = abs ( -2.5*log10( $err1 ) );
-#     $err1 = abs( $err1 ) - abs ($mag1 ) ;
+     $mag1 = -2.5*log10( $mag1 );
+     $err1 = abs ( -2.5*log10( $err1 ) );
+     $err1 = abs( $err1 ) - abs ($mag1 ) ;
           
      # Find the corresponding STAR in Catalogue 2
      
@@ -890,23 +891,23 @@ sub match_catalogs {
      my $star2 = $stars2[0];
      
      # Grab magnitude for STAR from Catalogue 2     
-     my $mag2 = $star2->get_magnitude('K');
-     my $err2 = $star2->get_errors( 'K');
-#     $mag2 = pow( (-$mag2/2.5), 10);
+     my $mag2 = $star2->get_magnitude('unknown');
+     #my $err2 = $star2->get_errors( 'unknwon');
+     $mag2 = pow( (-$mag2/2.5), 10);
      my $id2 = $star2->id();
      
-#     my $err2 = sqrt( $mag2 );  
-#     $err2 = $mag2 + $err2;
+     my $err2 = sqrt( $mag2 );  
+     $err2 = $mag2 + $err2;
        
-#     $mag2 = -2.5*log10( $mag2 );
-#     $err2 = abs ( -2.5*log10( $err2 ) );     
-#     $err2 = abs ($err2) - abs ($mag2) ;
+     $mag2 = -2.5*log10( $mag2 );
+     $err2 = abs ( -2.5*log10( $err2 ) );     
+     $err2 = abs ($err2) - abs ($mag2) ;
      
      my $diff_mag = $mag1 - $mag2;
      my $diff_err = sqrt ( pow( $err1, 2) + pow( $err2, 2) );
      
-     print "STAR $id1,$id2 has $mag1 +- $err1 and $mag2 +- $err2\n";     	
-     print "     $diff_mag +- $diff_err\n";     	
+#     print "STAR $id1,$id2 has $mag1 +- $err1 and $mag2 +- $err2\n";     	
+#     print "     $diff_mag +- $diff_err\n";     	
     
      push @data, $diff_mag;
      push @errors, $diff_err;
@@ -1012,7 +1013,7 @@ sub clip_wmean {
       if( $sumerr == 0.0 ) {
          $wmean = 0.0;
       } else { 
-         $wmean = $sumav/$sumerr;
+         $wmean = $sumav/($sumerr*$sumerr);  # should this just be $sumerr?
       }
       
       #print "sumav = $sumav\nsumerr = $sumerr\nredchi = $redchi\n".
