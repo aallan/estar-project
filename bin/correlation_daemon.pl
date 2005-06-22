@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.41 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.42 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -56,6 +56,7 @@ use IO::Socket;
 use Errno qw(EWOULDBLOCK EINPROGRESS);
 use Net::Domain qw(hostname hostdomain);
 use DateTime;
+use DateTime::Format::ISO8601;
 use Time::localtime;
 use Getopt::Long;
 use Data::Dumper;
@@ -70,7 +71,7 @@ use Math::Libm qw(:all);
 # Astronomy modules
 use Astro::Catalog;
 use Astro::Correlate;
-use Astro::Corlate;
+#use Astro::Corlate;
 use Astro::FITS::Header::CFITSIO;
 
 # tag name of the current process, this identifies where log and 
@@ -230,6 +231,7 @@ if ( $config->get_state("corr.unique_process") == 1 ) {
                        $config->get_option( "dir.data" ) );
 		       
    $config->set_option("corr.sigma_limit", "3" );
+   $config->set_option("corr.maxsep", "3" ); # 3 arc seconds
 		       
     
    # C O M M I T T   O P T I O N S  T O   F I L E S
@@ -301,7 +303,8 @@ unless( defined $OPT{"sigma"} ) {
 
 # default camera
 unless( defined $OPT{"camera"} ) {
-   $OPT{"camera"} = $config->get_option("corr.camera");
+   $OPT{"camera"} = $config->get_option("corr.camera")
+      if defined $config->get_option("corr.camera");
 } else{
    $log->warn("Warning: Resetting camera from " .
              $config->get_option("corr.camera") . " to $OPT{camera}");
@@ -337,31 +340,63 @@ sub correlate {
 
   # Correlate, finding objects that are not in one catalogue but are
   # in another.
+  $log->print("Matching star catalogues" );
+  
   foreach my $i ( 0 .. ( $#catalogs - 1 ) ) {
     foreach my $j ( ( $i + 1 ) .. ( $#catalogs ) ) {
+      $log->print("Looking for new objects (catalogues $i & $j)...");
+
       my $cat1 = dclone($catalogs[$i]);
       my $cat2 = dclone($catalogs[$j]);
       $log->debug( "Correlating catalogues $i and $j to find new objects..." );
       my $corr = new Astro::Correlate( catalog1 => $cat1,
                                        catalog2 => $cat2,
                                        method => 'FINDOFF',
-                                       verbose => 1,
+                                       verbose => 0,
                                      );
 
-      ( my $corrcat1, my $corrcat2 ) = $corr->correlate;
+      my ( $corrcat1, $corrcat2 );
+      ( $corrcat1, $corrcat2 ) = $corr->correlate;
 
-      $log->debug( "Catalogue 1 has " . $cat1->sizeof . " objects before" .
+      $log->debug( "Catalogue $i has " . $cat1->sizeof . " objects before" .
                    " matching and " . $corrcat1->sizeof . " objects afterwards." );
-      $log->debug( "Catalogue 2 has " . $cat2->sizeof . " objects before" .
+      $log->debug( "Catalogue $j has " . $cat2->sizeof . " objects before" .
                    " matching and " . $corrcat2->sizeof . " objects afterwards." );
 
+
+      # We can still access the catalog_files in this loop and pull the 
+      # correct datestamp from the relevant headers to create the catalog 
+      # objects
+     
+      $log->debug( "Reading $files[$i]" );
+      my $header1 = new Astro::FITS::Header::CFITSIO( File => $files[$i] );
+      tie my %keywords1, "Astro::FITS::Header", $header1, tiereturnsref => 1;
+   
+      $log->debug( "Reading $files[$j]" );
+      my $header2 = new Astro::FITS::Header::CFITSIO( File => $files[$j] );
+      tie my %keywords2, "Astro::FITS::Header", $header2, tiereturnsref => 1;
+    
+      my $date1 = $keywords1{'SUBHEADERS'}->[0]->{'DATE-OBS'};
+      if ( defined $date1 ) {
+         $log->debug("FITS headers (catalog $i): DATE: $date1");
+         $date1 = DateTime::Format::ISO8601->parse_datetime( $date1 );
+      }	 
+
+      my $date2 = $keywords2{'SUBHEADERS'}->[0]->{'DATE-OBS'};
+      if ( defined $date2 ) {
+         $log->debug("FITS headers (catalog $j): DATE: $date2");
+         $date2 = DateTime::Format::ISO8601->parse_datetime( $date2 );
+      }			 
+			       
       # Now, get a list of objects that -didn't- match between the two
       # catalogues.
+      $log->debug( "Generating list of non-matching objects from catalogue $i");
       foreach my $star ( $corrcat1->stars ) {
         $star->comment =~ /^Old ID: (\d+)$/;
         my $oldid = $1;
         my $origstar = $cat1->popstarbyid( $oldid );
       }
+      $log->debug( "Generating list of non-matching objects from catalogue $j");
       foreach my $star ( $corrcat2->stars ) {
         $star->comment =~ /^Old ID: (\d+)$/;
         my $oldid = $1;
@@ -373,46 +408,187 @@ sub correlate {
       # catalogue.
       my @cat1objects = $cat1->stars;
       my @cat2objects = $cat2->stars;
-      $new_objects->pushstar( @cat1objects );
-      $new_objects->pushstar( @cat2objects );
+      
+      # date stamp the stars
+      foreach my $star ( @cat1objects ) {  
+         if ( defined $date1 ) {      
+            $star->fluxdatestamp( $date1 );
+	    $log->debug( "Attaching DateTime to star ID " . $star->id() . 
+	                 " from catalogue $i");
+	 }   
+      }
+      foreach my $star ( @cat2objects ) {	 
+          if ( defined $date2 ) {      
+            $star->fluxdatestamp( $date2 );
+	    $log->debug( "Attaching DateTime to star ID " . $star->id() . 
+	                 " from catalogue $j");
+	 }   
+      }
+      
+      # push to new objects catalog            	 
+      $new_objects->pushstar( @cat1objects, @cat2objects );
 
       # look for variable stars
-      $log->print("Matching catalogues...");
+      $log->print("Looking for variable stars (catalogues $i & $j)...");
       my @vars = match_catalogs( $corrcat1, $corrcat2 );
 
       if ( defined $vars[0] ) {
-        $log->print_ncr("The following stars are possible variables:");
-        foreach my $i ( 0 ... $#vars ) {
-          $log->print_ncr( " ID $vars[$i]" );
-
-          my $star_from1 = $corrcat1->popstarbyid( $vars[$i] );
-          $var_objects->pushstar( $star_from1 );
-          my $star_from2 = $corrcat1->popstarbyid( $vars[$i] );
-          $var_objects->pushstar( $star_from2 );
+ 
+	foreach my $i ( 0 ... $#vars ) {
+        $log->print_ncr("The following star is a possible variable:");
+          $log->print( " ID $vars[$i]" );
+	  
+	  my $star_from1 = $corrcat1->popstarbyid( $vars[$i] );
+          if ( defined $date1 ) {  
+             foreach my $star ( @$star_from1 ) {
+                $star->fluxdatestamp( $date1 );
+	        $log->debug( "Attaching DateTime to star ID " . $star->id() . 
+	                  " from list of variable objects");
+	     }		  
+	  }   
+	  $var_objects->pushstar( @$star_from1 );
+	  
+	  my $star_from2 = $corrcat1->popstarbyid( $vars[$i] );
+          if ( defined $date2 ) {  
+             foreach my $star ( @$star_from2 ) {
+                $star->fluxdatestamp( $date2 );
+	        $log->debug( "Attaching DateTime to star ID " . $star->id() . 
+	                  " from list of variable objects");
+	     }		  
+	  }   
+	  $var_objects->pushstar( @$star_from2 );
 
         }
-        $log->print("");
+
       } else {
         $log->print( "No stars vary at the " . $sigma_limit . " sigma level");
       }
     }
   }
 
-  $log->print( "Found " . $new_objects->sizeof() .
-               " objects that did not match spatially between catalogues." );
-  my $number_of_variables = $var_objects->sizeof() / 2;
-  $log->print( "Found " . $number_of_variables .
-               " objects that may be potential variable stars." );
+  # loop through each of the two catalogues and compare the stars and see
+  # if we have objects that are actually the same physical object. We do
+  # this by looking at the distance between the stars (if they're really
+  # close toether <2 arcsec (perhaps?) then they're probably the same
+  # object and we'll merge the records.
+  
+  my $new_object_catalogue = new Astro::Catalog();
+  my $var_object_catalogue = new Astro::Catalog();
 
-  # merge catalogues into one single variable catalogue list
-  # removing duplicate entries (based on RA and Dec alone...)
+  $log->print("Merging new star detections...");
+  my @deleted;
+  foreach my $i ( 0 ... ( $new_objects->sizeof() - 1 ) ) {
+     my $star1 = $new_objects->starbyindex( $i );
+     
+     foreach my $j ( ( $i + 1 ) .. ( $new_objects->sizeof() - 1 ) ) {
+         my $done_flag;
+	 foreach my $k ( 0 ... $#deleted) {
+	   $done_flag = 1 if $deleted[$k] == $j;
+	 }
+	 next if $done_flag;  
+	 
+	 my $star2 = $new_objects->starbyindex( $j );
+	 
+	 $log->debug( "Comparing star $i with star $j" );
+	 
+         if ( $star1->within( $star2, $config->get_option( "corr.maxsep" ))) {
+	 
+	    $log->debug( "Star $i and star $j are within the merge radius of " .
+	                 $config->get_option( "corr.maxsep" ) . " arcsec" );
+	    $log->debug( "Merging flux(es) from star $j into star $i");
+	    my $fluxes1 = $star1->fluxes();
+	    my $fluxes2 = $star2->fluxes();
+	    $fluxes1->merge( $fluxes2 );
+	    $star1->fluxes( $fluxes1, 1 );
+	    
+            push @deleted, $j;	   			  
+	    $log->warn( "Setting star $j as deleted...");
+	 } else {
+	    $log->debug( "Star $i and star $j appear to be independant" );
+         }
+     }
 
+     my $push_flag = 1;
+     foreach my $k ( 0 ... $#deleted) {
+       $push_flag = 0 if $deleted[$k] == $i;
+     }
+     if ( $push_flag ) {
+        $log->debug( "Pushing star $i into \$new_object_catalogue" );
+        $new_object_catalogue->pushstar( $star1 );
+     } else {
+        $log->debug("Star $i has been deleted, so not pushed to catalogue...");
+     }       	
+  }
+
+  #use Data::Dumper;
+  #print Dumper( $new_object_catalogue );
+  #exit;
+
+  $log->print("Merging variable star detections...");
+  my @var_deleted;
+  foreach my $i ( 0 ... ( $var_objects->sizeof() - 1 ) ) {
+     my $star1 = $var_objects->starbyindex( $i );
+     
+     foreach my $j ( ( $i + 1 ) .. ( $var_objects->sizeof() - 1 ) ) {
+         my $done_flag;
+	 foreach my $k ( 0 ... $#var_deleted) {
+	   last unless defined $var_deleted[0];
+	   $done_flag = 1 if $var_deleted[$k] == $j;
+	 }
+	 next if $done_flag;  
+	 
+	 my $star2 = $var_objects->starbyindex( $j );
+	 
+	 $log->debug( "Comparing star $i with star $j" );
+	 
+         if ( $star1->within( $star2, $config->get_option( "corr.maxsep" ))) {
+	 
+	    $log->debug( "Star $i and star $j are within the merge radius of " .
+	                 $config->get_option( "corr.maxsep" ) . " arcsec" );
+	    $log->debug( "Merging flux(es) from star $j into star $i");
+	    my $fluxes1 = $star1->fluxes();
+	    my $fluxes2 = $star2->fluxes();
+	    $fluxes1->merge( $fluxes2 );
+	    $star1->fluxes( $fluxes1, 1 );
+	    
+            push @var_deleted, $j;	   			  
+	    $log->warn( "Setting star $j as deleted...");
+	 } else {
+	    $log->debug( "Star $i and star $j appear to be independant" );
+         }
+     }
+
+     my $push_flag = 1;
+     foreach my $k ( 0 ... $#var_deleted) {
+       last unless defined $var_deleted[0];
+       $push_flag = 0 if $var_deleted[$k] == $i;
+     }
+     if ( $push_flag ) {
+        $log->debug( "Pushing star $i into \$var_object_catalogue" );
+        $var_object_catalogue->pushstar( $star1 );
+     } else {
+        $log->debug("Star $i has been deleted, so not pushed to catalogue...");
+     }       	
+  }
+
+  #use Data::Dumper;
+  #print Dumper( $var_object_catalogue );
+  #exit;
+    
+  $log->print( "Found " . $new_object_catalogue->sizeof() . 
+               " object(s) that did not match spatially between catalogues." );
+  $log->print( "Found " . $var_object_catalogue->sizeof() . 
+               " object(s) that may be potential variable stars." );
 
   # dispatch list of variables, and list of all stars to DB web 
   # service via a SOAP call. We'll pass the lists as Astro::Catalog
   # objects to avoid any sort of information loss. We can do this
   # because we're running all Perl. If we need interoperability
   # later, we'll move to document literal.
+  
+
+  
+  # Send good status
 
   return ESTAR__OK;
 
@@ -596,8 +772,8 @@ sub cat_file_from_bits {
   my $prefix = $config->get_option( "corr.camera${camera}_prefix" );
 
   $obsnum = "0" x ( 5 - length( $obsnum ) ) . $obsnum;
-#  return $prefix . $utdate . "_" . $obsnum . "_st_cat.fit";
-  return $prefix . $utdate . "_" . $obsnum . "_mos.cat";
+  return $prefix . $utdate . "_" . $obsnum . "_sf_st_cat.fit";
+#  return $prefix . $utdate . "_" . $obsnum . "_mos.cat";
 }
 
 =item B<check_data_dir>

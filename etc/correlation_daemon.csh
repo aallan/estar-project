@@ -20,6 +20,9 @@
 
 #  History:
 #     $Log: correlation_daemon.csh,v $
+#     Revision 1.4  2005/06/22 04:56:27  aa
+#     Not working, we have merge conflicts I'm still trying to resolve, but I don't want to drive home without shifting the bulk of the work off the laptop. I think I know how to resolve the conflicts and get this working again. Will do it when I get home. Sorry Brad
+#
 #     Revision 1.3  2005/06/03 02:34:00  cavanagh
 #     sort of working...
 #
@@ -31,7 +34,7 @@
 #
 
 #  Revision:
-#     $Id: correlation_daemon.csh,v 1.3 2005/06/03 02:34:00 cavanagh Exp $
+#     $Id: correlation_daemon.csh,v 1.4 2005/06/22 04:56:27 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -68,8 +71,12 @@ if (! $?ESTAR_PERL5LIB) then
   echo "ESTAR_PERL5LIB = ${ESTAR_PERL5LIB} (Warning)"
 endif
 
-source /star/etc/cshrc
-source /star/etc/login
+if ($?STARLINK) then
+   source ${STARLINK}/etc/cshrc
+   source ${STARLINK}/etc/login
+else
+   echo "STARLINK not defined. May be unable to find CCDPACK"
+endif
 
 # These are perl programs
 
