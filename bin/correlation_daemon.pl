@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.44 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.45 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -453,7 +453,7 @@ sub correlate {
 	  }   
 	  $var_objects->pushstar( @$star_from1 );
 	  
-	  my $star_from2 = $corrcat1->popstarbyid( $vars[$i] );
+	  my $star_from2 = $corrcat2->popstarbyid( $vars[$i] );
           if ( defined $date2 ) {  
              foreach my $star ( @$star_from2 ) {
                 $star->fluxdatestamp( $date2 );
@@ -495,20 +495,36 @@ sub correlate {
 	 
 	 my $star2 = $new_objects->starbyindex( $j );
 	 
-	 $log->debug( "Comparing star $i with star $j" );
+	 $log->print( "Comparing star $i with star $j" );
 	 
          if ( $star1->within( $star2, $separation ) ) {
-	 
+	 			 
+	    # if the timestamp on the fluxes object is the same as for both
+	    # then this is actually the same object and we can ignore it...
+	    my @flux = 
+	       $star1->fluxes()->fluxesbywaveband( waveband => 'unknown' );
+	    my $same_flag;
+	    foreach my $f ( @flux ) {
+	       if ( $f->datetime() == $star2->fluxes()->flux( waveband => 'unknown' )->datetime() ) {
+		    
+		  $log->debug( 	"Star $i and star $j are identical..." );
+	          $same_flag = 1;
+	       }
+	    }
+	    
+	    push @deleted, $j;	   			  
+	    $log->warn( "Setting star $j as deleted...");
+	    
+	    next if $same_flag;
+
 	    $log->debug( "Star $i and star $j are within the merge radius of " .
-	                 $separation . " arcsec" );
+	                 $separation . " arcsec" );	       	  	 
 	    $log->debug( "Merging flux(es) from star $j into star $i");
 	    my $fluxes1 = $star1->fluxes();
 	    my $fluxes2 = $star2->fluxes();
 	    $fluxes1->merge( $fluxes2 );
 	    $star1->fluxes( $fluxes1, 1 );
 	    
-            push @deleted, $j;	   			  
-	    $log->warn( "Setting star $j as deleted...");
 	 } else {
 	    $log->debug( "Star $i and star $j appear to be independant" );
          }
@@ -545,20 +561,37 @@ sub correlate {
 	 
 	 my $star2 = $var_objects->starbyindex( $j );
 	 
-	 $log->debug( "Comparing star $i with star $j" );
+	 $log->print( "Comparing star $i with star $j" );
 	 
          if ( $star1->within( $star2, $separation) ) {
-	 
+	 			 
+	    # if the timestamp on the fluxes object is the same as for both
+	    # then this is actually the same object and we can ignore it...
+	    my @flux = 
+	       $star1->fluxes()->fluxesbywaveband( waveband => 'unknown' );
+	    my $same_flag;
+	    foreach my $f ( @flux ) {
+	       if ( $f->datetime() == $star2->fluxes()->flux( waveband => 'unknown' )->datetime() ) {
+		    
+		  $log->debug( 	"Star $i and star $j are identical..." );
+	          $same_flag = 1;
+	       }
+	    }
+	    
+	    push @var_deleted, $j;	   			  
+	    $log->warn( "Setting star $j as deleted...");
+	    
+	    next if $same_flag;		
+	    	 
 	    $log->debug( "Star $i and star $j are within the merge radius of " .
 	                 $separation . " arcsec" );
+			 			 
 	    $log->debug( "Merging flux(es) from star $j into star $i");
 	    my $fluxes1 = $star1->fluxes();
 	    my $fluxes2 = $star2->fluxes();
 	    $fluxes1->merge( $fluxes2 );
 	    $star1->fluxes( $fluxes1, 1 );
-	    
-            push @var_deleted, $j;	   			  
-	    $log->warn( "Setting star $j as deleted...");
+
 	 } else {
 	    $log->debug( "Star $i and star $j appear to be independant" );
          }
@@ -592,11 +625,29 @@ sub correlate {
   # because we're running all Perl. If we need interoperability
   # later, we'll move to document literal.
   
-  use Data::Dumper;
-  print "\n\nNEW OBJECT CATALOGUE\n\n";
-  print Dumper( $new_object_catalogue );
-  print "\n\nVAR OBJECT CATALOGUE\n\n";
-  print Dumper( $var_object_catalogue );
+  print "\nNEW OBJECT CATALOGUE\n\n";
+  
+  my @tmp_star1 = $new_object_catalogue->allstars();
+  foreach my $t1 ( @tmp_star1 ) {
+     print "ID " . $t1->id() . "\n";
+     my $tmp_fluxes1 = $t1->fluxes();
+     my @tmp_flux1 = $tmp_fluxes1->fluxesbywaveband( waveband => 'unknown' );
+     foreach my $f1 ( @tmp_flux1 ) {
+        print "  Date: " . $f1->datetime()->datetime() . "\n";
+     }
+     print "\n";
+  }   	
+  print "\nVAR OBJECT CATALOGUE\n\n";
+  my @tmp_star2 = $var_object_catalogue->allstars();
+  foreach my $t2 ( @tmp_star2 ) {
+     print "ID " . $t2->id() . "\n";
+     my $tmp_fluxes2 = $t2->fluxes();
+     my @tmp_flux2 = $tmp_fluxes2->fluxesbywaveband( waveband => 'unknown' );
+     foreach my $f2 ( @tmp_flux2 ) {
+        print "  Date: " . $f2->datetime()->datetime() . "\n";
+     }
+     print "\n";
+  }    
   exit;  
 
   

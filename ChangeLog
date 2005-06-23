@@ -1,3 +1,10 @@
+2005-06-03 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * bin/correlation_daemon.pl: Over the course of the last week
+	  integrated the new features of Astro::Catlog V4 into the
+	  correlation daemon. Time stamped and merged the new and variable
+	  object detections to create "proper" catalogue summaries.
+
 2005-06-03 Alasdair Allan <aa@astro.ex.ac.uk> &
            Brad Cavanagh <bradc@jach.hawaii.edu> 
 
