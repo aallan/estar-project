@@ -19,7 +19,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: wfcam_agent.pl,v 1.12 2005/06/01 23:59:15 aa Exp $
+#     $Id: wfcam_agent.pl,v 1.13 2005/06/25 02:25:01 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -63,7 +63,7 @@ passing data mining jobs out to a seperate data ining process.
 
 =head1 REVISION
 
-$Id: wfcam_agent.pl,v 1.12 2005/06/01 23:59:15 aa Exp $
+$Id: wfcam_agent.pl,v 1.13 2005/06/25 02:25:01 aa Exp $
 
 =head1 AUTHORS
 
@@ -80,7 +80,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.13 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -269,8 +269,8 @@ unless ( defined $status ) {
 #
 use POSIX qw/:sys_wait_h/;
 use Errno qw/EAGAIN/;
-use Proc::Simple;
-use Proc::Killfam;
+#use Proc::Simple;
+#use Proc::Killfam;
 use Digest::MD5 'md5_hex';
 
 #
@@ -503,7 +503,7 @@ sub kill_agent {
    $error->flush() if defined $error;
     
    # kill the agent process
-   $log->print("Killing user_agent processes...");
+   $log->print("Killing wfcam_agent processes...");
 
    # close out log files
    $log->closeout();
@@ -514,8 +514,8 @@ sub kill_agent {
    #}
 
    # kill -9 the agent process, hung threads should die screaming
-   killfam 9, ( $config->get_state( "wfcam.pid") );
-   #$log->warn( "Warning: Not calling killfam 9" );
+   #killfam 9, ( $config->get_state( "wfcam.pid") );
+   $log->warn( "Warning: Not calling killfam 9" );
    
    # close the door behind you!   
    exit;
@@ -524,6 +524,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: wfcam_agent.pl,v $
+# Revision 1.13  2005/06/25 02:25:01  aa
+# correlation_daemon.pl now passes catalogues successfully to the wfcam_agent.pl
+#
 # Revision 1.12  2005/06/01 23:59:15  aa
 # Updates to handle new 3rd generation code base
 #

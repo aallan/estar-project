@@ -34,10 +34,10 @@ use eSTAR::Error qw /:try/;
 
 @ISA = qw/Exporter/;
 @EXPORT_OK = 
-      qw/ make_cookie make_id freeze thaw melt query_simbad 
+      qw/ make_cookie make_id freeze thaw reheat melt query_simbad 
           fudge_message fudge_user fudge_project /;
 
-'$Revision: 1.12 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.13 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # This is the code that is used to generate cookies based on the user
 # name and password. It is NOT cryptographically sound, it is just a
@@ -227,6 +227,38 @@ sub thaw {
       $object = eval $string;
       $log->debug( "Restored object $id");
    }    
+   return $object;
+}
+
+sub chill {
+   my $object = shift;
+
+   my $log = eSTAR::Logging::get_reference();
+      
+   # SERIALISE OBJECT
+   # ================
+   $log->debug( "Serialising \$object..." );   
+   my $dumper = new Data::Dumper([$object], [qw($object)]  );      
+   my $string = $dumper->Dump( );
+   
+   return $string;
+   
+}
+
+sub reheat {
+   my $string = shift;
+   
+   my $log = eSTAR::Logging::get_reference();
+   
+   # check we actually have an $id
+   return undef unless defined $string;
+   
+   # DE-SERIALISE OBJECT
+   # ===================
+   $log->debug("Trying to restore \$object");
+   my $object;
+   eval $string;
+   
    return $object;
 }
 
@@ -429,7 +461,7 @@ sub fudge_project {
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.12 2005/05/10 20:46:21 aa Exp $
+$Id: Util.pm,v 1.13 2005/06/25 02:25:01 aa Exp $
 
 =head1 AUTHORS
 

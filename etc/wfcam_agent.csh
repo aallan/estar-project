@@ -21,6 +21,9 @@
 
 #  History:
 #     $Log: wfcam_agent.csh,v $
+#     Revision 1.5  2005/06/25 02:25:01  aa
+#     correlation_daemon.pl now passes catalogues successfully to the wfcam_agent.pl
+#
 #     Revision 1.4  2004/11/30 18:36:27  aa
 #     Fixed some of the software decay that had set into the distribution. The user_agent.pl and associated code still needs looking at to ermove direct access to $main::* in some cases
 #
@@ -37,7 +40,7 @@
 #
 
 #  Revision:
-#     $Id: wfcam_agent.csh,v 1.4 2004/11/30 18:36:27 aa Exp $
+#     $Id: wfcam_agent.csh,v 1.5 2005/06/25 02:25:01 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -55,18 +58,6 @@ if ($?ESTAR_PERLBIN) then
   echo "ESTAR_PERLBIN = ${ESTAR_PERLBIN}"
 else
   setenv PERL NONE
-endif
-
-# set PGPLOT_DIR to point to the modified version of PGPLOT
-if ($?ESTAR_TKPGPLOT) then
-  setenv PGPLOT_DIR $ESTAR_TKPGPLOT
-  echo "ESTAR_TKPGPLOT = ${ESTAR_TKPGPLOT}"
-else
-  echo " "
-  echo "eSTAR Intelligent Agent Software -- (Version $pkgvers)"
-  echo "PGPLOT could not be found, please install PGPLOT 5.2.2" 
-  echo "patched for use of the /PTK driver (uses Tk::Pgplot 0.30)" 
-  exit
 endif
       
 # Set up back door for the version number

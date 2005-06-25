@@ -25,22 +25,23 @@ use strict;
 use warnings;
 
 use vars qw/ $VERSION @ISA %EXPORT_TAGS @EXPORT_OK/;
-'$Revision: 1.1 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.2 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 require Exporter;
 
 @ISA = qw/Exporter/;
 
-@EXPORT_OK = qw/ESTAR__OK ESTAR__ERROR ESTAR__ABORT 
+@EXPORT_OK = qw/ESTAR__OK ESTAR__ERROR ESTAR__ABORT ESTAR__FAULT
                 ESTAR__FATAL ESTAR__DEBUG ESTAR__QUIET/;
 
 %EXPORT_TAGS = (
 		'status'=>[qw/ ESTAR__OK ESTAR__ERROR ESTAR__ABORT 
-                               ESTAR__FATAL ESTAR__DEBUG ESTAR__QUIET/],
+                               ESTAR__FATAL ESTAR__DEBUG ESTAR__QUIET
+			       ESTAR__FAULT/],
                 'bool'=>[qw/ ESTAR__TRUE ESTAR__FALSE/],
                 'all'=>[qw/ ESTAR__OK ESTAR__ERROR ESTAR__ABORT 
                             ESTAR__FATAL ESTAR__DEBUG ESTAR__QUIET
-                            ESTAR__TRUE ESTAR__FALSE /]
+                            ESTAR__TRUE ESTAR__FALSE ESTAR__FAULT/]
 	       );
 
 Exporter::export_tags('status', 'bool', 'all');
@@ -118,6 +119,15 @@ This constant contains the definition a process which has died fatally
 use constant ESTAR__FATAL => -3;
 
 
+=item B<ESTAR__FAULT>
+
+This constant contains the definition a process which has soem non-fatal fault
+
+=cut
+
+use constant ESTAR__FAULT => -4;
+
+
 =back
 
 =head1 TAGS
@@ -168,7 +178,7 @@ L<constants>
 
 =head1 REVISION
 
-$Id: Constants.pm,v 1.1 2004/02/18 22:06:09 aa Exp $
+$Id: Constants.pm,v 1.2 2005/06/25 02:25:01 aa Exp $
 
 =head1 AUTHOR
 

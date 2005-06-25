@@ -1,3 +1,12 @@
+2005-06-25 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * bin/correlation_daemon.pl: Added SOAP client to push catalogues
+	  to the wfcam_agent.pl
+	  
+	* bin/wfcam_agent.pl: populate_db() method now recieves 'n' serialised
+	  Astro::Catalog obejcts. Current serialisation method is using the
+	  standard Data::Dumper object. This was a lot harder than it sounds!  
+
 2005-06-03 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * bin/correlation_daemon.pl: Over the course of the last week

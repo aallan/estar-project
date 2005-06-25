@@ -253,7 +253,7 @@ use strict;
 
 use vars qw/$VERSION/;
 
-'$Revision: 1.1 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.2 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # flush method added to the base class
 use base qw/ Error::Simple /;
@@ -274,6 +274,14 @@ use base qw/ eSTAR::Error /;
 # eSTAR::Error::Error ---------------------------------------------------
 
 package eSTAR::Error::Error;
+
+use base qw/ eSTAR::Error /;
+
+# ---------------------------------------------------------------------------
+
+# eSTAR::Error::Fault ---------------------------------------------------
+
+package eSTAR::Error::Fault;
 
 use base qw/ eSTAR::Error /;
 

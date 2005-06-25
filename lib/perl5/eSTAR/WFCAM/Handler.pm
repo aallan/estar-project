@@ -7,8 +7,8 @@ package eSTAR::WFCAM::Handler;
 use lib $ENV{"ESTAR_PERL5LIB"};     
 
 use strict;
-use subs qw( new set_user ping echo get_option set_option
-             populate_db handle_results );
+use subs qw( new ping echo get_option set_option 
+             populate_db query_db handle_results );
 
 #
 # Threading code (ithreads)
@@ -45,6 +45,8 @@ use eSTAR::Config;
 # Astro modules
 #
 use Astro::Catalog;
+use Astro::Catalog::Item;
+use Astro::Catalog::Star;
 
 my ($log, $process, $ua, $config);
 
@@ -268,32 +270,110 @@ sub populate_db {
          ->faultstring("Client Error: The object is missing user data.")
    }
    
-   # PARSE SERIALISED CATALOGUE
-   # ==========================
+   # CHECK CATALOGUES
+   # ================
+
+   $log->debug("Recieved " . scalar( @args ) . " catalogues...");
    
-   # Create an instance of Astro::Catalog object from the serialsed catalogue
-   my $catalog;
-   eval {$catalog = new Astro::Catalog(Format => "VOTable", Data => $args[0])};
+   $log->debug( "Calling eSTAR::Util::reheat( \$new_objects )");
+   my $new_objects = eSTAR::Util::reheat( $args[0] );
+   $log->debug( "Calling eSTAR::Util::reheat( \$var_objects )");
+   my $var_objects = eSTAR::Util::reheat( $args[1] );
+   
+   my @catalogs;
+   $log->debug( "Calling eSTAR::Util::reheat( \@catalogues )");
+   foreach my $i ( 2 ... $#args) {
+      push @catalogs, eSTAR::Util::reheat( $args[$i] );
+   }
 
    # try and catch parsing errors here...
    if( $@ ) {
-      $log->warn("Unable to parse serialised catalogue...");
-      $log->warn("Returned SOAP Error message");
+      $log->error("Error: $@");
+      $log->warn("Warning: Returned SOAP Error message");
       die SOAP::Fault
          ->faultcode("Client.DataError")
          ->faultstring("Client Error: $@")
    } 
-        
-   unless ( defined $catalog ) {
-      $log->warn("Unable to parse serialised catalogue...");
-      $log->warn("Returned SOAP Error message");
+   
+   # sanity check the passed values
+   $log->debug("Doing a sanity check on the integrity of the catalogues");
+   my $check = 1;
+   foreach my $catalog ( @catalogs ) {
+      $check = undef unless UNIVERSAL::isa( $catalog, "Astro::Catalog" );
+   }      
+   unless ( UNIVERSAL::isa( $new_objects, "Astro::Catalog" ) &&
+            UNIVERSAL::isa( $var_objects, "Astro::Catalog" ) && $check ) {
+      my $error = "The catalogues were not successfully deserialised";
+      $log->error("Error: $error");
+      $log->warn("Warning: Returned SOAP Error message");
       die SOAP::Fault
          ->faultcode("Client.DataError")
-         ->faultstring("Client Error: Unable to parse serialised catalogue.")
-   }   
-   $log->debug("Catalogue has " . $catalog->sizeof() . " entries...");
-   
-   
+         ->faultstring("Client Error: $error");	    
+   } else {
+      $log->debug( "All the references appear to be Astro::Catalog objects");
+      
+      #if( ESTAR__DEBUG ) {
+      
+        $log->warn("Warning: Doing paranoia checks, this will take time...");
+	
+	# this is me going off the deep end
+	unless ( "@Astro::Catalog::Star::ISA" eq "Astro::Catalog::Item" ) {
+	
+	   $log->warn("Warning: An Astro::Catalog::Star doesn't seem to be an" .
+	   " Astro::Catalog::Item. This shouldn't happen!" )
+        } else {
+	   $log->debug( 'An Astro::Catalog::Star->isa("Astro::Catalog::Item")');
+	}
+	   
+        # but this is just paranoia
+        my $counter = 0;
+        foreach my $star ( $new_objects->allstars() ) {
+          $log->warn("Warning: Problem deserialising star $counter from ".
+	   " \$new_objects") unless UNIVERSAL::isa($star, "Astro::Catalog::Star");
+	  $counter++;
+        }
+        foreach my $star ( $var_objects->allstars() ) {
+          $log->warn("Warning: Problem deserialising star $counter from ".
+	   " \$var_objects") unless UNIVERSAL::isa($star, "Astro::Catalog::Star");
+	  $counter++;
+        }     
+        foreach my $catalog ( @catalogs ) {
+           $counter = 0;
+	   my $cat = 1;
+           foreach my $star ( $catalog->allstars() ) {
+             $log->warn("Warning: Problem deserialising star $counter from ".
+	      " \$catalog number $cat") 
+	      unless UNIVERSAL::isa($star, "Astro::Catalog::Star");
+	     $counter++;
+	     $cat++;
+           } 
+        }
+	
+      #}	       
+   }
+
+  print "\nNEW OBJECT CATALOGUE\n\n";
+  my @tmp_star1 = $new_objects->allstars();
+  foreach my $t1 ( @tmp_star1 ) {
+     print "ID " . $t1->id() . "\n";
+     my $tmp_fluxes1 = $t1->fluxes();
+     my @tmp_flux1 = $tmp_fluxes1->fluxesbywaveband( waveband => 'unknown' );
+     foreach my $f1 ( @tmp_flux1 ) {
+        print "  Date: " . $f1->datetime()->datetime() . "\n";
+     }
+     print "\n";
+  }   	
+  print "\nVAR OBJECT CATALOGUE\n\n";
+  my @tmp_star2 = $var_objects->allstars();
+  foreach my $t2 ( @tmp_star2 ) {
+     print "ID " . $t2->id() . "\n";
+     my $tmp_fluxes2 = $t2->fluxes();
+     my @tmp_flux2 = $tmp_fluxes2->fluxesbywaveband( waveband => 'unknown' );
+     foreach my $f2 ( @tmp_flux2 ) {
+        print "  Date: " . $f2->datetime()->datetime() . "\n";
+     }
+     print "\n";
+  }    
    
    
    
@@ -308,7 +388,35 @@ sub populate_db {
       
 }
   
+
+sub query_db {
+   my $self = shift;
+   my @args = @_;
+   
+   $log->debug("Called query_db() from \$tid = ".threads->tid());
+   $config->reread();
   
+   # CHECK FOR USER DATA
+   # ===================
+   
+   # not callable as a static method, so must have a value user object 
+   # stored within the class otherwise we'll return a SOAP Error            
+   unless ( my $user = $self->{_user}) {
+      $log->warn("SOAP Request: The object is missing user data.");
+      die SOAP::Fault
+         ->faultcode("Client.DataError")
+         ->faultstring("Client Error: The object is missing user data.")
+   }  
+
+ 
+   # RETURN OK MESSAGE TO CLIENT
+   # ===========================
+   
+   # return an OK message to the client
+   $log->debug("Returned OK message");
+   return SOAP::Data->name('return', "OK")->type('xsd:string');
+
+}  
 
 sub handle_results {
    my $self = shift;

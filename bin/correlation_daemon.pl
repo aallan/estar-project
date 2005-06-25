@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.46 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.47 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -198,6 +198,7 @@ if ( $config->get_state("corr.unique_process") == 1 ) {
    # user agentrameters
    $config->set_option("db.host", $ip );
    $config->set_option("db.port", 8005 );
+   $config->set_option("db.urn", "wfcam_agent" );
 
    # interprocess communication
    $config->set_option("corr.user", "agent" );
@@ -618,41 +619,63 @@ sub correlate {
                " object(s) that did not match spatially between catalogues." );
   $log->print( "Found " . $var_object_catalogue->sizeof() . 
                " object(s) that may be potential variable stars." );
+  
+  #print "\nNEW OBJECT CATALOGUE\n\n";
+  #my @tmp_star1 = $new_object_catalogue->allstars();
+  #foreach my $t1 ( @tmp_star1 ) {
+  #   print "ID " . $t1->id() . "\n";
+  #   my $tmp_fluxes1 = $t1->fluxes();
+  #   my @tmp_flux1 = $tmp_fluxes1->fluxesbywaveband( waveband => 'unknown' );
+  #   foreach my $f1 ( @tmp_flux1 ) {
+  #      print "  Date: " . $f1->datetime()->datetime() . "\n";
+  #   }
+  #   print "\n";
+  #}   	
+  #print "\nVAR OBJECT CATALOGUE\n\n";
+  #my @tmp_star2 = $var_object_catalogue->allstars();
+  #foreach my $t2 ( @tmp_star2 ) {
+  #   print "ID " . $t2->id() . "\n";
+  #   my $tmp_fluxes2 = $t2->fluxes();
+  #   my @tmp_flux2 = $tmp_fluxes2->fluxesbywaveband( waveband => 'unknown' );
+  #   foreach my $f2 ( @tmp_flux2 ) {
+  #      print "  Date: " . $f2->datetime()->datetime() . "\n";
+  #   }
+  #   print "\n";
+  #}    
+  #exit;  
 
   # dispatch list of variables, and list of all stars to DB web 
   # service via a SOAP call. We'll pass the lists as Astro::Catalog
   # objects to avoid any sort of information loss. We can do this
   # because we're running all Perl. If we need interoperability
   # later, we'll move to document literal.
+  # end point
   
-  print "\nNEW OBJECT CATALOGUE\n\n";
+  #$log->print( "Creating thread to dispatch results..." );
+  #my $dispatch = threads->create( call_webservice, 
+  #                                $new_object_catalogue,
+  #				  $var_object_catalogue,
+  #				  @catalogs );
+  #$log->debug( "Detaching thread...");
+  #$dispatch->detach();
   
-  my @tmp_star1 = $new_object_catalogue->allstars();
-  foreach my $t1 ( @tmp_star1 ) {
-     print "ID " . $t1->id() . "\n";
-     my $tmp_fluxes1 = $t1->fluxes();
-     my @tmp_flux1 = $tmp_fluxes1->fluxesbywaveband( waveband => 'unknown' );
-     foreach my $f1 ( @tmp_flux1 ) {
-        print "  Date: " . $f1->datetime()->datetime() . "\n";
-     }
-     print "\n";
-  }   	
-  print "\nVAR OBJECT CATALOGUE\n\n";
-  my @tmp_star2 = $var_object_catalogue->allstars();
-  foreach my $t2 ( @tmp_star2 ) {
-     print "ID " . $t2->id() . "\n";
-     my $tmp_fluxes2 = $t2->fluxes();
-     my @tmp_flux2 = $tmp_fluxes2->fluxesbywaveband( waveband => 'unknown' );
-     foreach my $f2 ( @tmp_flux2 ) {
-        print "  Date: " . $f2->datetime()->datetime() . "\n";
-     }
-     print "\n";
-  }    
-  exit;  
-
+  my $status;
+  eval { $status = call_webservice( $new_object_catalogue,
+				    $var_object_catalogue,
+			            @catalogs ); };
+  
+  if ( $@ ) {
+    $log->error( "Error: $@" );
+    exit;
+  }
+  
+  unless ( $status == ESTAR__OK ) {
+    $log->error( "Error: Exiting with bad status ($status)" );
+    exit;
+  }  
   
   # Send good status
-
+  $log->print( "Returning ESTAR__OK to main loop..." );
   return ESTAR__OK;
 
 };
@@ -1120,3 +1143,83 @@ sub clip_wmean {
 }
 
 
+# -------------------------------------------------------------------------
+# W E B   S E R V I C E S
+# -------------------------------------------------------------------------
+
+sub call_webservice {
+  croak ( "main::call_webservice() called without arguements" )
+     unless defined @_;
+
+  $log->debug( "In main::call_webservice()..." );
+     
+  my @args = @_;   
+  
+  my @chilled;
+  foreach my $catalog ( @args ) {
+     $catalog->reset_list(); # otherwise we breake the serialisation
+     push @chilled, eSTAR::Util::chill( $catalog );
+  }   
+  
+  $log->print( "Connecting to WFCAM DB Web Service..." );
+  
+  my $endpoint = "http://" . $config->get_option( "db.host") . ":" .
+              $config->get_option( "db.port");
+  my $uri = new URI($endpoint);
+  $log->debug("Web service endpoint $endpoint" );
+  
+  # create a user/passwd cookie
+  $log->debug("Creating cookie..." );
+  my $cookie = eSTAR::Util::make_cookie( "agent", "InterProcessCommunication" );
+  
+  $log->debug("Dropping cookie in jar..." );
+  my $cookie_jar = HTTP::Cookies->new();
+  $cookie_jar->set_cookie(0, user => $cookie, '/', $uri->host(), $uri->port());
+
+  # create SOAP connection
+  my $soap = new SOAP::Lite();
+  
+  my $urn = "urn:/" . $config->get_option( "db.urn" );
+  $log->debug( "URN of endpoint service is $urn");
+  
+  $soap->uri($urn); 
+  $soap->proxy($endpoint, cookie_jar => $cookie_jar);
+    
+  #use Data::Dumper;
+  #print Dumper( $chilled[0] );  
+    
+  # report
+  $log->print("Calling populate_db() in remote service");
+    
+  # grab result 
+  my $result;
+  eval { $result = $soap->populate_db( @chilled ); };
+  if ( $@ ) {
+    $log->warn( "Warning: Could not connect to $endpoint");
+    $log->warn( "Warning: $@" );
+      
+  }  
+  
+  $log->debug( "Transport status: " . $soap->transport()->status() );
+  unless ( defined $result ) {
+    $log->error("Error: No result object is present..." );
+    $log->error("Error: Returning ESTAR__FAULT to main thread" );
+    return ESTAR__FAULT;
+  }
+    
+  unless ($result->fault() ) {
+    if ( $result->result() eq "OK" ) {
+       $log->debug( "Recieved an ACK message from DB web service");
+    } else {
+       $log->warn( "Warning: Recieved status ".$result->result() ." from DB");
+    }   
+  } else {
+    $log->warn("Warning: recieved fault code (" . $result->faultcode() .")" );
+    $log->warn("Warning: " . $result->faultstring() );
+  }  
+
+  $log->print("Returning ESTAR__OK to main thread");
+  return ESTAR__OK;  
+}
+
+  
