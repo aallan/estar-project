@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.47 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.48 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -309,6 +309,91 @@ unless( defined $OPT{"camera"} ) {
 } else{
    $log->warn("Warning: Resetting camera number to $OPT{camera}");
    $config->set_option("corr.camera", $OPT{"camera"} );
+}
+
+
+# -------------------------------------------------------------------------
+# W E B   S E R V I C E S
+# -------------------------------------------------------------------------
+
+sub call_webservice {
+  croak ( "main::call_webservice() called without arguements" )
+     unless defined @_;
+
+  my $thread_name = "populateDB()";
+  
+  $log->thread( $thread_name, "In main::call_webservice()..." );
+  $log->thread($thread_name, "Starting client (\$tid = ".threads->tid().")");  
+     
+  my @args = @_;   
+  
+  my @chilled;
+  foreach my $catalog ( @args ) {
+     $catalog->reset_list(); # otherwise we breake the serialisation
+     push @chilled, eSTAR::Util::chill( $catalog );
+  }   
+  
+  $log->thread( $thread_name, "Connecting to WFCAM DB Web Service..." );
+  
+  my $endpoint = "http://" . $config->get_option( "db.host") . ":" .
+              $config->get_option( "db.port");
+  my $uri = new URI($endpoint);
+  $log->debug("Web service endpoint $endpoint" );
+  
+  # create a user/passwd cookie
+  $log->debug("Creating cookie..." );
+  my $cookie = eSTAR::Util::make_cookie( "agent", "InterProcessCommunication" );
+  
+  $log->debug("Dropping cookie in jar..." );
+  my $cookie_jar = HTTP::Cookies->new();
+  $cookie_jar->set_cookie(0, user => $cookie, '/', $uri->host(), $uri->port());
+
+  # create SOAP connection
+  my $soap = new SOAP::Lite();
+  
+  my $urn = "urn:/" . $config->get_option( "db.urn" );
+  $log->debug( "URN of endpoint service is $urn");
+  
+  $soap->uri($urn); 
+  $soap->proxy($endpoint, cookie_jar => $cookie_jar);
+    
+  #use Data::Dumper;
+  #print Dumper( $chilled[0] );  
+    
+  # report
+  $log->thread( $thread_name, "Calling populate_db() in remote service");
+    
+  # grab result 
+  my $result;
+  eval { $result = $soap->populate_db( @chilled ); };
+  if ( $@ ) {
+    $log->warn( "Warning: Could not connect to $endpoint");
+    $log->warn( "Warning: $@" );
+      
+  }  
+  
+  $log->debug( "Transport status: " . $soap->transport()->status() );
+  unless ( defined $result ) {
+    $log->error("Error: No result object is present..." );
+    $log->error("Error: Returning ESTAR__FAULT to main thread" );
+    return ESTAR__FAULT;
+  }
+    
+  unless ($result->fault() ) {
+    if ( $result->result() eq "OK" ) {
+       $log->debug( "Recieved an ACK message from DB web service");
+    } else {
+       $log->warn( "Warning: Recieved status ".$result->result() ." from DB");
+    }   
+  } else {
+    $log->warn("Warning: recieved fault code (" . $result->faultcode() .")" );
+    $log->warn("Warning: " . $result->faultstring() );
+    $log->thread( $thread_name, "Returning ESTAR__FAULT to main thread");
+    return ESTAR__FAULT;
+  }  
+
+  $log->thread( $thread_name, "Returning ESTAR__OK to main thread");
+  return ESTAR__OK;  
 }
 
 # ===========================================================================
@@ -651,28 +736,34 @@ sub correlate {
   # later, we'll move to document literal.
   # end point
   
-  #$log->print( "Creating thread to dispatch results..." );
-  #my $dispatch = threads->create( call_webservice, 
-  #                                $new_object_catalogue,
-  #				  $var_object_catalogue,
-  #				  @catalogs );
-  #$log->debug( "Detaching thread...");
-  #$dispatch->detach();
+  $log->print( "Creating thread to dispatch results..." );
+  my $dispatch = threads->create( \&call_webservice, 
+                                  $new_object_catalogue,
+  				  $var_object_catalogue,
+  				  @catalogs );
+				  
+  unless ( defined $dispatch ) {
+     $log->error( "Error: Could not spawn a thread to talk to the DB" );
+     $log->error( "Error: Returning ESTAR__FATAL to main loop..." );
+     return ESTAR__FATAL;  
+  }				  
+  $log->debug( "Detaching thread...");
+  $dispatch->detach();
   
-  my $status;
-  eval { $status = call_webservice( $new_object_catalogue,
-				    $var_object_catalogue,
-			            @catalogs ); };
+  #my $status;
+  #eval { $status = call_webservice( $new_object_catalogue,
+  #				    $var_object_catalogue,
+  #			            @catalogs ); };
   
-  if ( $@ ) {
-    $log->error( "Error: $@" );
-    exit;
-  }
+  #if ( $@ ) {
+  #  $log->error( "Error: $@" );
+  #  exit;
+  #}
   
-  unless ( $status == ESTAR__OK ) {
-    $log->error( "Error: Exiting with bad status ($status)" );
-    exit;
-  }  
+  #unless ( $status == ESTAR__OK ) {
+  #  $log->error( "Error: Exiting with bad status ($status)" );
+  #  exit;
+  #}  
   
   # Send good status
   $log->print( "Returning ESTAR__OK to main loop..." );
@@ -1141,85 +1232,4 @@ sub clip_wmean {
    return ( $wmean, $redchi, $reject );
    
 }
-
-
-# -------------------------------------------------------------------------
-# W E B   S E R V I C E S
-# -------------------------------------------------------------------------
-
-sub call_webservice {
-  croak ( "main::call_webservice() called without arguements" )
-     unless defined @_;
-
-  $log->debug( "In main::call_webservice()..." );
-     
-  my @args = @_;   
-  
-  my @chilled;
-  foreach my $catalog ( @args ) {
-     $catalog->reset_list(); # otherwise we breake the serialisation
-     push @chilled, eSTAR::Util::chill( $catalog );
-  }   
-  
-  $log->print( "Connecting to WFCAM DB Web Service..." );
-  
-  my $endpoint = "http://" . $config->get_option( "db.host") . ":" .
-              $config->get_option( "db.port");
-  my $uri = new URI($endpoint);
-  $log->debug("Web service endpoint $endpoint" );
-  
-  # create a user/passwd cookie
-  $log->debug("Creating cookie..." );
-  my $cookie = eSTAR::Util::make_cookie( "agent", "InterProcessCommunication" );
-  
-  $log->debug("Dropping cookie in jar..." );
-  my $cookie_jar = HTTP::Cookies->new();
-  $cookie_jar->set_cookie(0, user => $cookie, '/', $uri->host(), $uri->port());
-
-  # create SOAP connection
-  my $soap = new SOAP::Lite();
-  
-  my $urn = "urn:/" . $config->get_option( "db.urn" );
-  $log->debug( "URN of endpoint service is $urn");
-  
-  $soap->uri($urn); 
-  $soap->proxy($endpoint, cookie_jar => $cookie_jar);
-    
-  #use Data::Dumper;
-  #print Dumper( $chilled[0] );  
-    
-  # report
-  $log->print("Calling populate_db() in remote service");
-    
-  # grab result 
-  my $result;
-  eval { $result = $soap->populate_db( @chilled ); };
-  if ( $@ ) {
-    $log->warn( "Warning: Could not connect to $endpoint");
-    $log->warn( "Warning: $@" );
-      
-  }  
-  
-  $log->debug( "Transport status: " . $soap->transport()->status() );
-  unless ( defined $result ) {
-    $log->error("Error: No result object is present..." );
-    $log->error("Error: Returning ESTAR__FAULT to main thread" );
-    return ESTAR__FAULT;
-  }
-    
-  unless ($result->fault() ) {
-    if ( $result->result() eq "OK" ) {
-       $log->debug( "Recieved an ACK message from DB web service");
-    } else {
-       $log->warn( "Warning: Recieved status ".$result->result() ." from DB");
-    }   
-  } else {
-    $log->warn("Warning: recieved fault code (" . $result->faultcode() .")" );
-    $log->warn("Warning: " . $result->faultstring() );
-  }  
-
-  $log->print("Returning ESTAR__OK to main thread");
-  return ESTAR__OK;  
-}
-
   

@@ -273,8 +273,17 @@ sub populate_db {
    # CHECK CATALOGUES
    # ================
 
-   $log->debug("Recieved " . scalar( @args ) . " catalogues...");
-   
+   my $num_cat = scalar( @args );
+   $log->debug("Recieved " . $num_cat . " catalogues...");
+   unless ( $num_cat => 6 ) {
+      my $error = "populate_db() called without too few ($num_cat<6) catalogues";
+      $log->error("Error: $error");
+      $log->warn("Warning: Returned SOAP Error message");
+      die SOAP::Fault
+         ->faultcode("Client.DataError")
+         ->faultstring("Client Error: $error");	    
+   }
+   	    
    $log->debug( "Calling eSTAR::Util::reheat( \$new_objects )");
    my $new_objects = eSTAR::Util::reheat( $args[0] );
    $log->debug( "Calling eSTAR::Util::reheat( \$var_objects )");
