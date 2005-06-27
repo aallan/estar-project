@@ -1374,18 +1374,28 @@ sub handle_data {
             SOAP::Data->name('reply', $reply_rtml )->type('base64')); };
  
    my $warn_flag;
-   if ( defined $result->fault() ) {
-      $warn_flag = 1;
-   }
-      
+   
+   if ( defined $result ) {
+     if ( defined $result->fault() ) {
+         $warn_flag = 1;
+     }
+   } else {
+     $log->error("Error: SOAP \$result object not defined");
+     $log->error("Error: This may be a firewall problem");
+   }  
+       
    # if we have problems
    if ( $@ || $warn_flag ) {
       $log->warn("Warning: Problem connecting to " . $host ); 
           
-      if( defined $result && $result->fault() ) {
-        $log->error("Fault Code   : " . $result->faultcode() );
-        $log->error("Fault String : " . $result->faultstring() );
-      } 
+      if( defined $result ) {
+        if ( $result->fault() ) {
+           $log->error("Fault Code   : " . $result->faultcode() );
+           $log->error("Fault String : " . $result->faultstring() );
+        } 
+      } else {
+        $log->error("Error: Unable to determine source of error..." );
+      }
       
       # reserialise the observation object
       $log->warn("Warning: Re-serialising the \$observation_object");
