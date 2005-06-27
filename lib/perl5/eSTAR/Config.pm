@@ -20,7 +20,7 @@ use vars qw/$VERSION @EXPORT @ISA/;
               get_state set_state write_state make_directories
               get_data_dir get_state_dir get_tmp_dir /;
 
-'$Revision: 1.8 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.9 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 my $SINGLETON;
 
@@ -138,7 +138,7 @@ sub create_ini_file {
       return undef;      
    }
     
-   unless ( defined $CONFIG->param( "file.name" ) {
+   unless ( defined $CONFIG->param( "file.name" ) ) {
        # can't read/write to options file, bail out
       my $error = "Error: Problems with sanity check of Config::Simple() object";
       $log->error( $error );
@@ -149,9 +149,7 @@ sub create_ini_file {
       $log->error( Dumper( $CONFIG ) );
       return undef;    
    }
-   
-   return $CONFIG;
- 
+    
 }
 
 # grab an option from the $CONFIG file
