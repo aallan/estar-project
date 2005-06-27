@@ -20,7 +20,7 @@ use vars qw/$VERSION @EXPORT @ISA/;
               get_state set_state write_state make_directories
               get_data_dir get_state_dir get_tmp_dir /;
 
-'$Revision: 1.10 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.11 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 my $SINGLETON;
 
@@ -118,6 +118,8 @@ sub create_ini_file {
       $CONFIG = new Config::Simple( syntax   => 'ini', 
                                     mode     => O_RDWR );
       $CONFIG->read( $file );
+      
+      $log->debug( Dumper( $CONFIG ) );
    } else {
       $log->warn("Warning: eSTAR::Config - Creating new config file $file");
       $CONFIG = new Config::Simple( syntax   => 'ini', 
