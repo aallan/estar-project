@@ -1252,7 +1252,7 @@ sub handle_data {
    # parse cards into Header object
    $log->debug("Parsing FITS Headers...");
    my $header;
-   eval { = new Astro::FITS::Header::CFITSIO( File => $fits );  };
+   eval { $header = new Astro::FITS::Header::CFITSIO( File => $fits );  };
    
    if ( $@ ) {
       $log->error("Error: $@");
