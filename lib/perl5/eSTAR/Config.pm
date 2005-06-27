@@ -20,7 +20,7 @@ use vars qw/$VERSION @EXPORT @ISA/;
               get_state set_state write_state make_directories
               get_data_dir get_state_dir get_tmp_dir /;
 
-'$Revision: 1.7 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.8 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 my $SINGLETON;
 
@@ -114,11 +114,12 @@ sub create_ini_file {
    if ( open ( FILE, "<$file" ) ) {
       close( FILE );
       
-      $CONFIG = new Config::Simple( filename => $file,
-                                    syntax   => 'ini', 
+      $log->debug("eSTAR::Config - Attempting to read $file");
+      $CONFIG = new Config::Simple( syntax   => 'ini', 
                                     mode     => O_RDWR );
+      $CONFIG->read( $file );
    } else {
-      $log->warn("Warning: Creating new config file $file");
+      $log->warn("Warning: eSTAR::Config - Creating new config file $file");
       $CONFIG = new Config::Simple( syntax   => 'ini', 
                                     mode     => O_RDWR|O_CREAT );
       
@@ -135,6 +136,18 @@ sub create_ini_file {
       $log->error( $error );
       
       return undef;      
+   }
+    
+   unless ( defined $CONFIG->param( "file.name" ) {
+       # can't read/write to options file, bail out
+      my $error = "Error: Problems with sanity check of Config::Simple() object";
+      $log->error( $error );
+      $error = "Error: Config::Simple reported '" 
+               . $Config::Simple::errstr . "'";
+      $log->error( $error );
+      
+      $log->error( Dumper( $CONFIG ) );
+      return undef;    
    }
    
    return $CONFIG;
