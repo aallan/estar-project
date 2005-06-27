@@ -381,7 +381,9 @@ sub handle_rtml {
       # check the telescope, and then the instrument we're specifically
       # using. For now lets just use the is_observable() method.
       
-      if( Astro::WaveBand::has_filter( "UIST" => uc($parsed->filter()) ) ) {
+      if( Astro::WaveBand::has_filter( 
+           eSTAR::JACH::Util::current_instrument( 
+	   $config->get_option( "dn.telescope") => uc($parsed->filter()) ) ) {
       #if ( Astro::WaveBand::is_observable( 
       #    $config->get_option( "dn.telescope") => $parsed->filter() ) ) {
           
