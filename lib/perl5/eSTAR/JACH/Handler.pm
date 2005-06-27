@@ -383,13 +383,15 @@ sub handle_rtml {
       
       if( Astro::WaveBand::has_filter( 
            eSTAR::JACH::Util::current_instrument( 
-	   $config->get_option( "dn.telescope") => uc($parsed->filter()) ) ) {
+	   $config->get_option( "dn.telescope") ) => uc($parsed->filter())) ) {
       #if ( Astro::WaveBand::is_observable( 
       #    $config->get_option( "dn.telescope") => $parsed->filter() ) ) {
           
           # don't modify an already set $isobs
           $log->debug(  $config->get_option( "dn.telescope") . " has a " . 
-                   $parsed->filter() . " filter on an available instrument" );
+                   $parsed->filter() . " filter on " . 
+		   eSTAR::JACH::Util::current_instrument( 
+	              $config->get_option( "dn.telescope") )  );
       } else {
                          
           # $isobs must now be set to bad
