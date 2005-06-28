@@ -1,3 +1,10 @@
+2005-06-28 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * Config/Simple.pm: Added a massively hacked version of Config::Simple
+	  to the build. The real Config::Simple proved to be "not thread safe"
+	  and I've had to totally reengineer the internals. This was not a
+	  pleasant experience.
+	  
 2005-06-25 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * bin/correlation_daemon.pl: Added SOAP client to push catalogues
