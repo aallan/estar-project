@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.49 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.50 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -590,7 +590,8 @@ sub correlate {
         my @flux = $star1->fluxes()->fluxesbywaveband( waveband => 'unknown' );
         my $same_flag;
         foreach my $f ( @flux ) {
-          if ( $f->datetime() == $star2->fluxes()->flux( waveband => 'unknown' )->datetime() ) {
+          if ( $f->datetime() == $star2->fluxes()->flux( waveband => 'unknown',
+                                                         type => 'isophotal_flux' )->datetime() ) {
             $log->debug( 	"Star $i and star $j are identical..." );
 	          $same_flag = 1;
           }
@@ -654,7 +655,8 @@ sub correlate {
         my @flux = $star1->fluxes()->fluxesbywaveband( waveband => 'unknown' );
         my $same_flag;
         foreach my $f ( @flux ) {
-          if ( $f->datetime() == $star2->fluxes()->flux( waveband => 'unknown' )->datetime() ) {
+          if ( $f->datetime() == $star2->fluxes()->flux( waveband => 'unknown',
+                                                         type => 'isophotal_flux' )->datetime() ) {
 
             $log->debug( 	"Star $i and star $j are identical..." );
 	          $same_flag = 1;
@@ -1046,8 +1048,8 @@ sub match_catalogs {
   foreach my $i ( 0 ... $corr1->sizeof() - 1 ) {
 
     # Grab magnitude for STAR from Catalogue 1
-    my $id1 = $star1->id;
     my $star1 = $corr1->starbyindex( $i );
+    my $id1 = $star1->id;
     my $fluxes1 = $star1->fluxes;
     my $iso_flux1 = $fluxes1->flux( waveband => 'unknown',
                                     type => 'isophotal_flux' );
