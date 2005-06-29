@@ -1,3 +1,11 @@
+2005-06-30 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * bin/data_miner.pl: Added data mining server process and associated
+	  infrastructure to the wfcam_agent.pl.
+	  
+	* Changed catalogue shipping between the WFCAM processes to be gzipped
+	  and base 64 encoded, this speeds thinsg up a lot.  
+
 2005-06-28 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * Config/Simple.pm: Added a massively hacked version of Config::Simple

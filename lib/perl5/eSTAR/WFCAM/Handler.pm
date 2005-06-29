@@ -29,6 +29,7 @@ use Config::Simple;
 use Config::User;
 use Data::Dumper;
 use Fcntl qw(:DEFAULT :flock);
+use Compress::Zlib;
 
 # 
 # eSTAR modules
@@ -137,7 +138,85 @@ sub do_datamining {
   croak ( "eSTAR::WFCAM::Handler::do_datamining() called without arguements" )
      unless defined @_;
 
-  return ESTAR__OK;  
+  my $catalog = shift;   
+     
+  my $thread_name = "do_datamining()";
+  $log->thread($thread_name, "eSTAR::WFCAM::Handler::do_datamining()..." );
+  $log->thread($thread_name, "Starting client (\$tid = ".threads->tid().")");  
+     
+  $log->debug( "Calling eSTAR::Util::chill( \$catalog )");
+  $catalog->reset_list(); # otherwise we breake the serialisation
+  my $chilled = eSTAR::Util::chill( $catalog );
+  
+  $log->debug( "Compressing \$catalog");
+  my $compressed = Compress::Zlib::memGzip( $chilled );
+  
+  $log->thread( $thread_name, "Connecting to Data Mining Service..." );
+  
+  my $endpoint = "http://" . $config->get_option( "miner.host") . ":" .
+              $config->get_option( "miner.port");
+  my $uri = new URI($endpoint);
+  $log->debug("Web service endpoint $endpoint" );
+  
+  # create a user/passwd cookie
+  $log->debug("Creating cookie..." );
+  my $cookie = eSTAR::Util::make_cookie( "agent", "InterProcessCommunication" );
+  
+  $log->debug("Dropping cookie in jar..." );
+  my $cookie_jar = HTTP::Cookies->new();
+  $cookie_jar->set_cookie(0, user => $cookie, '/', $uri->host(), $uri->port());
+
+  # create SOAP connection
+  my $soap = new SOAP::Lite();
+  
+  my $urn = "urn:/" . $config->get_option( "miner.urn" );
+  $log->debug( "URN of endpoint service is $urn");
+  
+  $soap->uri($urn); 
+  $soap->proxy($endpoint, cookie_jar => $cookie_jar);
+    
+  #use Data::Dumper;
+  #print Dumper( $chilled[0] );  
+    
+  # report
+  $log->thread( $thread_name, "Calling handle_objects() in remote service");
+    
+  # grab result 
+  my $result;
+  my $host = $config->get_option( "server.host" );
+  my $port = $config->get_option( "server.port" );
+  eval { $result = $soap->handle_objects( $host, $port, 
+                             SOAP::Data->type(base64 => $compressed ) ); };
+  if ( $@ ) {
+    $log->warn( "Warning: Could not connect to $endpoint");
+    $log->warn( "Warning: $@" );
+      
+  }  
+  
+  $log->debug( "Transport status: " . $soap->transport()->status() );
+  unless ( defined $result ) {
+    $log->error("Error: No result object is present..." );
+    $log->error("Error: Returning ESTAR__FAULT to main thread" );
+    return ESTAR__FAULT;
+  }
+    
+  unless ($result->fault() ) {
+    if ( $result->result() eq "OK" ) {
+       $log->debug( "Recieved an ACK message from data mining service");
+    } else {
+       $log->warn( "Warning: Recieved status ".$result->result() .
+                   " from data mining service");
+    }   
+  } else {
+    $log->warn("Warning: recieved fault code (" . $result->faultcode() .")" );
+    $log->warn("Warning: " . $result->faultstring() );
+    $log->thread( $thread_name, "Returning ESTAR__FAULT to main thread");
+    return ESTAR__FAULT;
+  }  
+
+  $log->thread( $thread_name, "Returning ESTAR__OK to main thread");
+  return ESTAR__OK;       
+     
 }
 
 
@@ -296,6 +375,12 @@ sub populate_db {
          ->faultcode("Client.DataError")
          ->faultstring("Client Error: $error");	    
    }
+ 
+ 
+   foreach my $i ( 0 ... $#args ) {
+      $log->debug( "Uncompressing catalogue[$i]");
+      $args[$i] = Compress::Zlib::memGunzip( $args[$i] );
+   }
    	    
    $log->debug( "Calling eSTAR::Util::reheat( \$new_objects )");
    my $new_objects = eSTAR::Util::reheat( $args[0] );
@@ -408,26 +493,23 @@ sub populate_db {
   # CALL DATA MINING PROCESS
   # ======================== 
      
-  #$log->print( "Creating thread to data mine potential variables..." );
-  #my $dispatch = threads->create( \&do_datamining, $var_object_catalogue );
-  #				  
-  #unless ( defined $dispatch ) {
-  #   $log->error( "Error: Could not spawn a thread to talk to the DB" );
-  #   $log->error( "Error: Returning ESTAR__FATAL to main loop..." );
-  #   return ESTAR__FATAL;  
-  #}				  
-  #$log->debug( "Detaching thread...");
-  #$dispatch->detach();
+  $log->print( "Creating thread to data mine candidate variables..." );
+  my $dispatch = threads->create( \&do_datamining, $var_objects );
+  				  
+  unless ( defined $dispatch ) {
+     $log->error( "Error: Could not spawn a thread to talk to the DB" );
+     $log->error( "Error: Returning ESTAR__FATAL to main loop..." );
+     return ESTAR__FATAL;  
+  }				  
+  $log->debug( "Detaching thread...");
+  $dispatch->detach();
    
-   
-   
-   
-   # RETURN OK MESSAGE TO CLIENT
-   # ===========================
-   
-   # return an OK message to the client
-   $log->debug("Returned OK message");
-   return SOAP::Data->name('return', "OK")->type('xsd:string');
+  # RETURN OK MESSAGE TO CLIENT
+  # ===========================
+  
+  # return an OK message to the client
+  $log->debug("Returned OK message");
+  return SOAP::Data->name('return', "OK")->type('xsd:string');
       
 }
   

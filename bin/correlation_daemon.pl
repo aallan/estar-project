@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.51 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.52 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -68,6 +68,7 @@ use HTTP::Cookies;
 use Storable qw/ dclone /;
 use Math::Libm qw(:all);
 use Data::Dumper;
+use Compress::Zlib;
 
 # Astronomy modules
 use Astro::Catalog;
@@ -331,7 +332,10 @@ sub call_webservice {
   my @chilled;
   foreach my $catalog ( @args ) {
      $catalog->reset_list(); # otherwise we breake the serialisation
-     push @chilled, eSTAR::Util::chill( $catalog );
+     $log->debug( "Compressing catalogue...");
+     my $string  = eSTAR::Util::chill( $catalog );
+     my $compressed = Compress::Zlib::memGzip( $string );
+     push @chilled, $compressed;
   }   
   
   $log->thread( $thread_name, "Connecting to WFCAM DB Web Service..." );
@@ -366,7 +370,7 @@ sub call_webservice {
     
   # grab result 
   my $result;
-  eval { $result = $soap->populate_db( @chilled ); };
+  eval { $result = $soap->populate_db(SOAP::Data->type(base64 => @chilled )); };
   if ( $@ ) {
     $log->warn( "Warning: Could not connect to $endpoint");
     $log->warn( "Warning: $@" );

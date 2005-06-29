@@ -27,6 +27,7 @@ use Config::Simple;
 use Config::User;
 use Data::Dumper;
 use Fcntl qw(:DEFAULT :flock);
+use Compress::Zlib;
 
 # 
 # eSTAR modules
@@ -269,14 +270,14 @@ sub handle_objects {
    
    # READ ARGUEMENTS
    # ---------------
-   # arguements, pulls the context, host & port and serialised catalogue
-   # from the wire. The host & port are those that the data mining process
-   # will return the results. It will acknowledge this request with a simple
-   # ACK message. We're doing an async call here...
-   my $context = shift;
+   # pulls the host & port and serialised catalogue from the wire. The host 
+   # & port are those that the data mining process will return the results. 
+   #
+   # It will acknowledge this request with a simple ACK message. We're doing 
+   # an async call here...
    my $host = shift;
    my $port = shift;
-   my $catalog = shift;
+   my $string = shift;
    
    # RESPONSE THREAD
    # ---------------
@@ -290,18 +291,19 @@ sub handle_objects {
         "Called response_client() from \$tid = " . threads->tid());
       
       $log->debug( "Connection from $host:$port");
-      $log->debug( "Connection has context '" . $context . "'" );
         
       # Generate Catalogue
       # ------------------
-   
+      $log->debug( "Uncompressing \$string...");
+      my $catalog = Compress::Zlib::memGunzip( $string ); 
+        
       $log->debug( "Calling eSTAR::Util::reheat( \$var_objects )");
       my $var_objects = eSTAR::Util::reheat( $catalog );
    
       # sanity check the passed values
       $log->debug("Doing a sanity check on the integrity of the catalogues");
       
-      unless UNIVERSAL::isa( $var_objects, "Astro::Catalog" ) {
+      unless ( UNIVERSAL::isa( $var_objects, "Astro::Catalog" ) ) {
          $log->error(
 	   "Error: Failed sanity check \$var_objects is not an Astro::Catalog");
          $log->error( Dumper($var_objects) );
@@ -321,9 +323,9 @@ sub handle_objects {
       # ---------------
       my $error = $config->get_option( "simbad.error" );
       $log->debug("Searching SIMBAD at $error arcsec...");
-      foreach my $i ( 0 ... $catalog->sizeof()-1 ) {
+      foreach my $i ( 0 ... $var_objects->sizeof()-1 ) {
    
-         my $star = $catalog->starbyindex( $i );
+         my $star = $var_objects->starbyindex( $i );
          my $ra = $star->ra();
          my $dec = $star->dec();
          #$log->debug( "Star $i - RA $ra, Dec $dec");
@@ -332,16 +334,15 @@ sub handle_objects {
 	           RA => $ra, Dec => $dec, Error => $error,  Unit => "arcsec" );
          
 	 if( $i == 0 ) {
-	    $log->debug_ncr( 
-	        "Making connection " . ($i+1) . " of " . $catalog->sizeof() );
+	    $log->debug( 
+	        "Making connection " . ($i+1) . " of " . $var_objects->sizeof() );
 	 } else {
-	    $log->debug_overtype_ncr( 
-	       "Making connection " . ($i+1) . " of " . $catalog->sizeof()); 
+	    $log->debug( 
+	       "Making connection " . ($i+1) . " of " . $var_objects->sizeof()); 
 	 }
 	 
-	 if( $i == $catalog->sizeof()-1 ) {
-	    $log->debug_overtype_ncr(""); 
-	    $log->debug( "\nMade all " . ($i+1) . " connections to SIMABD..." );
+	 if( $i == $var_objects->sizeof()-1 ) {
+            $log->debug( "\nMade all " . ($i+1) . " connections to SIMABD..." );
          }
 	 	 
 	 my $result = $simbad->querydb();	
@@ -361,7 +362,10 @@ sub handle_objects {
 	                   ", Dec " . $objects[$j]->dec() );
 	      $log->debug( "  Object Class : " . $objects[$j]->long() );
 	      $log->debug( "  Spectral Type: " . $objects[$j]->spec() );	       
-	   }   
+	   } 
+  
+	 } else {
+	   $log->debug( "No matching records");
 	 } 
       }
       $log->thread($thread_name, "Completed data mining task");
@@ -378,9 +382,8 @@ sub handle_objects {
    # ----------
    # return a simple ACK message to the client for now, we have the context
    # we'll be contacting them with the data mined information later. 
-   $log->thread2("Handler Thread",
-                 "Returned ACK message for context '" . $context . "'");
-   return SOAP::Data->name('return', "ACK $context" )->type('xsd:string');   
+   $log->thread2("Handler Thread", "Returned ACK message");
+   return SOAP::Data->name('return', "ACK" )->type('xsd:string');   
 }   
 
 1;                                

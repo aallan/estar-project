@@ -19,7 +19,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: wfcam_agent.pl,v 1.13 2005/06/25 02:25:01 aa Exp $
+#     $Id: wfcam_agent.pl,v 1.14 2005/06/29 23:37:40 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -63,7 +63,7 @@ passing data mining jobs out to a seperate data ining process.
 
 =head1 REVISION
 
-$Id: wfcam_agent.pl,v 1.13 2005/06/25 02:25:01 aa Exp $
+$Id: wfcam_agent.pl,v 1.14 2005/06/29 23:37:40 aa Exp $
 
 =head1 AUTHORS
 
@@ -80,7 +80,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.13 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.14 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -339,6 +339,11 @@ if ( $config->get_state("wfcam.unique_process") == 1 ) {
    # server parameters
    $config->set_option("server.host", $ip );
    $config->set_option("server.port", 8005 );
+   
+   # data mining process
+   $config->set_option("miner.host", $ip );
+   $config->set_option("miner.port", 8006 );
+   $config->set_option("miner.urn", "data_miner" );
 
    # user agent parameters
    $config->set_option("agent.port", 8000 );
@@ -524,6 +529,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: wfcam_agent.pl,v $
+# Revision 1.14  2005/06/29 23:37:40  aa
+# Gzipped & Base64 catalogue transfer, plus addition of a working data mining service
+#
 # Revision 1.13  2005/06/25 02:25:01  aa
 # correlation_daemon.pl now passes catalogues successfully to the wfcam_agent.pl
 #
