@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.50 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.51 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -67,6 +67,7 @@ use URI;
 use HTTP::Cookies;
 use Storable qw/ dclone /;
 use Math::Libm qw(:all);
+use Data::Dumper;
 
 # Astronomy modules
 use Astro::Catalog;
@@ -448,7 +449,7 @@ sub correlate {
       ( $corrcat1, $corrcat2 ) = $corr->correlate;
       $cat1 = dclone($catalogs[$i]);
       $cat2 = dclone($catalogs[$j]);
-
+      
       $log->debug( "Catalogue $i has " . $cat1->sizeof . " objects before" .
                    " matching and " . $corrcat1->sizeof . " objects afterwards." );
       $log->debug( "Catalogue $j has " . $cat2->sizeof . " objects before" .
@@ -592,8 +593,8 @@ sub correlate {
         foreach my $f ( @flux ) {
           if ( $f->datetime() == $star2->fluxes()->flux( waveband => 'unknown',
                                                          type => 'isophotal_flux' )->datetime() ) {
-            $log->debug( 	"Star $i and star $j are identical..." );
-	          $same_flag = 1;
+            $log->debug( "Star $i and star $j are identical..." );
+	    $same_flag = 1;
           }
         }
 
@@ -704,28 +705,30 @@ sub correlate {
   $log->print( "Found " . $var_object_catalogue->sizeof() .
                " object(s) that may be potential variable stars." );
 
-  #print "\nNEW OBJECT CATALOGUE\n\n";
-  #my @tmp_star1 = $new_object_catalogue->allstars();
-  #foreach my $t1 ( @tmp_star1 ) {
-  #   print "ID " . $t1->id() . "\n";
-  #   my $tmp_fluxes1 = $t1->fluxes();
-  #   my @tmp_flux1 = $tmp_fluxes1->fluxesbywaveband( waveband => 'unknown' );
-  #   foreach my $f1 ( @tmp_flux1 ) {
-  #      print "  Date: " . $f1->datetime()->datetime() . "\n";
-  #   }
-  #   print "\n";
-  #}
-  #print "\nVAR OBJECT CATALOGUE\n\n";
-  #my @tmp_star2 = $var_object_catalogue->allstars();
-  #foreach my $t2 ( @tmp_star2 ) {
-  #   print "ID " . $t2->id() . "\n";
-  #   my $tmp_fluxes2 = $t2->fluxes();
-  #   my @tmp_flux2 = $tmp_fluxes2->fluxesbywaveband( waveband => 'unknown' );
-  #   foreach my $f2 ( @tmp_flux2 ) {
-  #      print "  Date: " . $f2->datetime()->datetime() . "\n";
-  #   }
-  #   print "\n";
-  #}
+  $log->print("New Objects:");
+  my @tmp_star1 = $new_object_catalogue->allstars();
+  foreach my $t1 ( @tmp_star1 ) {
+     print "ID " . $t1->id() . "\n";
+     my $tmp_fluxes1 = $t1->fluxes();
+     my @tmp_flux1 = $tmp_fluxes1->fluxesbywaveband( waveband => 'unknown' );
+     foreach my $f1 ( @tmp_flux1 ) {
+  	$log->debug("  Date: " . $f1->datetime()->datetime() .
+  	            " (" . $f1->type() . ")" );
+     }
+     print "\n";
+  }
+  $log->print("Variable Objects:");
+  my @tmp_star2 = $var_object_catalogue->allstars();
+  foreach my $t2 ( @tmp_star2 ) {
+     print "ID " . $t2->id() . "\n";
+     my $tmp_fluxes2 = $t2->fluxes();
+     my @tmp_flux2 = $tmp_fluxes2->fluxesbywaveband( waveband => 'unknown' );
+     foreach my $f2 ( @tmp_flux2 ) {
+  	$log->debug("  Date: " . $f2->datetime()->datetime() .
+  	            " (" . $f2->type() . ")" );
+     }
+     print "\n";
+  }
   #exit;
 
   # dispatch list of variables, and list of all stars to DB web
@@ -1049,10 +1052,19 @@ sub match_catalogs {
 
     # Grab magnitude for STAR from Catalogue 1
     my $star1 = $corr1->starbyindex( $i );
+    
+    #print Dumper( $star1 );
+    
     my $id1 = $star1->id;
     my $fluxes1 = $star1->fluxes;
+    
+    #print Dumper( $fluxes1 );
+
     my $iso_flux1 = $fluxes1->flux( waveband => 'unknown',
                                     type => 'isophotal_flux' );
+				    
+    #print Dumper( $iso_flux1 );
+				    
     my $iso_flux1_quantity = $iso_flux1->quantity('isophotal_flux');
     my $iso_flux1_error = sqrt( $iso_flux1_quantity );
 

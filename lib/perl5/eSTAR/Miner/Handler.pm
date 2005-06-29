@@ -269,14 +269,14 @@ sub handle_objects {
    
    # READ ARGUEMENTS
    # ---------------
-   # arguements, pulls the context, host & port and wrapped XML document
+   # arguements, pulls the context, host & port and serialised catalogue
    # from the wire. The host & port are those that the data mining process
    # will return the results. It will acknowledge this request with a simple
    # ACK message. We're doing an async call here...
    my $context = shift;
    my $host = shift;
    my $port = shift;
-   my $xml = shift;
+   my $catalog = shift;
    
    # RESPONSE THREAD
    # ---------------
@@ -289,21 +289,34 @@ sub handle_objects {
       $log->thread($thread_name, 
         "Called response_client() from \$tid = " . threads->tid());
       
-      # generate a unique ID
-      #my $id = eSTAR::Util::make_id();
-
       $log->debug( "Connection from $host:$port");
       $log->debug( "Connection has context '" . $context . "'" );
         
       # Generate Catalogue
       # ------------------
    
-      my $catalog = new Astro::Catalog( Format => 'VOTable', Data => $xml );
-      $log->debug("List of " . $catalog->sizeof() . 
+      $log->debug( "Calling eSTAR::Util::reheat( \$var_objects )");
+      my $var_objects = eSTAR::Util::reheat( $catalog );
+   
+      # sanity check the passed values
+      $log->debug("Doing a sanity check on the integrity of the catalogues");
+      
+      unless UNIVERSAL::isa( $var_objects, "Astro::Catalog" ) {
+         $log->error(
+	   "Error: Failed sanity check \$var_objects is not an Astro::Catalog");
+         $log->error( Dumper($var_objects) );
+         return undef;
+      }
+      my $counter = 0;
+      foreach my $star ( $var_objects->allstars() ) {
+         $log->warn("Warning: Problem deserialising star $counter from ".
+          " \$var_objects") unless UNIVERSAL::isa($star, "Astro::Catalog::Star");
+         $counter++;
+      }  
+   
+      $log->debug("List of " . $var_objects->sizeof() . 
                   " objects read from SOAP message");
-    	
-      use Data::Dumper; print Dumper( $catalog );
-      	
+    	      	
       # Check each Star
       # ---------------
       my $error = $config->get_option( "simbad.error" );

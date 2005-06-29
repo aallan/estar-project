@@ -129,6 +129,19 @@ sub set_user {
 }
 
 # ==========================================================================
+# C A L L B A C K S  F R O M   H A N D L E R S 
+# ==========================================================================
+
+
+sub do_datamining {
+  croak ( "eSTAR::WFCAM::Handler::do_datamining() called without arguements" )
+     unless defined @_;
+
+  return ESTAR__OK;  
+}
+
+
+# ==========================================================================
 # T E S T  H A N D L E R S 
 # ==========================================================================
 
@@ -361,29 +374,50 @@ sub populate_db {
       #}	       
    }
 
-  print "\nNEW OBJECT CATALOGUE\n\n";
+  $log->print("New Objects:");
   my @tmp_star1 = $new_objects->allstars();
   foreach my $t1 ( @tmp_star1 ) {
      print "ID " . $t1->id() . "\n";
      my $tmp_fluxes1 = $t1->fluxes();
      my @tmp_flux1 = $tmp_fluxes1->fluxesbywaveband( waveband => 'unknown' );
      foreach my $f1 ( @tmp_flux1 ) {
-        print "  Date: " . $f1->datetime()->datetime() . "\n";
+  	$log->debug("  Date: " . $f1->datetime()->datetime() .
+  	            " (" . $f1->type() . ")" );
      }
      print "\n";
-  }   	
-  print "\nVAR OBJECT CATALOGUE\n\n";
+  }
+  $log->print("Variable Objects:");
   my @tmp_star2 = $var_objects->allstars();
   foreach my $t2 ( @tmp_star2 ) {
      print "ID " . $t2->id() . "\n";
      my $tmp_fluxes2 = $t2->fluxes();
      my @tmp_flux2 = $tmp_fluxes2->fluxesbywaveband( waveband => 'unknown' );
      foreach my $f2 ( @tmp_flux2 ) {
-        print "  Date: " . $f2->datetime()->datetime() . "\n";
+  	$log->debug("  Date: " . $f2->datetime()->datetime() .
+  	            " (" . $f2->type() . ")" );
      }
      print "\n";
-  }    
+  }
    
+  # POPULATE DB
+  # ===========
+  
+  
+  
+   
+  # CALL DATA MINING PROCESS
+  # ======================== 
+     
+  #$log->print( "Creating thread to data mine potential variables..." );
+  #my $dispatch = threads->create( \&do_datamining, $var_object_catalogue );
+  #				  
+  #unless ( defined $dispatch ) {
+  #   $log->error( "Error: Could not spawn a thread to talk to the DB" );
+  #   $log->error( "Error: Returning ESTAR__FATAL to main loop..." );
+  #   return ESTAR__FATAL;  
+  #}				  
+  #$log->debug( "Detaching thread...");
+  #$dispatch->detach();
    
    
    
