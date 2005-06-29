@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.48 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.49 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -406,7 +406,7 @@ sub correlate {
   my @files = @$files_arrayref;
 
   my $sigma_limit = $config->get_option("corr.sigma_limit");
-  
+
   # Form Astro::Catalog objects from the list of files.
   my @threads;
   my @variable_catalogs;
@@ -426,13 +426,13 @@ sub correlate {
   # Correlate, finding objects that are not in one catalogue but are
   # in another.
   $log->print("Matching star catalogues" );
-  
+
   foreach my $i ( 0 .. ( $#catalogs - 1 ) ) {
     foreach my $j ( ( $i + 1 ) .. ( $#catalogs ) ) {
-    
+
       # LOOK FOR NEW OBJECTS
       # --------------------
-      
+
       $log->print("Looking for new objects (catalogues $i & $j)...");
 
       my $cat1 = dclone($catalogs[$i]);
@@ -446,37 +446,38 @@ sub correlate {
 
       my ( $corrcat1, $corrcat2 );
       ( $corrcat1, $corrcat2 ) = $corr->correlate;
+      $cat1 = dclone($catalogs[$i]);
+      $cat2 = dclone($catalogs[$j]);
 
       $log->debug( "Catalogue $i has " . $cat1->sizeof . " objects before" .
                    " matching and " . $corrcat1->sizeof . " objects afterwards." );
       $log->debug( "Catalogue $j has " . $cat2->sizeof . " objects before" .
                    " matching and " . $corrcat2->sizeof . " objects afterwards." );
 
-
       # We can still access the catalog_files in this loop and pull the 
       # correct datestamp from the relevant headers to create the catalog 
       # objects
-     
+
       $log->debug( "Reading $files[$i]" );
       my $header1 = new Astro::FITS::Header::CFITSIO( File => $files[$i] );
       tie my %keywords1, "Astro::FITS::Header", $header1, tiereturnsref => 1;
-   
+
       $log->debug( "Reading $files[$j]" );
       my $header2 = new Astro::FITS::Header::CFITSIO( File => $files[$j] );
       tie my %keywords2, "Astro::FITS::Header", $header2, tiereturnsref => 1;
-    
+
       my $date1 = $keywords1{'SUBHEADERS'}->[0]->{'DATE-OBS'};
       if ( defined $date1 ) {
-         $log->debug("FITS headers (catalog $i): DATE: $date1");
-         $date1 = DateTime::Format::ISO8601->parse_datetime( $date1 );
-      }	 
+        $log->debug("FITS headers (catalog $i): DATE: $date1");
+        $date1 = DateTime::Format::ISO8601->parse_datetime( $date1 );
+      }
 
       my $date2 = $keywords2{'SUBHEADERS'}->[0]->{'DATE-OBS'};
       if ( defined $date2 ) {
-         $log->debug("FITS headers (catalog $j): DATE: $date2");
-         $date2 = DateTime::Format::ISO8601->parse_datetime( $date2 );
-      }			 
-			       
+        $log->debug("FITS headers (catalog $j): DATE: $date2");
+        $date2 = DateTime::Format::ISO8601->parse_datetime( $date2 );
+      }
+
       # Now, get a list of objects that -didn't- match between the two
       # catalogues.
       $log->debug( "Generating list of non-matching objects from catalogue $i");
@@ -497,60 +498,59 @@ sub correlate {
       # catalogue.
       my @cat1objects = $cat1->stars;
       my @cat2objects = $cat2->stars;
-      
+
       # date stamp the stars
-      foreach my $star ( @cat1objects ) {  
-         if ( defined $date1 ) {      
-            $star->fluxdatestamp( $date1 );
-	    $log->debug( "Attaching DateTime to star ID " . $star->id() . 
-	                 " from catalogue $i");
-	 }   
+      foreach my $star ( @cat1objects ) {
+        if ( defined $date1 ) {
+          $star->fluxdatestamp( $date1 );
+          $log->debug( "Attaching DateTime to star ID " . $star->id() .
+                       " from catalogue $i");
+        }
       }
-      foreach my $star ( @cat2objects ) {	 
-          if ( defined $date2 ) {      
-            $star->fluxdatestamp( $date2 );
-	    $log->debug( "Attaching DateTime to star ID " . $star->id() . 
-	                 " from catalogue $j");
-	 }   
+      foreach my $star ( @cat2objects ) {
+        if ( defined $date2 ) {
+          $star->fluxdatestamp( $date2 );
+          $log->debug( "Attaching DateTime to star ID " . $star->id() .
+                       " from catalogue $j");
+        }
       }
-      
-      # push to new objects catalog            	 
+
+      # push to new objects catalog
       $new_objects->pushstar( @cat1objects, @cat2objects );
 
       # LOOK FOR VARIABLE STARS
       # -----------------------
-      
+
       $log->print("Looking for variable stars (catalogues $i & $j)...");
       my @vars = match_catalogs( $corrcat1, $corrcat2 );
 
       if ( defined $vars[0] ) {
- 
-	foreach my $i ( 0 ... $#vars ) {
-        $log->print_ncr("The following star is a possible variable:");
+
+        foreach my $i ( 0 ... $#vars ) {
+          $log->print_ncr("The following star is a possible variable:");
           $log->print( " ID $vars[$i]" );
-	  
-	  my $star_from1 = $corrcat1->popstarbyid( $vars[$i] );
+
+          my $star_from1 = $corrcat1->popstarbyid( $vars[$i] );
           if ( defined $date1 ) {  
-             foreach my $star ( @$star_from1 ) {
-                $star->fluxdatestamp( $date1 );
-	        $log->debug( "Attaching DateTime to star ID " . $star->id() . 
-	                  " from list of variable objects");
-	     }		  
-	  }   
-	  $var_objects->pushstar( @$star_from1 );
-	  
-	  my $star_from2 = $corrcat2->popstarbyid( $vars[$i] );
+            foreach my $star ( @$star_from1 ) {
+              $star->fluxdatestamp( $date1 );
+              $log->debug( "Attaching DateTime to star ID " . $star->id() . 
+                           " from list of variable objects");
+            }
+          }
+          $var_objects->pushstar( @$star_from1 );
+
+          my $star_from2 = $corrcat2->popstarbyid( $vars[$i] );
           if ( defined $date2 ) {  
-             foreach my $star ( @$star_from2 ) {
-                $star->fluxdatestamp( $date2 );
-	        $log->debug( "Attaching DateTime to star ID " . $star->id() . 
-	                  " from list of variable objects");
-	     }		  
-	  }   
-	  $var_objects->pushstar( @$star_from2 );
+            foreach my $star ( @$star_from2 ) {
+              $star->fluxdatestamp( $date2 );
+              $log->debug( "Attaching DateTime to star ID " . $star->id() . 
+                           " from list of variable objects");
+            }
+          }
 
+          $var_objects->pushstar( @$star_from2 );
         }
-
       } else {
         $log->print( "No stars vary at the " . $sigma_limit . " sigma level");
       }
@@ -562,7 +562,7 @@ sub correlate {
   # this by looking at the distance between the stars (if they're really
   # close toether <2 arcsec (perhaps?) then they're probably the same
   # object and we'll merge the records.
-  
+
   my $new_object_catalogue = new Astro::Catalog();
   my $var_object_catalogue = new Astro::Catalog();
 
@@ -570,62 +570,60 @@ sub correlate {
   $log->print("Merging new star detections...");
   my @deleted;
   foreach my $i ( 0 ... ( $new_objects->sizeof() - 1 ) ) {
-     my $star1 = $new_objects->starbyindex( $i );
-     
-     foreach my $j ( ( $i + 1 ) .. ( $new_objects->sizeof() - 1 ) ) {
-         my $done_flag;
-	 foreach my $k ( 0 ... $#deleted) {
-	   $done_flag = 1 if $deleted[$k] == $j;
-	 }
-	 next if $done_flag;  
-	 
-	 my $star2 = $new_objects->starbyindex( $j );
-	 
-	 $log->print( "Comparing star $i with star $j" );
-	 
-         if ( $star1->within( $star2, $separation ) ) {
-	 			 
-	    # if the timestamp on the fluxes object is the same as for both
-	    # then this is actually the same object and we can ignore it...
-	    my @flux = 
-	       $star1->fluxes()->fluxesbywaveband( waveband => 'unknown' );
-	    my $same_flag;
-	    foreach my $f ( @flux ) {
-	       if ( $f->datetime() == $star2->fluxes()->flux( waveband => 'unknown' )->datetime() ) {
-		    
-		  $log->debug( 	"Star $i and star $j are identical..." );
+    my $star1 = $new_objects->starbyindex( $i );
+
+    foreach my $j ( ( $i + 1 ) .. ( $new_objects->sizeof() - 1 ) ) {
+      my $done_flag;
+      foreach my $k ( 0 ... $#deleted) {
+        $done_flag = 1 if $deleted[$k] == $j;
+      }
+      next if $done_flag;
+
+      my $star2 = $new_objects->starbyindex( $j );
+
+      $log->print( "Comparing star $i with star $j" );
+
+      if ( $star1->within( $star2, $separation ) ) {
+
+        # if the timestamp on the fluxes object is the same as for both
+        # then this is actually the same object and we can ignore it...
+        my @flux = $star1->fluxes()->fluxesbywaveband( waveband => 'unknown' );
+        my $same_flag;
+        foreach my $f ( @flux ) {
+          if ( $f->datetime() == $star2->fluxes()->flux( waveband => 'unknown' )->datetime() ) {
+            $log->debug( 	"Star $i and star $j are identical..." );
 	          $same_flag = 1;
-	       }
-	    }
-	    
-	    push @deleted, $j;	   			  
-	    $log->warn( "Setting star $j as deleted...");
-	    
-	    next if $same_flag;
+          }
+        }
 
-	    $log->debug( "Star $i and star $j are within the merge radius of " .
-	                 $separation . " arcsec" );	       	  	 
-	    $log->debug( "Merging flux(es) from star $j into star $i");
-	    my $fluxes1 = $star1->fluxes();
-	    my $fluxes2 = $star2->fluxes();
-	    $fluxes1->merge( $fluxes2 );
-	    $star1->fluxes( $fluxes1, 1 );
-	    
-	 } else {
-	    $log->debug( "Star $i and star $j appear to be independant" );
-         }
-     }
+        push @deleted, $j;
+        $log->warn( "Setting star $j as deleted...");
 
-     my $push_flag = 1;
-     foreach my $k ( 0 ... $#deleted) {
-       $push_flag = 0 if $deleted[$k] == $i;
-     }
-     if ( $push_flag ) {
-        $log->debug( "Pushing star $i into \$new_object_catalogue" );
-        $new_object_catalogue->pushstar( $star1 );
-     } else {
-        $log->debug("Star $i has been deleted, so not pushed to catalogue...");
-     }       	
+        next if $same_flag;
+
+        $log->debug( "Star $i and star $j are within the merge radius of " .
+                     $separation . " arcsec" );	       	  	 
+        $log->debug( "Merging flux(es) from star $j into star $i");
+        my $fluxes1 = $star1->fluxes();
+        my $fluxes2 = $star2->fluxes();
+        $fluxes1->merge( $fluxes2 );
+        $star1->fluxes( $fluxes1, 1 );
+
+      } else {
+        $log->debug( "Star $i and star $j appear to be independant" );
+      }
+    }
+
+    my $push_flag = 1;
+    foreach my $k ( 0 ... $#deleted) {
+      $push_flag = 0 if $deleted[$k] == $i;
+    }
+    if ( $push_flag ) {
+      $log->debug( "Pushing star $i into \$new_object_catalogue" );
+      $new_object_catalogue->pushstar( $star1 );
+    } else {
+      $log->debug("Star $i has been deleted, so not pushed to catalogue...");
+    }
   }
 
   #use Data::Dumper;
@@ -635,76 +633,75 @@ sub correlate {
   $log->print("Merging variable star detections...");
   my @var_deleted;
   foreach my $i ( 0 ... ( $var_objects->sizeof() - 1 ) ) {
-     my $star1 = $var_objects->starbyindex( $i );
-     
-     foreach my $j ( ( $i + 1 ) .. ( $var_objects->sizeof() - 1 ) ) {
-         my $done_flag;
-	 foreach my $k ( 0 ... $#var_deleted) {
-	   last unless defined $var_deleted[0];
-	   $done_flag = 1 if $var_deleted[$k] == $j;
-	 }
-	 next if $done_flag;  
-	 
-	 my $star2 = $var_objects->starbyindex( $j );
-	 
-	 $log->print( "Comparing star $i with star $j" );
-	 
-         if ( $star1->within( $star2, $separation) ) {
-	 			 
-	    # if the timestamp on the fluxes object is the same as for both
-	    # then this is actually the same object and we can ignore it...
-	    my @flux = 
-	       $star1->fluxes()->fluxesbywaveband( waveband => 'unknown' );
-	    my $same_flag;
-	    foreach my $f ( @flux ) {
-	       if ( $f->datetime() == $star2->fluxes()->flux( waveband => 'unknown' )->datetime() ) {
-		    
-		  $log->debug( 	"Star $i and star $j are identical..." );
+    my $star1 = $var_objects->starbyindex( $i );
+
+    foreach my $j ( ( $i + 1 ) .. ( $var_objects->sizeof() - 1 ) ) {
+      my $done_flag;
+      foreach my $k ( 0 ... $#var_deleted) {
+        last unless defined $var_deleted[0];
+        $done_flag = 1 if $var_deleted[$k] == $j;
+      }
+      next if $done_flag;
+
+      my $star2 = $var_objects->starbyindex( $j );
+
+      $log->print( "Comparing star $i with star $j" );
+
+      if ( $star1->within( $star2, $separation) ) {
+
+        # if the timestamp on the fluxes object is the same as for both
+        # then this is actually the same object and we can ignore it...
+        my @flux = $star1->fluxes()->fluxesbywaveband( waveband => 'unknown' );
+        my $same_flag;
+        foreach my $f ( @flux ) {
+          if ( $f->datetime() == $star2->fluxes()->flux( waveband => 'unknown' )->datetime() ) {
+
+            $log->debug( 	"Star $i and star $j are identical..." );
 	          $same_flag = 1;
-	       }
-	    }
-	    
-	    push @var_deleted, $j;	   			  
-	    $log->warn( "Setting star $j as deleted...");
-	    
-	    next if $same_flag;		
-	    	 
-	    $log->debug( "Star $i and star $j are within the merge radius of " .
-	                 $separation . " arcsec" );
-			 			 
-	    $log->debug( "Merging flux(es) from star $j into star $i");
-	    my $fluxes1 = $star1->fluxes();
-	    my $fluxes2 = $star2->fluxes();
-	    $fluxes1->merge( $fluxes2 );
-	    $star1->fluxes( $fluxes1, 1 );
+          }
+        }
 
-	 } else {
-	    $log->debug( "Star $i and star $j appear to be independant" );
-         }
-     }
+        push @var_deleted, $j;
+        $log->warn( "Setting star $j as deleted...");
 
-     my $push_flag = 1;
-     foreach my $k ( 0 ... $#var_deleted) {
-       last unless defined $var_deleted[0];
-       $push_flag = 0 if $var_deleted[$k] == $i;
-     }
-     if ( $push_flag ) {
-        $log->debug( "Pushing star $i into \$var_object_catalogue" );
-        $var_object_catalogue->pushstar( $star1 );
-     } else {
-        $log->debug("Star $i has been deleted, so not pushed to catalogue...");
-     }       	
+        next if $same_flag;		
+
+        $log->debug( "Star $i and star $j are within the merge radius of " .
+                     $separation . " arcsec" );
+
+        $log->debug( "Merging flux(es) from star $j into star $i");
+        my $fluxes1 = $star1->fluxes();
+        my $fluxes2 = $star2->fluxes();
+        $fluxes1->merge( $fluxes2 );
+        $star1->fluxes( $fluxes1, 1 );
+
+      } else {
+        $log->debug( "Star $i and star $j appear to be independant" );
+      }
+    }
+
+    my $push_flag = 1;
+    foreach my $k ( 0 ... $#var_deleted) {
+      last unless defined $var_deleted[0];
+      $push_flag = 0 if $var_deleted[$k] == $i;
+    }
+    if ( $push_flag ) {
+      $log->debug( "Pushing star $i into \$var_object_catalogue" );
+      $var_object_catalogue->pushstar( $star1 );
+    } else {
+      $log->debug("Star $i has been deleted, so not pushed to catalogue...");
+    }
   }
 
   #use Data::Dumper;
   #print Dumper( $var_object_catalogue );
   #exit;
-    
-  $log->print( "Found " . $new_object_catalogue->sizeof() . 
+
+  $log->print( "Found " . $new_object_catalogue->sizeof() .
                " object(s) that did not match spatially between catalogues." );
-  $log->print( "Found " . $var_object_catalogue->sizeof() . 
+  $log->print( "Found " . $var_object_catalogue->sizeof() .
                " object(s) that may be potential variable stars." );
-  
+
   #print "\nNEW OBJECT CATALOGUE\n\n";
   #my @tmp_star1 = $new_object_catalogue->allstars();
   #foreach my $t1 ( @tmp_star1 ) {
@@ -715,7 +712,7 @@ sub correlate {
   #      print "  Date: " . $f1->datetime()->datetime() . "\n";
   #   }
   #   print "\n";
-  #}   	
+  #}
   #print "\nVAR OBJECT CATALOGUE\n\n";
   #my @tmp_star2 = $var_object_catalogue->allstars();
   #foreach my $t2 ( @tmp_star2 ) {
@@ -726,45 +723,45 @@ sub correlate {
   #      print "  Date: " . $f2->datetime()->datetime() . "\n";
   #   }
   #   print "\n";
-  #}    
-  #exit;  
+  #}
+  #exit;
 
-  # dispatch list of variables, and list of all stars to DB web 
+  # dispatch list of variables, and list of all stars to DB web
   # service via a SOAP call. We'll pass the lists as Astro::Catalog
   # objects to avoid any sort of information loss. We can do this
   # because we're running all Perl. If we need interoperability
   # later, we'll move to document literal.
   # end point
-  
+
   $log->print( "Creating thread to dispatch results..." );
-  my $dispatch = threads->create( \&call_webservice, 
+  my $dispatch = threads->create( \&call_webservice,
                                   $new_object_catalogue,
-  				  $var_object_catalogue,
-  				  @catalogs );
-				  
+                                  $var_object_catalogue,
+                                  @catalogs );
+
   unless ( defined $dispatch ) {
-     $log->error( "Error: Could not spawn a thread to talk to the DB" );
-     $log->error( "Error: Returning ESTAR__FATAL to main loop..." );
-     return ESTAR__FATAL;  
-  }				  
+    $log->error( "Error: Could not spawn a thread to talk to the DB" );
+    $log->error( "Error: Returning ESTAR__FATAL to main loop..." );
+    return ESTAR__FATAL;
+  }
   $log->debug( "Detaching thread...");
   $dispatch->detach();
-  
+
   #my $status;
   #eval { $status = call_webservice( $new_object_catalogue,
   #				    $var_object_catalogue,
   #			            @catalogs ); };
-  
+
   #if ( $@ ) {
   #  $log->error( "Error: $@" );
   #  exit;
   #}
-  
+
   #unless ( $status == ESTAR__OK ) {
   #  $log->error( "Error: Exiting with bad status ($status)" );
   #  exit;
-  #}  
-  
+  #}
+
   # Send good status
   $log->print( "Returning ESTAR__OK to main loop..." );
   return ESTAR__OK;
@@ -1047,53 +1044,51 @@ sub match_catalogs {
    
   my (@data, @errors, @ids); 
   foreach my $i ( 0 ... $corr1->sizeof() - 1 ) {
-     
-     # Grab magnitude for STAR from Catalogue 1
-     my $star1 = $corr1->starbyindex( $i );
-     
-     my $mag1 = $star1->get_magnitude('unknown');
-#     my $err1 = $star1->get_errors('unknown');
-     $mag1 = pow( (-$mag1/2.5), 10);
-     my $id1 = $star1->id();
-     
-     my $err1 = sqrt( $mag1 );
-     $err1 = $mag1 + $err1;
-     
-     $mag1 = -2.5*log10( $mag1 );
-     $err1 = abs ( -2.5*log10( $err1 ) );
-     $err1 = abs( $err1 ) - abs ($mag1 ) ;
-          
-     # Find the corresponding STAR in Catalogue 2
-     
-     my @stars2 = $corr2->popstarbyid( $id1 );
-     unless ( scalar(@stars2) == 1 ) {
-        my $error = "There are multiple stars with the same ID ($id1) " . 
-	            "in catalogue 2. This is a fatal error and should " .
-		    " not occur as FINDOFF should renumber the entries.";
-        $log->error( "Error: $error" );
-        throw eSTAR::Error::FatalError( $error, ESTAR__FATAL );
-     }
-     my $star2 = $stars2[0];
-     
-     # Grab magnitude for STAR from Catalogue 2     
-     my $mag2 = $star2->get_magnitude('unknown');
-     #my $err2 = $star2->get_errors( 'unknwon');
-     $mag2 = pow( (-$mag2/2.5), 10);
-     my $id2 = $star2->id();
-     
-     my $err2 = sqrt( $mag2 );  
-     $err2 = $mag2 + $err2;
-       
-     $mag2 = -2.5*log10( $mag2 );
-     $err2 = abs ( -2.5*log10( $err2 ) );     
-     $err2 = abs ($err2) - abs ($mag2) ;
-     
+
+    # Grab magnitude for STAR from Catalogue 1
+    my $id1 = $star1->id;
+    my $star1 = $corr1->starbyindex( $i );
+    my $fluxes1 = $star1->fluxes;
+    my $iso_flux1 = $fluxes1->flux( waveband => 'unknown',
+                                    type => 'isophotal_flux' );
+    my $iso_flux1_quantity = $iso_flux1->quantity('isophotal_flux');
+    my $iso_flux1_error = sqrt( $iso_flux1_quantity );
+
+    my $iso_flux1_max = $iso_flux1_quantity + $iso_flux1_error;
+    my $mag1 = -2.5 * log10( $iso_flux1_quantity );
+    my $mag1_max = -2.5 * log10( $iso_flux1_max );
+    my $mag1_err = abs( $mag1_max -  $mag1 );
+
+    # Find the corresponding STAR in Catalogue 2
+    my @stars2 = $corr2->popstarbyid( $id1 );
+    unless ( scalar(@stars2) == 1 ) {
+      my $error = "There are multiple stars with the same ID ($id1) " . 
+      "in catalogue 2. This is a fatal error and should " .
+      " not occur as FINDOFF should renumber the entries.";
+      $log->error( "Error: $error" );
+      throw eSTAR::Error::FatalError( $error, ESTAR__FATAL );
+    }
+    my $star2 = $stars2[0];
+
+     # Grab magnitude for STAR from Catalogue 2
+    my $id2 = $star2->id();
+    my $fluxes2 = $star2->fluxes;
+    my $iso_flux2 = $fluxes2->flux( waveband => 'unknown',
+                                   type => 'isophotal_flux' );
+    my $iso_flux2_quantity = $iso_flux2->quantity('isophotal_flux');
+    my $iso_flux2_error = sqrt( $iso_flux2_quantity );
+    my $iso_flux2_max = $iso_flux2_quantity + $iso_flux2_error;
+
+    my $mag2 = -2.5 * log10( $iso_flux2_quantity );
+    my $mag2_max = -2.5 * log10( $iso_flux2_max );
+    my $mag2_err = abs( $mag2_max - $mag2 );
+
      my $diff_mag = $mag1 - $mag2;
-     my $diff_err = sqrt ( pow( $err1, 2) + pow( $err2, 2) );
-     
-#     print "STAR $id1,$id2 has $mag1 +- $err1 and $mag2 +- $err2\n";     	
-#     print "     $diff_mag +- $diff_err\n";     	
-    
+     my $diff_err = sqrt ( pow( $mag1_err, 2) + pow( $mag2_err, 2) );
+
+#     print "STAR $id1,$id2 has $mag1 +- $mag1_err and $mag2 +- $mag2_err\n";
+#     print "     $diff_mag +- $diff_err\n";
+
      push @data, $diff_mag;
      push @errors, $diff_err;
      push @ids, $id1;
