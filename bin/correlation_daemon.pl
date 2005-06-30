@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.55 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.56 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -431,10 +431,24 @@ sub correlate {
                                          File => $_ ) } @files;
     $log->debug( "Got catalogues in Cluster format." );
   }
+  
+  # grab the filter from the first item of the first catalogue, we're
+  # in a case where we only have one filter so this isn't a problem.
+  my $star = ${$catalogs[0]}->starbyindex(0);
+  my @waveband = $star->whatfilters();
+  if ( defined $waveband[0] ) {
+     $OPT{filter} = $waveband[0];
+  } else {
+     $OPT{filter} = 'unknown';
+  } 
+  $log->warn("Warning: Resetting filter to $OPT{filter}");
+  $config->set_option("corr.filter", $OPT{"filter"} );
+   
+  # create placeholders for the new and variable object catalogues.   
   my $new_objects = new Astro::Catalog;
   my $var_objects = new Astro::Catalog;
   
-  use Data::Dumper; print Dumper( $catalog[0]->starbyindex(0) );
+  use Data::Dumper; print Dumper( $star );
 
   # Correlate, finding objects that are not in one catalogue but are
   # in another.
@@ -600,11 +614,13 @@ sub correlate {
 
         # if the timestamp on the fluxes object is the same as for both
         # then this is actually the same object and we can ignore it...
-        my @flux = $star1->fluxes()->fluxesbywaveband( waveband => 'unknown' );
+        my @flux = $star1->fluxes()->fluxesbywaveband( 
+	                              waveband => $config->get_option("corr.filter" ) );
         my $same_flag;
         foreach my $f ( @flux ) {
-          if ( $f->datetime() == $star2->fluxes()->flux( waveband => 'unknown',
-                                                         type => 'isophotal_flux' )->datetime() ) {
+          if ( $f->datetime() == $star2->fluxes()->flux( 
+	                               waveband =>  $config->get_option("corr.filter" ),
+                                       type => 'isophotal_flux' )->datetime() ) {
             $log->debug( "Star $i and star $j are identical..." );
 	    $same_flag = 1;
           }
@@ -665,11 +681,13 @@ sub correlate {
 
         # if the timestamp on the fluxes object is the same as for both
         # then this is actually the same object and we can ignore it...
-        my @flux = $star1->fluxes()->fluxesbywaveband( waveband => 'unknown' );
+        my @flux = $star1->fluxes()->fluxesbywaveband( 
+	                       waveband => $config->get_option("corr.filter" ) );
         my $same_flag;
         foreach my $f ( @flux ) {
-          if ( $f->datetime() == $star2->fluxes()->flux( waveband => 'unknown',
-                                                         type => 'isophotal_flux' )->datetime() ) {
+          if ( $f->datetime() == $star2->fluxes()->flux( 
+	                       waveband =>  $config->get_option("corr.filter" ),
+                               type => 'isophotal_flux' )->datetime() ) {
 
             $log->debug( 	"Star $i and star $j are identical..." );
 	          $same_flag = 1;
@@ -722,7 +740,7 @@ sub correlate {
 #  foreach my $t1 ( @tmp_star1 ) {
 #     print "ID " . $t1->id() . "\n";
 #     my $tmp_fluxes1 = $t1->fluxes();
-#     my @tmp_flux1 = $tmp_fluxes1->fluxesbywaveband( waveband => 'unknown' );
+#     my @tmp_flux1 = $tmp_fluxes1->fluxesbywaveband( waveband =>  $config->get_option("corr.filter" ) );
 #     foreach my $f1 ( @tmp_flux1 ) {
 #  	$log->debug("  Date: " . $f1->datetime()->datetime() .
 #  	            " (" . $f1->type() . ")" );
@@ -734,7 +752,7 @@ sub correlate {
 #  foreach my $t2 ( @tmp_star2 ) {
 #     print "ID " . $t2->id() . "\n";
 #     my $tmp_fluxes2 = $t2->fluxes();
-#     my @tmp_flux2 = $tmp_fluxes2->fluxesbywaveband( waveband => 'unknown' );
+#     my @tmp_flux2 = $tmp_fluxes2->fluxesbywaveband( waveband => $config->get_option("corr.filter" ) );
 #     foreach my $f2 ( @tmp_flux2 ) {
 #  	$log->debug("  Date: " . $f2->datetime()->datetime() .
 #  	            " (" . $f2->type() . ")" );
@@ -1072,8 +1090,9 @@ sub match_catalogs {
     
     #print Dumper( $fluxes1 );
 
-    my $iso_flux1 = $fluxes1->flux( waveband => 'unknown',
-                                    type => 'isophotal_flux' );
+    my $iso_flux1 = $fluxes1->flux( 
+                        waveband => $config->get_option("corr.filter" ),
+                        type => 'isophotal_flux' );
 				    
     #print Dumper( $iso_flux1 );
 				    
@@ -1099,8 +1118,9 @@ sub match_catalogs {
      # Grab magnitude for STAR from Catalogue 2
     my $id2 = $star2->id();
     my $fluxes2 = $star2->fluxes;
-    my $iso_flux2 = $fluxes2->flux( waveband => 'unknown',
-                                   type => 'isophotal_flux' );
+    my $iso_flux2 = $fluxes2->flux( 
+                           waveband =>  $config->get_option("corr.filter" ),
+                           type => 'isophotal_flux' );
     my $iso_flux2_quantity = $iso_flux2->quantity('isophotal_flux');
     my $iso_flux2_error = sqrt( $iso_flux2_quantity );
     my $iso_flux2_max = $iso_flux2_quantity + $iso_flux2_error;
