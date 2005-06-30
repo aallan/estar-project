@@ -378,9 +378,8 @@ sub populate_db {
          ->faultstring("Client Error: $error");	    
    }
  
- 
    foreach my $i ( 0 ... $#args ) {
-      $log->debug( "Uncompressing catalogue[$i]");
+      $log->debug( "Uncompressing catalogue[$i]...");
       $args[$i] = Compress::Zlib::memGunzip( $args[$i] );
    }
    	    
@@ -539,11 +538,15 @@ sub query_db {
 
 }  
 
-sub handle_results {
+sub handle_objects {
    my $self = shift;
-   my @args = @_;
-   
-   $log->debug("Called handle_results() from \$tid = ".threads->tid());
+   my $compressed = shift;
+        
+   print "handle_objects() has been called...\n";
+   print "\$log is defined\n" if defined $log;
+   print Dumper( $log );   
+      
+   $log->debug("Called handle_objects() from \$tid = ".threads->tid());
    $config->reread();
   
    # CHECK FOR USER DATA
@@ -557,7 +560,38 @@ sub handle_results {
          ->faultcode("Client.DataError")
          ->faultstring("Client Error: The object is missing user data.")
    }  
+   
+   $log->debug( "Uncompressing catalogue...");
+   my $string = Compress::Zlib::memGunzip( $compressed );
+   	    
+   $log->debug( "Calling eSTAR::Util::reheat( \$new_objects )");
+   my $catalog = eSTAR::Util::reheat( $string );
 
+   # try and catch parsing errors here...
+   if( $@ ) {
+      $log->error("Error: $@");
+      $log->warn("Warning: Returned SOAP Error message");
+      die SOAP::Fault
+         ->faultcode("Client.DataError")
+         ->faultstring("Client Error: $@")
+   } 
+   
+   # sanity check the passed values
+   $log->debug("Doing a sanity check on the integrity of the catalogues");
+   unless ( UNIVERSAL::isa( $catalog, "Astro::Catalog" ) ) {
+      my $error = "Passed catalogue does not parse correctly";
+      $log->error("Error: $error");
+      $log->warn("Warning: Returned SOAP Error message");
+      die SOAP::Fault
+         ->faultcode("Client.DataError")
+         ->faultstring("Client Error: $error")   
+ 
+   } else {
+      $log->debug( "Reference appears to be Astro::Catalog object");
+   }  
+ 
+   print Dumper ( $catalog );
+   
  
    # RETURN OK MESSAGE TO CLIENT
    # ===========================

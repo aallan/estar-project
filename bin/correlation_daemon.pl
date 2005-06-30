@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.52 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.53 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -709,31 +709,31 @@ sub correlate {
   $log->print( "Found " . $var_object_catalogue->sizeof() .
                " object(s) that may be potential variable stars." );
 
-  $log->print("New Objects:");
-  my @tmp_star1 = $new_object_catalogue->allstars();
-  foreach my $t1 ( @tmp_star1 ) {
-     print "ID " . $t1->id() . "\n";
-     my $tmp_fluxes1 = $t1->fluxes();
-     my @tmp_flux1 = $tmp_fluxes1->fluxesbywaveband( waveband => 'unknown' );
-     foreach my $f1 ( @tmp_flux1 ) {
-  	$log->debug("  Date: " . $f1->datetime()->datetime() .
-  	            " (" . $f1->type() . ")" );
-     }
-     print "\n";
-  }
-  $log->print("Variable Objects:");
-  my @tmp_star2 = $var_object_catalogue->allstars();
-  foreach my $t2 ( @tmp_star2 ) {
-     print "ID " . $t2->id() . "\n";
-     my $tmp_fluxes2 = $t2->fluxes();
-     my @tmp_flux2 = $tmp_fluxes2->fluxesbywaveband( waveband => 'unknown' );
-     foreach my $f2 ( @tmp_flux2 ) {
-  	$log->debug("  Date: " . $f2->datetime()->datetime() .
-  	            " (" . $f2->type() . ")" );
-     }
-     print "\n";
-  }
-  #exit;
+#  $log->print("New Objects:");
+#  my @tmp_star1 = $new_object_catalogue->allstars();
+#  foreach my $t1 ( @tmp_star1 ) {
+#     print "ID " . $t1->id() . "\n";
+#     my $tmp_fluxes1 = $t1->fluxes();
+#     my @tmp_flux1 = $tmp_fluxes1->fluxesbywaveband( waveband => 'unknown' );
+#     foreach my $f1 ( @tmp_flux1 ) {
+#  	$log->debug("  Date: " . $f1->datetime()->datetime() .
+#  	            " (" . $f1->type() . ")" );
+#     }
+#     print "\n";
+#  }
+#  $log->print("Variable Objects:");
+#  my @tmp_star2 = $var_object_catalogue->allstars();
+#  foreach my $t2 ( @tmp_star2 ) {
+#     print "ID " . $t2->id() . "\n";
+#     my $tmp_fluxes2 = $t2->fluxes();
+#     my @tmp_flux2 = $tmp_fluxes2->fluxesbywaveband( waveband => 'unknown' );
+#     foreach my $f2 ( @tmp_flux2 ) {
+#  	$log->debug("  Date: " . $f2->datetime()->datetime() .
+#  	            " (" . $f2->type() . ")" );
+#     }
+#     print "\n";
+#  }
+#  exit;
 
   # dispatch list of variables, and list of all stars to DB web
   # service via a SOAP call. We'll pass the lists as Astro::Catalog

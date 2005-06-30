@@ -126,6 +126,101 @@ sub set_user {
    return $self;             
 }
 
+
+# ==========================================================================
+# C A L L B A C K S 
+# ==========================================================================
+
+
+sub return_datamining {
+  croak ( "eSTAR::Miner:Handler::return_datamining() called without arguements" )
+     unless defined @_;
+
+  my $catalog = shift;   
+     
+  my $thread_name = "return_datamining()";
+  $log->thread($thread_name, "eSTAR::Miner::Handler::return_datamining()..." );
+  $log->thread($thread_name, "Starting client (\$tid = ".threads->tid().")");  
+     
+  $log->debug( "Calling eSTAR::Util::chill( \$catalog )");
+  $catalog->reset_list(); # otherwise we breake the serialisation
+  my $chilled = eSTAR::Util::chill( $catalog );
+  
+  $log->debug( "Compressing \$catalog");
+  my $compressed = Compress::Zlib::memGzip( $chilled );
+  
+  $log->thread( $thread_name, "Connecting to Data Mining Service..." );
+  
+  my $endpoint = "http://" . $config->get_option( "db.host") . ":" .
+              $config->get_option( "db.port");
+  my $uri = new URI($endpoint);
+  $log->debug("Web service endpoint $endpoint" );
+  
+  # create a user/passwd cookie
+  $log->debug("Creating cookie..." );
+  my $cookie = eSTAR::Util::make_cookie( "agent", "InterProcessCommunication" );
+  
+  $log->debug("Dropping cookie in jar..." );
+  my $cookie_jar = HTTP::Cookies->new();
+  $cookie_jar->set_cookie(0, user => $cookie, '/', $uri->host(), $uri->port());
+
+  # create SOAP connection
+  my $soap = new SOAP::Lite();
+  
+  my $urn = "urn:/" . $config->get_option( "db.urn" );
+  $log->debug( "URN of endpoint service is $urn");
+  
+  $soap->uri($urn); 
+  $soap->proxy($endpoint, cookie_jar => $cookie_jar);
+    
+  #use Data::Dumper;
+  #print Dumper( $chilled[0] );  
+   
+   
+  $log->warn( "WARNING: NOT CALLING handle_objects() IN REMOTE SERVICE");
+  $log->warn( "WARNING: RETURNING ESTAR__OK TO MAIN THREAD");
+  return ESTAR__OK;
+    
+  # report
+  $log->thread( $thread_name, "Calling handle_objects() in remote service");
+    
+  # grab result 
+  my $result;
+  eval { $result = $soap->handle_objects(  
+                             SOAP::Data->type(base64 => $compressed ) ); };
+  if ( $@ ) {
+    $log->warn( "Warning: Could not connect to $endpoint");
+    $log->warn( "Warning: $@" );
+      
+  }  
+  
+  $log->debug( "Transport status: " . $soap->transport()->status() );
+  unless ( defined $result ) {
+    $log->error("Error: No result object is present..." );
+    $log->error("Error: Returning ESTAR__FAULT to main thread" );
+    return ESTAR__FAULT;
+  }
+    
+  unless ($result->fault() ) {
+    if ( $result->result() eq "OK" ) {
+       $log->debug( "Recieved an ACK message from WFCAM DB service");
+    } else {
+       $log->warn( "Warning: Recieved status ".$result->result() .
+                   " from WFCAM DB service");
+    }   
+  } else {
+    $log->warn("Warning: recieved fault code (" . $result->faultcode() .")" );
+    $log->warn("Warning: " . $result->faultstring() );
+    $log->thread( $thread_name, "Returning ESTAR__FAULT to main thread");
+    return ESTAR__FAULT;
+  }  
+
+  $log->thread( $thread_name, "Returning ESTAR__OK to main thread");
+  return ESTAR__OK;       
+     
+}
+
+
 # ==========================================================================
 # T E S T  H A N D L E R S 
 # ==========================================================================
@@ -321,18 +416,22 @@ sub handle_objects {
     	      	
       # Check each Star
       # ---------------
-      my $error = $config->get_option( "simbad.error" );
-      $log->debug("Searching SIMBAD at $error arcsec...");
-      foreach my $i ( 0 ... $var_objects->sizeof()-1 ) {
+      my $radius = $config->get_option( "simbad.error" );
+      $log->debug("Searching SIMBAD at at $radius arcsec radius from targets...");
+      
+      my $catalog = new Astro::Catalog();
+      my $sizeof = $var_objects->sizeof() - 1;
+      foreach my $i ( 0 ... $sizeof ) {
    
+         $log->debug( "Popping star " . ($i+1) . " from catalogue...");
          my $star = $var_objects->starbyindex( $i );
          my $ra = $star->ra();
          my $dec = $star->dec();
-         #$log->debug( "Star $i - RA $ra, Dec $dec");
-      
-         my $simbad = new Astro::SIMBAD::Query( 
-	           RA => $ra, Dec => $dec, Error => $error,  Unit => "arcsec" );
-         
+
+         $log->debug( "Building SIMBAD query object...");
+	 my $simbad = new Astro::Catalog::Query::SIMBAD( RA     => $ra,
+                                                         Dec    => $dec,
+                                                         Radius => $radius );         
 	 if( $i == 0 ) {
 	    $log->debug( 
 	        "Making connection " . ($i+1) . " of " . $var_objects->sizeof() );
@@ -340,35 +439,42 @@ sub handle_objects {
 	    $log->debug( 
 	       "Making connection " . ($i+1) . " of " . $var_objects->sizeof()); 
 	 }
+         my $result = $simbad->querydb();
+	 if( $i == $sizeof ) {
+            $log->debug( "Made all " . ($i+1) . " connections to SIMABD..." );
+         } else {
+	    $log->debug( "Retrieved result from SIMBAD..." );
+	 }
 	 
-	 if( $i == $var_objects->sizeof()-1 ) {
-            $log->debug( "\nMade all " . ($i+1) . " connections to SIMABD..." );
-         }
-	 	 
-	 my $result = $simbad->querydb();	
+	 # loop through the returned catalogue and push all stars into the 
+	 # result object to return to the WFCAM    
+	  
+	 my $num_of_stars = $result->sizeof();
+	 if( $num_of_stars >= 1 ) {   
 	 
-         #use Data::Dumper; print Dumper( $result );
-	 if( $result->objects() >= 1  ) {
-	   my @objects = $result->objects();
-	   $log->print( "\nStar " . $star->id() );
-	   $log->print( "  RA $ra, Dec $dec");
-	   
-	   my $number = scalar( @objects );
-	   $log->debug("  SIMBAD returned ". $number ." matching records");
-	   foreach my $j ( 0 ... $#objects ) {
-	      $log->print( "  Match ". ($j+1) );
-	      $log->print( "  " . $objects[$j]->name() );
-	      $log->print( "  RA " . $objects[$j]->ra() . 
-	                   ", Dec " . $objects[$j]->dec() );
-	      $log->debug( "  Object Class : " . $objects[$j]->long() );
-	      $log->debug( "  Spectral Type: " . $objects[$j]->spec() );	       
-	   } 
+	    # we have some records
+	    $log->debug( "Pushing $num_of_stars SIMBAD results into catalogue" );
+	    my @stars = $result->allstars();
+	    $catalog->pushstar( @stars );
   
 	 } else {
 	   $log->debug( "No matching records");
 	 } 
       }
       $log->thread($thread_name, "Completed data mining task");
+      
+      $log->print( "Creating thread to return data mineing results..." );
+      my $dispatch = threads->create( \&return_datamining, $catalog );
+  				  
+      unless ( defined $dispatch ) {
+         $log->error( "Error: Could not spawn a thread to talk to the DB" );
+         $log->error( "Error: Returning ESTAR__FATAL to main loop..." );
+         return ESTAR__FATAL;  
+      }				  
+      $log->debug( "Detaching thread...");
+      $dispatch->detach();      
+      
+      return ESTAR__OK;
    };
    
    # SPAWN THREADED PROCESS

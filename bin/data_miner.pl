@@ -19,7 +19,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: data_miner.pl,v 1.9 2005/06/29 23:37:40 aa Exp $
+#     $Id: data_miner.pl,v 1.10 2005/06/30 01:04:11 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -60,7 +60,7 @@ data mining process. It helps populate the survey agent's backend database.
 
 =head1 REVISION
 
-$Id: data_miner.pl,v 1.9 2005/06/29 23:37:40 aa Exp $
+$Id: data_miner.pl,v 1.10 2005/06/30 01:04:11 aa Exp $
 
 =head1 AUTHORS
 
@@ -77,7 +77,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.10 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -342,6 +342,7 @@ if ( $config->get_state("mining.unique_process") == 1 ) {
    # db web service parameters
    $config->set_option("db.host", $ip );
    $config->set_option("db.port", 8005 );
+   $config->set_option("db.urn", "wfcam_agent" );
      
    # user agent parameters
    $config->set_option("agent.port", 8000 );
@@ -527,6 +528,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: data_miner.pl,v $
+# Revision 1.10  2005/06/30 01:04:11  aa
+# Added more data mining support, problem returning the result to the wfcam_agent.pl. Wonder why?
+#
 # Revision 1.9  2005/06/29 23:37:40  aa
 # Gzipped & Base64 catalogue transfer, plus addition of a working data mining service
 #
