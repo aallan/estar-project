@@ -489,6 +489,8 @@ sub populate_db {
   
   foreach my $cat ( @catalogs ) {
     $log->debug( "Adding catalogue to database...");
+    
+    use Data::Dumper; print Dumper( $cat );
     eval { $db->add_catalog( $cat ); };
     if ( $@ ) {
         my $error = "$@";
