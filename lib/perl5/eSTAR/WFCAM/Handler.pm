@@ -394,6 +394,10 @@ sub populate_db {
       push @catalogs, eSTAR::Util::reheat( $args[$i] );
    }
 
+  use Data::Dumper;
+  print "DIRECTLY AFTER RECIEVEING VIA WEBSERVICE\n";  
+  print Dumper( $catalogs[0]->starbyindex(0) );
+  
    # try and catch parsing errors here...
    if( $@ ) {
       $log->error("Error: $@");
@@ -460,8 +464,6 @@ sub populate_db {
      # }	       
    }
 
-  use Data::Dumper;
-  print Dumper( $catalogs[0]->starbyindex(0) );
 
   # POPULATE DB
   # ===========

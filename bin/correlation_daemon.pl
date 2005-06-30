@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.61 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.62 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -340,6 +340,7 @@ sub call_webservice {
   
   # Debugging
   use Data::Dumper;
+  print "DIRECTLY BEFORE DISPATCHING VIA WEBSERVICE\n";
   print Dumper( $args[2]->starbyindex(0) );
   
   
@@ -451,6 +452,7 @@ sub correlate {
   my $new_objects = new Astro::Catalog;
   my $var_objects = new Astro::Catalog;
   
+  print "FIRST TIME READ FROM DISK\n";
   use Data::Dumper; print Dumper( $star );
 
   # Correlate, finding objects that are not in one catalogue but are
