@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.53 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.54 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -337,6 +337,12 @@ sub call_webservice {
      my $compressed = Compress::Zlib::memGzip( $string );
      push @chilled, $compressed;
   }   
+  
+  # Debugging
+  use Data::Dumper;
+  print Dumper( $args[2]->starbyindex(0) );
+  
+  
   
   $log->thread( $thread_name, "Connecting to WFCAM DB Web Service..." );
   
