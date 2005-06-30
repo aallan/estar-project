@@ -398,9 +398,6 @@ sub populate_db {
   print "DIRECTLY AFTER RECIEVEING VIA WEBSERVICE\n";  
   print Dumper( $catalogs[0]->starbyindex(0) );
   
-  print "\n\nVARIABLE STAR DIRECTLY AFTER RECIEVEING VIA WEBSERVICE\n";  
-  print Dumper( $var_objects->starbyindex(0) );  
-  
    # try and catch parsing errors here...
    if( $@ ) {
       $log->error("Error: $@");

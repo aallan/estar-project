@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.65 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.66 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -343,7 +343,7 @@ sub call_webservice {
   print "DIRECTLY BEFORE DISPATCHING VIA WEBSERVICE\n";
   print Dumper( $args[2]->starbyindex(0) );
   
-  print "\n\nTHE CHILLED VERSION OF THE CATALOG\n";
+  print "\n\nTHE CHILLED VERSION OF THE SAME STAR\n";
   print Dumper( eSTAR::Util::chill( $args[2]->starbyindex(0)) );
   
   
