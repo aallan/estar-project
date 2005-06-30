@@ -467,10 +467,26 @@ sub populate_db {
   $log->print("Attempting to contact database...");
 
   # Set up DB object and add catalogues to database.
-  #$log->debug( "Creating a DB backend reference");
-  #my $db_ref = new eSTAR::Database::DBbackend();
+  
+  
+  $log->debug( "Creating a DB backend reference");
+  my $db_ref;
+  eval { $db_ref = new eSTAR::Database::DBbackend(); };
+  if ( $@ ) {
+     my $error = "$@";
+     $log->error( "Error: $error" );
+     return ESTAR__FAULT;
+  }   
+  
   $log->debug( "Creating a manipulation object...");
-  my $db = new eSTAR::Database::Manip( DB => new eSTAR::Database::DBbackend() );
+  my $db;
+  eval { $db = new eSTAR::Database::Manip( DB => $db_ref ); };
+  if ( $@ ) {
+     my $error = "$@";
+     $log->error( "Error: $error" );
+     return ESTAR__FAULT;
+  }   
+  
   foreach my $cat ( @catalogs ) {
     $log->debug( "Adding catalogue to database...");
     $db->add_catalog( $cat );
