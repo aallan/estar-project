@@ -482,19 +482,34 @@ sub populate_db {
   
   foreach my $cat ( @catalogs ) {
     $log->debug( "Adding catalogue to database...");
-    $db->add_catalog( $cat );
+    eval { $db->add_catalog( $cat ); };
+    if ( $@ ) {
+        my $error = "$@";
+        $log->error( "Error: $error" );
+        return ESTAR__FAULT;
+    }      
     $log->debug( "Successfully added catalogue to database..." );
   }
 
   foreach my $var_item ( $var_objects->allstars ) {
     $log->debug( "Updating item with ID " . $var_item->id . 
 		 " as eSTAR_variable" );
-    $db->update_flags( $var_item, [ 'eSTAR_variable' ] );
+    eval { $db->update_flags( $var_item, [ 'eSTAR_variable' ] ); };
+    if ( $@ ) {
+        my $error = "$@";
+        $log->error( "Error: $error" );
+        return ESTAR__FAULT;
+    } 
   }
   foreach my $new_item ( $new_objects->allstars ) {
     $log->debug( "Updating item with ID " . $new_item->id . 
 		 " as eSTAR_new" );
-    $db->update_flags( $new_item, [ 'eSTAR_new' ] );
+    eval { $db->update_flags( $new_item, [ 'eSTAR_new' ] ); };
+    if ( $@ ) {
+        my $error = "$@";
+        $log->error( "Error: $error" );
+        return ESTAR__FAULT;
+    } 
   }
 
   $log->print("Objects injested into database...");
