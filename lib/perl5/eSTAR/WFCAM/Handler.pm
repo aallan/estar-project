@@ -470,17 +470,10 @@ sub populate_db {
   
   
   $log->debug( "Creating a DB backend reference");
-  my $db_ref;
-  eval { $db_ref = new eSTAR::Database::DBbackend; };
-  if ( $@ ) {
-     my $error = "$@";
-     $log->error( "Error: $error" );
-     return ESTAR__FAULT;
-  }   
-  
   $log->debug( "Creating a manipulation object...");
   my $db;
-  eval { $db = new eSTAR::Database::Manip( DB => $db_ref ); };
+  eval { $db = new eSTAR::Database::Manip( 
+                       DB => new eSTAR::Database::DBbackend ); };
   if ( $@ ) {
      my $error = "$@";
      $log->error( "Error: $error" );
