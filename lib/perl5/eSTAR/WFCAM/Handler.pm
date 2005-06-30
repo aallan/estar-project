@@ -457,14 +457,17 @@ sub populate_db {
            } 
         }
 	
-      #}	       
+     # }	       
    }
 
   # POPULATE DB
   # ===========
 
    # Set up DB object and add catalogues to database.
-   my $db = new eSTAR::Database::Manip( DB => new eSTAR::Database::DBbackend );
+   $log->debug( "Creating a DB backend reference");
+   my $db_ref = new eSTAR::Database::DBbackend();
+   $log->debug( "Creating a manipulation object...");
+   my $db = new eSTAR::Database::Manip( DB => $db_ref );
    foreach my $cat ( @catalogs ) {
      $log->debug( "Adding catalogue to database...");
      $db->add_catalog( $cat );
