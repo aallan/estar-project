@@ -435,11 +435,6 @@ sub handle_objects {
 	       "Making connection " . ($i+1) . " of " . $var_objects->sizeof()); 
 	 }
          my $result = $simbad->querydb();
-	 if( $i == $sizeof ) {
-            $log->debug( "Made all " . ($i+1) . " connections to SIMABD..." );
-         } else {
-	    $log->debug( "Retrieved result from SIMBAD..." );
-	 }
 	 
 	 # loop through the returned catalogue and push all stars into the 
 	 # result object to return to the WFCAM    
@@ -455,20 +450,34 @@ sub handle_objects {
 	 } else {
 	   $log->debug( "No matching records");
 	 } 
+	 
+	 if( $i == $sizeof ) {
+            $log->debug( "Made all " . ($i+1) . " connections to SIMABD..." );
+         } else {
+	    $log->debug( "Retrieved result from SIMBAD..." );
+	 }	 
+	 
       }
       $log->thread($thread_name, "Completed data mining task");
       
-      $log->print( "Creating thread to return data mineing results..." );
-      my $dispatch = threads->create( \&return_datamining, $catalog );
-  				  
-      unless ( defined $dispatch ) {
-         $log->error( "Error: Could not spawn a thread to talk to the DB" );
-         $log->error( "Error: Returning ESTAR__FATAL to main loop..." );
-         return ESTAR__FATAL;  
-      }				  
-      $log->debug( "Detaching thread...");
-      $dispatch->detach();      
+      if ( $catalog->sizeof > 0 ) {
       
+         $log->print( "Creating thread to return data mining results..." );
+         my $dispatch = threads->create( \&return_datamining, $catalog );
+  				  
+         unless ( defined $dispatch ) {
+            $log->error( "Error: Could not spawn a thread to talk to the DB" );
+            $log->error( "Error: Returning ESTAR__FATAL to main loop..." );
+            return ESTAR__FATAL;  
+         }				  
+         $log->debug( "Detaching thread...");
+         $dispatch->detach();      
+      
+      } else {
+         $log->print( "No records to results to return to WFCAM DB service..." );
+      }
+      
+      $log->thread($thread_name, "Returning ESTAR__OK to main process" );
       return ESTAR__OK;
    };
    

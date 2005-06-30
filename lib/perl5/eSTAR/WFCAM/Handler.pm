@@ -41,8 +41,8 @@ use eSTAR::Util;
 use eSTAR::Process;
 use eSTAR::Mail;
 use eSTAR::Config;
-use eSTAR::Database::Manip;
-use eSTAR::Database::DBbackend;
+#use eSTAR::Database::Manip;
+#use eSTAR::Database::DBbackend;
 
 #
 # Astro modules
@@ -463,27 +463,31 @@ sub populate_db {
   # POPULATE DB
   # ===========
 
-   # Set up DB object and add catalogues to database.
-   $log->debug( "Creating a DB backend reference");
-   my $db_ref = new eSTAR::Database::DBbackend();
-   $log->debug( "Creating a manipulation object...");
-   my $db = new eSTAR::Database::Manip( DB => $db_ref );
-   foreach my $cat ( @catalogs ) {
-     $log->debug( "Adding catalogue to database...");
-     $db->add_catalog( $cat );
-     $log->debug( "added." );
-   }
+  $log->print("Attempting to contact database...");
 
-   foreach my $var_item ( $var_objects->allstars ) {
-     $log->debug( "Updating item with ID " . $var_item->id . " as eSTAR_variable" );
-     $db->update_flags( $var_item, [ 'eSTAR_variable' ] );
-   }
-   foreach my $new_item ( $new_objects->allstars ) {
-     $log->debug( "Updating item with ID " . $new_item->id . " as eSTAR_new" );
-     $db->update_flags( $new_item, [ 'eSTAR_new' ] );
-   }
+  # Set up DB object and add catalogues to database.
+  $log->debug( "Creating a DB backend reference");
+  my $db_ref = new eSTAR::Database::DBbackend();
+  $log->debug( "Creating a manipulation object...");
+  my $db = new eSTAR::Database::Manip( DB => $db_ref );
+  foreach my $cat ( @catalogs ) {
+    $log->debug( "Adding catalogue to database...");
+    $db->add_catalog( $cat );
+    $log->debug( "Successfully added catalogue to database..." );
+  }
 
-   $log->print("Objects injested into database");
+  foreach my $var_item ( $var_objects->allstars ) {
+    $log->debug( "Updating item with ID " . $var_item->id . 
+                 " as eSTAR_variable" );
+    $db->update_flags( $var_item, [ 'eSTAR_variable' ] );
+  }
+  foreach my $new_item ( $new_objects->allstars ) {
+    $log->debug( "Updating item with ID " . $new_item->id . 
+                 " as eSTAR_new" );
+    $db->update_flags( $new_item, [ 'eSTAR_new' ] );
+  }
+
+  $log->print("Objects injested into database...");
 
   # CALL DATA MINING PROCESS
   # ======================== 
@@ -560,7 +564,7 @@ sub handle_objects {
    $log->debug( "Uncompressing catalogue...");
    my $string = Compress::Zlib::memGunzip( $compressed );
    	    
-   $log->debug( "Calling eSTAR::Util::reheat( \$new_objects )");
+   $log->debug( "Calling eSTAR::Util::reheat( \$catalog )");
    my $catalog = eSTAR::Util::reheat( $string );
 
    # try and catch parsing errors here...
