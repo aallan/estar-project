@@ -471,7 +471,7 @@ sub populate_db {
   
   $log->debug( "Creating a DB backend reference");
   my $db_ref;
-  eval { $db_ref = new eSTAR::Database::DBbackend(); };
+  eval { $db_ref = new eSTAR::Database::DBbackend; };
   if ( $@ ) {
      my $error = "$@";
      $log->error( "Error: $error" );
