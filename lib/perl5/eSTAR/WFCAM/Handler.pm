@@ -482,9 +482,6 @@ sub populate_db {
 
    $log->print("Objects injested into database");
 
-  $log->print("New Objects:");
-  my @tmp_star1 = $new_objects->allstars();
-
   # CALL DATA MINING PROCESS
   # ======================== 
      
