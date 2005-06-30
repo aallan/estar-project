@@ -175,11 +175,6 @@ sub return_datamining {
     
   #use Data::Dumper;
   #print Dumper( $chilled[0] );  
-   
-   
-  $log->warn( "WARNING: NOT CALLING handle_objects() IN REMOTE SERVICE");
-  $log->warn( "WARNING: RETURNING ESTAR__OK TO MAIN THREAD");
-  return ESTAR__OK;
     
   # report
   $log->thread( $thread_name, "Calling handle_objects() in remote service");

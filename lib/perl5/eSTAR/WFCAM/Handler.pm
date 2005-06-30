@@ -8,7 +8,7 @@ use lib $ENV{"ESTAR_PERL5LIB"};
 
 use strict;
 use subs qw( new ping echo get_option set_option 
-             populate_db query_db handle_results );
+             populate_db query_db handle_objects );
 
 #
 # Threading code (ithreads)
@@ -540,11 +540,7 @@ sub query_db {
 
 sub handle_objects {
    my $self = shift;
-   my $compressed = shift;
-        
-   print "handle_objects() has been called...\n";
-   print "\$log is defined\n" if defined $log;
-   print Dumper( $log );   
+   my $compressed = shift;  
       
    $log->debug("Called handle_objects() from \$tid = ".threads->tid());
    $config->reread();

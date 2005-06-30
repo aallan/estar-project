@@ -18,7 +18,7 @@ BEGIN {
   # simple text, and turn them into SOAP::Fault objects.
   
   for my $method qw( ping echo get_option set_option 
-                     populate_db query_db handle_results ) {
+                     populate_db query_db handle_objects ) {
      eval "sub $method";
      *$method = sub {
         my $self = shift->new();
