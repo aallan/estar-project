@@ -41,8 +41,8 @@ use eSTAR::Util;
 use eSTAR::Process;
 use eSTAR::Mail;
 use eSTAR::Config;
-#use eSTAR::Database::Manip;
-#use eSTAR::Database::DBbackend;
+use eSTAR::Database::Manip;
+use eSTAR::Database::DBbackend;
 
 #
 # Astro modules
