@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.57 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.58 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -438,13 +438,13 @@ sub correlate {
   my $star = ${$catalogs[0]}->starbyindex(0);
   my @waveband = $star->whatfilters();
   if ( defined $waveband[0] ) {
-     $log->debug( "Setting \$OP{filter} to be $waveband[0]");
+     $log->debug( "Setting \$OPT{filter} to be '".$waveband[0]."'");
      $OPT{filter} = $waveband[0];
   } else {
-     $log->warn( "Warning: The filter is undefined");
+     $log->warn( "Warning: The filter is undefined, setting as 'unknown'");
      $OPT{filter} = 'unknown';
   } 
-  $log->warn("Warning: Resetting filter to $OPT{filter}");
+  $log->warn("Warning: Resetting filter to '".$OPT{filter}."'");
   $config->set_option("corr.filter", $OPT{"filter"} );
    
   # create placeholders for the new and variable object catalogues.   
