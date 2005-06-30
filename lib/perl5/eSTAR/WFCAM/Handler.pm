@@ -463,13 +463,14 @@ sub populate_db {
   # POPULATE DB
   # ===========
 
+#$log->warn("WARNING: NOT CONTACTING DATABASE");
   $log->print("Attempting to contact database...");
 
   # Set up DB object and add catalogues to database.
-  $log->debug( "Creating a DB backend reference");
-  my $db_ref = new eSTAR::Database::DBbackend();
+  #$log->debug( "Creating a DB backend reference");
+  #my $db_ref = new eSTAR::Database::DBbackend();
   $log->debug( "Creating a manipulation object...");
-  my $db = new eSTAR::Database::Manip( DB => $db_ref );
+  my $db = new eSTAR::Database::Manip( DB => new eSTAR::Database::DBbackend() );
   foreach my $cat ( @catalogs ) {
     $log->debug( "Adding catalogue to database...");
     $db->add_catalog( $cat );
@@ -478,12 +479,12 @@ sub populate_db {
 
   foreach my $var_item ( $var_objects->allstars ) {
     $log->debug( "Updating item with ID " . $var_item->id . 
-                 " as eSTAR_variable" );
+		 " as eSTAR_variable" );
     $db->update_flags( $var_item, [ 'eSTAR_variable' ] );
   }
   foreach my $new_item ( $new_objects->allstars ) {
     $log->debug( "Updating item with ID " . $new_item->id . 
-                 " as eSTAR_new" );
+		 " as eSTAR_new" );
     $db->update_flags( $new_item, [ 'eSTAR_new' ] );
   }
 
@@ -590,8 +591,21 @@ sub handle_objects {
       $log->debug( "Reference appears to be Astro::Catalog object");
    }  
  
-   print Dumper ( $catalog );
-   
+   #print Dumper ( $catalog );
+   $log->print("Attempting to contact database...");
+
+   # Set up DB object and add catalogues to database.
+   $log->debug( "Creating a DB backend reference");
+   my $db_ref = new eSTAR::Database::DBbackend();
+   $log->debug( "Creating a manipulation object...");
+   my $db = new eSTAR::Database::Manip( DB => $db_ref );
+
+   $log->debug("Updating the DB with SIMBAD results...");
+   foreach my $item ( $catalog->allstars ) {
+     $log->debug( "Updating item with ID " . $item->id . 
+ 		  " as SIMBAD_variable" );
+     $db->update_flags( $item, [ 'SIMBAD_variable' ] );
+   }   
  
    # RETURN OK MESSAGE TO CLIENT
    # ===========================
