@@ -460,6 +460,9 @@ sub populate_db {
      # }	       
    }
 
+  use Data::Dumper;
+  print Dumper( $catalogs[0]->starbyindex(0) );
+
   # POPULATE DB
   # ===========
 
