@@ -466,17 +466,24 @@ sub populate_db {
 #$log->warn("WARNING: NOT CONTACTING DATABASE");
   $log->print("Attempting to contact database...");
 
-  # Set up DB object and add catalogues to database.
-  
-  
+  # Set up DB object and add catalogues to database.  
   $log->debug( "Creating a DB backend reference");
-  $log->debug( "Creating a manipulation object...");
-  my $db;
-  eval { $db = new eSTAR::Database::Manip( 
-                       DB => new eSTAR::Database::DBbackend ); };
+  my $db_ref;
+  eval { $db_ref = new eSTAR::Database::DBbackend(); }; 
   if ( $@ ) {
      my $error = "$@";
      $log->error( "Error: $error" );
+     $log->error("Returned ESTAR__FAULT message");
+     return ESTAR__FAULT;
+  }  
+    
+  $log->debug( "Creating a manipulation object...");
+  my $db;
+  eval { $db = new eSTAR::Database::Manip( DB => $db_ref ); };
+  if ( $@ ) {
+     my $error = "$@";
+     $log->error( "Error: $error" );
+     $log->error("Returned ESTAR__FAULT message");
      return ESTAR__FAULT;
   }   
   
@@ -486,6 +493,7 @@ sub populate_db {
     if ( $@ ) {
         my $error = "$@";
         $log->error( "Error: $error" );
+        $log->error("Returned ESTAR__FAULT message");
         return ESTAR__FAULT;
     }      
     $log->debug( "Successfully added catalogue to database..." );
@@ -498,6 +506,7 @@ sub populate_db {
     if ( $@ ) {
         my $error = "$@";
         $log->error( "Error: $error" );
+        $log->error("Returned ESTAR__FAULT message");
         return ESTAR__FAULT;
     } 
   }
@@ -508,6 +517,7 @@ sub populate_db {
     if ( $@ ) {
         my $error = "$@";
         $log->error( "Error: $error" );
+        $log->error("Returned ESTAR__FAULT message");
         return ESTAR__FAULT;
     } 
   }
@@ -620,15 +630,36 @@ sub handle_objects {
 
    # Set up DB object and add catalogues to database.
    $log->debug( "Creating a DB backend reference");
-   my $db_ref = new eSTAR::Database::DBbackend();
+   my $db_ref;
+   eval { $db_ref = new eSTAR::Database::DBbackend(); }; 
+   if ( $@ ) {
+      my $error = "$@";
+      $log->error( "Error: $error" );
+      $log->error("Returned ESTAR__FAULT message");
+      return ESTAR__FAULT;
+   }  
+    
    $log->debug( "Creating a manipulation object...");
-   my $db = new eSTAR::Database::Manip( DB => $db_ref );
+   my $db;
+   eval { $db = new eSTAR::Database::Manip( DB => $db_ref ); };
+   if ( $@ ) {
+      my $error = "$@";
+      $log->error( "Error: $error" );
+      $log->error("Returned ESTAR__FAULT message");
+      return ESTAR__FAULT;
+   }   
 
    $log->debug("Updating the DB with SIMBAD results...");
    foreach my $item ( $catalog->allstars ) {
      $log->debug( "Updating item with ID " . $item->id . 
  		  " as SIMBAD_variable" );
-     $db->update_flags( $item, [ 'SIMBAD_variable' ] );
+     eval { $db->update_flags( $item, [ 'SIMBAD_variable' ] ); };
+     if ( $@ ) {
+         my $error = "$@";
+         $log->error( "Error: $error" );
+         $log->error("Returned ESTAR__FAULT message");
+         return ESTAR__FAULT;
+     }     
    }   
  
    # RETURN OK MESSAGE TO CLIENT
