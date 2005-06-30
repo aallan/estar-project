@@ -22,7 +22,7 @@ require Exporter;
 use vars qw/$VERSION @EXPORT_OK @ISA /;
 
 use Data::Dumper;
-use Storable qw(nfreeze thaw dclone);;
+use Storable;
 use Digest::MD5 'md5_hex';
 use Fcntl qw(:DEFAULT :flock);
 use Config::Simple;
@@ -38,7 +38,7 @@ use eSTAR::Error qw /:try/;
       qw/ make_cookie make_id freeze thaw reheat melt query_simbad 
           fudge_message fudge_user fudge_project /;
 
-'$Revision: 1.16 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.17 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # This is the code that is used to generate cookies based on the user
 # name and password. It is NOT cryptographically sound, it is just a
@@ -463,7 +463,7 @@ sub fudge_project {
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.16 2005/06/30 21:42:03 aa Exp $
+$Id: Util.pm,v 1.17 2005/06/30 21:46:07 aa Exp $
 
 =head1 AUTHORS
 
