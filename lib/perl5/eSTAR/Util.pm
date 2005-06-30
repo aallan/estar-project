@@ -22,6 +22,7 @@ require Exporter;
 use vars qw/$VERSION @EXPORT_OK @ISA /;
 
 use Data::Dumper;
+use Storable;
 use Digest::MD5 'md5_hex';
 use Fcntl qw(:DEFAULT :flock);
 use Config::Simple;
@@ -37,7 +38,7 @@ use eSTAR::Error qw /:try/;
       qw/ make_cookie make_id freeze thaw reheat melt query_simbad 
           fudge_message fudge_user fudge_project /;
 
-'$Revision: 1.13 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.14 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # This is the code that is used to generate cookies based on the user
 # name and password. It is NOT cryptographically sound, it is just a
@@ -238,8 +239,9 @@ sub chill {
    # SERIALISE OBJECT
    # ================
    $log->debug( "Serialising \$object..." );   
-   my $dumper = new Data::Dumper([$object], [qw($object)]  );      
-   my $string = $dumper->Dump( );
+   #my $dumper = new Data::Dumper([$object], [qw($object)]  );      
+   #my $string = $dumper->Dump( );
+   my $string = nfreeze( $object );
    
    return $string;
    
@@ -256,9 +258,9 @@ sub reheat {
    # DE-SERIALISE OBJECT
    # ===================
    $log->debug("Trying to restore \$object");
-   my $object;
-   eval $string;
-   
+   #my $object;
+   #eval $string;
+   my $object = nthaw( $string );
    return $object;
 }
 
@@ -461,7 +463,7 @@ sub fudge_project {
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.13 2005/06/25 02:25:01 aa Exp $
+$Id: Util.pm,v 1.14 2005/06/30 21:36:07 aa Exp $
 
 =head1 AUTHORS
 
