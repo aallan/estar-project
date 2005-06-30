@@ -41,6 +41,8 @@ use eSTAR::Util;
 use eSTAR::Process;
 use eSTAR::Mail;
 use eSTAR::Config;
+use eSTAR::Database::Manip;
+use eSTAR::Database::DBbackend;
 
 #
 # Astro modules
@@ -459,37 +461,31 @@ sub populate_db {
       #}	       
    }
 
-  $log->print("New Objects:");
-  my @tmp_star1 = $new_objects->allstars();
-  foreach my $t1 ( @tmp_star1 ) {
-     print "ID " . $t1->id() . "\n";
-     my $tmp_fluxes1 = $t1->fluxes();
-     my @tmp_flux1 = $tmp_fluxes1->fluxesbywaveband( waveband => 'unknown' );
-     foreach my $f1 ( @tmp_flux1 ) {
-  	$log->debug("  Date: " . $f1->datetime()->datetime() .
-  	            " (" . $f1->type() . ")" );
-     }
-     print "\n";
-  }
-  $log->print("Variable Objects:");
-  my @tmp_star2 = $var_objects->allstars();
-  foreach my $t2 ( @tmp_star2 ) {
-     print "ID " . $t2->id() . "\n";
-     my $tmp_fluxes2 = $t2->fluxes();
-     my @tmp_flux2 = $tmp_fluxes2->fluxesbywaveband( waveband => 'unknown' );
-     foreach my $f2 ( @tmp_flux2 ) {
-  	$log->debug("  Date: " . $f2->datetime()->datetime() .
-  	            " (" . $f2->type() . ")" );
-     }
-     print "\n";
-  }
-   
   # POPULATE DB
   # ===========
-  
-  
-  
-   
+
+   # Set up DB object and add catalogues to database.
+   my $db = new eSTAR::Database::Manip( DB => new eSTAR::Database::DBbackend );
+   foreach my $cat ( @catalogs ) {
+     $log->debug( "Adding catalogue to database...");
+     $db->add_catalog( $cat );
+     $log->debug( "added." );
+   }
+
+   foreach my $var_item ( $var_objects->allstars ) {
+     $log->debug( "Updating item with ID " . $var_item->id . " as eSTAR_variable" );
+     $db->update_flags( $var_item, [ 'eSTAR_variable' ] );
+   }
+   foreach my $new_item ( $new_objects->allstars ) {
+     $log->debug( "Updating item with ID " . $new_item->id . " as eSTAR_new" );
+     $db->update_flags( $new_item, [ 'eSTAR_new' ] );
+   }
+
+   $log->print("Objects injested into database");
+
+  $log->print("New Objects:");
+  my @tmp_star1 = $new_objects->allstars();
+
   # CALL DATA MINING PROCESS
   # ======================== 
      
