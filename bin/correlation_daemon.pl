@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.67 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.68 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -439,6 +439,9 @@ sub correlate {
   # in a case where we only have one filter so this isn't a problem.
   $log->debug( "Grabbing filter from first catalogue item...");
   my $star = $catalogs[0]->starbyindex(0);
+  print "FIRST TIME READ FROM DISK\n";
+  use Data::Dumper; print Dumper( $star );
+      
   my @waveband = $star->what_filters();
   if ( defined $waveband[0] ) {
      $log->debug( "Setting \$OPT{filter} to be '".$waveband[0]."'");
@@ -453,9 +456,6 @@ sub correlate {
   # create placeholders for the new and variable object catalogues.   
   my $new_objects = new Astro::Catalog;
   my $var_objects = new Astro::Catalog;
-  
-  #print "FIRST TIME READ FROM DISK\n";
-  #use Data::Dumper; print Dumper( $star );
 
   # Correlate, finding objects that are not in one catalogue but are
   # in another.
