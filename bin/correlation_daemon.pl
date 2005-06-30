@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.56 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.57 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -434,11 +434,14 @@ sub correlate {
   
   # grab the filter from the first item of the first catalogue, we're
   # in a case where we only have one filter so this isn't a problem.
+  $log->debug( "Grabbing filter from first catalogue item...");
   my $star = ${$catalogs[0]}->starbyindex(0);
   my @waveband = $star->whatfilters();
   if ( defined $waveband[0] ) {
+     $log->debug( "Setting \$OP{filter} to be $waveband[0]");
      $OPT{filter} = $waveband[0];
   } else {
+     $log->warn( "Warning: The filter is undefined");
      $OPT{filter} = 'unknown';
   } 
   $log->warn("Warning: Resetting filter to $OPT{filter}");
