@@ -553,7 +553,7 @@ sub populate_db {
      $log->debug( "Detaching thread...");
      $dispatch->detach();
      
-     $log->thread2( $thread_name, "Threaded ingest complete..."
+     $log->thread2( $thread_name, "Threaded ingest complete..." );
   
   };
   
