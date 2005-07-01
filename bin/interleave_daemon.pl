@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -426,8 +426,8 @@ sub correlate {
     $catalog = new Astro::Catalog( Format => 'FITSTable',File => $file);
     $log->debug( "Got catalogue in binary FITS table format." );
   } elsif( $file =~ /\.cat$/ ) {
-    $catalog = new Astro::Catalog( Format => 'Cluster',File => $file ) ;
-    $log->debug( "Got catalogue in Cluster format." );
+    $catalog = new Astro::Catalog( Format => 'SExtractor',File => $file ) ;
+    $log->debug( "Got catalogue in SExtractor format." );
   }
   
   # grab the filter from the first item of the first catalogue, we're
@@ -453,7 +453,12 @@ sub correlate {
    
   # GRAB CENTRE OF FIELD AND RADIUS
   # -------------------------------
-  
+
+# Following two lines are commented out pending catalogue central coordinate
+# and radius creation by the Astro::Catalog::IO::FITSTable module.
+#  my $coords = $catalog->get_coords;
+#  my $radius = $catalog->get_gadius;
+
   my $coords = new Astro::Coords( ra => '10 52 33.68', 
                                   dec => '+57 13 49.65',
                                   type => 'J2000'
@@ -583,38 +588,9 @@ while( 1 ) {
   my $catalog_file = File::Spec->catfile(
                        $config->get_option( "corr.camera${camera}_directory" ),
                        cat_file_from_bits( $utdate, $obsnum, $camera ) );
-  $log->debug( "Pushing $catalog_file onto stack." );
-  push @catalog_files, $catalog_file;
 
-  if( $catalog_file =~ /\.fit$/ ) {
-
-    # Read in the header of the FITS file, check to see if we're
-    # at the end of a microstep sequence or not.
-    $log->debug( "Reading $catalog_file" );
-    my $header = new Astro::FITS::Header::CFITSIO( File => $catalog_file );
-    tie my %keywords, "Astro::FITS::Header", $header, tiereturnsref => 1;
-
-    my $nustep = $keywords{'SUBHEADERS'}->[0]->{'NUSTEP'};
-    my $ustep_position = $keywords{'SUBHEADERS'}->[0]->{'USTEP_I'};
-    $log->debug("FITS headers: nustep: $nustep ustep_pos: $ustep_position");
-    if( $ustep_position == $nustep && $nustep != 1 ) {
-
-      $spawn_correlation = 1;
-    }
-    if( $nustep == 1 ) {
-      @catalog_files = ();
-    }
-  } elsif( $catalog_file =~ /\.cat$/ ) {
-    if( scalar( @catalog_files ) == 2 ) {
-      $spawn_correlation = 1;
-    }
-  }
-
-  if( $spawn_correlation ) {
-    $log->print( "Spawing correlation process..." );
-    correlate( \@catalog_files );
-    @catalog_files = ();
-  }
+  $log->print( "Spawing correlation process..." );
+  correlate( $catalog_file );
 
   $obsnum++;
 
@@ -732,7 +708,7 @@ sub flag_from_bits {
   my $prefix = $config->get_option( "corr.camera${camera}_prefix" );
 
   $obsnum = "0" x ( 5 - length( $obsnum ) ) . $obsnum;
-  return "." . $prefix . $utdate . "_" . $obsnum . ".ok";
+  return "." . $prefix . $utdate . "_" . $obsnum . "_int" . ".ok";
 }
 
 sub cat_file_from_bits {
@@ -743,7 +719,7 @@ sub cat_file_from_bits {
   my $prefix = $config->get_option( "corr.camera${camera}_prefix" );
 
   $obsnum = "0" x ( 5 - length( $obsnum ) ) . $obsnum;
-  return $prefix . $utdate . "_" . $obsnum . "_sf_st_cat.fit";
+  return $prefix . $utdate . "_" . $obsnum . "_int_cat.fit";
 #  return $prefix . $utdate . "_" . $obsnum . "_mos.cat";
 }
 
