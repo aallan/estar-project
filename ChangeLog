@@ -4,7 +4,12 @@
 	  infrastructure to the wfcam_agent.pl.
 	  
 	* Changed catalogue shipping between the WFCAM processes to be gzipped
-	  and base 64 encoded, this speeds thinsg up a lot.  
+	  and base 64 encoded, this speeds thinsg up a lot. 
+	  
+	* Changed catalogue shipping between EFCAM processes to use Storable
+	  rather the Data::Dumper, this makes things a lot faster again.
+	  
+	* Initial skeleton seems to work okay...     
 
 2005-06-28 Alasdair Allan <aa@astro.ex.ac.uk>
 
