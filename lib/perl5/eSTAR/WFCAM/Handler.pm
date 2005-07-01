@@ -468,82 +468,91 @@ sub populate_db {
   # POPULATE DB
   # ===========
 
-#$log->warn("WARNING: NOT CONTACTING DATABASE");
-  $log->print("Attempting to contact database...");
+  my $contact_db = sub {
 
-  # Set up DB object and add catalogues to database.  
-  $log->debug( "Creating a DB backend reference");
-  my $db_ref;
-  eval { $db_ref = new eSTAR::Database::DBbackend(); }; 
-  if ( $@ ) {
-     my $error = "$@";
-     $log->error( "Error: $error" );
-     $log->error("Returned ESTAR__FAULT message");
-     return ESTAR__FAULT;
-  }  
+     #$log->warn("WARNING: NOT CONTACTING DATABASE");
+     $log->print("Attempting to contact database...");
+
+     # Set up DB object and add catalogues to database.  
+     $log->debug( "Creating a DB backend reference");
+     my $db_ref;
+     eval { $db_ref = new eSTAR::Database::DBbackend(); }; 
+     if ( $@ ) {
+        my $error = "$@";
+        $log->error( "Error: $error" );
+        $log->error("Returned ESTAR__FAULT message");
+        return ESTAR__FAULT;
+     }  
     
-  $log->debug( "Creating a manipulation object...");
-  my $db;
-  eval { $db = new eSTAR::Database::Manip( DB => $db_ref ); };
-  if ( $@ ) {
-     my $error = "$@";
-     $log->error( "Error: $error" );
-     $log->error("Returned ESTAR__FAULT message");
-     return ESTAR__FAULT;
-  }   
+     $log->debug( "Creating a manipulation object...");
+     my $db;
+     eval { $db = new eSTAR::Database::Manip( DB => $db_ref ); };
+     if ( $@ ) {
+        my $error = "$@";
+        $log->error( "Error: $error" );
+        $log->error("Returned ESTAR__FAULT message");
+        return ESTAR__FAULT;
+     }   
   
-  foreach my $cat ( @catalogs ) {
-    $log->debug( "Adding catalogue to database...");
+     foreach my $cat ( @catalogs ) {
+        $log->debug( "Adding catalogue to database...");
     
-    #use Data::Dumper; print Dumper( $cat );
-    eval { $db->add_catalog( $cat ); };
-    if ( $@ ) {
-        my $error = "$@";
-        $log->error( "Error: $error" );
-        $log->error("Returned ESTAR__FAULT message");
-        return ESTAR__FAULT;
-    }      
-    $log->debug( "Successfully added catalogue to database..." );
-  }
+        #use Data::Dumper; print Dumper( $cat );
+        eval { $db->add_catalog( $cat ); };
+        if ( $@ ) {
+           my $error = "$@";
+           $log->error( "Error: $error" );
+           $log->error("Returned ESTAR__FAULT message");
+           return ESTAR__FAULT;
+        }      
+        $log->debug( "Successfully added catalogue to database..." );
+     }
 
-  foreach my $var_item ( $var_objects->allstars ) {
-    $log->debug( "Updating item with ID " . $var_item->id . 
-		 " as eSTAR_variable" );
-    eval { $db->update_flags( $var_item, [ 'eSTAR_variable' ] ); };
-    if ( $@ ) {
-        my $error = "$@";
-        $log->error( "Error: $error" );
-        $log->error("Returned ESTAR__FAULT message");
-        return ESTAR__FAULT;
-    } 
-  }
-  foreach my $new_item ( $new_objects->allstars ) {
-    $log->debug( "Updating item with ID " . $new_item->id . 
-		 " as eSTAR_new" );
-    eval { $db->update_flags( $new_item, [ 'eSTAR_new' ] ); };
-    if ( $@ ) {
-        my $error = "$@";
-        $log->error( "Error: $error" );
-        $log->error("Returned ESTAR__FAULT message");
-        return ESTAR__FAULT;
-    } 
-  }
+     foreach my $var_item ( $var_objects->allstars ) {
+        $log->debug( "Updating item with ID " . $var_item->id . 
+	   	     " as eSTAR_variable" );
+       eval { $db->update_flags( $var_item, [ 'eSTAR_variable' ] ); };
+       if ( $@ ) {
+           my $error = "$@";
+           $log->error( "Error: $error" );
+           $log->error("Returned ESTAR__FAULT message");
+           return ESTAR__FAULT;
+       } 
+     }
+     foreach my $new_item ( $new_objects->allstars ) {
+       $log->debug( "Updating item with ID " . $new_item->id . 
+		    " as eSTAR_new" );
+       eval { $db->update_flags( $new_item, [ 'eSTAR_new' ] ); };
+       if ( $@ ) {
+           my $error = "$@";
+           $log->error( "Error: $error" );
+           $log->error("Returned ESTAR__FAULT message");
+           return ESTAR__FAULT;
+       } 
+     }
 
-  $log->print("Objects injested into database...");
+     $log->print("Objects injested into database...");
 
-  # CALL DATA MINING PROCESS
-  # ======================== 
+  
+     # CALL DATA MINING PROCESS
+     # ======================== 
      
-  $log->print( "Creating thread to data mine candidate variables..." );
-  my $dispatch = threads->create( \&do_datamining, $var_objects );
+     $log->print( "Creating thread to data mine candidate variables..." );
+     my $dispatch = threads->create( \&do_datamining, $var_objects );
   				  
-  unless ( defined $dispatch ) {
-     $log->error( "Error: Could not spawn a thread to talk to the DB" );
-     $log->error( "Error: Returning ESTAR__FATAL to main loop..." );
-     return ESTAR__FATAL;  
-  }				  
-  $log->debug( "Detaching thread...");
-  $dispatch->detach();
+     unless ( defined $dispatch ) {
+        $log->error( "Error: Could not spawn a thread to talk to the DB" );
+        $log->error( "Error: Returning ESTAR__FATAL to main loop..." );
+        return ESTAR__FATAL;  
+     }				  
+     $log->debug( "Detaching thread...");
+     $dispatch->detach();
+  
+  };
+  
+  $log->print( "Creating thread to ingest objects in to DB..." );
+  my $ingest = threads->create( \&contact_db );
+  $ingest->detach();
    
   # RETURN OK MESSAGE TO CLIENT
   # ===========================
