@@ -674,8 +674,8 @@ sub handle_objects {
 
    $log->debug("Updating the DB with SIMBAD results...");
    foreach my $item ( $catalog->allstars ) {
-     $log->debug( "Updating item with ID '" . $item->id . 
- 		  "' as SIMBAD_ident" );
+     $log->debug( "Updating item with ID " . $item->id . 
+ 		  " as SIMBAD_variable" );
      eval { $db->update_flags( $item, [ 'SIMBAD_ident' ] ); };
      if ( $@ ) {
          my $error = "$@";
