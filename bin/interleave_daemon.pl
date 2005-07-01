@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -461,7 +461,7 @@ sub correlate {
 
   my $coords = new Astro::Coords( ra => '10 52 33.68', 
                                   dec => '+57 13 49.65',
-                                  type => 'J2000'
+                                  type => 'J2000',
                                   units=> 'sexagesimal');
   my $radius = 120;                           # in arcseconds 
 
@@ -491,7 +491,7 @@ sub correlate {
   $soap->proxy($endpoint, cookie_jar => $cookie_jar);
     
   # report
-  $log->thread( $thread_name, "Calling query_db() in remote service");
+  $log->debug( "Calling query_db() in remote service");
     
   # grab result 
   my $result;
