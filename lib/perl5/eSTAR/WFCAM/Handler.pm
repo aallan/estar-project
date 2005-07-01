@@ -441,12 +441,12 @@ sub populate_db {
         my $counter = 0;
         foreach my $star ( $new_objects->allstars() ) {
           $log->warn("Warning: Problem deserialising star $counter from ".
-	   " \$new_objects") unless UNIVERSAL::isa($star, "Astro::Catalog::Star");
+	   " \$new_objects") unless UNIVERSAL::isa($star, "Astro::Catalog::Item");
 	  $counter++;
         }
         foreach my $star ( $var_objects->allstars() ) {
           $log->warn("Warning: Problem deserialising star $counter from ".
-	   " \$var_objects") unless UNIVERSAL::isa($star, "Astro::Catalog::Star");
+	   " \$var_objects") unless UNIVERSAL::isa($star, "Astro::Catalog::Item");
 	  $counter++;
         }     
         foreach my $catalog ( @catalogs ) {
@@ -455,7 +455,7 @@ sub populate_db {
            foreach my $star ( $catalog->allstars() ) {
              $log->warn("Warning: Problem deserialising star $counter from ".
 	      " \$catalog number $cat") 
-	      unless UNIVERSAL::isa($star, "Astro::Catalog::Star");
+	      unless UNIVERSAL::isa($star, "Astro::Catalog::Item");
 	     $counter++;
 	     $cat++;
            } 
