@@ -634,12 +634,12 @@ sub query_db {
    $log->debug( "Uncompressing waveband...");
    $waveband = Compress::Zlib::memGunzip( $waveband );
    $log->debug( "Calling eSTAR::Util::reheat( \$waveband )");
-   unless ( UNIVERSAL::isa( $waveband, "Astro::Waveband" ) ) {
-      my $error = "The Astro::Waveband objects was not parsed correctly";
+   unless ( UNIVERSAL::isa( $waveband, "Astro::WaveBand" ) ) {
+      my $error = "The Astro::WaveBand objects was not parsed correctly";
       $log->error("Error: $error");
       return ESTAR__FAULT;
    } else {
-      $log->debug( "Reference appears to be an Astro::Waveband object");
+      $log->debug( "Reference appears to be an Astro::WaveBand object");
    }    
    
    # QUERY DB
