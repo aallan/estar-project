@@ -542,6 +542,8 @@ sub populate_db {
      # CALL DATA MINING PROCESS
      # ======================== 
      
+     # VARIABLE
+     # --------
      $log->thread2( $thread_name, 
                "Creating thread to data mine candidate variables..." );
      my $dispatch = threads->create( \&do_datamining, $var_objects );
@@ -553,6 +555,21 @@ sub populate_db {
      }				  
      $log->debug( "Detaching thread...");
      $dispatch->detach();
+
+     # NEW OBJECTS
+     # -----------
+     $log->thread2( $thread_name, 
+               "Creating thread to data mine candidate new objects..." );
+     my $dispatch = threads->create( \&do_datamining, $new_objects );
+  				  
+     unless ( defined $dispatch ) {
+        $log->error( "Error: Could not spawn a thread to talk to the DB" );
+        $log->error( "Error: Returning ESTAR__FATAL to main loop..." );
+        return ESTAR__FATAL;  
+     }				  
+     $log->debug( "Detaching thread...");
+     $dispatch->detach();
+
      
      $log->thread2( $thread_name, "Threaded ingest complete..." );
   

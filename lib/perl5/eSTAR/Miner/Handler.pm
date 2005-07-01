@@ -418,7 +418,7 @@ sub handle_objects {
       my $sizeof = $var_objects->sizeof() - 1;
       foreach my $i ( 0 ... $sizeof ) {
    
-         $log->debug( "Popping star " . ($i+1) . " from catalogue...");
+         $log->print( "Popping star " . ($i+1) . " from catalogue...");
          my $star = $var_objects->starbyindex( $i );
          my $ra = $star->ra();
          my $dec = $star->dec();
@@ -453,7 +453,7 @@ sub handle_objects {
 	 if( $num_of_stars >= 1 ) {   
 	 
 	    # we have some records
-	    $log->debug( "Pushing $num_of_stars SIMBAD results into catalogue" );
+	    $log->print( "Pushing $num_of_stars SIMBAD results into catalogue" );
 	    my @objects = $result->objects;
 
             my @stars;
@@ -475,7 +475,7 @@ sub handle_objects {
 	    $catalog->pushstar( @stars );
   
 	 } else {
-	   $log->debug( "No matching records");
+	   $log->print( "No matching records");
 	 } 
 	 
 	 if( $i == $sizeof ) {
