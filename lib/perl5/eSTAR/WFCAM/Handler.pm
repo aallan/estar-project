@@ -612,15 +612,15 @@ sub query_db {
    # ================
 
    # coords object 
-   my $coords = shift;
+   my $compress_coords = shift;
    $log->debug( "Uncompressing coordinates...");
-   $coords = Compress::Zlib::memGunzip( $coords );      
+   my $chill_coords  Compress::Zlib::memGunzip( $compress_coords );      
    $log->debug( "Calling eSTAR::Util::reheat( \$coords )");
-   $coords = eSTAR::Util::reheat( $coords );   
+   my $coords = eSTAR::Util::reheat( $chill_coords );   
    unless ( UNIVERSAL::isa( $coords, "Astro::Coords" ) ) {
       my $error = "The Astro::Coords objects was not parsed correctly";
       $log->error("Error: $error");
-      $log->error( Dumper( $coords );
+      $log->error( Dumper( $coords ) );
       $log->error( "Returning ESTAR__FAULT...");
       return ESTAR__FAULT;
    } else {
@@ -632,14 +632,15 @@ sub query_db {
    my $radius = shift;  
    
    # waveband object 
-   my $waveband = shift;
+   my $compress_waveband = shift;
    $log->debug( "Uncompressing waveband...");
-   $waveband = Compress::Zlib::memGunzip( $waveband );
+   my $chill_waveband = Compress::Zlib::memGunzip( $compress_waveband );
    $log->debug( "Calling eSTAR::Util::reheat( \$waveband )");
+   my $waveband = eSTAR::Util::reheat( $chill_waveband );   
    unless ( UNIVERSAL::isa( $waveband, "Astro::WaveBand" ) ) {
       my $error = "The Astro::WaveBand objects was not parsed correctly";
       $log->error("Error: $error");
-      $log->error( Dumper( $waveband );
+      $log->error( Dumper( $waveband ) );
       $log->error( "Returning ESTAR__FAULT...");
       return ESTAR__FAULT;
    } else {
