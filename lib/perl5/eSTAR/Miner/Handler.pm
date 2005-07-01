@@ -425,9 +425,17 @@ sub handle_objects {
 
          $log->debug( "Target RA $ra, Dec. $dec");
          $log->debug( "Building SIMBAD query object...");
-	 my $simbad = new Astro::Catalog::Query::SIMBAD( RA     => $ra,
-                                                         Dec    => $dec,
-                                                         Radius => $radius );         
+	 
+	 my $simbad = new Astro::SIMBAD::Query( 
+                                     RA      => $ra,
+                                     Dec     => $dec,
+                                     Error   => $radius );
+                                     Units     => "arcsec" );
+                                      
+	 #my $simbad = new Astro::Catalog::Query::SIMBAD( RA     => $ra,
+         #                                                Dec    => $dec,
+         #                                                Radius => $radius );         
+	 
 	 if( $i == 0 ) {
 	    $log->debug( 
 	        "Making connection " . ($i+1) . " of " . $var_objects->sizeof() );
@@ -440,12 +448,29 @@ sub handle_objects {
 	 # loop through the returned catalogue and push all stars into the 
 	 # result object to return to the WFCAM    
 	  
-	 my $num_of_stars = $result->sizeof();
+	 #my $num_of_stars = $result->sizeof();
+	 my $num_of_stars = $result->listofobjects();
 	 if( $num_of_stars >= 1 ) {   
 	 
 	    # we have some records
 	    $log->debug( "Pushing $num_of_stars SIMBAD results into catalogue" );
-	    my @stars = $result->allstars();
+	    my @objects = $result->objects;
+
+            my @stars;
+	    foreach my $object ( @objects ) {
+	      my $coords = new Astro::Coords( ra => $object->ra(), 
+	                                      dec => $object->dec(),
+					      type => 'J2000',
+					      units => 'sexagesimal' );
+	      my $star = new Astro::Catalog::Item(
+	               Coords   => $coords,
+		       StarType => $object->type(),
+		       SpecType => $object->spec(),
+		       ID       => $object->name(),
+	               MoreInfo => $object->url()
+	        );
+	      push @stars, $star;
+	    }
 	    $catalog->pushstar( @stars );
   
 	 } else {
