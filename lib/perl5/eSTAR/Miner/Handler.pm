@@ -429,7 +429,7 @@ sub handle_objects {
 	 my $simbad = new Astro::SIMBAD::Query( 
                                      RA      => $ra,
                                      Dec     => $dec,
-                                     Error   => $radius
+                                     Error   => $radius,
                                      Units     => "arcsec" );
                                       
 	 #my $simbad = new Astro::Catalog::Query::SIMBAD( RA     => $ra,
