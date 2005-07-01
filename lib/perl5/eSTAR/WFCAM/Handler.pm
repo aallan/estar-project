@@ -203,7 +203,7 @@ sub do_datamining {
   }
     
   unless ($result->fault() ) {
-    if ( $result->result() eq "OK" ) {
+    if ( $result->result() eq "ACK" ) {
        $log->debug( "Recieved an ACK message from data mining service");
     } else {
        $log->warn( "Warning: Recieved status ".$result->result() .
@@ -469,6 +469,10 @@ sub populate_db {
   # ===========
 
   my $contact_db = sub {
+  
+     my $thread_name2 = "DB Contact";
+     $log->thread2( $thread_name, "In eSTAR::WFCAM::Handler::contact_db()...");
+     $log->thread2( $thread_name, "Connecting... (\$tid = ".threads->tid().")");  
 
      #$log->warn("WARNING: NOT CONTACTING DATABASE");
      $log->print("Attempting to contact database...");
@@ -531,13 +535,14 @@ sub populate_db {
        } 
      }
 
-     $log->print("Objects injested into database...");
+     $log->thread2($thread_name, "Objects injested into database...");
 
   
      # CALL DATA MINING PROCESS
      # ======================== 
      
-     $log->print( "Creating thread to data mine candidate variables..." );
+     $log->thread2( $thread_name, 
+               "Creating thread to data mine candidate variables..." );
      my $dispatch = threads->create( \&do_datamining, $var_objects );
   				  
      unless ( defined $dispatch ) {
