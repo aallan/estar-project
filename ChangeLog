@@ -1,3 +1,14 @@
+2005-07-01 Alasdair Allan <aa@astro.ex.ac.uk> &
+           Brad Cavanagh <bradc@jach.hawaii.edu> 
+
+        * bin/interleave_daemon.pl: Added skeleton of the interleave
+	  correlation daemon which now queries the DB web service to
+	  grab the reference catalogue.
+
+2005-07-01 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * WFCAM/Handler.pm: Added query_db() cone search functionality
+	
 2005-06-30 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * bin/data_miner.pl: Added data mining server process and associated
