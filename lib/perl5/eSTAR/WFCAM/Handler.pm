@@ -470,7 +470,7 @@ sub populate_db {
 
   my $contact_db = sub {
   
-     my $thread_name2 = "DB Contact";
+     my $thread_name = "DB Contact";
      $log->thread2( $thread_name, "In eSTAR::WFCAM::Handler::contact_db()...");
      $log->thread2( $thread_name, "Connecting... (\$tid = ".threads->tid().")");  
 
