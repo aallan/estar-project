@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -506,7 +506,7 @@ sub correlate {
   my $compress_waveband = Compress::Zlib::memGzip( $chill_waveband );
   eval { $result = $soap->query_db( 
                SOAP::Data->type(base64 => $compress_coords ),
-               $result,
+               $radius,
 	       SOAP::Data->type(base64 => $compress_waveband) ); };
   if ( $@ ) {
     $log->warn( "Warning: Could not connect to $endpoint");

@@ -614,7 +614,7 @@ sub query_db {
    # coords object 
    my $compress_coords = shift;
    $log->debug( "Uncompressing coordinates...");
-   my $chill_coords  Compress::Zlib::memGunzip( $compress_coords );      
+   my $chill_coords = Compress::Zlib::memGunzip( $compress_coords );      
    $log->debug( "Calling eSTAR::Util::reheat( \$coords )");
    my $coords = eSTAR::Util::reheat( $chill_coords );   
    unless ( UNIVERSAL::isa( $coords, "Astro::Coords" ) ) {
