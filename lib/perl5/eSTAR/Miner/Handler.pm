@@ -423,6 +423,7 @@ sub handle_objects {
          my $ra = $star->ra();
          my $dec = $star->dec();
 
+         $log->debug( "Target RA $ra, Dec. $dec");
          $log->debug( "Building SIMBAD query object...");
 	 my $simbad = new Astro::Catalog::Query::SIMBAD( RA     => $ra,
                                                          Dec    => $dec,
