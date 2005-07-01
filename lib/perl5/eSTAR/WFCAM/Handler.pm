@@ -551,7 +551,7 @@ sub populate_db {
   };
   
   $log->print( "Creating thread to ingest objects in to DB..." );
-  my $ingest = threads->create( \&contact_db );
+  my $ingest = threads->create( $contact_db );
   $ingest->detach();
    
   # RETURN OK MESSAGE TO CLIENT
