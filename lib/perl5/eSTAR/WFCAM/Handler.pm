@@ -670,10 +670,10 @@ sub query_db {
    }  
    
    $log->debug("Performing a cone search on the DB...");
-   $log->debug("RA " . $coords->ra->in_format( 'sexagesimal' ) . ", "
+   $log->debug("RA " . $coords->ra->in_format( 'sexagesimal' ) . ", " .
                "Dec " . $coords->dec->in_format( 'sexagesimal' ) .
 	       " (radius $radius, filter " . $waveband->filter() . ")");
-   $log->debug(
+   $log->print( "Callling cone_search( )...");
    my $catalog;
    eval { $catalog = 
              $db->cone_search($coords, $radius, waveband => $waveband);};
