@@ -498,6 +498,7 @@ sub populate_db {
         return ESTAR__FAULT;
      }   
   
+     $log->print( "Adding " . scalar( @catalogs ) . "catalogues to DB...");
      foreach my $cat ( @catalogs ) {
         $log->debug( "Adding catalogue to database...");
     
@@ -509,7 +510,7 @@ sub populate_db {
            $log->error("Returned ESTAR__FAULT message");
            return ESTAR__FAULT;
         }      
-        $log->debug( "Successfully added catalogue to database..." );
+        $log->print( "Successfully added catalogue to database..." );
      }
 
      foreach my $var_item ( $var_objects->allstars ) {
@@ -674,8 +675,8 @@ sub handle_objects {
 
    $log->debug("Updating the DB with SIMBAD results...");
    foreach my $item ( $catalog->allstars ) {
-     $log->debug( "Updating item with ID " . $item->id . 
- 		  " as SIMBAD_variable" );
+     $log->debug( "Updating item with ID '" . $item->id . 
+ 		  "' as SIMBAD_ident" );
      eval { $db->update_flags( $item, [ 'SIMBAD_ident' ] ); };
      if ( $@ ) {
          my $error = "$@";
