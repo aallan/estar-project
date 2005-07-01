@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -449,7 +449,7 @@ sub correlate {
   $config->set_option("corr.filter", $OPT{"filter"} );
 
   # Convert filter to waveband object
-  my $waveband = new Astro::Waveband( filter => $OPT{filter} );  
+  my $waveband = new Astro::WaveBand( filter => $OPT{filter} );  
    
   # GRAB CENTRE OF FIELD AND RADIUS
   # -------------------------------
