@@ -498,7 +498,7 @@ sub populate_db {
         return ESTAR__FAULT;
      }   
   
-     $log->print( "Adding " . scalar( @catalogs ) . "catalogues to DB...");
+     $log->print( "Adding " . scalar( @catalogs ) . " catalogues to DB...");
      foreach my $cat ( @catalogs ) {
         $log->debug( "Adding catalogue to database...");
     

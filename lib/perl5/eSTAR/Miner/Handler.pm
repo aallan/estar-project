@@ -402,7 +402,7 @@ sub handle_objects {
       my $counter = 0;
       foreach my $star ( $var_objects->allstars() ) {
          $log->warn("Warning: Problem deserialising star $counter from ".
-          " \$var_objects") unless UNIVERSAL::isa($star, "Astro::Catalog::Star");
+          " \$var_objects") unless UNIVERSAL::isa($star, "Astro::Catalog::Item");
          $counter++;
       }  
    
