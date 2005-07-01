@@ -458,8 +458,9 @@ sub handle_objects {
 
             my @stars;
 	    foreach my $object ( @objects ) {
-	      my $coords = new Astro::Coords( ra => $object->ra(), 
-	                                      dec => $object->dec(),
+	      my $coords = new Astro::Coords( #ra => $object->ra(), 
+	                                      #dec => $object->dec(),
+					      ra => $ra, dec => $dec,
 					      type => 'J2000',
 					      units => 'sexagesimal' );
 	      my $star = new Astro::Catalog::Item(
