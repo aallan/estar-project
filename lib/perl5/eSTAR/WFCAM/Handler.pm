@@ -607,14 +607,94 @@ sub query_db {
          ->faultcode("Client.DataError")
          ->faultstring("Client Error: The object is missing user data.")
    }  
+   
+   # PARSE ARGUEMENTS
+   # ================
 
+   # coords object 
+   my $coords = shift;
+   $log->debug( "Uncompressing coordinates...");
+   $coords = Compress::Zlib::memGunzip( $coords );      
+   $log->debug( "Calling eSTAR::Util::reheat( \$coords )");
+   $coords = eSTAR::Util::reheat( $coords );   
+   unless ( UNIVERSAL::isa( $coords, "Astro::Coords" ) ) {
+      my $error = "The Astro::Coords objects was not parsed correctly";
+      $log->error("Error: $error");
+      return ESTAR__FAULT;
+   } else {
+      $log->debug( "Reference appears to be an Astro::Coords object");
+   } 
+   
+   # search radius
+   $log->debug("Grabbing radius...");
+   my $radius = shift;  
+   
+   # waveband object 
+   my $waveband = shift;
+   $log->debug( "Uncompressing waveband...");
+   $waveband = Compress::Zlib::memGunzip( $waveband );
+   $log->debug( "Calling eSTAR::Util::reheat( \$waveband )");
+   unless ( UNIVERSAL::isa( $waveband, "Astro::Waveband" ) ) {
+      my $error = "The Astro::Waveband objects was not parsed correctly";
+      $log->error("Error: $error");
+      return ESTAR__FAULT;
+   } else {
+      $log->debug( "Reference appears to be an Astro::Waveband object");
+   }    
+   
+   # QUERY DB
+   # ========
+    
+   #print Dumper ( $catalog );
+   $log->print("Attempting to contact database...");
+
+   # Set up DB object and add catalogues to database.
+   $log->debug( "Creating a DB backend reference");
+   my $db_ref;
+   eval { $db_ref = new eSTAR::Database::DBbackend(); }; 
+   if ( $@ ) {
+      my $error = "$@";
+      $log->error( "Error: $error" );
+      $log->error("Returned ESTAR__FAULT message");
+      return ESTAR__FAULT;
+   }  
+    
+   $log->debug( "Creating a manipulation object...");
+   my $db;
+   eval { $db = new eSTAR::Database::Manip( DB => $db_ref ); };
+   if ( $@ ) {
+      my $error = "$@";
+      $log->error( "Error: $error" );
+      $log->error("Returned ESTAR__FAULT message");
+      return ESTAR__FAULT;
+   }  
+   
+   $log->debug("Performing a cone search on the DB...");
+   $log->debug("RA " . $coords->ra->in_format( 'sexagesimal' ) . ", "
+               "Dec " . $coords->dec->in_format( 'sexagesimal' ) .
+	       " (radius $radius, filter " . $waveband->filter() . ")");
+   $log->debug(
+   my $catalog;
+   eval { $catalog = 
+             $db->cone_search($coords, $radius, waveband => $waveband);};
+   if ( $@ ) {
+      my $error = "$@";
+      $log->error( "Error: $error" );
+      $log->error("Returned ESTAR__FAULT message");
+      return ESTAR__FAULT;
+   }   
  
-   # RETURN OK MESSAGE TO CLIENT
-   # ===========================
+   # RETURN CATALOG MESSAGE TO CLIENT
+   # ================================
+  
+   $catalog->reset_list(); # otherwise we breake the serialisation
+   $log->debug( "Compressing catalogue...");
+   my $string  = eSTAR::Util::chill( $catalog );
+   my $compressed = Compress::Zlib::memGzip( $string );
    
    # return an OK message to the client
    $log->debug("Returned OK message");
-   return SOAP::Data->name('return', "OK")->type('xsd:string');
+   return SOAP::Data->name('return', $compressed)->type('base64')
 
 }  
 
