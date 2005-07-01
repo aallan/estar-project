@@ -620,6 +620,8 @@ sub query_db {
    unless ( UNIVERSAL::isa( $coords, "Astro::Coords" ) ) {
       my $error = "The Astro::Coords objects was not parsed correctly";
       $log->error("Error: $error");
+      $log->error( Dumper( $coords ) );
+      $log->error( "Returning ESTAR__FAULT...");
       return ESTAR__FAULT;
    } else {
       $log->debug( "Reference appears to be an Astro::Coords object");
@@ -637,6 +639,8 @@ sub query_db {
    unless ( UNIVERSAL::isa( $waveband, "Astro::WaveBand" ) ) {
       my $error = "The Astro::WaveBand objects was not parsed correctly";
       $log->error("Error: $error");
+      $log->error( Dumper( $waveband ) );
+      $log->error( "Returning ESTAR__FAULT...");
       return ESTAR__FAULT;
    } else {
       $log->debug( "Reference appears to be an Astro::WaveBand object");

@@ -15,7 +15,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -497,16 +497,17 @@ sub correlate {
   my $result;
 
   $log->debug( "Calling eSTAR::Util::chill( \$coords )");
-  $coords = eSTAR::Util::chill( $coords );  
+  my $chill_coords = eSTAR::Util::chill( $coords );  
   $log->debug("Compresing \$coords...");
-  $coords = Compress::Zlib::memGzip( $coords );
+  my $compress_coords = Compress::Zlib::memGzip( $chill_coords );
   $log->debug( "Calling eSTAR::Util::chill( \$waveband )");
-  $waveband = eSTAR::Util::chill( $waveband ); 
+  my $chill_waveband = eSTAR::Util::chill( $waveband ); 
   $log->debug("Compresing \$waveband...");
-  $coords = Compress::Zlib::memGzip( $waveband );
-  eval { $result = $soap->query_db( SOAP::Data->type(base64 => $coords ),
-                                    $result,
-				    SOAP::Data->type(base64 => $waveband) ); };
+  my $compress_waveband = Compress::Zlib::memGzip( $chill_waveband );
+  eval { $result = $soap->query_db( 
+               SOAP::Data->type(base64 => $compress_coords ),
+               $result,
+	       SOAP::Data->type(base64 => $compress_waveband) ); };
   if ( $@ ) {
     $log->warn( "Warning: Could not connect to $endpoint");
     $log->warn( "Warning: $@" );
@@ -521,7 +522,6 @@ sub correlate {
   }
     
   if ($result->fault() ) {
-    $log->warn( "Warning: Recieved status ".$result->result() ." from DB");
     $log->warn("Warning: recieved fault code (" . $result->faultcode() .")" );
     $log->warn("Warning: " . $result->faultstring() );
     return ESTAR__FAULT;
