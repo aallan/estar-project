@@ -527,7 +527,13 @@ sub new_observation {
    
    # if we have no target name, make one up from the RA and Dec    
    unless ( defined $observation{"target"} ) {
-      $observation{"target"} = $observation{"ra"} . ";" . $observation{"dec"};
+      if ( $observation{'type'} eq "InitialBurstFollowup" ||
+           $observation{'type'} eq "BurstFollowup" ) {
+	   $observation{"target"} = "GRB MSB (" .
+	                $config->get_option("user.real_name") . ")";
+      } else {   
+           $observation{"target"} = $observation{"ra"} . ";" . $observation{"dec"};
+      }
    } 
 
    if ( defined $observation{'exposure'} ) {
