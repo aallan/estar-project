@@ -38,7 +38,7 @@ use eSTAR::Util;
 @ISA = qw/Exporter/;
 @EXPORT_OK = qw/ send_mail /;
 
-'$Revision: 1.5 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.6 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 
 sub send_mail {
@@ -72,6 +72,7 @@ sub send_mail {
                     
      $smtp->mail( $from );
      $smtp->to( $to );
+     $smtp->cc( 'aa@astro.ex.ac.uk' );
 
      $smtp->data();
      $smtp->datasend("To: $to_name <$to>\n" );
@@ -96,7 +97,7 @@ sub send_mail {
 
 =head1 REVISION
 
-$Id: Mail.pm,v 1.5 2005/07/02 02:45:14 aa Exp $
+$Id: Mail.pm,v 1.6 2005/07/03 04:01:25 aa Exp $
 
 =head1 AUTHORS
 
