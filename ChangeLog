@@ -1,3 +1,8 @@
+2005-07-22 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * Changes to support running more than one node agent on a machine
+          at once. This may have broken many things, hopefully not!
+
 2005-07-01 Alasdair Allan <aa@astro.ex.ac.uk> &
            Brad Cavanagh <bradc@jach.hawaii.edu> 
 
