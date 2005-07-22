@@ -23,7 +23,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: node_agent.pl,v 1.13 2005/07/22 16:35:26 aa Exp $
+#     $Id: node_agent.pl,v 1.14 2005/07/22 16:50:29 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -69,7 +69,7 @@ have a duplicate copy of the current user database.
 
 =head1 REVISION
 
-$Id: node_agent.pl,v 1.13 2005/07/22 16:35:26 aa Exp $
+$Id: node_agent.pl,v 1.14 2005/07/22 16:50:29 aa Exp $
 
 =head1 AUTHORS
 
@@ -86,7 +86,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.13 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.14 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -403,7 +403,7 @@ if ( defined $cmd_soap_port ) {
    $config->set_option("soap.port", $cmd_soap_port );
 }
 if ( defined $cmd_tcp_port ) {
-   $log->warn("Warning: Setting SOAP port to $cmd_tcp_port");
+   $log->warn("Warning: Setting TCP/IP port to $cmd_tcp_port");
    $config->set_option("tcp.port", $cmd_tcp_port );
 }
 
@@ -762,6 +762,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: node_agent.pl,v $
+# Revision 1.14  2005/07/22 16:50:29  aa
+# big fix
+#
 # Revision 1.13  2005/07/22 16:35:26  aa
 # bug fix
 #
