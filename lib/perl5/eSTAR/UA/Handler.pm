@@ -745,14 +745,16 @@ sub new_observation {
       return SOAP::Data->name('return', $error )->type('xsd:string');
    }    
   
-   my $dn_port = $config->get_option( "dn.port" );
    foreach my $i ( 0 ... $#NODES ) {
+
+
+      my ($dn_host, $dn_port) = split ":", $NODES[$i];
    
       my $score_request = $observation_object->score_request();
       my $score_rtml = $score_request->dump_rtml();
       
       # end point
-      my $endpoint = "http://" . $NODES[$i] . ":" . $dn_port;
+      my $endpoint = "http://" . $dn_host . ":" . $dn_port;
       my $uri = new URI($endpoint);
    
       # create a user/passwd cookie
@@ -770,7 +772,7 @@ sub new_observation {
       $soap->proxy($endpoint, cookie_jar => $cookie_jar, timeout => 30);
     
       # report
-      $log->print("Connecting to " . $NODES[$i] . "..." );
+      $log->print("Connecting to $dn_host:$dn_port..." );
     
       # fudge RTML document?
       $score_rtml =~ s/</&lt;/g;
@@ -781,7 +783,7 @@ sub new_observation {
       eval { $result = $soap->handle_rtml( 
                SOAP::Data->name('query', $score_rtml )->type('xsd:string')); };
       if ( $@ ) {
-         $log->warn("Warning: Failed to connect to " . $NODES[$i] );
+         $log->warn("Warning: Failed to connect to $dn_host:$dn_port" );
          $log->warn("Warning: Skipping to next node..."  );
          next;    
       }
@@ -807,13 +809,13 @@ sub new_observation {
       # check for errors, if none stuff the score reply into the
       # observation object
       unless ( defined $ers_reply->determine_type() )  {
-         $log->warn( "Warning: node $NODES[$i] must be down.." );
+         $log->warn( "Warning: node $dn_host:$dn_port must be down.." );
       } else {
 
          my $type = $ers_reply->determine_type();       
-         $log->debug( "Got a '" . $type . "' message from $NODES[$i]");  
+         $log->debug( "Got a '" . $type . "' message from $dn_host:$dn_port");  
          my $score_reply = new eSTAR::RTML::Parse( RTML => $ers_reply );
-         $observation_object->score_reply( $NODES[$i], $score_reply );
+         $observation_object->score_reply( "$dn_host:$dn_port", $score_reply );
       
       }   
         
@@ -893,8 +895,8 @@ sub new_observation {
       return SOAP::Data->name('return', $error )->type('xsd:string');   
    }
    
-   # BUILD  OBSERVATION REQUEST
-   # --------------------------
+   # BUILD OBSERVATION REQUEST
+   # -------------------------
   
    $log->debug("Building an observation request");
   
@@ -1133,7 +1135,7 @@ sub new_observation {
    my $obs_rtml = $obs_request->dump_rtml();   
  
    # end point
-   my $endpoint = "http://" . $best_node . ":" . $dn_port;
+   my $endpoint = "http://" . $best_node;
    my $uri = new URI($endpoint); 
    
    # create a user/passwd cookie
