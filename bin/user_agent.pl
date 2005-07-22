@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: user_agent.pl,v 1.16 2005/05/12 08:21:17 aa Exp $
+#     $Id: user_agent.pl,v 1.17 2005/07/22 15:04:38 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -65,7 +65,7 @@ itself.
 
 =head1 REVISION
 
-$Id: user_agent.pl,v 1.16 2005/05/12 08:21:17 aa Exp $
+$Id: user_agent.pl,v 1.17 2005/07/22 15:04:38 aa Exp $
 
 =head1 AUTHORS
 
@@ -82,7 +82,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.16 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.17 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -331,26 +331,18 @@ if ( $config->get_state("ua.unique_process") == 1 ) {
    my $real_name = ${$current_user}{"GCOS"};
   
    # user defaults
-   $config->set_option("user.user_name", $ENV{"USER"} );
-   $config->set_option("user.real_name", $real_name );
-   $config->set_option("user.email_address", $ENV{"USER"}."@".hostdomain());
-   $config->set_option("user.institution", "eSTAR Project" );
+   $config->set_option("user.user_name", "nt" );
+   $config->set_option("user.real_name", "Nial Tanvir" );
+   $config->set_option("user.email_address", 'nial.tanvir@orange.net');
+   $config->set_option("user.institution", "University of Hertfordshire" );
    $config->set_option("user.notify", 1 );
    
    # server parameters
    $config->set_option("server.host", $ip );
    $config->set_option("server.port", 8000 );
 
-   # burster agent parameters
-   #$config->set_option("ba.host", $ip );
-   #$config->set_option("ba.port", 8001 );
-
-   # interprocess communication
-   #$config->set_option("ba.user", "agent" );
-   #$config->set_option("ba.passwd", "InterProcessCommunication" );
-
    # node port
-   $config->set_option("dn.port", 8080 );
+   $config->set_option("dn.default_port", 8080 );
 
    # USNO-A2 options defaults
    $config->set_option("usnoa2.radius", 10);
@@ -409,12 +401,12 @@ $ua->set_ua( $lwp );
 # ===========================================================================
 
 # list of "default" known nodes
-#$config->set_option( "nodes.Exeter", "dn2.astro.ex.ac.uk" );
-#$config->set_option( "nodes.LJM", "150.204.240.111" );
-#$config->set_option( "nodes.UKIRT", "estar.ukirt.jach.hawaii.edu" );
-$config->set_option( "nodes.LTproxy", "estar.astro.ex.ac.uk" );
-$config->set_option( "nodes.FTNproxy", "estar2.astro.ex.ac.uk" );
-#$config->set_option( "nodes.Test", "127.0.0.1" );
+#$config->set_option( "nodes.Exeter", "dn2.astro.ex.ac.uk:8080" );
+#$config->set_option( "nodes.LJM", "150.204.240.111:8080" );
+$config->set_option( "nodes.UKIRT", "estar.ukirt.jach.hawaii.edu:8080" );
+#$config->set_option( "nodes.LTproxy", "estar.astro.ex.ac.uk:8080" );
+#$config->set_option( "nodes.FTNproxy", "estar2.astro.ex.ac.uk:8080" );
+#$config->set_option( "nodes.Test", "127.0.0.1:8080" );
 $status = $config->write_option( );
 
 # ===========================================================================
@@ -593,6 +585,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: user_agent.pl,v $
+# Revision 1.17  2005/07/22 15:04:38  aa
+# Updated node lines
+#
 # Revision 1.16  2005/05/12 08:21:17  aa
 # Added both FTN and LT proxy hosts to nodes list
 #
