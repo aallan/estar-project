@@ -1389,7 +1389,21 @@ sub handle_rtml {
    # ------------------
    
    # validate the incoming message
-   my $rtml_message = new eSTAR::RTML( Source => $rtml );
+   my $rtml_message;
+   eval { $rtml_message = new eSTAR::RTML( Source => $rtml ); };
+   
+   if ( $@ ) {
+       my $error = "$@";
+       
+       $log->error( "Error: Problem parsing the RTML document" );
+       $log->error( "RTML Document:\n$rtml" );
+       $log->error( "Returned SOAP FAULT message" );
+       die SOAP::Fault
+         ->faultcode("Client.DataError")
+         ->faultstring("Client Error: $error\nRTML Document:\n$rtml");
+   }      
+   
+   
    my $type = $rtml_message->determine_type();
    if ( defined $type ) {
      $log->debug( "Got a '" . $type . "' message");  
@@ -1478,7 +1492,7 @@ sub handle_rtml {
       
    # FAILED MESSAGE
    # ============== 
-   } elsif ( $type eq "failed" ) { 
+   } elsif ( $type eq "failed" || $type eq "fail" ) { 
      
       $log->warn( "Warning: Got an 'failed' message...");      
       $log->warn( "Storing 'failed' RTML in \$observation_object");

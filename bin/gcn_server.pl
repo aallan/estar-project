@@ -22,7 +22,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: gcn_server.pl,v 1.15 2005/05/09 13:43:49 aa Exp $
+$Id: gcn_server.pl,v 1.16 2005/07/22 14:30:26 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -41,7 +41,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.15 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.16 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -232,17 +232,17 @@ if ( $config->get_state("gcn.unique_process") == 1 ) {
     
    # user defaults
    #$config->set_option("user.user_name", $ENV{"USER"} );
-   #$config->set_option("user.real_name", $real_name );
-   #$config->set_option("user.email_address", $ENV{"USER"}."@".hostdomain());
+   $config->set_option("user.real_name", "Nial Tanvir" );
+   $config->set_option("user.email_address", 'nial.tanvir@orange.net');
    #$config->set_option("user.institution", "eSTAR Project" );
 
    # user agentrameters
-   $config->set_option("ua.host", $ip );
+   $config->set_option("ua.host", "144.173.229.21" );
    $config->set_option("ua.port", 8000 );
 
    # interprocess communication
-   $config->set_option("gcn.user", "agent" );
-   $config->set_option("gcn.passwd", "InterProcessCommunication" );
+   $config->set_option("gcn.user", "nt" );
+   $config->set_option("gcn.passwd", "GRBoverride" );
 
    # connection options defaults
    $config->set_option("connection.timeout", 5 );
@@ -434,22 +434,23 @@ my $tcp_callback = sub {
          # -------------------
          
          
-         #$log->print( "Sending notification email...");
+         $log->print( "Sending notification email...");
          
-         #my $mail_body = 
-         #  "Recieved a TYPE_SWIFT_XRT_POSITION_SRC message\n" .
-         #  "Position $ra, $dec +- $error acrmin\n" .
-         #  "\n" .
-         #  "This message indicates that the eSTAR system has recieved\n" . 
-         #  "a postion update alert and is currently attempting to place\n" .
-         #  "followup observations into the UKIRT queue. If you do not\n" .
-         #  "recieve notification that this has been successful you may\n" .
-         #  "wish to attempt manual followup.\n";
-         #
-         #eSTAR::Mail::send_mail( $opt{email_address}, $opt{real_name},
-         #                        'aa@astro.ex.ac.uk',
-         #                        'eSTAR ACK SWIFT XPT postion',
-         #                        $mail_body );            
+         my $mail_body = 
+           "Recieved a TYPE_SWIFT_XRT_POSITION_SRC message\n" .
+           "Position $ra, $dec +- $error acrmin\n" .
+           "\n" .
+           "This message indicates that the eSTAR system has recieved\n" . 
+           "a postion update alert and is currently attempting to place\n" .
+           "followup observations into the UKIRT queue. If you do not\n" .
+           "recieve notification that this has been successful you may\n" .
+           "wish to attempt manual followup.\n";
+         
+         eSTAR::Mail::send_mail( $config->get_option("user.email_address"), 
+                                 $config->get_option("user.real_name"),
+                                 'aa@astro.ex.ac.uk',
+                                 'eSTAR ACK SWIFT XPT postion',
+                                 $mail_body );            
 
          # Make SOAP calls
          # ---------------

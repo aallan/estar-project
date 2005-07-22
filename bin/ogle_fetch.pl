@@ -20,7 +20,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: ogle_fetch.pl,v 1.6 2005/05/12 08:24:01 aa Exp $
+$Id: ogle_fetch.pl,v 1.7 2005/07/22 14:30:26 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -37,7 +37,7 @@ use vars qw / $VERSION /;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -670,14 +670,14 @@ my ( $start_time, $end_time );
  
 # modify start time
 unless( defined $opt{"start"} ) {
-   $start_time = "$year-$month-$day" . "T12:00:00";
+   $start_time = "$year-$month-$day" . "T15:00:00";
 } else {
    $start_time = $opt{"start"};
 } 
 
 # modify end time
 unless( defined $opt{"start"} ) {
-   $end_time = "$year-$month-$dayplusone" . "T12:00:00";
+   $end_time = "$year-$month-$dayplusone" . "T15:00:00";
 } else {
    $end_time = $opt{"end"};  
 }    
