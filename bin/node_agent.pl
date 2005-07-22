@@ -23,7 +23,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: node_agent.pl,v 1.9 2005/07/22 14:58:00 aa Exp $
+#     $Id: node_agent.pl,v 1.10 2005/07/22 16:16:06 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -69,7 +69,7 @@ have a duplicate copy of the current user database.
 
 =head1 REVISION
 
-$Id: node_agent.pl,v 1.9 2005/07/22 14:58:00 aa Exp $
+$Id: node_agent.pl,v 1.10 2005/07/22 16:16:06 aa Exp $
 
 =head1 AUTHORS
 
@@ -86,7 +86,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.10 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -366,21 +366,6 @@ if ( $config->get_state("na.unique_process") == 1 ) {
    $config->set_option( "ers.port", 8080 );
    #$config->set_option( "ers.host", "132.160.98.239" );
    #$config->set_option( "ers.port", 8080 );
-
-   # DN scheduler parameters
-   $config->set_option( "scheduler.host", $ip );
-   $config->set_option( "scheduler.port", 2222 );
-
-   # DN webcam parameters
-   $config->set_option( "webcam.host", $ip );
-   $config->set_option( "webcam.port", 2051 );
-   
-   # LDAP parameters
-   $config->set_option( "ldap.host", $ip );
-   $config->set_option( "ldap.port", 389 );
-   $config->set_option( "ldap.timeout", 2 );
-   $config->set_option( "ldap.branch", "o=eSTAR" );
-   $config->set_option( "ldap.filter", "(objectclass=*)" );
    
    # interprocess communication
    $config->set_option( "ua.user", "agent" );
@@ -765,6 +750,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: node_agent.pl,v $
+# Revision 1.10  2005/07/22 16:16:06  aa
+# Removed useless stuff
+#
 # Revision 1.9  2005/07/22 14:58:00  aa
 # Added named startup, we can chaneg the process name from the command line, ncessary if we're going to run more than one node agent per machine
 #
