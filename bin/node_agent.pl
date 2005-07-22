@@ -23,7 +23,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: node_agent.pl,v 1.11 2005/07/22 16:30:59 aa Exp $
+#     $Id: node_agent.pl,v 1.12 2005/07/22 16:34:39 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -69,7 +69,7 @@ have a duplicate copy of the current user database.
 
 =head1 REVISION
 
-$Id: node_agent.pl,v 1.11 2005/07/22 16:30:59 aa Exp $
+$Id: node_agent.pl,v 1.12 2005/07/22 16:34:39 aa Exp $
 
 =head1 AUTHORS
 
@@ -86,7 +86,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -142,7 +142,7 @@ use Config;
 use Data::Dumper;
 use Getopt::Long;
 
-my ( $name, $cmd_port );   
+my ( $name, $cmd_soap_port, $cmd_tcp_port );   
 GetOptions( "name=s" => \$name,
             "soap=s" => \$cmd_soap_port,
             "tcp=s"  => \$cmd_tcp_port );
@@ -762,6 +762,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: node_agent.pl,v $
+# Revision 1.12  2005/07/22 16:34:39  aa
+# bug fix
+#
 # Revision 1.11  2005/07/22 16:30:59  aa
 # tcp port can change values as well
 #
