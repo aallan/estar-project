@@ -23,7 +23,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: node_agent.pl,v 1.8 2005/05/12 16:51:56 aa Exp $
+#     $Id: node_agent.pl,v 1.9 2005/07/22 14:58:00 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -69,7 +69,7 @@ have a duplicate copy of the current user database.
 
 =head1 REVISION
 
-$Id: node_agent.pl,v 1.8 2005/05/12 16:51:56 aa Exp $
+$Id: node_agent.pl,v 1.9 2005/07/22 14:58:00 aa Exp $
 
 =head1 AUTHORS
 
@@ -86,7 +86,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -96,6 +96,7 @@ BEGIN {
       exit;
     }
   }
+  
 }
 
 # ===========================================================================
@@ -139,10 +140,22 @@ use CfgTie::TieUser;
 #
 use Config;
 use Data::Dumper;
+use Getopt::Long;
+
+my ( $name, $cmd_port );   
+GetOptions( "name=s" => \$name,
+            "port=s" => \$cmd_port );
+
+my $process_name;
+if ( defined $name ) {
+  $process_name = "node_agent_" . $name;
+} else { 
+  $process_name = "node_agent";
+}  
 
 # tag name of the current process, this identifies where log and 
 # status files for this process will be stored.
-my $process = new eSTAR::Process( "node_agent" );  
+my $process = new eSTAR::Process( $process_name );  
 
 # tag name of the current process, this identifies where log and 
 # status files for this process will be stored.
@@ -337,8 +350,13 @@ if ( $config->get_state("na.unique_process") == 1 ) {
     
    # SOAP server parameters
    $config->set_option( "soap.host", $ip );
-   $config->set_option( "soap.port", 8080 );
-  
+   
+   if ( defined $cmd_port ) {
+      $config->set_option( "soap.port", $cmd_port );
+   } else {
+      $config->set_option( "soap.port", 8080 );
+   }
+   
    # TCP/IP server parameters
    $config->set_option( "tcp.host", $ip );
    $config->set_option( "tcp.port", 2050 );
@@ -387,6 +405,10 @@ if ( $config->get_state("na.unique_process") == 1 ) {
    $status = $config->write_option( );
    $status = $config->write_state();
 }
+
+$log->warn("Warning: Command line override of default port");
+$log->warn("Warning: Setting SOAP port to $cmd_port");
+$config->set_option("soap.port", $cmd_port ) if defined $cmd_port;
 
 # ===========================================================================
 # H T T P   U S E R   A G E N T 
@@ -743,6 +765,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: node_agent.pl,v $
+# Revision 1.9  2005/07/22 14:58:00  aa
+# Added named startup, we can chaneg the process name from the command line, ncessary if we're going to run more than one node agent per machine
+#
 # Revision 1.8  2005/05/12 16:51:56  aa
 # Initial default set to LT
 #
