@@ -2,6 +2,8 @@
 
         * Changes to support running more than one node agent on a machine
           at once. This may have broken many things, hopefully not!
+          
+        * bin/raptor_gateway.pl: Skeleton for RAPTOR gateway  
 
 2005-07-01 Alasdair Allan <aa@astro.ex.ac.uk> &
            Brad Cavanagh <bradc@jach.hawaii.edu> 
@@ -10,8 +12,6 @@
 	  correlation daemon which now queries the DB web service to
 	  grab the reference catalogue.
           
-        * bin/raptor_gateway.pl: Skeleton for RAPTOR gateway  
-
 2005-07-01 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * WFCAM/Handler.pm: Added query_db() cone search functionality
