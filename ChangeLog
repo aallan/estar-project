@@ -9,6 +9,8 @@
         * bin/interleave_daemon.pl: Added skeleton of the interleave
 	  correlation daemon which now queries the DB web service to
 	  grab the reference catalogue.
+          
+        * bin/raptor_gateway.pl: Skeleton for RAPTOR gateway  
 
 2005-07-01 Alasdair Allan <aa@astro.ex.ac.uk>
 
