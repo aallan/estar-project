@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: user_agent.pl,v 1.17 2005/07/22 15:04:38 aa Exp $
+#     $Id: user_agent.pl,v 1.18 2005/07/22 15:05:43 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -65,7 +65,7 @@ itself.
 
 =head1 REVISION
 
-$Id: user_agent.pl,v 1.17 2005/07/22 15:04:38 aa Exp $
+$Id: user_agent.pl,v 1.18 2005/07/22 15:05:43 aa Exp $
 
 =head1 AUTHORS
 
@@ -82,7 +82,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.17 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.18 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -331,10 +331,10 @@ if ( $config->get_state("ua.unique_process") == 1 ) {
    my $real_name = ${$current_user}{"GCOS"};
   
    # user defaults
-   $config->set_option("user.user_name", "nt" );
-   $config->set_option("user.real_name", "Nial Tanvir" );
-   $config->set_option("user.email_address", 'nial.tanvir@orange.net');
-   $config->set_option("user.institution", "University of Hertfordshire" );
+   $config->set_option("user.user_name", $ENV{"USER"} );
+   $config->set_option("user.real_name", $real_name );
+   $config->set_option("user.email_address", $ENV{"USER"}."@".hostdomain());
+   $config->set_option("user.institution", "eSTAR Project" );
    $config->set_option("user.notify", 1 );
    
    # server parameters
@@ -585,6 +585,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: user_agent.pl,v $
+# Revision 1.18  2005/07/22 15:05:43  aa
+# Fixed to be generic user
+#
 # Revision 1.17  2005/07/22 15:04:38  aa
 # Updated node lines
 #
