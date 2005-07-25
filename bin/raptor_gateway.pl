@@ -36,7 +36,7 @@ requests for the RAPTOR/TALON telescopes.
 
 =head1 REVISION
 
-$Id: raptor_gateway.pl,v 1.1 2005/07/22 17:18:06 aa Exp $
+$Id: raptor_gateway.pl,v 1.2 2005/07/25 17:30:13 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -77,8 +77,8 @@ $OPT{"VERSION"} = $VERSION;
 #
 # Threading code (ithreads)
 # 
-use threads;
-use threads::shared;
+#use threads;
+#use threads::shared;
 
 #
 # DN modules
@@ -106,10 +106,23 @@ use CfgTie::TieUser;
 #
 use Config;
 use Data::Dumper;
+use Getopt::Long;
+
+my ( $name, $cmd_soap_port, $cmd_tcp_port );   
+GetOptions( "name=s" => \$name,
+            "soap=s" => \$cmd_soap_port,
+            "tcp=s"  => \$cmd_tcp_port );
+
+my $process_name;
+if ( defined $name ) {
+  $process_name = "raptor_gateway_" . $name;
+} else { 
+  $process_name = "raptor_gateway";
+}  
 
 # tag name of the current process, this identifies where log and 
 # status files for this process will be stored.
-my $process = new eSTAR::Process( "raptor_gateway" );  
+my $process = new eSTAR::Process( $process_name );  
 
 # tag name of the current process, this identifies where log and 
 # status files for this process will be stored.
@@ -148,17 +161,17 @@ $log->set_debug(ESTAR__DEBUG);
 $log->header("Starting RAPTOR Gateway: Version $VERSION");
 
 # Check for threading
-$log->debug("Config: useithreads = " . $Config{'useithreads'});
-if($threads::shared::threads_shared) {
-    $log->debug("Config: threads::shared loaded");
-} 
+#$log->debug("Config: useithreads = " . $Config{'useithreads'});
+#if($threads::shared::threads_shared) {
+#    $log->debug("Config: threads::shared loaded");
+#}
 
-if ( $Config{'useithreads'} ne "define" ) {
-   # Perl isn't threaded, this is NOT good
-   my $error = "FatalError: Perl mis-configured, ithreads must be enabled";
-   $log->error($error);
-   throw eSTAR::Error::FatalError($error, ESTAR__FATAL);      
-}
+#if ( $Config{'useithreads'} ne "define" ) {
+#   my $error = "FatalError: Perl mis-configured, ithreads must be enabled";
+#   $log->error($error);
+#   throw eSTAR::Error::FatalError($error, ESTAR__FATAL);      
+#}
+$log->warn("Warning: threading disabled..."); 
 
 # A G E N T  C O N F I G U R A T I O N ----------------------------------------
 
@@ -227,7 +240,7 @@ unless ( defined $status ) {
   $log->error( $error );
   throw eSTAR::Error::FatalError($error, ESTAR__FATAL); 
 } else {    
-  $log->debug("Node Agent PID: " . $config->get_state( "gateway.pid" ) );
+  $log->debug("Gateway PID: " . $config->get_state( "gateway.pid" ) );
 }
 
 # L A T E  L O A D I N G  M O D U L E S ------------------------------------- 
@@ -254,6 +267,7 @@ use Net::Domain qw(hostname hostdomain);
 #
 use Socket;
 use IO::Socket;
+use IO::Socket::INET;
 use SOAP::Lite;
 use HTTP::Cookies;
 use URI;
@@ -304,10 +318,22 @@ if ( $config->get_state("gateway.unique_process") == 1 ) {
     
    # SOAP server parameters
    $config->set_option( "soap.host", $ip );
-   $config->set_option( "soap.port", 8080 );
-
+   if ( defined $cmd_soap_port ) {
+      $config->set_option( "soap.port", $cmd_soap_port );
+   } else {
+      $config->set_option( "soap.port", 8080 );
+   }  
+    
+   # TCP/IP server parameters
+   $config->set_option( "tcp.host", $ip );
+   if ( defined $cmd_tcp_port ) {
+      $config->set_option( "tcp.port", $cmd_tcp_port );
+   } else {
+      $config->set_option( "tcp.port", 2050 );
+   }
+   
    # RAPTOR server parameters
-   $config->set_option( "raptor.host", "raptor.lanl.gov" );
+   $config->set_option( "raptor.host", "127.0.0.1" );
    $config->set_option( "raptor.port", 5170 );
    
    # interprocess communication
@@ -374,7 +400,7 @@ my $listener_thread;
 # anonymous subroutine which starts a SOAP server which will accept
 # incoming SOAP requests and route them to the appropriate module
 my $soap_server = sub {
-   my $thread_name = "SOAP Thread";
+   my $thread_name = "Fork";
    
    # create SOAP daemon
    $log->thread($thread_name, "Starting server on port " . 
@@ -409,29 +435,45 @@ my $soap_server = sub {
 
 };
 
-# S T A R T   T C P / I P   S E R V E R -------------------------------------
+# S T A R T   S O A P   S E R V E R -----------------------------------------
 
-# Spawn the TCP/IP server thread
-$log->print("Spawning SOAP Server thread...");
-$listener_thread = threads->create( $soap_server );
+my ( $pid, $dead );
 
+#  $dead = $pid when the process dies
+#  $dead = -1 if the process doesn't exist
+#  $dead = 0 if the process isn't dead yet
+$dead = waitpid ($pid, &WNOHANG);
+if ( $dead != 0 ) {
+  FORK: {
+    #  1. The fork failed ($pid is undefined)
+    #  2. We are the parent ($pid != 0)
+    $pid = fork();
+       
+    unless ( defined $pid && $pid == 0 ) {
+       
+
+       while ( 1 ) { 
+          # loop forever
+       }       
+       
+    } 
+    # From this point on, we are the child.
+    
+    &$soap_server();
+       
+  }   
+}       
+          
+             
 # ===========================================================================
 # E N D 
 # ===========================================================================
-
-# Wait for threads to join, this shouldn't happen under normal circumstances
-# so we must have generated an error if they do, catch the returned status
-# on the join and try and exit gracefully.
-$status = $listener_thread->join() if defined $listener_thread;
-$log->warn( "Warning: SOAP Thread has been terminated abnormally..." );
-$log->error( $status );
-kill_agent( ESTAR__FATAL );
 
 # tidy up
 END {
    # we must have generated an error somewhere to have gotten here,
    # run the exit code to clean(ish)ly shutdown the agent.
-   $log->warn("Warning: Terminating process from parent thread");
+   $log->warn("Warning: Terminating from parent process");
    kill_agent( ESTAR__FATAL );
 }
 
@@ -470,7 +512,7 @@ sub kill_agent {
 
    # close out log files
    $log->closeout();
-   
+ 
    # close the door behind you!   
    exit;
 }                                
@@ -478,6 +520,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_gateway.pl,v $
+# Revision 1.2  2005/07/25 17:30:13  aa
+# End of night check-in
+#
 # Revision 1.1  2005/07/22 17:18:06  aa
 # Skeleton for RAPTOR gateway
 #
