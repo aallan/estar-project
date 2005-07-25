@@ -38,7 +38,7 @@ use eSTAR::Error qw /:try/;
       qw/ make_cookie make_id freeze thaw reheat melt query_simbad 
           fudge_message fudge_user fudge_project /;
 
-'$Revision: 1.17 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.18 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # This is the code that is used to generate cookies based on the user
 # name and password. It is NOT cryptographically sound, it is just a
@@ -55,6 +55,7 @@ sub make_cookie {
 sub make_id {
 
    my $log = eSTAR::Logging::get_reference();
+   my $config = eSTAR::Config::get_reference();
    
    # CONTEXT FILE
    # ------------
@@ -99,8 +100,8 @@ sub make_id {
    $version =~ s/\./-/g;
    
    my $string = ':WFCAM:v' . $version . 
-                ':run#'    . get_state(  'mining.unique_process' ) .
-                ':user#'   . get_option( 'user.user_name' );   
+                ':run#'    . $config->get_state(  'mining.unique_process' ) .
+                ':user#'   . $config->get_option( 'user.user_name' );   
              
    # increment ID number
    $number = $number + 1;
@@ -300,21 +301,22 @@ sub query_simbad {
    # grab references to single instance objects
    my $log = eSTAR::Logging::get_reference();
    my $process = eSTAR::Process::get_reference();
+   my $config = eSTAR::Config::get_reference();
    
    $log->debug( "Called eSTAR::Util::query_simbad()..." );
 
 
    my $proxy;
-   unless ( get_option("connection.proxy") eq "NONE" ) {
-      $proxy = get_option("connection.proxy");
+   unless ( $config->get_option("connection.proxy") eq "NONE" ) {
+      $proxy = $config->get_option("connection.proxy");
    }
       
    $log->warn( "Warning: Using deprecated Astro::SIMBAD module..." );
    my $simbad_query = new Astro::SIMBAD::Query( 
                          Target  => $target,
-                         Timeout => get_option( "connection.timeout" ),
+                         Timeout => $config->get_option( "connection.timeout" ),
                          Proxy   => $proxy,
-                         URL     => get_option( "simbad.url" ) );
+                         URL     => $config->get_option( "simbad.url" ) );
                          
    $log->debug( "Contacting CDS SIMBAD (". $simbad_query->url() . ")..."  );
  
@@ -463,7 +465,7 @@ sub fudge_project {
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.17 2005/06/30 21:46:07 aa Exp $
+$Id: Util.pm,v 1.18 2005/07/25 08:02:08 aa Exp $
 
 =head1 AUTHORS
 
