@@ -397,7 +397,9 @@ sub handle_rtml {
           # $isobs must now be set to bad
           $isobs = 0;
           $log->warn(  $config->get_option( "dn.telescope") . 
-                      " doesn't have a " . $parsed->filter() . " filter...");
+                      " doesn't have a " . $parsed->filter() . " filter on " . 
+		   eSTAR::JACH::Util::current_instrument( 
+	              $config->get_option( "dn.telescope") ));
       }
                           
       # BUILD MESSAGE
