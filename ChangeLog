@@ -1,3 +1,13 @@
+2005-07-23 Alasdair Allan <aa@astro.ex.ac.uk>
+        
+        * bin/raptor_gateway.pl: Fully working RAPTOR gateway, works for
+          observing requests, and for pushing alerts to RAPTOR via the
+          handle_voevent() method call.
+        
+        * bin/raptor_alert.pl: Gateway for incoming alerts from RAPTOR into
+          the eSTAR network, seems to be working. Alerts of course currently
+          have nowhere to go!
+          
 2005-07-22 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * Changes to support running more than one node agent on a machine

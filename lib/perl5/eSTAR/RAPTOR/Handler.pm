@@ -7,7 +7,7 @@ package eSTAR::RAPTOR::Handler;
 use lib $ENV{"ESTAR_PERL5LIB"};     
 
 use strict;
-use subs qw( new set_user ping handle_rtml  );
+use subs qw( new set_user ping handle_rtml handle_voevent );
 
 #
 # General modules
@@ -251,7 +251,87 @@ sub handle_rtml {
    return SOAP::Data->name('return', $response )->type('xsd:string');
 
 } 
-                             
+
+
+# subroutine to handle incoming VOEvent messages from the eSTAR network
+sub handle_voevent {
+   my $self = shift;
+   my $rtml = shift;
+
+   $log->debug("Called handle_voevent() from \$tid = ".threads->tid());
+   
+   # not callable as a static method, so must have a value
+   # user object stored within             
+   unless ( my $user = $self->{_user}) {
+      $log->warn("SOAP Request: The object is missing user data");
+      return "The object is missing user data"
+   }
+  
+   # SEND TO RAPTOR
+   # --------------
+   
+   # pass modified VOEvent onto the RAPTOR server
+   
+   $log->print("Opening socket connection to RAPTOR server..." ) ;
+  
+   my $sock = new IO::Socket::INET( 
+                    PeerAddr => $config->get_option( "raptor.host" ),
+                    PeerPort => $config->get_option( "raptor.port" ),
+                    Proto    => "tcp",
+                    Timeout => $config->get_option( "connection.timeout" ) );
+   my ( $response );                        
+   unless ( $sock ) {
+      
+      # we have an error
+      my $error = "$!";
+      chomp($error);
+      $log->error( "Error: $error") ;
+      $log->error("Returned ERROR message");
+      return SOAP::Data->name('return', "ERROR: $error" )->type('xsd:string');
+   
+   } else { 
+ 
+      $log->print("Sending VOEvent message to RAPTOR...");
+ 
+      # work out message length
+      my $header = pack( "N", 7 );
+      my $bytes = pack( "N", length($rtml) );
+       
+      # send message                                   
+      $log->debug( "Sending " . length($rtml) . " bytes to " . 
+                         $config->get_option( "raptor.host" ));
+      print $sock $header;
+      print $sock $bytes;
+      $sock->flush();
+      print $sock $rtml;
+      $sock->flush();  
+          
+      # grab response
+      $log->debug( "Waiting for response from RAPTOR... " );
+      
+      my ( $reply_bytes, $reply_length );
+      read $sock, $reply_bytes, 4;
+      $reply_length = unpack( "N", $reply_bytes );
+      read $sock, $response, $reply_length; 
+
+      $log->debug( "Read " . $reply_length . " bytes to " . 
+                         $config->get_option( "raptor.host" ));      
+      close($sock);
+      
+      $log->debug( "Recieved a message from RAPTOR..." );
+  
+   }
+      
+   # SEND TO USER_AGENT
+   # ------------------
+   
+   # return an ACK response to the user_agent
+
+   $log->print("Returned 'ACK' response to user agent");
+   return SOAP::Data->name('return', "ACK" )->type('xsd:string');
+
+} 
+                            
 1;                                
                   
                   
