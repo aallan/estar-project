@@ -36,7 +36,7 @@ requests for the RAPTOR/TALON telescopes.
 
 =head1 REVISION
 
-$Id: raptor_gateway.pl,v 1.5 2005/07/26 11:05:43 aa Exp $
+$Id: raptor_gateway.pl,v 1.6 2005/07/26 11:06:21 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -462,7 +462,7 @@ my $tcp_callback = sub {
   # grab result 
   my $result;
   eval { $result = $soap->handle_rtml(  
-              SOAP::Data->name('document', $rtml)->type('xsd:string') ); };
+              SOAP::Data->name('document', $message)->type('xsd:string') ); };
   if ( $@ ) {
      $log->error("Error: Failed to connect to " . $host );
   } else {
@@ -677,6 +677,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_gateway.pl,v $
+# Revision 1.6  2005/07/26 11:06:21  aa
+# Bug fix
+#
 # Revision 1.5  2005/07/26 11:05:43  aa
 # Working RAPTOR Gateway, messages going from eSTAR to RAPTOR transit the gateway. Immediate responses, such as scoring and rejects are pushed back. However the gateway also holds open a continous socket connection to RAPTOR for update and complete messages to transit back on
 #
