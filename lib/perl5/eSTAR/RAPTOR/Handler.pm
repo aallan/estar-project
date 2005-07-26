@@ -155,80 +155,19 @@ sub handle_rtml {
       $log->warn("SOAP Request: The object is missing user data");
       return "The object is missing user data"
    }
-   
-   # LOOKUP STATE FILE
-   # -----------------
-   my $file = 
-      File::Spec->catfile( Config::User->Home(), '.estar', 
-                           $process->get_process(), 'lookup.dat' );
-     
-   my $LOOK = new Config::Simple( syntax   => 'ini',
-                                  mode     => O_RDWR|O_CREAT );
-       
-   unless ( defined $LOOK ) {
-      # can't read/write to state file, scream and shout!
-      my $error = "FatalError: " . $Config::Simple::errstr;
-      $log->error(chomp($error));
-      return SOAP::Data->name('return', chomp($error))->type('xsd:string');      
-   }
-   
-   # if it exists read the current contents in...
-   if ( open ( CONFIG, "$file" ) ) {
-      close( CONFIG );
-      $LOOK->read( $file );
-   }  
-   
-   #use Data::Dumper; print Dumper( $LOOK ); 
-   
-   # GRAB MESSAGE
-   # ------------
-   
-   my ( $host, $port, $ident ) = eSTAR::Util::fudge_message( $rtml );  
-        
-   # stuff it into global lookup hash
-   my $line = "<IntelligentAgent host=\"$host\" port=\"$port\">";
-   
-   #print "LINE: $line";
-   $LOOK->param( "id.$ident", $line );
-
-   #use Data::Dumper; print Dumper( $LOOK ); 
-   
-   # commit ID stuff to STATE file
-   my $status = $LOOK->write( $file );
-   unless ( defined $status ) {
-      # can't read/write to options file, bail out
-      my $error = $Config::Simple::errstr;
-      $log->error("$error");
-      throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
-   } else {    
-      $log->debug('Lookup table: updated ' . $file ) ;
-   }                       
-   
-   # change the hostname and port in the rtml
-   $log->debug( "Replacing $host:$port with ". 
-                         $config->get_option( "tcp.host" ) . ":" .
-                         $config->get_option( "tcp.port" ) ) ;
-                            
-   my $current_host = $config->get_option( "tcp.host" );
-   my $current_port = $config->get_option( "tcp.port" );
-   $rtml =~ s/$host/$current_host/;
-   $rtml =~ s/$port/$current_port/;
-        
-   #$log->debug( "\n" . $rtml );   
-
-   
+  
    # SEND TO ERS
    # -----------
    
-   # pass modified RTML onto the ERS server
+   # pass modified RTML onto the RAPTOR server
    
-   $log->print("Passing modified RTML to ERS server..." ) ;
+   $log->print("Opening socket connection to RAPTOR server..." ) ;
   
    my $sock = new IO::Socket::INET( 
-                           PeerAddr => $config->get_option( "raptor.host" ),
-                           PeerPort => $config->get_option( "raptor.port" ),
-                           Proto    => "tcp",
-                           Timeout => $config->get_option( "connection.timeout" ) );
+                    PeerAddr => $config->get_option( "raptor.host" ),
+                    PeerPort => $config->get_option( "raptor.port" ),
+                    Proto    => "tcp",
+                    Timeout => $config->get_option( "connection.timeout" ) );
    my ( $response );                        
    unless ( $sock ) {
       
@@ -241,7 +180,7 @@ sub handle_rtml {
    
    } else { 
  
-      $log->print("Sending RTML to ERS\n$rtml");
+      $log->print("Sending RTML to RAPTOR\n$rtml");
  
       # work out message length
       my $header = pack( "N", 7 );
@@ -279,25 +218,8 @@ sub handle_rtml {
    # modifiy the response to include the correct IA information
    $log->debug("Updating host information...");   
 
-   ( $host, $port, $ident ) = eSTAR::Util::fudge_message( $response );  
-   
-   # grab the original IntelligentAgent tage from lookup hash
-        
-   # stuff it into global lookup hash
-   my $original = $LOOK->param( "id.$ident" );
-     
-   # change the hostname and port in the rtml
-   $log->debug( "Replacing original <IntelligentAgent> XML tag" ) ;
+   my ( $host, $port, $ident ) = eSTAR::Util::fudge_message( $response );  
 
-   my $current = "<IntelligentAgent host=\"$host\" port=\"$port\">";
-   $response =~ s/$current/$original/;
- 
-    
-   #print "CURRENT: $current\n";
-   #print "ORIGINAL: $original\n";
-        
-   #$log->debug( "\n" . $response );   
-   
    # make sure we have quote marks around the host and port numbers
    my $nonvalid = "<IntelligentAgent host=$host port=$port>";
    if ( $response =~ $nonvalid ) {

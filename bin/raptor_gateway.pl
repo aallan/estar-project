@@ -36,7 +36,7 @@ requests for the RAPTOR/TALON telescopes.
 
 =head1 REVISION
 
-$Id: raptor_gateway.pl,v 1.2 2005/07/25 17:30:13 aa Exp $
+$Id: raptor_gateway.pl,v 1.3 2005/07/26 08:48:16 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -254,6 +254,7 @@ use Proc::Simple;
 use Proc::Killfam;
 use Digest::MD5 'md5_hex';
 use Fcntl qw(:DEFAULT :flock);
+use Errno qw(EWOULDBLOCK EINPROGRESS);
 use Config::Simple;
 use Config::User;
 
@@ -333,7 +334,7 @@ if ( $config->get_state("gateway.unique_process") == 1 ) {
    }
    
    # RAPTOR server parameters
-   $config->set_option( "raptor.host", "127.0.0.1" );
+   $config->set_option( "raptor.host", "144.173.229.16" );
    $config->set_option( "raptor.port", 5170 );
    
    # interprocess communication
@@ -385,6 +386,18 @@ $ua->set_ua( $lwp );
 
 # A N O N Y M O U S   S U B - R O U T I N E S -------------------------------
 
+# TCP/IP callback
+
+my $tcp_callback = sub {
+  my $message = shift;  
+  my $thread_name = "TCP/IP";
+
+  $log->thread2($thread_name, "Callback from TCP client...");
+  $log->debug( Dumper( $message ) );
+  return;
+};
+
+
 # subroutines used by the SOAP server need to be defined here before we 
 # attempt to start the server, otherwise we'll get an undefined error 
 
@@ -400,7 +413,7 @@ my $listener_thread;
 # anonymous subroutine which starts a SOAP server which will accept
 # incoming SOAP requests and route them to the appropriate module
 my $soap_server = sub {
-   my $thread_name = "Fork";
+   my $thread_name = "SOAP";
    
    # create SOAP daemon
    $log->thread($thread_name, "Starting server on port " . 
@@ -437,37 +450,94 @@ my $soap_server = sub {
 
 # S T A R T   S O A P   S E R V E R -----------------------------------------
 
-my ( $pid, $dead );
+# Spawn the SOAP server thread
+$log->print("Spawning SOAP Server thread...");
+$listener_thread = threads->create( $soap_server );
 
-#  $dead = $pid when the process dies
-#  $dead = -1 if the process doesn't exist
-#  $dead = 0 if the process isn't dead yet
-$dead = waitpid ($pid, &WNOHANG);
-if ( $dead != 0 ) {
-  FORK: {
-    #  1. The fork failed ($pid is undefined)
-    #  2. We are the parent ($pid != 0)
-    $pid = fork();
-       
-    unless ( defined $pid && $pid == 0 ) {
-       
+# O P E N   I N C O M I N G   C L I E N T  -----------------------------------
 
-       while ( 1 ) { 
-          # loop forever
-       }       
+SOCKET: { 
        
-    } 
-    # From this point on, we are the child.
-    
-    &$soap_server();
-       
-  }   
-}       
-          
+$log->print("Opening client connection to " . 
+            $config->get_option( "raptor.host") . ":" .
+            $config->get_option( "raptor.port") );    
+my $sock = new IO::Socket::INET( 
+              PeerAddr => $config->get_option( "raptor.host" ),
+              PeerPort => $config->get_option( "raptor.port" ),
+              Proto    => "tcp" );
+
+unless ( $sock ) {
+    my $error = "$@";
+    chomp($error);
+    $log->warn("Warning: $error");
+    $log->warn("Warning: Trying to reopen socket connection...");
+    sleep 5;
+    redo SOCKET;
+};           
+
+
+my $response;
+$log->print( "Socket open, listening..." );
+my $flag = 1;    
+while( $flag ) {
+
+   my $length;  
+   my $bytes_read = sysread( $sock, $length, 4 );
+
+   next unless defined $bytes_read;
+   
+   $log->debug("Recieved a packet from RAPTOR..." );
+   if ( $bytes_read > 0 ) {
+
+      $log->debug( "Recieved $bytes_read bytes on " .
+                  $config->get_option( "raptor.port" ) . 
+                  " from " . $sock->peerhost() );    
+      
+      $length = unpack( "N", $length );
+      if ( $length > 512000 ) {
+         $log->error( "Error: Message length is > 512000 characters" );
+         $log->error( "Error: Message claims to be $length long" );
+         $log->warn( "Warning: Discarding bogus message" );
+      } else {   
+         
+         $log->debug( "Message is $length characters" );               
+         $bytes_read = sysread( $sock, $response, $length); 
+      
+         # callback to handle incoming RTML     
+         $log->print("Detaching callback thread..." );
+         my $callback_thread = 
+             threads->create ( $tcp_callback, $response );
+         $callback_thread->detach(); 
+      }
+                      
+   } elsif ( $bytes_read == 0 && $! != EWOULDBLOCK ) {
+      $log->warn("Recieved an empty packet on ".
+                  $config->get_option( "raptor.port" ) . 
+                  " from " . $sock->peerhost() );   
+      $log->warn( "Closing socket connection..." );      
+      $flag = undef;
+   }
+
+   unless ( $sock->connected() ) {
+      $log->warn("\nWarning: Not connected, socket closed...");
+      $flag = undef;
+   }    
+
+}  
+  
+$log->warn( "Warning: Trying to reopen socket connection..." );
+redo SOCKET;
+
+   
+}          
              
 # ===========================================================================
 # E N D 
 # ===========================================================================
+
+$status = $listener_thread->join() if defined $listener_thread;
+$log->warn( "Warning: SOAP Thread has been terminated abnormally..." );
+$log->error( $status );
 
 # tidy up
 END {
@@ -520,6 +590,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_gateway.pl,v $
+# Revision 1.3  2005/07/26 08:48:16  aa
+# Updated, now working?
+#
 # Revision 1.2  2005/07/25 17:30:13  aa
 # End of night check-in
 #
