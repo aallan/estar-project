@@ -36,7 +36,7 @@ requests for the RAPTOR/TALON telescopes.
 
 =head1 REVISION
 
-$Id: raptor_gateway.pl,v 1.3 2005/07/26 08:48:16 aa Exp $
+$Id: raptor_gateway.pl,v 1.4 2005/07/26 11:02:51 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -91,6 +91,9 @@ use eSTAR::Util;
 use eSTAR::Process;
 use eSTAR::Config;
 use eSTAR::UserAgent;
+use eSTAR::RTML;
+use eSTAR::RTML::Parse;
+use eSTAR::RTML::Build;
 
 #
 # Config modules
@@ -334,7 +337,8 @@ if ( $config->get_state("gateway.unique_process") == 1 ) {
    }
    
    # RAPTOR server parameters
-   $config->set_option( "raptor.host", "144.173.229.16" );
+   #$config->set_option( "raptor.host", "144.173.229.16" );
+   $config->set_option( "raptor.host", "144.173.229.236" );
    $config->set_option( "raptor.port", 5170 );
    
    # interprocess communication
@@ -391,10 +395,40 @@ $ua->set_ua( $lwp );
 my $tcp_callback = sub {
   my $message = shift;  
   my $thread_name = "TCP/IP";
-
   $log->thread2($thread_name, "Callback from TCP client...");
-  $log->debug( Dumper( $message ) );
-  return;
+
+  # This should be an RTML message, lets check.
+  my $rtml;
+  eval { $rtml = new eSTAR::RTML( Source => $message ) };
+  if ( $@ ) {
+     $log->error( "Error: $@" );
+     $log->warn( "Warning: Unable to parse RAPTOR reply...");
+     $log->warn( "$message");
+     $log->warn( "Warning: Returning ESTAR__FAULT");
+     return ESTAR__FAULT;
+  }
+  
+  unless ( defined $rtml ) {
+     $log->warn( "Warning: Unable to parse RAPTOR reply...");
+     $log->warn( "$message");       
+     $log->warn( "Warning: Returning ESTAR__FAULT");
+     return ESTAR__FAULT;
+  }
+   
+  my $type = $rtml->determine_type();
+  $log->debug( "Recieved RTML message of type '$type'" );   
+
+  unless( $type eq 'update' || $type eq 'complete' ||
+          $type eq 'incomplete' || $type eq 'fail' ) {
+          
+     $log->warn( "Warning: Message of type $type not forwarded" );
+     $log->debug( "Returning ESTAR__OK" );
+     return ESTAR__OK;
+  }
+  
+  $log->debug( Dumper( $rtml ) );   
+  $log->debug( "Returning ESTAR__OK" );
+  return ESTAR__OK;
 };
 
 
@@ -590,6 +624,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_gateway.pl,v $
+# Revision 1.4  2005/07/26 11:02:51  aa
+# Working RAPTOR Gateway, messages going from eSTAR to RAPTOR transit the gateway. Immediate responses, such as scoring and rejects are pushed back. However the gateway also holds open a continous socket connection to RAPTOR for update and complete messages to transit back on
+#
 # Revision 1.3  2005/07/26 08:48:16  aa
 # Updated, now working?
 #
