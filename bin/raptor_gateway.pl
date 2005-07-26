@@ -36,7 +36,7 @@ requests for the RAPTOR/TALON telescopes.
 
 =head1 REVISION
 
-$Id: raptor_gateway.pl,v 1.4 2005/07/26 11:02:51 aa Exp $
+$Id: raptor_gateway.pl,v 1.5 2005/07/26 11:05:43 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -404,14 +404,14 @@ my $tcp_callback = sub {
      $log->error( "Error: $@" );
      $log->warn( "Warning: Unable to parse RAPTOR reply...");
      $log->warn( "$message");
-     $log->warn( "Warning: Returning ESTAR__FAULT");
+     $log->warn( "Warning: Returning ESTAR__FAULT, exiting callback...");
      return ESTAR__FAULT;
   }
   
   unless ( defined $rtml ) {
      $log->warn( "Warning: Unable to parse RAPTOR reply...");
      $log->warn( "$message");       
-     $log->warn( "Warning: Returning ESTAR__FAULT");
+     $log->warn( "Warning: Returning ESTAR__FAULT, exiting callback...");
      return ESTAR__FAULT;
   }
    
@@ -422,12 +422,65 @@ my $tcp_callback = sub {
           $type eq 'incomplete' || $type eq 'fail' ) {
           
      $log->warn( "Warning: Message of type $type not forwarded" );
-     $log->debug( "Returning ESTAR__OK" );
+     $log->debug( "Returning ESTAR__OK, exiting callback..." );
      return ESTAR__OK;
   }
   
-  $log->debug( Dumper( $rtml ) );   
-  $log->debug( "Returning ESTAR__OK" );
+  $log->debug( Dumper( $rtml ) );
+  
+  # GRAB MESSAGE
+  # ------------
+  my ( $host, $port, $ident ) = eSTAR::Util::fudge_message( $message );  
+      
+  # SEND TO USER_AGENT
+  # ------------------
+              
+  # end point
+  my $endpoint = "http://" . $host . ":" . $port;
+  my $uri = new URI($endpoint);
+  
+  # create a user/passwd cookie
+  my $cookie = eSTAR::Util::make_cookie( $config->get_option( "ua.user" ), 
+                            $config->get_option( "ua.passwd" ) );
+   
+  my $cookie_jar = HTTP::Cookies->new();
+  $cookie_jar->set_cookie( 0, user => $cookie, '/', 
+                             $uri->host(), $uri->port());
+
+  # create SOAP connection
+  my $soap = new SOAP::Lite();
+  
+  $soap->uri('urn:/user_agent'); 
+  $soap->proxy($endpoint, cookie_jar => $cookie_jar);
+   
+  # report
+  $log->print("Connecting to " . $host . "..." );
+  
+  # fudge RTML document? 
+  $rtml =~ s/</&lt;/g;
+      
+  # grab result 
+  my $result;
+  eval { $result = $soap->handle_rtml(  
+              SOAP::Data->name('document', $rtml)->type('xsd:string') ); };
+  if ( $@ ) {
+     $log->error("Error: Failed to connect to " . $host );
+  } else {
+    
+     # Check for errors
+     unless ($result->fault() ) {
+       $log->debug("Transport Status: " . $soap->transport()->status() );
+     } else {
+       $log->error("Fault Code   : " . $result->faultcode() );
+       $log->error("Fault String : " . $result->faultstring() );
+     }
+     
+     my $reply = $result->result();   
+     $log->debug("Got a '" . $reply . "' message from $host" ); 
+  
+  }     
+     
+  $log->debug( "Returning ESTAR__OK, exiting callback..." );
   return ESTAR__OK;
 };
 
@@ -624,6 +677,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_gateway.pl,v $
+# Revision 1.5  2005/07/26 11:05:43  aa
+# Working RAPTOR Gateway, messages going from eSTAR to RAPTOR transit the gateway. Immediate responses, such as scoring and rejects are pushed back. However the gateway also holds open a continous socket connection to RAPTOR for update and complete messages to transit back on
+#
 # Revision 1.4  2005/07/26 11:02:51  aa
 # Working RAPTOR Gateway, messages going from eSTAR to RAPTOR transit the gateway. Immediate responses, such as scoring and rejects are pushed back. However the gateway also holds open a continous socket connection to RAPTOR for update and complete messages to transit back on
 #

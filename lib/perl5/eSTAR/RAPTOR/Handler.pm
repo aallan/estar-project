@@ -216,7 +216,7 @@ sub handle_rtml {
    # ------------
    
    # modifiy the response to include the correct IA information
-   $log->debug("Updating host information...");   
+   $log->debug("Verifying the <IntelligentAgent> tag formatting...");   
 
    my ( $host, $port, $ident ) = eSTAR::Util::fudge_message( $response );  
 
