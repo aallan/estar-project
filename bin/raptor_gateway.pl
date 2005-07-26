@@ -36,7 +36,7 @@ requests for the RAPTOR/TALON telescopes.
 
 =head1 REVISION
 
-$Id: raptor_gateway.pl,v 1.7 2005/07/26 11:06:33 aa Exp $
+$Id: raptor_gateway.pl,v 1.8 2005/07/26 11:35:59 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -77,8 +77,8 @@ $OPT{"VERSION"} = $VERSION;
 #
 # Threading code (ithreads)
 # 
-#use threads;
-#use threads::shared;
+use threads;
+use threads::shared;
 
 #
 # DN modules
@@ -164,17 +164,16 @@ $log->set_debug(ESTAR__DEBUG);
 $log->header("Starting RAPTOR Gateway: Version $VERSION");
 
 # Check for threading
-#$log->debug("Config: useithreads = " . $Config{'useithreads'});
-#if($threads::shared::threads_shared) {
-#    $log->debug("Config: threads::shared loaded");
-#}
+$log->debug("Config: useithreads = " . $Config{'useithreads'});
+if($threads::shared::threads_shared) {
+    $log->debug("Config: threads::shared loaded");
+}
 
-#if ( $Config{'useithreads'} ne "define" ) {
-#   my $error = "FatalError: Perl mis-configured, ithreads must be enabled";
-#   $log->error($error);
-#   throw eSTAR::Error::FatalError($error, ESTAR__FATAL);      
-#}
-$log->warn("Warning: threading disabled..."); 
+if ( $Config{'useithreads'} ne "define" ) {
+   my $error = "FatalError: Perl mis-configured, ithreads must be enabled";
+   $log->error($error);
+   throw eSTAR::Error::FatalError($error, ESTAR__FATAL);      
+}
 
 # A G E N T  C O N F I G U R A T I O N ----------------------------------------
 
@@ -215,7 +214,7 @@ unless ( defined $number ) {
 # increment ID number
 $number = $number + 1;
 $config->set_state( "gateway.unique_process", $number );
-$log->debug("Setting na.unique_process = $number"); 
+$log->debug("Setting gateway.unique_process = $number"); 
   
 # commit ID stuff to STATE file
 $status = $config->write_state();
@@ -327,14 +326,6 @@ if ( $config->get_state("gateway.unique_process") == 1 ) {
    } else {
       $config->set_option( "soap.port", 8080 );
    }  
-    
-   # TCP/IP server parameters
-   $config->set_option( "tcp.host", $ip );
-   if ( defined $cmd_tcp_port ) {
-      $config->set_option( "tcp.port", $cmd_tcp_port );
-   } else {
-      $config->set_option( "tcp.port", 2050 );
-   }
    
    # RAPTOR server parameters
    #$config->set_option( "raptor.host", "144.173.229.16" );
@@ -396,6 +387,7 @@ my $tcp_callback = sub {
   my $message = shift;  
   my $thread_name = "TCP/IP";
   $log->thread2($thread_name, "Callback from TCP client...");
+  $log->thread2($thread_name, "Handling broadcast message from RAPTOR");
 
   # This should be an RTML message, lets check.
   my $rtml;
@@ -426,12 +418,14 @@ my $tcp_callback = sub {
      return ESTAR__OK;
   }
   
-  $log->debug( Dumper( $rtml ) );
+  #$log->debug( Dumper( $rtml ) );
   
   # GRAB MESSAGE
   # ------------
-  my ( $host, $port, $ident ) = eSTAR::Util::fudge_message( $message );  
-      
+  my $parse = new eSTAR::RTML::Parse( RTML => $rtml );
+  my $host = $parse->host();
+  my $port = $parse->port();
+     
   # SEND TO USER_AGENT
   # ------------------
               
@@ -677,6 +671,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_gateway.pl,v $
+# Revision 1.8  2005/07/26 11:35:59  aa
+# Bug fix
+#
 # Revision 1.7  2005/07/26 11:06:33  aa
 # Bug fix
 #

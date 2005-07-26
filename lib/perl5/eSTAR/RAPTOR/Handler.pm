@@ -180,7 +180,7 @@ sub handle_rtml {
    
    } else { 
  
-      $log->print("Sending RTML to RAPTOR\n$rtml");
+      $log->print("Sending RTML to RAPTOR...");
  
       # work out message length
       my $header = pack( "N", 7 );
@@ -216,11 +216,17 @@ sub handle_rtml {
    # ------------
    
    # modifiy the response to include the correct IA information
-   $log->debug("Verifying the <IntelligentAgent> tag formatting...");   
-
-   my ( $host, $port, $ident ) = eSTAR::Util::fudge_message( $response );  
+   $log->debug("Parsing incoming RTML document...");   
+   my $rtml = new eSTAR::RTML( Source => $response );
+   my $type = $rtml->determine_type();
+   $log->debug("Document is of type '$type'...");
+   my $parse = new eSTAR::RTML::Parse( RTML => $rtml );
+   my $host = $parse->host();
+   my $port = $parse->port();
+   my $ident = $parse->id();
 
    # make sure we have quote marks around the host and port numbers
+   $log->debug("Verifying the <IntelligentAgent> tag formatting...");   
    my $nonvalid = "<IntelligentAgent host=$host port=$port>";
    if ( $response =~ $nonvalid ) {
       $log->debug( "Performing kludge to work round invalid XML" );
@@ -236,12 +242,12 @@ sub handle_rtml {
    # ------------------
    
    # do a find and replace, munging the response, shouldn't need to do it?
-   $log->debug( "Returned RTML message\n$response");
+   $log->debug( "Kludging RTML for transport...");
    $response =~ s/</&lt;/g;
    
    # return an RTML response to the user_agent
 
-   $log->debug("Returned RTML response");
+   $log->print("Returned RTML response");
    return SOAP::Data->name('return', $response )->type('xsd:string');
 
 } 
