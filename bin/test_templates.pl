@@ -66,7 +66,7 @@
   $log->print( "There are " . scalar( $sp->msb() ) . 
       " MSBs in the science programme" );
   my $curr_inst = eSTAR::JACH::Util::current_instrument( "UKIRT" );
-  $log->print( "The current instrument on UKIRT is $curr_instrument"); 
+  $log->print( "The current instrument on UKIRT is $curr_inst"); 
   
   # scan through MSBs
   $log->print("\nLooking for InitialBurstFollowup template...");
