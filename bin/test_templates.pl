@@ -68,8 +68,30 @@
 
   
   # scan through MSBs
-  $log->print( "Scanning through MSB templates..." );
   my $name = "InitialBurstFollowup";
+  check_msbs( $sp, $name );
+  
+  my $name = "BurstFollowup";
+  check_msbs( $sp, $name );  
+
+  exit;
+
+  unless ( defined $template ) {
+        
+     # return the RTML document
+     $log->warn("Warning: Template for '" . $name . "' not found");
+     $log->warn("Warning: Unable to find a matching template MSB");
+  } else {
+     $log->print("Verified template for '" . $name . "' MSB");
+  }      
+
+  exit;
+
+sub check_msbs {
+  my $sp = shift;
+  my $name = shift;
+
+  $log->print( "Scanning through MSB templates..." );
   my $template;
   for my $m ( $sp->msb() ) {
      $log->debug( "Found MSB '" . $m->msbtitle() . "'" );
@@ -108,16 +130,5 @@
      }  
   }
   $log->print("All MSBs have now been checked...");
-
-  exit;
-
-  unless ( defined $template ) {
-        
-     # return the RTML document
-     $log->warn("Warning: Template for '" . $name . "' not found");
-     $log->warn("Warning: Unable to find a matching template MSB");
-  } else {
-     $log->print("Verified template for '" . $name . "' MSB");
-  }      
-
-  exit;
+  
+}  
