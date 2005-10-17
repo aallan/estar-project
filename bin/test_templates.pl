@@ -62,23 +62,22 @@
      $log->error( "Error: $error" );
      exit;
   }; 
-
-
-  # scan through MSBs
-  $log->print( "Scanning through MSB templates..." );
-  
-  my $name = "InitialBurstFollowup";
-  
-  my $template;
-  
+ 
   $log->print( "There are " . scalar( $sp->msb() ) . 
       " MSBs in the science programme" );
-      
+
+  
+  # scan through MSBs
+  $log->print( "Scanning through MSB templates..." );
+  my $name = "InitialBurstFollowup";
+  my $template;
   for my $m ( $sp->msb() ) {
-     $log->debug( "Found template " . $m->msbtitle() );
-     my $template = has_blank_targets( $m, $name );
+     $log->debug( "Found MSB '" . $m->msbtitle() . "'" );
+     #my $template = has_blank_targets( $m, $name );
   }
   $log->print("All MSBs have now been checked...");
+
+  exit;
 
   unless ( defined $template ) {
         
