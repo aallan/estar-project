@@ -65,36 +65,62 @@
  
   $log->print( "There are " . scalar( $sp->msb() ) . 
       " MSBs in the science programme" );
-
+  my $curr_inst = eSTAR::JACH::Util::current_instrument( "UKIRT" );
+  $log->print( "The current instrument on UKIRT is $curr_instrument"); 
   
   # scan through MSBs
   $log->print("\nLooking for InitialBurstFollowup template...");
   my $name = "InitialBurstFollowup";
-  check_msbs( $sp, $name );
-  
-  $log->print("\nLooking for BurstFollowup template...");
-  my $name = "BurstFollowup";
-  check_msbs( $sp, $name );  
-
-  exit;
-
-  unless ( defined $template ) {
+  my $initial = check_msbs( $sp, $name );
+  unless ( defined $initial ) {
         
      # return the RTML document
      $log->warn("Warning: Template for '" . $name . "' not found");
      $log->warn("Warning: Unable to find a matching template MSB");
+     
+     my $mail_body = 
+     "The eSTAR embedded agent was unable to find a valid template file\n".
+     "for the $name observation on $curr_inst. If this is not fixed then\n".
+     "GCN alerts will not be observed by the eSTAR system.";
+     eSTAR::Mail::send_mail( 'aa@astro.ex.ac.uk', 'Alasdair Allan',
+                             'frossie@jach.hawaii.edu',
+                             "eSTAR $curr_inst template files",
+                              $mail_body );
+                                   
   } else {
      $log->print("Verified template for '" . $name . "' MSB");
   }      
-
+  
+  $log->print("\nLooking for BurstFollowup template...");
+  my $name = "BurstFollowup";
+  my $followup = check_msbs( $sp, $name );  
+  unless ( defined $followup ) {
+        
+     # return the RTML document
+     $log->warn("Warning: Template for '" . $name . "' not found");
+     $log->warn("Warning: Unable to find a matching template MSB");
+     
+     my $mail_body = 
+     "The eSTAR embedded agent was unable to find a valid template file\n".
+     "for the $name observation on $curr_inst. If this is not fixed then\n".
+     "GCN alerts will not be observed by the eSTAR system.";
+     eSTAR::Mail::send_mail( 'aa@astro.ex.ac.uk', 'Alasdair Allan',
+                             'frossie@jach.hawaii.edu',
+                             "eSTAR $curr_inst template files",
+                              $mail_body );
+                                   
+  } else {
+     $log->print("Verified template for '" . $name . "' MSB");
+  }     
   exit;
 
+  
 sub check_msbs {
   my $sp = shift;
   my $name = shift;
 
   $log->print( "Scanning through MSB templates..." );
-  my $template;
+  my $template = undef;
   for my $m ( $sp->msb() ) {
      $log->debug( "Found MSB '" . $m->msbtitle() . "'" );
      if ( $m->msbtitle()  =~ /\b$name/ ) {
@@ -132,5 +158,6 @@ sub check_msbs {
      }  
   }
   $log->print("All MSBs have now been checked...");
+  return $template;
   
 }  
