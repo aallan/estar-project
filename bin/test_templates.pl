@@ -100,6 +100,7 @@
      $log->warn("Warning: Template for '" . $name . "' not found");
      $log->warn("Warning: Unable to find a matching template MSB");
      
+     $log->warn("Warning: Emailing alert to user...");
      my $mail_body = 
      "The eSTAR embedded agent was unable to find a valid template file\n".
      "for the $name observation on $curr_inst. If this is not fixed then\n".
@@ -111,7 +112,9 @@
                                    
   } else {
      $log->print("Verified template for '" . $name . "' MSB");
-  }     
+  }   
+  
+  $log->print("Exiting...");  
   exit;
 
   
