@@ -73,7 +73,7 @@
   my $template;
   for my $m ( $sp->msb() ) {
      $log->debug( "Found MSB '" . $m->msbtitle() . "'" );
-     #my $template = has_blank_targets( $m, $name );
+     $template = has_blank_targets( $m, $name );
   }
   $log->print("All MSBs have now been checked...");
 
@@ -97,7 +97,7 @@ sub has_blank_targets {
    my $template = undef;
    if ( $m->msbtitle()  =~ /\b$name/ ) {
     
-      $log->debug( "Matched '" . $m->msbtitle() . "'" );
+      $log->debug("Matched '" . $m->msbtitle() . "' as a possible template...");
       
       # Grab the instrument from this MSB
       my $minfo = $m->info();
@@ -113,6 +113,7 @@ sub has_blank_targets {
          # If it has blank targets it is a template MSB
          if ( $m->hasBlankTargets() ) {
 
+           $log->debug( "This MSB has blank targets..." );
            $log->debug( "Confirmed that this is a template MSB" );
            $template = $m;
            last;
@@ -121,7 +122,7 @@ sub has_blank_targets {
            last;
          }
       } else {
-         $log->debug( "MSB and current instrument do not match..." );
+         $log->warn( "Warning: MSB and current instrument do not match..." );
       }   
        
    } else {
