@@ -73,7 +73,39 @@
   my $template;
   for my $m ( $sp->msb() ) {
      $log->debug( "Found MSB '" . $m->msbtitle() . "'" );
-     $template = has_blank_targets( $m, $name );
+     if ( $m->msbtitle()  =~ /\b$name/ ) {
+    
+        $log->debug("Matched '". $m->msbtitle()."' as a possible template...");
+      
+        # Grab the instrument from this MSB
+        my $minfo = $m->info();
+        my $msb_inst = $minfo->instrument();
+        $log->debug( "This MSB is for $msb_inst" );
+      
+        my $curr_inst = eSTAR::JACH::Util::current_instrument( "UKIRT" );
+        $log->debug( "Current instrument is $curr_inst" );
+      
+        if ( $msb_inst eq $curr_inst ) {
+           $log->debug( "MSB and current instrument match..." );
+      
+           # If it has blank targets it is a template MSB
+           if ( $m->hasBlankTargets() ) {
+
+             $log->debug( "This MSB has blank targets..." );
+             $log->debug( "Confirmed that this is a template MSB" );
+             $template = $m;
+             last;
+           } else {
+             $log->warn( "Warning: MSB does not have blank targets" );
+             last;
+           }
+        } else {
+           $log->warn( "Warning: MSB and current instrument do not match..." );
+        }   
+       
+     } else {
+        $log->debug( "Discarding '" . $m->msbtitle() . "'" );
+     }  
   }
   $log->print("All MSBs have now been checked...");
 
@@ -89,44 +121,3 @@
   }      
 
   exit;
-
-sub has_blank_targets {
-   my $m = shift;
-   my $name = shift;
-   
-   my $template = undef;
-   if ( $m->msbtitle()  =~ /\b$name/ ) {
-    
-      $log->debug("Matched '" . $m->msbtitle() . "' as a possible template...");
-      
-      # Grab the instrument from this MSB
-      my $minfo = $m->info();
-      my $msb_inst = $minfo->instrument();
-      $log->debug( "This MSB is for $msb_inst" );
-      
-      my $curr_inst = eSTAR::JACH::Util::current_instrument( "UKIRT" );
-      $log->debug( "Current instrument is $curr_inst" );
-      
-      if ( $msb_inst eq $curr_inst ) {
-         $log->debug( "MSB and current instrument match..." );
-      
-         # If it has blank targets it is a template MSB
-         if ( $m->hasBlankTargets() ) {
-
-           $log->debug( "This MSB has blank targets..." );
-           $log->debug( "Confirmed that this is a template MSB" );
-           $template = $m;
-           last;
-         } else {
-           $log->warn( "Warning: MSB does not have blank targets" );
-           last;
-         }
-      } else {
-         $log->warn( "Warning: MSB and current instrument do not match..." );
-      }   
-       
-   } else {
-      $log->debug( "Discarding '" . $m->msbtitle() . "'" );
-   }   
-   return $template;
-}     
