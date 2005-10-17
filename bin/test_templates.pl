@@ -1,27 +1,41 @@
-#!/software/perl-5.8.6/bin/perl
+#!/jac_sw/estar/perl-5.8.6/bin/perl
   
   #use strict;
   
-  #use SOAP::Lite +trace => all;
-  use SOAP::Lite;
-  
-  use Digest::MD5 'md5_hex';
-  use URI;
-  use HTTP::Cookies;
+  use vars qw /$VERSION/;
+
+  $VERSION = '0.1';
+
+  #
+  # General modules
   use Getopt::Long;
-  use Net::Domain qw(hostname hostdomain);
-  use Socket;
 
   #
   # eSTAR modules
   use lib $ENV{"ESTAR_PERL5LIB"};     
   use eSTAR::Util;
+  use eSTAR::Logging;
+  use eSTAR::Process;
+  use eSTAR::Config;
+  use eSTAR::Error qw /:try/;
+  use eSTAR::Constants qw/:status/;
+  use eSTAR::Mail;
+  use eSTAR::JACH::Util;
 
   # 
   # JACH modules
   use lib $ENV{"ESTAR_OMPLIB"};
   use OMP::SciProg;
   use OMP::SpServer;
+
+  my $process = new eSTAR::Process( "jach_agent" );  
+  $process->set_version( $VERSION );
+  print "Starting logging...\n\n";
+  $log = new eSTAR::Logging( $process->get_process() );
+  $log->header("Starting JACH Template Test: Version $VERSION");
+  my $config = new eSTAR::Config(  );  
+
+  # Start of main body
 
   unless ( scalar @ARGV >= 2 ) {
      die "USAGE: $0 -project id -pass password\n";
@@ -49,8 +63,7 @@
 
 
   # scan through MSBs
-  $log->debug( "Scanning through MSB templates looking for '" .
-                $parsed->targetident() . "'" );
+  $log->debug( "Scanning through MSB templates..." );
   
   my $template_initial, $template_follow;
   for my $m ( $sp->msb() ) {
@@ -58,7 +71,7 @@
 
      my $looking_for = "InitialBurstFollowup";
      my $template_initial = has_blank_targets( $m, $looking_for );
-     $looking_for = "InitialBurstFollowup";
+     $looking_for = "BurstFollowup";
      my $template_follow = has_blank_targets( $m, $looking_for ); 
      
   }
@@ -66,18 +79,23 @@
   unless ( defined $template_initial ) {
         
      # return the RTML document
-     $log->debug("Rejecting observation initial request...");
+     $log->warn("Warning: InitialBurstFollowup template not found");
      $log->warn( 
            "Warning: Unable to find a matching template MSB");
-  }   
+  } else {
+     $log->print("Verified InitialBurstFollowup template MSB");
+  }      
 
-  unless ( defined $template_follow ) {
+  unless( defined $template_follow ) {
         
      # return the RTML document
-     $log->debug("Rejecting observation initial request...");
+     $log->warn("Warning: BurstFollowup template not found");
      $log->warn( 
            "Warning: Unable to find a matching template MSB");
+  } else {
+     $log->print("Verified BurstFollowup template MSB");    
   }
+
 
   exit;
 
@@ -100,7 +118,7 @@ sub has_blank_targets {
       $log->debug( "Current instrument is $curr_inst" );
       
       if ( $msb_inst eq $curr_inst ) {
-         $log->debug( "MSB and current instrument match..." );
+         $log->debug( "$loking_for MSB and current instrument match..." );
       
          # If it has blank targets it is a template MSB
          if ( $m->hasBlankTargets() ) {
@@ -109,11 +127,11 @@ sub has_blank_targets {
            $template = $m;
            last;
          } else {
-           $log->warn( "Warning: MSB does not have blank targets" );
+           $log->warn( "Warning: $looking_for MSB does not have blank targets" );
            last;
          }
       } else {
-         $log->debug( "MSB and current instrument do not match..." );
+         $log->debug( "$looking_for MSB and current instrument do not match..." );
       }   
        
    }
