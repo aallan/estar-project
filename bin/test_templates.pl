@@ -46,66 +46,53 @@
                            "pass=s"       => \$password );
 
   # retrieve the science program  
+  $log->print( "Retrieving project $project from OMP..." );
+  
   my $sp;
   try {                                  
      $sp = OMP::SpServer->fetchProgram( $project, $password, 1 );
      unless ( $sp ) {
-        throw eSTAR::Error::FatalError( 
-            "OMP::SpServer()->fetchProgram returned undef..."); 
+        $log->error("OMP::SpServer()->fetchProgram returned undef..."); 
+        exit;
      }
   } otherwise {
      my $error = shift;
      $log->error( 
        "Error: Unable to retrieve science programme from OMP");
      $log->error( "Error: $error" );
-     $flag = 1;
+     exit;
   }; 
 
 
   # scan through MSBs
-  $log->debug( "Scanning through MSB templates..." );
+  $log->print( "Scanning through MSB templates..." );
   
-  my $template_initial, $template_follow;
+  my $name = "InitialBurstFollowup";
+  
+  my $template;
   for my $m ( $sp->msb() ) {
      $log->debug( "Found template " . $m->msbtitle() );
-
-     my $looking_for = "InitialBurstFollowup";
-     my $template_initial = has_blank_targets( $m, $looking_for );
-     $looking_for = "BurstFollowup";
-     my $template_follow = has_blank_targets( $m, $looking_for ); 
-     
+     my $template = has_blank_targets( $m, $name );
   }
+  $log->print("All MSBs have now been checked...");
 
-  unless ( defined $template_initial ) {
+  unless ( defined $template ) {
         
      # return the RTML document
-     $log->warn("Warning: InitialBurstFollowup template not found");
-     $log->warn( 
-           "Warning: Unable to find a matching template MSB");
+     $log->warn("Warning: Template for '" . $name . "' not found");
+     $log->warn("Warning: Unable to find a matching template MSB");
   } else {
-     $log->print("Verified InitialBurstFollowup template MSB");
+     $log->print("Verified template for '" . $name . "' MSB");
   }      
-
-  unless( defined $template_follow ) {
-        
-     # return the RTML document
-     $log->warn("Warning: BurstFollowup template not found");
-     $log->warn( 
-           "Warning: Unable to find a matching template MSB");
-  } else {
-     $log->print("Verified BurstFollowup template MSB");    
-  }
-
 
   exit;
 
-
 sub has_blank_targets {
    my $m = shift;
-   my $looking_for = shift;
+   my $name = shift;
    
    my $template = undef;
-   if ( $m->msbtitle()  =~ /\b$looking_for/ ) {
+   if ( $m->msbtitle()  =~ /\b$name/ ) {
     
       $log->debug( "Matched '" . $m->msbtitle() . "'" );
       
@@ -118,7 +105,7 @@ sub has_blank_targets {
       $log->debug( "Current instrument is $curr_inst" );
       
       if ( $msb_inst eq $curr_inst ) {
-         $log->debug( "$loking_for MSB and current instrument match..." );
+         $log->debug( "MSB and current instrument match..." );
       
          # If it has blank targets it is a template MSB
          if ( $m->hasBlankTargets() ) {
@@ -127,13 +114,15 @@ sub has_blank_targets {
            $template = $m;
            last;
          } else {
-           $log->warn( "Warning: $looking_for MSB does not have blank targets" );
+           $log->warn( "Warning: MSB does not have blank targets" );
            last;
          }
       } else {
-         $log->debug( "$looking_for MSB and current instrument do not match..." );
+         $log->debug( "MSB and current instrument do not match..." );
       }   
        
-   }
+   } else {
+      $log->debug( "Discarding '" . $m->msbtitle() . "'" );
+   }   
    return $template;
 }     
