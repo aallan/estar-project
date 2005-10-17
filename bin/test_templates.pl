@@ -71,7 +71,7 @@
   
   my $template;
   
-  $log->print( "There are " . scalar( $sp-msb() ) . 
+  $log->print( "There are " . scalar( $sp->msb() ) . 
       " MSBs in the science programme" );
       
   for my $m ( $sp->msb() ) {
