@@ -68,9 +68,11 @@
 
   
   # scan through MSBs
+  $log->print("\nLooking for InitialBurstFollowup template...");
   my $name = "InitialBurstFollowup";
   check_msbs( $sp, $name );
   
+  $log->print("\nLooking for BurstFollowup template...");
   my $name = "BurstFollowup";
   check_msbs( $sp, $name );  
 
