@@ -1,3 +1,10 @@
+2005-10-17 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * bin/test_templates.pl: Script to be run from crontab file so at JAC
+          so we don't have any more missed observations. This checks that the
+          templates MSBs are valid for the current instrument and have valid
+          blank targets in them.
+
 2005-07-23 Alasdair Allan <aa@astro.ex.ac.uk>
         
         * bin/raptor_gateway.pl: Fully working RAPTOR gateway, works for
