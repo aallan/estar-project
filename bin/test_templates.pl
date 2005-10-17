@@ -70,6 +70,10 @@
   my $name = "InitialBurstFollowup";
   
   my $template;
+  
+  $log->print( "There are " . scalar( $sp-msb() ) . 
+      " MSBs in the science programme" );
+      
   for my $m ( $sp->msb() ) {
      $log->debug( "Found template " . $m->msbtitle() );
      my $template = has_blank_targets( $m, $name );
