@@ -82,7 +82,7 @@
      "The eSTAR embedded agent was unable to find a valid template file\n".
      "for the $name observation on $curr_inst. If this is not fixed then\n".
      "GCN alerts will not be observed by the eSTAR system.";
-     eSTAR::Mail::send_mail( 'aa@astro.ex.ac.uk', 'Alasdair Allan',
+     eSTAR::Mail::send_mail( 'nrt@star.herts.ac.uk', 'Alasdair Allan',
                              'frossie@jach.hawaii.edu',
                              "eSTAR $curr_inst template files",
                               $mail_body );
