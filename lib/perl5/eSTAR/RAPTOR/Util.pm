@@ -36,7 +36,7 @@ use Astro::VO::VOEvent;
 @ISA = qw/Exporter/;
 @EXPORT_OK = qw/ store_voevent /;
 
-'$Revision: 1.2 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.3 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 sub store_voevent {
    my $message = shift;
@@ -54,7 +54,7 @@ sub store_voevent {
    }
  
    $log->debug( "Storing event $id in " . $state_dir );   
-   my $file = File::Spec->catfile( $state_dir, $id);
+   my $file = File::Spec->catfile( $state_dir, "$id.xml");
            
    # write the observation object to disk.
    unless ( open ( SERIAL, "+>$file" )) {
@@ -83,7 +83,7 @@ sub store_voevent {
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.2 2005/11/02 01:30:26 aa Exp $
+$Id: Util.pm,v 1.3 2005/11/02 01:43:27 aa Exp $
 
 =head1 AUTHORS
 
