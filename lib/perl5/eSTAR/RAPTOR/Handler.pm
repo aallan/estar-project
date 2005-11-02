@@ -216,8 +216,17 @@ sub handle_rtml {
    # ------------
    
    # modifiy the response to include the correct IA information
+
    $log->debug("Parsing incoming RTML document...");   
-   my $rtml = new eSTAR::RTML( Source => $response );
+
+   my $rtml;
+   eval { $rtml = new eSTAR::RTML( Source => $response ); };
+   if ( $@ ) {
+      print $@;
+      my $error = "Error: Unable to parse RTML document";
+      $log->error( $error );
+      return $error;       
+   }
    my $type = $rtml->determine_type();
    $log->debug("Document is of type '$type'...");
    my $parse = new eSTAR::RTML::Parse( RTML => $rtml );
@@ -319,7 +328,7 @@ sub handle_voevent {
       close($sock);
       
       $log->debug( "Recieved a message from RAPTOR..." );
-  
+      $log->debug( $response );  
    }
       
    # SEND TO USER_AGENT

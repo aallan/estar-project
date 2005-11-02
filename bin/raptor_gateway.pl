@@ -36,7 +36,7 @@ requests for the RAPTOR/TALON telescopes.
 
 =head1 REVISION
 
-$Id: raptor_gateway.pl,v 1.9 2005/07/26 16:28:01 aa Exp $
+$Id: raptor_gateway.pl,v 1.10 2005/11/02 01:23:16 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.10 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -329,7 +329,7 @@ if ( $config->get_state("gateway.unique_process") == 1 ) {
    
    # RAPTOR server parameters
    #$config->set_option( "raptor.host", "144.173.229.16" );
-   $config->set_option( "raptor.host", "144.173.229.236" );
+   $config->set_option( "raptor.host", "astro.lanl.gov" );
    $config->set_option( "raptor.port", 5170 );
    
    # interprocess communication
@@ -680,6 +680,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_gateway.pl,v $
+# Revision 1.10  2005/11/02 01:23:16  aa
+# RAPTOR::Util module with routine to store VOEvents
+#
 # Revision 1.9  2005/07/26 16:28:01  aa
 # Working RAPTOR gateway
 #
