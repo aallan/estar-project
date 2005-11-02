@@ -35,7 +35,7 @@ incoming alerts from the RAPTOR system.
 
 =head1 REVISION
 
-$Id: raptor_alert.pl,v 1.1 2005/07/26 16:28:01 aa Exp $
+$Id: raptor_alert.pl,v 1.2 2005/11/02 01:46:16 aa Exp $
 
 =head1 AUTHORS
 
@@ -52,7 +52,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -251,6 +251,7 @@ use Fcntl qw(:DEFAULT :flock);
 use Errno qw(EWOULDBLOCK EINPROGRESS);
 use Config::Simple;
 use Config::User;
+use Time::localtime;
 
 #
 # Networking modules
@@ -272,11 +273,12 @@ use Net::FTP;
 #
 # Astro modules
 #
+use Astro::VO::VOEvent;
 
 #
 # eSTAR modules
 #
-
+use eSTAR::RAPTOR::Util;
 
 # M A K E   D I R E C T O R I E S -------------------------------------------
 
@@ -312,7 +314,7 @@ if ( $config->get_state("gateway.unique_process") == 1 ) {
  
    # RAPTOR server parameters
    #$config->set_option( "raptor.host", "144.173.229.16" );
-   $config->set_option( "raptor.host", "144.173.229.236" );
+   $config->set_option( "raptor.host", "astro.lanl.gov" );
    $config->set_option( "raptor.port", 43002 );
    
    # interprocess communication
@@ -369,11 +371,11 @@ $ua->set_ua( $lwp );
 my $tcp_callback = sub {
   my $message = shift;    
   my $thread_name = "TCP/IP";
-  $log->thread2($thread_name, "Callback from TCP client...");
+  $log->thread2($thread_name, "Callback from TCP client at " . ctime() . "...");
   $log->thread2($thread_name, "Handling broadcast message from RAPTOR");
 
 
-  $log->debug( "Testing to see whether we have an RTML document" );
+  $log->debug( "Testing to see whether we have an RTML document..." );
   if ( $message =~ /RTML/ ) {
      my $rtml;
      eval { $rtml = new eSTAR::RTML( Source => $message ) };
@@ -384,17 +386,14 @@ my $tcp_callback = sub {
      $log->warn( "Warning: Returning ESTAR__FAULT, exiting callback...");
      return ESTAR__FAULT;     
   } else {
-     $log->debug( "Does look like the document is an RTML message..." );
+     $log->debug( "Doesn't look like the document is an RTML message..." );
   }   
-  
-  if ( $message =~ /VOEvent/ ) {
-  }
 
   # It really, really should be a VOEvent message
   $log->debug( "Testing to see whether we have a VOEvent document..." );
   my $voevent;
   if ( $message =~ /VOEvent/ ) {
-     
+     $log->debug( "This looks like a VOEvent document..." );
      $log->print( $message );
   
   } else {
@@ -436,11 +435,11 @@ my $flag = 1;
 while( $flag ) {
 
    my $length;  
-   my $bytes_read = sysread( $sock, $length, 4 );
+   my $bytes_read = read( $sock, $length, 4 );
 
    next unless defined $bytes_read;
    
-   $log->debug("Recieved a packet from RAPTOR..." );
+   $log->print("\nRecieved a packet from RAPTOR..." );
    if ( $bytes_read > 0 ) {
 
       $log->debug( "Recieved $bytes_read bytes on " .
@@ -449,19 +448,69 @@ while( $flag ) {
       
       $length = unpack( "N", $length );
       if ( $length > 512000 ) {
-         $log->error( "Error: Message length is > 512000 characters" );
-         $log->error( "Error: Message claims to be $length long" );
-         $log->warn( "Warning: Discarding bogus message" );
+        $log->error( "Error: Message length is > 512000 characters" );
+        $log->error( "Error: Message claims to be $length long" );
+        $log->warn( "Warning: Discarding bogus message" );
       } else {   
          
          $log->debug( "Message is $length characters" );               
-         $bytes_read = sysread( $sock, $response, $length); 
+         $bytes_read = read( $sock, $response, $length); 
+      
+         $log->debug( "Read $bytes_read characters from socket" );
       
          # callback to handle incoming Events     
          $log->print("Detaching callback thread..." );
          my $callback_thread = 
              threads->create ( $tcp_callback, $response );
          $callback_thread->detach(); 
+
+         # log the event message
+         my $file = eSTAR::RAPTOR::Util::store_voevent( $response ); 
+         unless ( defined $file ) {
+            $log->warn( "Warning: The message has not been serialised..." );
+         }
+
+         # return an ack message
+         my $ack =
+          '<?xml version = '1.0' encoding = 'UTF-8'?>' . "\n" .
+          '<VOEvent xmlns="http://www.ivoa.net/xml/VOEvent/v1.0' . "\n" .
+          'xmlns:schemaLocation="http://www.ivoa.net/xml/STC/stc-v1.20.xsd ' .
+          'http://hea-www.harvard.edu/~arots/nvometa/v1.2/stc-v1.20.xsd ' .
+          'http://www.ivoa.net/xml/STC/STCcoords/v1.20 ' .
+          'http://hea-www.harvard.edu/~arots/nvometa/v1.2/coords-v1.20.xsd ' .
+          'http://www.ivoa.net/xml/VOEvent/v1.0 ' .
+          'http://www.ivoa.net/internal/IVOA/IvoaVOEvent/VOEvent-v1.0.xsd" ' . "\n" .
+          'role="ack"' . "\n" .
+          'xmlns:stc="http://www.ivoa.net/xml/STC/stc-v1.20.xsd"' . "\n" .
+          'version="1.0"' . "\n" .
+          'xmlns:crd="http://www.ivoa.net/xml/STC/STCcoords/v1.20"' . "\n" . 
+          'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"' . "\n" . 
+          'id="ivo://estar.ex/ack" >' . "\n" . 
+          '<Citations/>' . "\n" . 
+          '<Who>' . "\n" . 
+          '   <PublisherID>ivo://estar.ex/</PublisherID>' . "\n" . 
+          '</Who>' . "\n" . 
+          '<What>' . "\n" . 
+          '   <Param value="stored" name="'. $file .'" />' . "\n" . 
+          '</What>' . "\n" . 
+          '<WhereWhen/>' . "\n" . 
+          '<How/>' . "\n" . 
+          '<Why/>' . "\n" . 
+          '</VOEvent>' . "\n";
+
+         # work out message length
+         my $header = pack( "N", 7 );
+         my $bytes = pack( "N", length($ack) );
+       
+         # send message                                   
+         $log->debug( "Sending " . length($ack) . " bytes to " . 
+                      $config->get_option( "raptor.host" ));
+         print $sock $header;
+         print $sock $bytes;
+         $sock->flush();
+         print $sock $rtml;
+         $sock->flush();  
+
       }
                       
    } elsif ( $bytes_read == 0 && $! != EWOULDBLOCK ) {
@@ -538,6 +587,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_alert.pl,v $
+# Revision 1.2  2005/11/02 01:46:16  aa
+# First cut at ACK message back to RAPTOR
+#
 # Revision 1.1  2005/07/26 16:28:01  aa
 # Working RAPTOR gateway
 #
