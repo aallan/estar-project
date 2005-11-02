@@ -36,7 +36,7 @@ use Astro::VO::VOEvent;
 @ISA = qw/Exporter/;
 @EXPORT_OK = qw/ store_voevent /;
 
-'$Revision: 1.1 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.2 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 sub store_voevent {
    my $message = shift;
@@ -50,17 +50,16 @@ sub store_voevent {
    my $id = $object->determine_id( $message );
    unless ( exists $id && defined $id && $id ne "" ) {
       $log->warn( "Warning: \$id is undefined, not writing event file");
-      return ESTAR__ERROR                               
+      return undef;                               
    }
  
-   $eog->debug( "Storing event $id in " . $state_dir );   
-   
+   $log->debug( "Storing event $id in " . $state_dir );   
    my $file = File::Spec->catfile( $state_dir, $id);
            
    # write the observation object to disk.
    unless ( open ( SERIAL, "+>$file" )) {
       $log->warn( "Warning: Unable to write file $file");
-      return ESTAR__ERROR                               
+      return undef;                               
    } else {
       unless ( flock( SERIAL, LOCK_EX ) ) {
          $log->warn("Warning: unable to acquire exclusive lock: $!");
@@ -75,7 +74,7 @@ sub store_voevent {
         
    }   
    
-   return ESTAR__OK;
+   return $file;
    
 }
 
@@ -84,7 +83,7 @@ sub store_voevent {
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.1 2005/11/02 01:23:16 aa Exp $
+$Id: Util.pm,v 1.2 2005/11/02 01:30:26 aa Exp $
 
 =head1 AUTHORS
 
