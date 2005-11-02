@@ -36,7 +36,7 @@ use Astro::VO::VOEvent;
 @ISA = qw/Exporter/;
 @EXPORT_OK = qw/ store_voevent /;
 
-'$Revision: 1.3 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.4 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 sub store_voevent {
    my $message = shift;
@@ -48,7 +48,7 @@ sub store_voevent {
   
    my $object = new Astro::VO::VOEvent();
    my $id = $object->determine_id( $message );
-   unless ( exists $id && defined $id && $id ne "" ) {
+   unless ( defined $id && $id ne "" ) {
       $log->warn( "Warning: \$id is undefined, not writing event file");
       return undef;                               
    }
@@ -83,7 +83,7 @@ sub store_voevent {
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.3 2005/11/02 01:43:27 aa Exp $
+$Id: Util.pm,v 1.4 2005/11/02 01:51:37 aa Exp $
 
 =head1 AUTHORS
 

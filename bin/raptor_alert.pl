@@ -35,7 +35,7 @@ incoming alerts from the RAPTOR system.
 
 =head1 REVISION
 
-$Id: raptor_alert.pl,v 1.2 2005/11/02 01:46:16 aa Exp $
+$Id: raptor_alert.pl,v 1.3 2005/11/02 01:51:17 aa Exp $
 
 =head1 AUTHORS
 
@@ -52,7 +52,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -472,7 +472,7 @@ while( $flag ) {
 
          # return an ack message
          my $ack =
-          '<?xml version = '1.0' encoding = 'UTF-8'?>' . "\n" .
+          "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
           '<VOEvent xmlns="http://www.ivoa.net/xml/VOEvent/v1.0' . "\n" .
           'xmlns:schemaLocation="http://www.ivoa.net/xml/STC/stc-v1.20.xsd ' .
           'http://hea-www.harvard.edu/~arots/nvometa/v1.2/stc-v1.20.xsd ' .
@@ -508,7 +508,7 @@ while( $flag ) {
          print $sock $header;
          print $sock $bytes;
          $sock->flush();
-         print $sock $rtml;
+         print $sock $ack;
          $sock->flush();  
 
       }
@@ -587,6 +587,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_alert.pl,v $
+# Revision 1.3  2005/11/02 01:51:17  aa
+# Minor bug fix
+#
 # Revision 1.2  2005/11/02 01:46:16  aa
 # First cut at ACK message back to RAPTOR
 #
