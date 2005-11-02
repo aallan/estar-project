@@ -1,3 +1,16 @@
+2005-11-01 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * bin/raptor_alert.pl: Fixed bugs and protocol problems so that it now
+          talks to TALON Central correctly.
+
+        * bin/raptor_gateway.pl: Fixed bugs.
+
+        * eSTAR/RAPTOR/Handler.pm: Fixed bugs.
+
+        * eSTAR/RAPTOR/Util.pm: Added store_voevent() method so that proper ACK
+          messages can be return to TALON on receipt of a VOEvent message. The
+          system now has an Astro::VO::VOEvent dependancy.
+
 2005-10-17 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * bin/test_templates.pl: Script to be run from crontab file so at JAC
