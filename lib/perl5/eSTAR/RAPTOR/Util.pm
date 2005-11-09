@@ -36,7 +36,7 @@ use Astro::VO::VOEvent;
 @ISA = qw/Exporter/;
 @EXPORT_OK = qw/ store_voevent /;
 
-'$Revision: 1.4 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.5 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 sub store_voevent {
    my $message = shift;
@@ -47,14 +47,44 @@ sub store_voevent {
    my $state_dir = File::Spec->catdir( $config->get_state_dir() );  
   
    my $object = new Astro::VO::VOEvent();
-   my $id = $object->determine_id( $message );
+   my $id;
+   eval { $id = $object->determine_id( XML => $message ); };
+   if ( $@ ) {
+           $log->error( "Error: $@" );
+   } 
    unless ( defined $id && $id ne "" ) {
       $log->warn( "Warning: \$id is undefined, not writing event file");
       return undef;                               
    }
- 
+   
    $log->debug( "Storing event $id in " . $state_dir );   
-   my $file = File::Spec->catfile( $state_dir, "$id.xml");
+
+   $log->debug( "Splitting \$id..." );   
+   my @path = split( "/", $id );
+   if ( $path[0] =~ "ivo" ) {
+      delete $path[0];
+   }
+   
+   # Build path to save file in... yuck!
+   my $dir = File::Spec->catdir( $state_dir );
+   foreach my $i ( 0 ... ($#path - 1) ) {
+      $dir = File::Spec->catdir( $dir, $path[$i] );
+      if ( opendir ( DIR, $dir ) ) {
+         closedir DIR;
+         next;
+      } else {
+         $log->warn( "Warning: Creating $dir" );
+         mkdir $dir, 0755;
+         if ( opendir ( DIR, $dir ) ) {
+            next;
+         } else {
+            $log->warn( "Warning: Unable to create $dir");
+            return undef;                               
+         }
+      }
+   }   
+
+   my $file = File::Spec->catfile( $dir, "$path[$#path].xml");
            
    # write the observation object to disk.
    unless ( open ( SERIAL, "+>$file" )) {
@@ -83,7 +113,7 @@ sub store_voevent {
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.4 2005/11/02 01:51:37 aa Exp $
+$Id: Util.pm,v 1.5 2005/11/09 13:12:01 aa Exp $
 
 =head1 AUTHORS
 

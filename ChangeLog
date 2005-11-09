@@ -1,3 +1,10 @@
+2005-11-09 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * bin/raptor_alert.pl: More debugging
+        
+        * eSTAR/RAPTOR/Util.pm: Fixed store_event() method to autocreate
+          directories from the $id of the message.
+          
 2005-11-08 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * bin/test_templates.pl: Added mail message in case of OMP failure

@@ -35,7 +35,7 @@ incoming alerts from the RAPTOR system.
 
 =head1 REVISION
 
-$Id: raptor_alert.pl,v 1.3 2005/11/02 01:51:17 aa Exp $
+$Id: raptor_alert.pl,v 1.4 2005/11/09 13:12:01 aa Exp $
 
 =head1 AUTHORS
 
@@ -52,7 +52,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -465,7 +465,12 @@ while( $flag ) {
          $callback_thread->detach(); 
 
          # log the event message
-         my $file = eSTAR::RAPTOR::Util::store_voevent( $response ); 
+         my $file;
+         eval { $file = eSTAR::RAPTOR::Util::store_voevent( $response ); };
+         if ( $@  ) {
+           $log->error( "Error: $@" );
+         } 
+
          unless ( defined $file ) {
             $log->warn( "Warning: The message has not been serialised..." );
          }
@@ -509,8 +514,9 @@ while( $flag ) {
          print $sock $bytes;
          $sock->flush();
          print $sock $ack;
-         $sock->flush();  
-
+         $sock->flush(); 
+         $log->debug( $ack ); 
+         $log->debug( "Done, listening..." );
       }
                       
    } elsif ( $bytes_read == 0 && $! != EWOULDBLOCK ) {
@@ -587,6 +593,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_alert.pl,v $
+# Revision 1.4  2005/11/09 13:12:01  aa
+# More debugging for RAPTOR connection, should now store event messages correctly?
+#
 # Revision 1.3  2005/11/02 01:51:17  aa
 # Minor bug fix
 #
