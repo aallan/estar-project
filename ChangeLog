@@ -1,3 +1,7 @@
+2005-11-08 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * bin/test_templates.pl: Added mail message in case of OMP failure
+
 2005-11-01 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * bin/raptor_alert.pl: Fixed bugs and protocol problems so that it now
