@@ -36,7 +36,7 @@ use Astro::VO::VOEvent;
 @ISA = qw/Exporter/;
 @EXPORT_OK = qw/ store_voevent /;
 
-'$Revision: 1.5 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.6 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 sub store_voevent {
    my $message = shift;
@@ -61,14 +61,21 @@ sub store_voevent {
 
    $log->debug( "Splitting \$id..." );   
    my @path = split( "/", $id );
-   if ( $path[0] =~ "ivo" ) {
-      delete $path[0];
+   if ( $path[0] eq "ivo:" ) {
+      splice @path, 0 , 1;
    }
+   if ( $path[0] eq "" ) {
+      splice @path, 0 , 1;
+   }   
    
    # Build path to save file in... yuck!
    my $dir = File::Spec->catdir( $state_dir );
    foreach my $i ( 0 ... ($#path - 1) ) {
+      if ( $path[$i] eq "" ) {
+         next;
+      }
       $dir = File::Spec->catdir( $dir, $path[$i] );
+      
       if ( opendir ( DIR, $dir ) ) {
          closedir DIR;
          next;
@@ -76,6 +83,7 @@ sub store_voevent {
          $log->warn( "Warning: Creating $dir" );
          mkdir $dir, 0755;
          if ( opendir ( DIR, $dir ) ) {
+            closedir DIR;
             next;
          } else {
             $log->warn( "Warning: Unable to create $dir");
@@ -85,6 +93,7 @@ sub store_voevent {
    }   
 
    my $file = File::Spec->catfile( $dir, "$path[$#path].xml");
+   $log->debug("Serialising to $file");
            
    # write the observation object to disk.
    unless ( open ( SERIAL, "+>$file" )) {
@@ -113,7 +122,7 @@ sub store_voevent {
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.5 2005/11/09 13:12:01 aa Exp $
+$Id: Util.pm,v 1.6 2005/11/09 13:27:39 aa Exp $
 
 =head1 AUTHORS
 
