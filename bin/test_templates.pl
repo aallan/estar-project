@@ -60,6 +60,17 @@
      $log->error( 
        "Error: Unable to retrieve science programme from OMP");
      $log->error( "Error: $error" );
+     
+     my $mail_body = 
+     "The eSTAR embedded agent was unable to contact the OMP to retrieve\n".
+     "the template observations. If this is not fixed then GCN alerts will\n".
+     "not be observed by the eSTAR system.\n\n".
+     "$error\n";
+     eSTAR::Mail::send_mail( 'aa@astro.ex.ac.uk', 'Alasdair Allan',
+                             'frossie@jach.hawaii.edu',
+                             "eSTAR $curr_inst template files",
+                              $mail_body );     
+     
      exit;
   }; 
  
