@@ -28,7 +28,7 @@
   use OMP::SciProg;
   use OMP::SpServer;
 
-  my $process = new eSTAR::Process( "jach_agent" );  
+  my $process = new eSTAR::Process( "test_template" );  
   $process->set_version( $VERSION );
   print "Starting logging...\n\n";
   $log = new eSTAR::Logging( $process->get_process() );
