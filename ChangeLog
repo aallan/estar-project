@@ -1,3 +1,9 @@
+2005-11-22 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * bin/test_servers.pl: Support code to test server infrastructre
+        
+        * eSTAR/Config.pm: Added code to support new testing program
+
 2005-11-09 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * bin/raptor_alert.pl: More debugging
