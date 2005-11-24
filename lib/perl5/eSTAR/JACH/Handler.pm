@@ -970,7 +970,7 @@ sub handle_rtml {
       eSTAR::Mail::send_mail( $parsed->email(), $parsed->name(),
                               'frossie@jach.hawaii.edu',
                               'eSTAR UKIRT queue submission',
-                              $mail_body );
+                              $mail_body, 'estar-devel@estar.org.uk' );
  
       # BUILD MESSAGE
       # -------------

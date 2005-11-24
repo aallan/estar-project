@@ -22,7 +22,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: gcn_server.pl,v 1.16 2005/07/22 14:30:26 aa Exp $
+$Id: gcn_server.pl,v 1.17 2005/11/24 17:18:35 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -41,7 +41,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.16 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.17 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -449,8 +449,9 @@ my $tcp_callback = sub {
          eSTAR::Mail::send_mail( $config->get_option("user.email_address"), 
                                  $config->get_option("user.real_name"),
                                  'aa@astro.ex.ac.uk',
-                                 'eSTAR ACK SWIFT XPT postion',
-                                 $mail_body );            
+                                 'eSTAR ACK SWIFT XRT postion',
+                                 $mail_body, 'estar-devel@estar.org.uk' ); 
+                                            
 
          # Make SOAP calls
          # ---------------

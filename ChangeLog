@@ -1,3 +1,9 @@
+2005-11-24 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * Updated eSTAR::Mail to have a Cc option. Also updated most of the
+          infrastructure to use this option. The entire thing needs refactoring
+          at some point soon while I can still remember how it works.
+          
 2005-11-22 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * bin/test_servers.pl: Support code to test server infrastructre

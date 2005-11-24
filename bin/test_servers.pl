@@ -19,6 +19,7 @@
   use Socket;
   use Net::FTP;
   use File::Spec;
+  use Time::localtime;
   
   #
   # eSTAR modules
@@ -97,19 +98,16 @@ unless ( defined $status ) {
   $log->debug("This machine as an IP address of $ip");
 
   if ( $config->get_state("test.unique_process") == 1 ) {
-  
-     my %user_id;
-     tie %user_id, "CfgTie::TieUser";
    
      # grab current user
      my $current_user = $user_id{$ENV{"USER"}};
      my $real_name = ${$current_user}{"GCOS"};
   
      # user defaults
-     $config->set_option("user.user_name", $ENV{"USER"} );
-     $config->set_option("user.real_name", $real_name );
-     $config->set_option("user.email_address", $ENV{"USER"}."@".hostdomain());
-     $config->set_option("user.institution", "eSTAR Project" );
+     $config->set_option("user.user_name", "aa" );
+     $config->set_option("user.real_name", "Alasdair Allan" );
+     $config->set_option("user.email_address", 'aa@astro.ex.ac.uk');
+     $config->set_option("user.institution", "University of Exeter" );
      $config->set_option("user.notify", 1 );
 
      # node port
@@ -137,6 +135,7 @@ unless ( defined $status ) {
 
 # O P E N   O U T P U T   F I L E -----------------------------------------
 
+  my $content = "";
 
   my $state_dir = File::Spec->catdir( $config->get_state_dir() );  
   my $file = File::Spec->catfile( $state_dir, "check." . 
@@ -161,7 +160,9 @@ unless ( defined $status ) {
      } else {
         $log->debug("Acquiring exclusive lock...");
      }
-  }    
+  }
+  print SERIAL "# " . ctime() . "\n"; 
+  $content = $content . "Network Status at " . ctime() . "\n\n";   
 
 # K N O W N   N O D E S ---------------------------------------------------
 
@@ -169,10 +170,14 @@ unless ( defined $status ) {
   $config->set_option( "nodes.UKIRT", "estar.ukirt.jach.hawaii.edu:8080" );
   $config->set_option( "nodes.LT", "estar.astro.ex.ac.uk:8078" );
   $config->set_option( "nodes.FTN", "estar.astro.ex.ac.uk:8079" );
+  $config->set_option( "nodes.FTS", "estar.astro.ex.ac.uk:8080" );
   $config->set_option( "nodes.RAPTOR", "estar2.astro.ex.ac.uk:8080" );
   $status = $config->write_option( );
 
 # L O O P   T H R O U G H   N O D E S ----------------------------------------
+
+  print SERIAL "# NODE AGENTS\n";
+  $content = $content . "Node Agents\n-----------\n\n";   
 
   # NODE ARRAY
   my ( @NODES, @NAMES );   
@@ -227,6 +232,7 @@ unless ( defined $status ) {
         chomp ( $error );
         $log->error( "Error ($dn_host): NODE DOWN" );
         print SERIAL "$NAMES[$i] $dn_host $dn_port DOWN\n";
+        $content = $content . "$NAMES[$i] $dn_host $dn_port DOWN\n"
      }
   
      if ( defined $result ) {     
@@ -235,14 +241,16 @@ unless ( defined $status ) {
         unless ($result->fault() ) {
            $log->print( "$NAMES[$i] ($dn_host): " . $result->result() );
            print SERIAL "$NAMES[$i] $dn_host $dn_port UP\n";
+           $content = $content . "$NAMES[$i] $dn_host $dn_port UP\n";
         } else {
            $log->error( "Error ($dn_host): ". $result->faultcode() );
            $log->error( "Error ($dn_host): " . $result->faultstring() );
            print SERIAL "$NAMES[$i] $dn_host $dn_port FAULT\n";
+           $content = $content ."$NAMES[$i] $dn_host $dn_port FAULT\n";
         }
      }  
   }
-
+  
 # K N O W N   A G E N T S  --------------------------------------------------
 
   # list of "default" known nodes  
@@ -252,6 +260,8 @@ unless ( defined $status ) {
   
 # L O O P   T H R O U G H  A G E N T S  -------------------------------------
 
+  print SERIAL "# USER AGENTS\n";
+  $content = $content . "\nUser Agents\n-----------\n\n";   
 
   # NODE ARRAY
   my ( @UAS, @UA_NAMES );   
@@ -306,6 +316,7 @@ unless ( defined $status ) {
         chomp ( $error );
         $log->error( "Error ($ua_host): AGENT DOWN" );
         print SERIAL "$UA_NAMES[$i] $ua_host $ua_port DOWN\n";
+        $content = $content . "$UA_NAMES[$i] $ua_host $ua_port DOWN\n";
      }
   
      if ( defined $result ) {     
@@ -314,19 +325,51 @@ unless ( defined $status ) {
         unless ($result->fault() ) {
            $log->print( "$UA_NAMES[$i] ($ua_host): " . $result->result() );
            print SERIAL "$UA_NAMES[$i] $ua_host $ua_port UP\n";
+           $content = $content . "$UA_NAMES[$i] $ua_host $ua_port UP\n";
         } else {
            $log->error( "Error ($ua_host): ". $result->faultcode() );
            $log->error( "Error ($un_host): " . $result->faultstring() );
            print SERIAL "$UA_NAMES[$i] $ua_host $ua_port FAULT\n";
+           $content = $content . "$UA_NAMES[$i] $ua_host $ua_port FAULT\n";
         }
      }  
   }  
-  
-  
+
+  $content = $content . "\nLatest status at information available at " .
+                        "http://www.estar.org.uk/network.status\n";
+    
 # C L E A N   U P -----------------------------------------------------------
   
   $log->debug("\nClosing output file...");  
   close(SERIAL);  
   $log->debug("Freeing flock()...");  
   
+# N O T I F Y   P E O P L  E ------------------------------------------------
+
+  $log->print("Opening FTP connection to lion.drogon.net...");  
+  my $ftp = Net::FTP->new( "lion.drogon.net", Debug => 0 );
+  $log->debug("Logging into estar account...");  
+  $ftp->login( "estar", "tibileot" );
+  $ftp->cwd( "www.estar.org.uk/docs" );
+  $log->debug("Transfering status file...");  
+  $ftp->put( $file, "network.status" );
+  $ftp->quit();
+  
+  $log->print( "Sending notification email...");
+  
+  my $mail_body = $content;
+  
+  my $cc = undef;
+  if ( ctime() =~ "18:00" ) {
+     # Cc estar-devel mailing list once per day
+     $cc = 'estar-devel@estar.org.uk';
+  }   
+  
+  eSTAR::Mail::send_mail( $config->get_option("user.email_address"), 
+                          $config->get_option("user.real_name"),
+                          'aa@astro.ex.ac.uk',
+                          'eSTAR Network Status',
+                          $mail_body, $cc );              
+  
+  $log->debug("Done.");  
   exit;

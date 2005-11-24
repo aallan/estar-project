@@ -35,7 +35,7 @@ incoming alerts from the RAPTOR system.
 
 =head1 REVISION
 
-$Id: raptor_alert.pl,v 1.4 2005/11/09 13:12:01 aa Exp $
+$Id: raptor_alert.pl,v 1.5 2005/11/24 17:18:35 aa Exp $
 
 =head1 AUTHORS
 
@@ -52,7 +52,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -108,6 +108,11 @@ use CfgTie::TieUser;
 use Config;
 use Data::Dumper;
 use Getopt::Long;
+use XML::Atom::Feed;
+use XML::Atom::Entry; 
+use XML::Atom::Person;
+use XML::Atom::Link;
+use Net::FTP;
 
 my $name;
 GetOptions( "name=s" => \$name );
@@ -341,6 +346,7 @@ if ( $config->get_state("gateway.unique_process") == 1 ) {
    $status = $config->write_state();
 }
 
+  
 # ===========================================================================
 # H T T P   U S E R   A G E N T 
 # ===========================================================================
@@ -395,6 +401,122 @@ my $tcp_callback = sub {
   if ( $message =~ /VOEvent/ ) {
      $log->debug( "This looks like a VOEvent document..." );
      $log->print( $message );
+     
+     # Reading from alert.log file
+     # ---------------------------
+     my $state_dir = File::Spec->catdir( $config->get_state_dir() );  
+     my $alert = File::Spec->catfile( $state_dir, "alert.log" );
+     
+     $log->debug("Opening alert log file: $alert");  
+      
+     # write the observation object to disk.
+     unless ( open ( LOG, "<$alert" )) {
+        my $error = "Warning: Can not read from "  . $state_dir; 
+        $log->error( $error );
+        throw eSTAR::Error::FatalError($error, ESTAR__FATAL);   
+     } else {
+        unless ( flock( LOG, LOCK_EX ) ) {
+          my $error = "Warning: unable to acquire exclusive lock: $!";
+          $log->error( $error );
+          throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
+        } else {
+          $log->debug("Acquiring exclusive lock...");
+        }
+     }        
+     
+     $log->debug("Reading from $alert");
+     my @files = <LOG>;
+     $log->debug("Closing alert.log file...");
+     close(LOG);
+          
+     # Writing to atom.xml
+     # -------------------
+     my $state_dir = File::Spec->catdir( $config->get_state_dir() );  
+     my $atom = File::Spec->catfile( $state_dir, "atom.xml" );
+        
+     $log->debug("Opening Atom file: $atom");  
+          
+     # write the observation object to disk.
+     unless ( open ( ATOM, ">$atom" )) {
+        my $error = "Warning: Can not write to "  . $state_dir; 
+        $log->error( $error );
+        throw eSTAR::Error::FatalError($error, ESTAR__FATAL);   
+     } else {
+        unless ( flock( ATOM, LOCK_EX ) ) {
+          my $error = "Warning: unable to acquire exclusive lock: $!";
+          $log->error( $error );
+          throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
+        } else {
+          $log->debug("Acquiring exclusive lock...");
+        }
+     }                  
+          
+         $log->print( "Creating Atom feed..." );     
+          
+     # Create atom.xml file 
+     my $feed = new XML::Atom::Feed( Version => '1.0' );
+     $feed->title( "eSTAR/TALONS GCN Feed" );
+     my $author = new XML::Atom::Person();
+     $author->name( "eSTAR Project" );
+     $author->email( 'aa@estar.org.uk' );
+     $feed->author( $author );
+
+     my $link = new XML::Atom::Link();
+     $link->type( 'application/atom+xml' );
+     $link->rel( 'self' );
+     $link->href( 'http://www.estar.org.uk/atom.xml' );
+     $feed->add_link( $link );
+        
+     foreach my $i ( 0 ... $#files ) {
+        $log->debug( "Reading $i of $#files entries" );
+        my $data;
+        {
+           open( DATA_FILE, "$files[$i]" );
+           undef $/;
+           $data = <DATA_FILE>;
+           close( DATA_FILE );
+
+        };   
+   
+        $log->debug( "Determing ID of message..." );
+        my $object = new Astro::VO::VOEvent();
+        my $id = $object->determine_id( XML => $data );
+        $log->debug( "ID: $id" );
+
+        $log->print( "Creating Atom Feed Entry..." );
+        my $entry = new XML::Atom::Entry();
+        $entry->title( $id );
+        $entry->content( "<![CDATA[" . $data . "]]>" );
+
+        my $author = new XML::Atom::Person();
+        $author->name( "GCN" );
+        $author->email( 'scott@milkyway.gsfc.nasa.gov' );
+        $entry->author( $author );
+
+        $log->debug( "Adding entry to feed..." );
+        $feed->add_entry( $entry );
+
+     }
+     $log->debug( "Creating XML representation of feed..." );
+     my $xml = $feed->as_xml();
+
+     $log->debug( "Writing feed to $atom" );
+     print ATOM $xml;
+       
+     # close ALERT log file
+     $log->debug("Closing atom.xml file...");
+     close(ATOM);    
+     
+     $log->debug("Opening FTP connection to lion.drogon.net...");  
+     my $ftp = Net::FTP->new( "lion.drogon.net", Debug => 0 );
+     $log->debug("Logging into estar account...");  
+     $ftp->login( "estar", "tibileot" );
+     $ftp->cwd( "www.estar.org.uk/docs" );
+     $log->debug("Transfering Atom file...");  
+     $ftp->put( $atom, "atom.xml" );
+     $ftp->quit();     
+     $log->debug("Closed FTP connection");  
+
   
   } else {
      $log->warn( "Warning: Document unidentified..." );
@@ -506,7 +628,35 @@ while( $flag ) {
          # work out message length
          my $header = pack( "N", 7 );
          my $bytes = pack( "N", length($ack) );
+
+         # Writing to alert.log file
+         my $state_dir = File::Spec->catdir( $config->get_state_dir() );  
+         my $alert = File::Spec->catfile( $state_dir, "alert.log" );
+        
+         $log->debug("Opening alert log file: $alert");  
+          
+         # write the observation object to disk.
+         unless ( open ( ALERT, "+>>$alert" )) {
+            my $error = "Warning: Can not write to "  . $state_dir; 
+            $log->error( $error );
+            throw eSTAR::Error::FatalError($error, ESTAR__FATAL);   
+         } else {
+            unless ( flock( ALERT, LOCK_EX ) ) {
+              my $error = "Warning: unable to acquire exclusive lock: $!";
+              $log->error( $error );
+              throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
+            } else {
+              $log->debug("Acquiring exclusive lock...");
+            }
+         }        
+         
+         $log->debug("Writing file path to $alert");
+         print ALERT "$file\n";
        
+         # close ALERT log file
+         $log->debug("Closing alert.log file...");
+         close(ALERT);
+          
          # send message                                   
          $log->debug( "Sending " . length($ack) . " bytes to " . 
                       $config->get_option( "raptor.host" ));
@@ -580,19 +730,23 @@ sub kill_agent {
    my $error = eSTAR::Error->prior();
    $error->flush() if defined $error;
     
-   # kill the agent process
-   $log->print("Killing gateway processes...");
-
    # close out log files
+   $log->debug("Closing log files...");
    $log->closeout();
  
    # close the door behind you!   
+    
+   # kill the agent process
+   $log->print("Killing gateway processes...");
    exit;
 }                                
 
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_alert.pl,v $
+# Revision 1.5  2005/11/24 17:18:35  aa
+# Updated eSTAR::Mail and usage
+#
 # Revision 1.4  2005/11/09 13:12:01  aa
 # More debugging for RAPTOR connection, should now store event messages correctly?
 #

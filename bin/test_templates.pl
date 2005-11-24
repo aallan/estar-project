@@ -119,7 +119,7 @@
      eSTAR::Mail::send_mail( 'nrt@star.herts.ac.uk', 'Nial Tanvir',
                              'frossie@jach.hawaii.edu',
                              "eSTAR $curr_inst template files",
-                              $mail_body );
+                              $mail_body, 'estar-devel@estar.org.uk' );
                                    
   } else {
      $log->print("Verified template for '" . $name . "' MSB");
