@@ -35,7 +35,7 @@ incoming alerts from the RAPTOR system.
 
 =head1 REVISION
 
-$Id: raptor_alert.pl,v 1.5 2005/11/24 17:18:35 aa Exp $
+$Id: raptor_alert.pl,v 1.6 2005/11/28 14:17:35 aa Exp $
 
 =head1 AUTHORS
 
@@ -52,7 +52,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -410,7 +410,7 @@ my $tcp_callback = sub {
      $log->debug("Opening alert log file: $alert");  
       
      # write the observation object to disk.
-     unless ( open ( LOG, "<$alert" )) {
+     unless ( open ( LOG, "$alert" )) {
         my $error = "Warning: Can not read from "  . $state_dir; 
         $log->error( $error );
         throw eSTAR::Error::FatalError($error, ESTAR__FATAL);   
@@ -425,7 +425,12 @@ my $tcp_callback = sub {
      }        
      
      $log->debug("Reading from $alert");
-     my @files = <LOG>;
+     {
+        local $/ = "\n";  # I shouldn't have to do this?
+        my @files = <LOG>;
+     }   
+     use Data::Dumper; print "\@files = " . Dumper( @files );
+     
      $log->debug("Closing alert.log file...");
      close(LOG);
           
@@ -434,7 +439,7 @@ my $tcp_callback = sub {
      my $state_dir = File::Spec->catdir( $config->get_state_dir() );  
      my $atom = File::Spec->catfile( $state_dir, "atom.xml" );
         
-     $log->debug("Opening Atom file: $atom");  
+     $log->debug("Creating Atom file: $atom");  
           
      # write the observation object to disk.
      unless ( open ( ATOM, ">$atom" )) {
@@ -450,8 +455,8 @@ my $tcp_callback = sub {
           $log->debug("Acquiring exclusive lock...");
         }
      }                  
-          
-         $log->print( "Creating Atom feed..." );     
+     
+     $log->print( "Creating Atom feed..." );     
           
      # Create atom.xml file 
      my $feed = new XML::Atom::Feed( Version => '1.0' );
@@ -466,21 +471,31 @@ my $tcp_callback = sub {
      $link->rel( 'self' );
      $link->href( 'http://www.estar.org.uk/atom.xml' );
      $feed->add_link( $link );
-        
-     foreach my $i ( 0 ... $#files ) {
-        $log->debug( "Reading $i of $#files entries" );
+      
+     my $num_of_files = $#files;   
+     foreach my $i ( 0 ... $num_of_files ) {
+        $log->debug( "Reading $i of $num_of_files entries" );
         my $data;
         {
            open( DATA_FILE, "$files[$i]" );
-           undef $/;
+           local ( $/ );
            $data = <DATA_FILE>;
            close( DATA_FILE );
 
-        };   
+        }  
+        
+          use Data::Dumper; print "\@data = " . Dumper( $data );
    
         $log->debug( "Determing ID of message..." );
         my $object = new Astro::VO::VOEvent();
-        my $id = $object->determine_id( XML => $data );
+        my $id;
+        eval { $id = $object->determine_id( XML => $data ); };
+        if ( $@ ) {
+           $log->error( "Error: $@" );
+           $log->error( "\$data = " . $data );
+           $log->warn( "Warning: discarding message $i of $num_of_files" );
+           next;
+        } 
         $log->debug( "ID: $id" );
 
         $log->print( "Creating Atom Feed Entry..." );
@@ -744,6 +759,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_alert.pl,v $
+# Revision 1.6  2005/11/28 14:17:35  aa
+# Bug fixes
+#
 # Revision 1.5  2005/11/24 17:18:35  aa
 # Updated eSTAR::Mail and usage
 #
