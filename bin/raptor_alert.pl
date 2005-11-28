@@ -35,7 +35,7 @@ incoming alerts from the RAPTOR system.
 
 =head1 REVISION
 
-$Id: raptor_alert.pl,v 1.6 2005/11/28 14:17:35 aa Exp $
+$Id: raptor_alert.pl,v 1.7 2005/11/28 14:18:39 aa Exp $
 
 =head1 AUTHORS
 
@@ -52,7 +52,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -425,9 +425,10 @@ my $tcp_callback = sub {
      }        
      
      $log->debug("Reading from $alert");
+     my @files;
      {
         local $/ = "\n";  # I shouldn't have to do this?
-        my @files = <LOG>;
+        @files = <LOG>;
      }   
      use Data::Dumper; print "\@files = " . Dumper( @files );
      
@@ -759,6 +760,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_alert.pl,v $
+# Revision 1.7  2005/11/28 14:18:39  aa
+# Bug fixes
+#
 # Revision 1.6  2005/11/28 14:17:35  aa
 # Bug fixes
 #

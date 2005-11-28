@@ -169,8 +169,8 @@ unless ( defined $status ) {
   # list of "default" known nodes  
   $config->set_option( "nodes.UKIRT", "estar.ukirt.jach.hawaii.edu:8080" );
   $config->set_option( "nodes.LT", "estar.astro.ex.ac.uk:8078" );
-  $config->set_option( "nodes.FTN", "estar.astro.ex.ac.uk:8079" );
-  $config->set_option( "nodes.FTS", "estar.astro.ex.ac.uk:8080" );
+  $config->set_option( "nodes.FTN", "estar.astro.ex.ac.uk:8077" );
+  $config->set_option( "nodes.FTS", "estar.astro.ex.ac.uk:8079" );
   $config->set_option( "nodes.RAPTOR", "estar2.astro.ex.ac.uk:8080" );
   $status = $config->write_option( );
 
