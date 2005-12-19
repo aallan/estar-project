@@ -36,7 +36,7 @@ requests for the RAPTOR/TALON telescopes.
 
 =head1 REVISION
 
-$Id: raptor_gateway.pl,v 1.20 2005/12/19 12:40:38 aa Exp $
+$Id: raptor_gateway.pl,v 1.21 2005/12/19 12:51:02 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.20 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.21 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -626,14 +626,16 @@ my $iamalive = sub {
       $PING->param( 'iamalive.unique_number', $number );
       $log->debug('Incrementing unique number to ' . $number);
      
+      my $id = $PING->param( 'soap.host' ) . "." . 
+               $PING->param( 'iamalive.unique_number' )
+     
       # commit ID stuff to STATE file
       my $status = $PING->save( $ping_file );           
       # build the IAMALIVE message
       my $alive =
          "<?xml version='1.0' encoding='UTF-8'?>\n" .
          '<VOEvent role="iamalive" id="' .
-         'ivo://estar.ex/' . $PING->param( 'iamalive.unique_number' ) .
-         '" version="1.1">' . "\n" .
+         'ivo://estar.ex/' . $id . '" version="1.1">' . "\n" .
          ' <Who>' . "\n" .
          '   <PublisherID>ivo://estar.ex</PublisherID>' . "\n" .
          '   <Date>' . $timestamp . '</Date>'  . "\n" .
@@ -845,6 +847,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_gateway.pl,v $
+# Revision 1.21  2005/12/19 12:51:02  aa
+# Bug fix to raptor_gateway.pl
+#
 # Revision 1.20  2005/12/19 12:40:38  aa
 # Bug fix to raptor_gateway.pl
 #
