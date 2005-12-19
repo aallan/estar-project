@@ -36,7 +36,7 @@ requests for the RAPTOR/TALON telescopes.
 
 =head1 REVISION
 
-$Id: raptor_gateway.pl,v 1.18 2005/12/19 12:21:47 aa Exp $
+$Id: raptor_gateway.pl,v 1.19 2005/12/19 12:28:52 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.18 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.19 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -392,15 +392,6 @@ my $tcp_callback = sub {
   $log->thread2($thread_name, "Callback from TCP client...");
   $log->thread2($thread_name, "Handling broadcast message from RAPTOR");
 
-  unless ( $message =~ /RTML/ ) {
-     $log->debug( "Message is not RTML, not forwarded..." );
-     if ( $message =~ /VOEvent/ ) {
-       $log->debug( "Message may be a VOEvent message?" );
-     }
-     $log->debug( "Returning ESTAR__OK, exiting callback...");
-     return ESTAR__OK;
-  }     
-
   # This should be an RTML message, lets check.
   my $rtml;
   eval { $rtml = new eSTAR::RTML( Source => $message ) };
@@ -614,7 +605,7 @@ my $iamalive = sub {
  
       if ( $number eq '' ) {
          # $number is not defined correctly (first ever message?)
-         $PING->param( 'iamalive.unique_number', 1 );
+         $PING->param( 'iamalive.unique_number', 0 );
          $number = 0; 
       } 
       $log->debug("Generating unqiue ID: $number");      
@@ -628,7 +619,15 @@ my $iamalive = sub {
       
       my $timestamp = $year ."-". $month ."-". $day ."T". 
                       $hour .":". $min .":". $sec;
-           
+      $log->debug( "Generating timestamp: $timestamp");
+      
+      # increment ID number
+      $number = $number + 1;
+      $PING->param( 'iamalive.unique_number', $number );
+      $log->debug('Incrementing unique number to ' . $number);
+     
+      # commit ID stuff to STATE file
+      my $status = $PING->save( $ping_file );           
       # build the IAMALIVE message
       my $alive =
          "<?xml version='1.0' encoding='UTF-8'?>\n" .
@@ -640,14 +639,6 @@ my $iamalive = sub {
          '   <Date>' . $timestamp . '</Date>'  . "\n" .
          ' </Who>' . "\n" .
          '</VOEvent>' . "\n";
-
-      # increment ID number
-      $number = $number + 1;
-      $PING->param( 'iamalive.unique_number', $number );
-      $log->debug('Incrementing unique number to ' . $number);
-     
-      # commit ID stuff to STATE file
-      my $status = $PING->save( $ping_file );
 
       # work out message length
       my $header = pack( "N", 7 );
@@ -754,11 +745,23 @@ while( $flag ) {
          $log->debug( "Message is $length characters" );               
          $bytes_read = sysread( $sock, $response, $length); 
       
-         # callback to handle incoming RTML     
-         $log->print("Detaching callback thread..." );
-         my $callback_thread = 
-             threads->create ( $tcp_callback, $response );
-         $callback_thread->detach(); 
+         # Filter incoming messages here, only RTML to callback thread
+         if ( $response =~ /RTML/ ) {
+            $log->debug( "Incoming message appears to be RMTL" );
+
+            # callback to handle incoming RTML     
+            $log->print("Detaching callback thread..." );
+            my $callback_thread = 
+                threads->create ( $tcp_callback, $response );
+            $callback_thread->detach();    
+            
+         } elsif ( $response =~ /VOEvent/ ) {
+            $log->debug( "Ignoring VOEvent message..." );
+         } else {
+            $log->warn( "Warning: Message type is unknown..." );
+            $log->warn( $response );
+         }
+       
       }
                       
    } elsif ( $bytes_read == 0 && $! != EWOULDBLOCK ) {
@@ -841,6 +844,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_gateway.pl,v $
+# Revision 1.19  2005/12/19 12:28:52  aa
+# Bug fix to raptor_gateway.pl
+#
 # Revision 1.18  2005/12/19 12:21:47  aa
 # Bug fix to raptor_gateway.pl
 #
