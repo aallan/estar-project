@@ -35,7 +35,7 @@ incoming alerts from the RAPTOR system.
 
 =head1 REVISION
 
-$Id: raptor_alert.pl,v 1.13 2005/12/19 21:09:40 aa Exp $
+$Id: raptor_alert.pl,v 1.14 2005/12/19 21:24:40 aa Exp $
 
 =head1 AUTHORS
 
@@ -52,7 +52,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.13 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.14 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -485,7 +485,7 @@ my $iamalive = sub {
       # send message                                   
       $log->debug( "Sending " . length($alive) . " bytes to " . 
                    $config->get_option( "raptor.host" ) . ":" .
-                   $config->get_option( "raptor.port" ) );
+                   $config->get_option( "raptor.ack" ) );
                      
       $log->debug( $alive ); 
                      
@@ -514,10 +514,12 @@ my $iamalive = sub {
      
       if( $event->role() eq "ack" ) {
         $log->warn( "Warning: Recieved an ACK message in response");
+        $log->debug( $response );
         $log->debug( "Done." );
         
       } elsif ( $event->role() eq "iamalive" ) {
         $log->print( "Recieved a IAMALIVE message in response");
+        $log->debug( $response );
         $log->debug( "Done." );
       }  
          
@@ -1060,6 +1062,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_alert.pl,v $
+# Revision 1.14  2005/12/19 21:24:40  aa
+# Bug fix to debug messages
+#
 # Revision 1.13  2005/12/19 21:09:40  aa
 # Bug fixes, bringing the infrastrcuture to operational speed
 #
