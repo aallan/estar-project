@@ -3,7 +3,13 @@
         * Updated RAPTOR infrastructre to handle the new Astro::VO::VOEvent
           class and other changes to the lower level classes for events.
           
-        * bin/raptor_gateway.pl: Added IAMALIVE functionality.  
+        * bin/raptor_alert.pl: Added IAMALIVE functionality. This initially
+          was in bin/raptor_gateway.pl but this was the wrong place to put it
+          as the gateway program is a HTN RTML interface. So now all the HTN
+          functionality is in the gateway, and the VOEvent functionality is
+          in the alerter. Need to pull RTML forwarding out of the alerter and
+          into the gateway (gateway needs a continous connection on 43002 as
+          well as its current open/close in 5170).
           
 2005-11-24 Alasdair Allan <aa@astro.ex.ac.uk>
 
