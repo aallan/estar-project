@@ -36,7 +36,7 @@ requests for the RAPTOR/TALON telescopes.
 
 =head1 REVISION
 
-$Id: raptor_gateway.pl,v 1.16 2005/12/19 12:15:52 aa Exp $
+$Id: raptor_gateway.pl,v 1.17 2005/12/19 12:17:20 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.16 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.17 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -558,7 +558,7 @@ my $iamalive = sub {
 
    # create SOAP daemon
    $log->thread2($thread_name, "Starting IAMALIVE collection...");  
-   $log->thread2($thread_name, "Pinging eveery " .
+   $log->thread2($thread_name, "Pinging every " .
                  $config->get_option( "raptor.iamalive") . " seconds..." );
 
    # STATE FILE
@@ -832,6 +832,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_gateway.pl,v $
+# Revision 1.17  2005/12/19 12:17:20  aa
+# Bug fix to raptor_gateway.pl
+#
 # Revision 1.16  2005/12/19 12:15:52  aa
 # Bug fix to raptor_gateway.pl
 #
