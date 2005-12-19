@@ -35,7 +35,7 @@ incoming alerts from the RAPTOR system.
 
 =head1 REVISION
 
-$Id: raptor_alert.pl,v 1.10 2005/12/19 15:03:24 aa Exp $
+$Id: raptor_alert.pl,v 1.11 2005/12/19 15:31:10 aa Exp $
 
 =head1 AUTHORS
 
@@ -52,7 +52,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.10 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -688,7 +688,9 @@ my $tcp_callback = sub {
         # grab <What>
         my %what = $object->what();
         my $packet_type = $what{Param}->{PACKET_TYPE}->{value};
-        
+ 
+        my $timestamp = $object->time();
+               
         # build url
         my @path = split( "/", $id );
         if ( $path[0] eq "ivo:" ) {
@@ -706,8 +708,9 @@ my $tcp_callback = sub {
         $log->print( "Creating RSS Feed Entry..." );
         $feed->add_item(
            title       => "$id",
-           description => "GCN PACKET_TYPE=$packet_type (via TALONS)",
-           link        => "http://gcn.gsfc.nasa.gov/",
+           description => "GCN PACKET_TYPE = $packet_type (via TALONS)\n" .
+                          "Time stamp at TALONS was $timestamp",
+           link        => "$url",
            enclosure   => { 
              url=>$url, 
              type=>"application/xml+voevent" } );
@@ -880,6 +883,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_alert.pl,v $
+# Revision 1.11  2005/12/19 15:31:10  aa
+# Updated feed item description tag, linked to actual alert
+#
 # Revision 1.10  2005/12/19 15:03:24  aa
 # Bug fixes and changes to RSS feed item description
 #
