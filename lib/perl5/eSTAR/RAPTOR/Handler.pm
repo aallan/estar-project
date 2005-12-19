@@ -300,7 +300,7 @@ sub handle_voevent {
    
    } else { 
  
-      $log->print("Sending VOEvent message to RAPTOR...");
+      $log->print("Sending message to RAPTOR...");
  
       # work out message length
       my $header = pack( "N", 7 );

@@ -36,7 +36,7 @@ use Astro::VO::VOEvent;
 @ISA = qw/Exporter/;
 @EXPORT_OK = qw/ store_voevent /;
 
-'$Revision: 1.6 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.7 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 sub store_voevent {
    my $message = shift;
@@ -46,9 +46,9 @@ sub store_voevent {
    my $config = eSTAR::Config::get_reference();
    my $state_dir = File::Spec->catdir( $config->get_state_dir() );  
   
-   my $object = new Astro::VO::VOEvent();
+   my $object = new Astro::VO::VOEvent( XML => $message );
    my $id;
-   eval { $id = $object->determine_id( XML => $message ); };
+   eval { $id = $object->id(  ); };
    if ( $@ ) {
            $log->error( "Error: $@" );
    } 
@@ -122,7 +122,7 @@ sub store_voevent {
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.6 2005/11/09 13:27:39 aa Exp $
+$Id: Util.pm,v 1.7 2005/12/19 10:31:09 aa Exp $
 
 =head1 AUTHORS
 

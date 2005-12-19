@@ -35,7 +35,7 @@ incoming alerts from the RAPTOR system.
 
 =head1 REVISION
 
-$Id: raptor_alert.pl,v 1.7 2005/11/28 14:18:39 aa Exp $
+$Id: raptor_alert.pl,v 1.8 2005/12/19 10:31:09 aa Exp $
 
 =head1 AUTHORS
 
@@ -52,7 +52,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -321,6 +321,7 @@ if ( $config->get_state("gateway.unique_process") == 1 ) {
    #$config->set_option( "raptor.host", "144.173.229.16" );
    $config->set_option( "raptor.host", "astro.lanl.gov" );
    $config->set_option( "raptor.port", 43002 );
+   $config->set_option( "raptor.ack", 5170 );
    
    # interprocess communication
    $config->set_option( "ua.user", "agent" );
@@ -402,6 +403,22 @@ my $tcp_callback = sub {
      $log->debug( "This looks like a VOEvent document..." );
      $log->print( $message );
      
+     # Ignore ACK and IAMALIVE messages
+     # --------------------------------
+     my $event = new Astro::VO::VOEvent( XML => );
+     
+     if( $event->role() eq "ack" ) {
+        $log->debug( "Discarding ACK message...");
+        $log->debug( "Done." );
+        return ESTAR__OK;
+        
+     } elsif ( $event->role() eq "iamalive" ) {
+       $log->thread2($thread_name, "Recieved IAMALIVE message from RAPTOR");
+       $log->thread2($thread_name, "Recieved at " . ctime() );
+       $log->debug( "Done.");
+       return ESTAR__OK;
+     }  
+ 
      # Reading from alert.log file
      # ---------------------------
      my $state_dir = File::Spec->catdir( $config->get_state_dir() );  
@@ -430,7 +447,7 @@ my $tcp_callback = sub {
         local $/ = "\n";  # I shouldn't have to do this?
         @files = <LOG>;
      }   
-     use Data::Dumper; print "\@files = " . Dumper( @files );
+     # use Data::Dumper; print "\@files = " . Dumper( @files );
      
      $log->debug("Closing alert.log file...");
      close(LOG);
@@ -485,12 +502,12 @@ my $tcp_callback = sub {
 
         }  
         
-          use Data::Dumper; print "\@data = " . Dumper( $data );
+        #  use Data::Dumper; print "\@data = " . Dumper( $data );
    
         $log->debug( "Determing ID of message..." );
-        my $object = new Astro::VO::VOEvent();
+        my $object = new Astro::VO::VOEvent( XML => $data );
         my $id;
-        eval { $id = $object->determine_id( XML => $data ); };
+        eval { $id = $object->id( ); };
         if ( $@ ) {
            $log->error( "Error: $@" );
            $log->error( "\$data = " . $data );
@@ -543,6 +560,84 @@ my $tcp_callback = sub {
   
   $log->debug( "Returning ESTAR__OK, exiting callback..." );
   return ESTAR__OK;
+};
+
+my $ack_callback = sub {
+  my $file = shift;
+  
+  my $thread_name = "ACK";
+  $log->thread($thread_name, "Sending ACK message at " . ctime() . "...");
+  $log->thread($thread_name, "Opening socket connection to RAPTOR server..." ) ;
+ 
+  my $ack_sock = new IO::Socket::INET( 
+                   PeerAddr => $config->get_option( "raptor.host" ),
+                   PeerPort => $config->get_option( "raptor.ack" ),
+                   Proto    => "tcp",
+                   Timeout  => $config->get_option( "connection.timeout" ) );
+
+  unless ( $ack_sock ) {
+     
+     # we have an error
+     my $error = "$!";
+     chomp($error);
+     $log->error( "Error: $error");
+     return ESTAR__FAULT;      
+  
+  } 
+ 
+  $log->thread($thread_name, "Sending ACK message to RAPTOR...");
+  
+  # return an ack message
+  my $ack =
+   "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
+   '<VOEvent xmlns="http://www.ivoa.net/xml/VOEvent/v1.0"' . "\n" .
+   'xmlns:schemaLocation="http://www.ivoa.net/xml/STC/stc-v1.20.xsd ' .
+   'http://hea-www.harvard.edu/~arots/nvometa/v1.2/stc-v1.20.xsd ' .
+   'http://www.ivoa.net/xml/STC/STCcoords/v1.20 ' .
+   'http://hea-www.harvard.edu/~arots/nvometa/v1.2/coords-v1.20.xsd ' .
+   'http://www.ivoa.net/xml/VOEvent/v1.0 ' .
+   'http://www.ivoa.net/internal/IVOA/IvoaVOEvent/VOEvent-v1.0.xsd" ' . "\n" .
+   'role="ack"' . "\n" .
+   'xmlns:stc="http://www.ivoa.net/xml/STC/stc-v1.20.xsd"' . "\n" .
+   'version="1.0"' . "\n" .
+   'xmlns:crd="http://www.ivoa.net/xml/STC/STCcoords/v1.20"' . "\n" . 
+   'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"' . "\n" . 
+   'id="ivo://estar.ex/ack" >' . "\n" . 
+   '<Citations/>' . "\n" . 
+   '<Who>' . "\n" . 
+   '   <PublisherID>ivo://estar.ex/</PublisherID>' . "\n" . 
+   '</Who>' . "\n" . 
+   '<What>' . "\n" . 
+   '   <Param value="stored" name="'. $file .'" />' . "\n" . 
+   '</What>' . "\n" . 
+   '<WhereWhen/>' . "\n" . 
+   '<How/>' . "\n" . 
+   '<Why/>' . "\n" . 
+   '</VOEvent>' . "\n";
+
+  # work out message length
+  my $header = pack( "N", 7 );
+  my $bytes = pack( "N", length($ack) ); 
+   
+  # send message                                   
+  $log->debug( "Sending " . length($ack) . " bytes to " . 
+               $config->get_option( "raptor.host" ) . ":" .
+               $config->get_option( "raptor.ack" ) );
+                     
+  $log->debug( $ack ); 
+                     
+  print $ack_sock $header;
+  print $ack_sock $bytes;
+  $ack_sock->flush();
+  print $ack_sock $ack;
+  $ack_sock->flush();  
+  close($ack_sock);
+  
+  $log->debug( "Closed ACK socket"); 
+  $log->thread($thread_name, "Done.");
+  return ESTAR__OK;      
+
+
 };
 
 # O P E N   I N C O M I N G   C L I E N T  -----------------------------------
@@ -612,38 +707,14 @@ while( $flag ) {
          unless ( defined $file ) {
             $log->warn( "Warning: The message has not been serialised..." );
          }
+         
+         
+         # callback to send ACK messahe
+         $log->print("Detaching ack thread..." );
+         my $ack_thread =
+            threads->create( $ack_callback, $file );
+         $ack_thread->detach();   
 
-         # return an ack message
-         my $ack =
-          "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
-          '<VOEvent xmlns="http://www.ivoa.net/xml/VOEvent/v1.0' . "\n" .
-          'xmlns:schemaLocation="http://www.ivoa.net/xml/STC/stc-v1.20.xsd ' .
-          'http://hea-www.harvard.edu/~arots/nvometa/v1.2/stc-v1.20.xsd ' .
-          'http://www.ivoa.net/xml/STC/STCcoords/v1.20 ' .
-          'http://hea-www.harvard.edu/~arots/nvometa/v1.2/coords-v1.20.xsd ' .
-          'http://www.ivoa.net/xml/VOEvent/v1.0 ' .
-          'http://www.ivoa.net/internal/IVOA/IvoaVOEvent/VOEvent-v1.0.xsd" ' . "\n" .
-          'role="ack"' . "\n" .
-          'xmlns:stc="http://www.ivoa.net/xml/STC/stc-v1.20.xsd"' . "\n" .
-          'version="1.0"' . "\n" .
-          'xmlns:crd="http://www.ivoa.net/xml/STC/STCcoords/v1.20"' . "\n" . 
-          'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"' . "\n" . 
-          'id="ivo://estar.ex/ack" >' . "\n" . 
-          '<Citations/>' . "\n" . 
-          '<Who>' . "\n" . 
-          '   <PublisherID>ivo://estar.ex/</PublisherID>' . "\n" . 
-          '</Who>' . "\n" . 
-          '<What>' . "\n" . 
-          '   <Param value="stored" name="'. $file .'" />' . "\n" . 
-          '</What>' . "\n" . 
-          '<WhereWhen/>' . "\n" . 
-          '<How/>' . "\n" . 
-          '<Why/>' . "\n" . 
-          '</VOEvent>' . "\n";
-
-         # work out message length
-         my $header = pack( "N", 7 );
-         my $bytes = pack( "N", length($ack) );
 
          # Writing to alert.log file
          my $state_dir = File::Spec->catdir( $config->get_state_dir() );  
@@ -672,16 +743,7 @@ while( $flag ) {
          # close ALERT log file
          $log->debug("Closing alert.log file...");
          close(ALERT);
-          
-         # send message                                   
-         $log->debug( "Sending " . length($ack) . " bytes to " . 
-                      $config->get_option( "raptor.host" ));
-         print $sock $header;
-         print $sock $bytes;
-         $sock->flush();
-         print $sock $ack;
-         $sock->flush(); 
-         $log->debug( $ack ); 
+       
          $log->debug( "Done, listening..." );
       }
                       
@@ -760,6 +822,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_alert.pl,v $
+# Revision 1.8  2005/12/19 10:31:09  aa
+# Fixed RAPTOR stuff to work with updated VOEvent classes
+#
 # Revision 1.7  2005/11/28 14:18:39  aa
 # Bug fixes
 #

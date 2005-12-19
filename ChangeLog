@@ -1,3 +1,8 @@
+2005-12-19 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * Updated RAPTOR infrastructre to handle the new Astro::VO::VOEvent
+          class and other changes to the lower level classes for events.
+          
 2005-11-24 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * Updated eSTAR::Mail to have a Cc option. Also updated most of the
