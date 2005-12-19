@@ -35,7 +35,7 @@ incoming alerts from the RAPTOR system.
 
 =head1 REVISION
 
-$Id: raptor_alert.pl,v 1.8 2005/12/19 10:31:09 aa Exp $
+$Id: raptor_alert.pl,v 1.9 2005/12/19 12:03:48 aa Exp $
 
 =head1 AUTHORS
 
@@ -52,7 +52,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -405,7 +405,7 @@ my $tcp_callback = sub {
      
      # Ignore ACK and IAMALIVE messages
      # --------------------------------
-     my $event = new Astro::VO::VOEvent( XML => );
+     my $event = new Astro::VO::VOEvent( XML => $message );
      
      if( $event->role() eq "ack" ) {
         $log->debug( "Discarding ACK message...");
@@ -822,6 +822,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_alert.pl,v $
+# Revision 1.9  2005/12/19 12:03:48  aa
+# Bug fix to raptor_alert.pl and added IAMALIVE functionality to raptor_gateway.pl
+#
 # Revision 1.8  2005/12/19 10:31:09  aa
 # Fixed RAPTOR stuff to work with updated VOEvent classes
 #

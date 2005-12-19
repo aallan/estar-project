@@ -3,6 +3,8 @@
         * Updated RAPTOR infrastructre to handle the new Astro::VO::VOEvent
           class and other changes to the lower level classes for events.
           
+        * bin/raptor_gateway.pl: Added IAMALIVE functionality.  
+          
 2005-11-24 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * Updated eSTAR::Mail to have a Cc option. Also updated most of the
