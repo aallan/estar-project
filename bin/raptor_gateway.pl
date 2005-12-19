@@ -36,7 +36,7 @@ requests for the RAPTOR/TALON telescopes.
 
 =head1 REVISION
 
-$Id: raptor_gateway.pl,v 1.22 2005/12/19 12:51:57 aa Exp $
+$Id: raptor_gateway.pl,v 1.23 2005/12/19 12:55:54 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.22 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.23 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -626,7 +626,7 @@ my $iamalive = sub {
       $PING->param( 'iamalive.unique_number', $number );
       $log->debug('Incrementing unique number to ' . $number);
      
-      my $id = $PING->param( 'soap.host' ) . "." . 
+      my $id = $config->get_option( 'soap.host' ) . "." . 
                $PING->param( 'iamalive.unique_number' );
      
       # commit ID stuff to STATE file
@@ -847,6 +847,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_gateway.pl,v $
+# Revision 1.23  2005/12/19 12:55:54  aa
+# Bug fix to raptor_gateway.pl
+#
 # Revision 1.22  2005/12/19 12:51:57  aa
 # Bug fix to raptor_gateway.pl
 #
