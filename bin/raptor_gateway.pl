@@ -36,7 +36,7 @@ requests for the RAPTOR/TALON telescopes.
 
 =head1 REVISION
 
-$Id: raptor_gateway.pl,v 1.17 2005/12/19 12:17:20 aa Exp $
+$Id: raptor_gateway.pl,v 1.18 2005/12/19 12:21:47 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.17 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.18 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -609,6 +609,7 @@ my $iamalive = sub {
       $log->thread2($thread_name, "Sending IAMALIVE message to RAPTOR...");
   
       # unique ID for IAMALIVE message
+      $log->debug( "Retreving unique number from state file..." );
       my $number = $PING->param( 'iamalive.unique_number' ); 
  
       if ( $number eq '' ) {
@@ -639,6 +640,14 @@ my $iamalive = sub {
          '   <Date>' . $timestamp . '</Date>'  . "\n" .
          ' </Who>' . "\n" .
          '</VOEvent>' . "\n";
+
+      # increment ID number
+      $number = $number + 1;
+      $PING->param( 'iamalive.unique_number', $number );
+      $log->debug('Incrementing unique number to ' . $number);
+     
+      # commit ID stuff to STATE file
+      my $status = $PING->save( $ping_file );
 
       # work out message length
       my $header = pack( "N", 7 );
@@ -832,6 +841,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_gateway.pl,v $
+# Revision 1.18  2005/12/19 12:21:47  aa
+# Bug fix to raptor_gateway.pl
+#
 # Revision 1.17  2005/12/19 12:17:20  aa
 # Bug fix to raptor_gateway.pl
 #
