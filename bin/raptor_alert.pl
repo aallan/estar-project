@@ -35,7 +35,7 @@ incoming alerts from the RAPTOR system.
 
 =head1 REVISION
 
-$Id: raptor_alert.pl,v 1.9 2005/12/19 12:03:48 aa Exp $
+$Id: raptor_alert.pl,v 1.10 2005/12/19 15:03:24 aa Exp $
 
 =head1 AUTHORS
 
@@ -52,7 +52,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.10 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -91,7 +91,6 @@ use eSTAR::Process;
 use eSTAR::Config;
 use eSTAR::UserAgent;
 use eSTAR::RTML;
-use Astro::VO::VOEvent;
 
 #
 # Config modules
@@ -373,194 +372,8 @@ $ua->set_ua( $lwp );
 
 # A N O N Y M O U S   S U B - R O U T I N E S -------------------------------
 
-# TCP/IP callback
+# ACK callback
 
-my $tcp_callback = sub {
-  my $message = shift;    
-  my $thread_name = "TCP/IP";
-  $log->thread2($thread_name, "Callback from TCP client at " . ctime() . "...");
-  $log->thread2($thread_name, "Handling broadcast message from RAPTOR");
-
-
-  $log->debug( "Testing to see whether we have an RTML document..." );
-  if ( $message =~ /RTML/ ) {
-     my $rtml;
-     eval { $rtml = new eSTAR::RTML( Source => $message ) };
-     $log->warn( "Warning: Document identified as RTML..." );
-     my $type = $rtml->determine_type();
-     $log->warn( "Warning: Recieved RTML message of type '$type'" );  
-     $log->warn( "$message");       
-     $log->warn( "Warning: Returning ESTAR__FAULT, exiting callback...");
-     return ESTAR__FAULT;     
-  } else {
-     $log->debug( "Doesn't look like the document is an RTML message..." );
-  }   
-
-  # It really, really should be a VOEvent message
-  $log->debug( "Testing to see whether we have a VOEvent document..." );
-  my $voevent;
-  if ( $message =~ /VOEvent/ ) {
-     $log->debug( "This looks like a VOEvent document..." );
-     $log->print( $message );
-     
-     # Ignore ACK and IAMALIVE messages
-     # --------------------------------
-     my $event = new Astro::VO::VOEvent( XML => $message );
-     
-     if( $event->role() eq "ack" ) {
-        $log->debug( "Discarding ACK message...");
-        $log->debug( "Done." );
-        return ESTAR__OK;
-        
-     } elsif ( $event->role() eq "iamalive" ) {
-       $log->thread2($thread_name, "Recieved IAMALIVE message from RAPTOR");
-       $log->thread2($thread_name, "Recieved at " . ctime() );
-       $log->debug( "Done.");
-       return ESTAR__OK;
-     }  
- 
-     # Reading from alert.log file
-     # ---------------------------
-     my $state_dir = File::Spec->catdir( $config->get_state_dir() );  
-     my $alert = File::Spec->catfile( $state_dir, "alert.log" );
-     
-     $log->debug("Opening alert log file: $alert");  
-      
-     # write the observation object to disk.
-     unless ( open ( LOG, "$alert" )) {
-        my $error = "Warning: Can not read from "  . $state_dir; 
-        $log->error( $error );
-        throw eSTAR::Error::FatalError($error, ESTAR__FATAL);   
-     } else {
-        unless ( flock( LOG, LOCK_EX ) ) {
-          my $error = "Warning: unable to acquire exclusive lock: $!";
-          $log->error( $error );
-          throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
-        } else {
-          $log->debug("Acquiring exclusive lock...");
-        }
-     }        
-     
-     $log->debug("Reading from $alert");
-     my @files;
-     {
-        local $/ = "\n";  # I shouldn't have to do this?
-        @files = <LOG>;
-     }   
-     # use Data::Dumper; print "\@files = " . Dumper( @files );
-     
-     $log->debug("Closing alert.log file...");
-     close(LOG);
-          
-     # Writing to atom.xml
-     # -------------------
-     my $state_dir = File::Spec->catdir( $config->get_state_dir() );  
-     my $atom = File::Spec->catfile( $state_dir, "atom.xml" );
-        
-     $log->debug("Creating Atom file: $atom");  
-          
-     # write the observation object to disk.
-     unless ( open ( ATOM, ">$atom" )) {
-        my $error = "Warning: Can not write to "  . $state_dir; 
-        $log->error( $error );
-        throw eSTAR::Error::FatalError($error, ESTAR__FATAL);   
-     } else {
-        unless ( flock( ATOM, LOCK_EX ) ) {
-          my $error = "Warning: unable to acquire exclusive lock: $!";
-          $log->error( $error );
-          throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
-        } else {
-          $log->debug("Acquiring exclusive lock...");
-        }
-     }                  
-     
-     $log->print( "Creating Atom feed..." );     
-          
-     # Create atom.xml file 
-     my $feed = new XML::Atom::Feed( Version => '1.0' );
-     $feed->title( "eSTAR/TALONS GCN Feed" );
-     my $author = new XML::Atom::Person();
-     $author->name( "eSTAR Project" );
-     $author->email( 'aa@estar.org.uk' );
-     $feed->author( $author );
-
-     my $link = new XML::Atom::Link();
-     $link->type( 'application/atom+xml' );
-     $link->rel( 'self' );
-     $link->href( 'http://www.estar.org.uk/atom.xml' );
-     $feed->add_link( $link );
-      
-     my $num_of_files = $#files;   
-     foreach my $i ( 0 ... $num_of_files ) {
-        $log->debug( "Reading $i of $num_of_files entries" );
-        my $data;
-        {
-           open( DATA_FILE, "$files[$i]" );
-           local ( $/ );
-           $data = <DATA_FILE>;
-           close( DATA_FILE );
-
-        }  
-        
-        #  use Data::Dumper; print "\@data = " . Dumper( $data );
-   
-        $log->debug( "Determing ID of message..." );
-        my $object = new Astro::VO::VOEvent( XML => $data );
-        my $id;
-        eval { $id = $object->id( ); };
-        if ( $@ ) {
-           $log->error( "Error: $@" );
-           $log->error( "\$data = " . $data );
-           $log->warn( "Warning: discarding message $i of $num_of_files" );
-           next;
-        } 
-        $log->debug( "ID: $id" );
-
-        $log->print( "Creating Atom Feed Entry..." );
-        my $entry = new XML::Atom::Entry();
-        $entry->title( $id );
-        $entry->content( "<![CDATA[" . $data . "]]>" );
-
-        my $author = new XML::Atom::Person();
-        $author->name( "GCN" );
-        $author->email( 'scott@milkyway.gsfc.nasa.gov' );
-        $entry->author( $author );
-
-        $log->debug( "Adding entry to feed..." );
-        $feed->add_entry( $entry );
-
-     }
-     $log->debug( "Creating XML representation of feed..." );
-     my $xml = $feed->as_xml();
-
-     $log->debug( "Writing feed to $atom" );
-     print ATOM $xml;
-       
-     # close ALERT log file
-     $log->debug("Closing atom.xml file...");
-     close(ATOM);    
-     
-     $log->debug("Opening FTP connection to lion.drogon.net...");  
-     my $ftp = Net::FTP->new( "lion.drogon.net", Debug => 0 );
-     $log->debug("Logging into estar account...");  
-     $ftp->login( "estar", "tibileot" );
-     $ftp->cwd( "www.estar.org.uk/docs" );
-     $log->debug("Transfering Atom file...");  
-     $ftp->put( $atom, "atom.xml" );
-     $ftp->quit();     
-     $log->debug("Closed FTP connection");  
-
-  
-  } else {
-     $log->warn( "Warning: Document unidentified..." );
-     $log->warn( "$message");       
-     $log->warn( "Warning: Returning ESTAR__FAULT, exiting callback...");
-     return ESTAR__FAULT;      
-  }  
-  
-  $log->debug( "Returning ESTAR__OK, exiting callback..." );
-  return ESTAR__OK;
-};
 
 my $ack_callback = sub {
   my $file = shift;
@@ -640,6 +453,298 @@ my $ack_callback = sub {
 
 };
 
+# TCP/IP callback
+
+my $tcp_callback = sub {
+  my $message = shift;    
+  my $thread_name = "TCP/IP";
+  $log->thread2($thread_name, "Callback from TCP client at " . ctime() . "...");
+  $log->thread2($thread_name, "Handling broadcast message from RAPTOR");
+
+
+  $log->debug( "Testing to see whether we have an RTML document..." );
+  if ( $message =~ /RTML/ ) {
+     my $rtml;
+     eval { $rtml = new eSTAR::RTML( Source => $message ) };
+     $log->warn( "Warning: Document identified as RTML..." );
+     my $type = $rtml->determine_type();
+     $log->warn( "Warning: Recieved RTML message of type '$type'" );  
+     $log->warn( "$message");       
+     $log->warn( "Warning: Returning ESTAR__FAULT, exiting callback...");
+     return ESTAR__FAULT; 
+         
+  } 
+
+  # It really, really should be a VOEvent message
+  $log->debug( "Testing to see whether we have a VOEvent document..." );
+  my $voevent;
+  if ( $message =~ /VOEvent/ ) {
+     $log->debug( "This looks like a VOEvent document..." );
+     $log->print( $message );
+     
+     # Ignore ACK and IAMALIVE messages
+     # --------------------------------
+     my $event = new Astro::VO::VOEvent( XML => $message );
+     my $id = $event->id();
+     
+     if( $event->role() eq "ack" ) {
+        $log->debug( "Discarding ACK message...");
+        $log->debug( "Done." );
+        return ESTAR__OK;
+        
+     } elsif ( $event->role() eq "iamalive" ) {
+       $log->thread2($thread_name, "Recieved IAMALIVE message from RAPTOR");
+       $log->thread2($thread_name, "Recieved at " . ctime() );
+       $log->debug( "Done.");
+       return ESTAR__OK;
+     }  
+
+     # HANDLE VOEVENT MESSAGE --------------------------------------------
+       
+     # log the event message
+     my $file;
+     eval { $file = eSTAR::RAPTOR::Util::store_voevent( $message ); };
+     if ( $@  ) {
+       $log->error( "Error: $@" );
+     } 
+     
+     unless ( defined $file ) {
+        $log->warn( "Warning: The message has not been serialised..." );
+     }
+     
+     # Upload the event message to estar.org.uk
+     # ----------------------------------------
+     
+     my @path = split( "/", $id );
+     if ( $path[0] eq "ivo:" ) {
+        splice @path, 0 , 1;
+     }
+     if ( $path[0] eq "" ) {
+        splice @path, 0 , 1;
+     }
+     my $path = "www.estar.org.uk/docs/voevent";
+     foreach my $i ( 0 ... $#path - 1 ) {
+        $path = $path . "/$path[$i]"; 
+     }
+     $log->debug("Opening FTP connection to lion.drogon.net...");  
+     $log->debug("Logging into estar account...");  
+     my $ftp = Net::FTP->new( "lion.drogon.net", Debug => 1 );
+     $ftp->login( "estar", "tibileot" );
+     $log->debug("Changing directory to $path");
+     $ftp->cwd( $path );
+     $log->debug("Uploading $file");
+     $ftp->put( $file, "$id" . ".xml" );
+     $ftp->quit();    
+     $log->debug("Closing FTP connection"); 
+     
+     # callback to send ACK message
+     # ----------------------------
+     
+     $log->print("Detaching ack thread..." );
+     my $ack_thread =
+        threads->create( $ack_callback, $file );
+     $ack_thread->detach();   
+
+
+     # Writing to alert.log file
+     my $state_dir = File::Spec->catdir( $config->get_state_dir() );  
+     my $alert = File::Spec->catfile( $state_dir, "alert.log" );
+     
+     $log->debug("Opening alert log file: $alert");  
+      
+     # write the observation object to disk.
+     # -------------------------------------
+     
+     unless ( open ( ALERT, "+>>$alert" )) {
+        my $error = "Warning: Can not write to "  . $state_dir; 
+        $log->error( $error );
+        throw eSTAR::Error::FatalError($error, ESTAR__FATAL);   
+     } else {
+        unless ( flock( ALERT, LOCK_EX ) ) {
+          my $error = "Warning: unable to acquire exclusive lock: $!";
+          $log->error( $error );
+          throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
+        } else {
+          $log->debug("Acquiring exclusive lock...");
+        }
+     }        
+     
+     $log->debug("Writing file path to $alert");
+     print ALERT "$file\n";
+     
+     # close ALERT log file
+     $log->debug("Closing alert.log file...");
+     close(ALERT);  
+
+     # GENERATE RSS FEED -------------------------------------------------
+     
+   
+     # Reading from alert.log file
+     # ---------------------------     
+     $log->debug("Opening alert log file: $alert");  
+      
+     # write the observation object to disk.
+     unless ( open ( LOG, "$alert" )) {
+        my $error = "Warning: Can not read from "  . $state_dir; 
+        $log->error( $error );
+        throw eSTAR::Error::FatalError($error, ESTAR__FATAL);   
+     } else {
+        unless ( flock( LOG, LOCK_EX ) ) {
+          my $error = "Warning: unable to acquire exclusive lock: $!";
+          $log->error( $error );
+          throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
+        } else {
+          $log->debug("Acquiring exclusive lock...");
+        }
+     }        
+     
+     $log->debug("Reading from $alert");
+     my @files;
+     {
+        local $/ = "\n";  # I shouldn't have to do this?
+        @files = <LOG>;
+     }   
+     # use Data::Dumper; print "\@files = " . Dumper( @files );
+     
+     $log->debug("Closing alert.log file...");
+     close(LOG);
+          
+     # Writing to raptor.rdf
+     # ---------------------
+     my $state_dir = File::Spec->catdir( $config->get_state_dir() );  
+     my $rss = File::Spec->catfile( $state_dir, "raptor.rdf" );
+        
+     $log->debug("Creating RSS file: $rss");  
+          
+     # write the observation object to disk.
+     unless ( open ( RSS, ">$rss" )) {
+        my $error = "Warning: Can not write to "  . $state_dir; 
+        $log->error( $error );
+        throw eSTAR::Error::FatalError($error, ESTAR__FATAL);   
+     } else {
+        unless ( flock( RSS, LOCK_EX ) ) {
+          my $error = "Warning: unable to acquire exclusive lock: $!";
+          $log->error( $error );
+          throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
+        } else {
+          $log->debug("Acquiring exclusive lock...");
+        }
+     }                  
+     
+     $log->print( "Creating RSS feed..." );     
+          
+     my $year = 1900 + localtime->year();
+     my $month = localtime->mon() + 1;
+     my $day = localtime->mday();
+     my $hour = localtime->hour();
+     my $min = localtime->min();
+     my $sec = localtime->sec();
+
+     my $timestamp = $year ."-". $month ."-". $day ."T". 
+                     $hour .":". $min .":". $sec;
+
+     my $feed = new XML::RSS( version => "2.0" );
+     $feed->channel(
+        title        => "eSTAR/TALONS GCN Feed",
+        link         => "http://www.estar.org.uk",
+        description  => "The combined brokered eSTAR and TALONS GCN Feed",
+        pubDate        => $timestamp,
+        lastBuildDate  => $timestamp,
+        language       => 'en-us' );
+
+     $feed->image(title       => 'estar.org.uk',
+             url         => 'http://www.estar.org.uk/favicon.png',
+             link        => 'http://www.estar.org.uk/',
+             width       => 16,
+             height      => 16,
+             description => 'eSTAR' );
+      
+     my $num_of_files = $#files;   
+     foreach my $i ( 0 ... $num_of_files ) {
+        $log->debug( "Reading $i of $num_of_files entries" );
+        my $data;
+        {
+           open( DATA_FILE, "$files[$i]" );
+           local ( $/ );
+           $data = <DATA_FILE>;
+           close( DATA_FILE );
+
+        }  
+        
+        #  use Data::Dumper; print "\@data = " . Dumper( $data );
+   
+        $log->debug( "Determing ID of message..." );
+        my $object = new Astro::VO::VOEvent( XML => $data );
+        my $id;
+        eval { $id = $object->id( ); };
+        if ( $@ ) {
+           $log->error( "Error: $@" );
+           $log->error( "\$data = " . $data );
+           $log->warn( "Warning: discarding message $i of $num_of_files" );
+           next;
+        } 
+        $log->debug( "ID: $id" );
+  
+        # grab <What>
+        my %what = $object->what();
+        my $packet_type = $what{Param}->{PACKET_TYPE}->{value};
+        
+        # build url
+        my @path = split( "/", $id );
+        if ( $path[0] eq "ivo:" ) {
+           splice @path, 0 , 1;
+        }
+        if ( $path[0] eq "" ) {
+           splice @path, 0 , 1;
+        }
+        my $url = "http://www.estar.org.uk/voevent";
+        foreach my $i ( 0 ... $#path ) {
+           $url = $url . "/$path[$i]"; 
+        }
+        $url = $url . ".xml";
+   
+        $log->print( "Creating RSS Feed Entry..." );
+        $feed->add_item(
+           title       => "$id",
+           description => "GCN PACKET_TYPE=$packet_type (via TALONS)",
+           link        => "http://gcn.gsfc.nasa.gov/",
+           enclosure   => { 
+             url=>$url, 
+             type=>"application/xml+voevent" } );
+
+
+     }
+     $log->debug( "Creating XML representation of feed..." );
+     my $xml = $feed->as_string();
+
+     $log->debug( "Writing feed to $rss" );
+     print RSS $xml;
+       
+     # close ALERT log file
+     $log->debug("Closing raptor.rdf file...");
+     close(RSS);    
+     
+     $log->debug("Opening FTP connection to lion.drogon.net...");  
+     $log->debug("Logging into estar account...");  
+     $ftp->login( "estar", "tibileot" );
+     $ftp->cwd( "www.estar.org.uk/docs/voevent" );
+     $log->debug("Transfering RSS file...");  
+     $ftp->put( $rss, "gcn.rdf" );
+     $ftp->quit();     
+     $log->debug("Closed FTP connection");  
+
+  
+  } else {
+     $log->warn( "Warning: Document unidentified..." );
+     $log->warn( "$message");       
+     $log->warn( "Warning: Returning ESTAR__FAULT, exiting callback...");
+     return ESTAR__FAULT;      
+  }  
+  
+  $log->debug( "Returning ESTAR__OK, exiting callback..." );
+  return ESTAR__OK;
+};
+
 # O P E N   I N C O M I N G   C L I E N T  -----------------------------------
 
 SOCKET: { 
@@ -696,53 +801,6 @@ while( $flag ) {
          my $callback_thread = 
              threads->create ( $tcp_callback, $response );
          $callback_thread->detach(); 
-
-         # log the event message
-         my $file;
-         eval { $file = eSTAR::RAPTOR::Util::store_voevent( $response ); };
-         if ( $@  ) {
-           $log->error( "Error: $@" );
-         } 
-
-         unless ( defined $file ) {
-            $log->warn( "Warning: The message has not been serialised..." );
-         }
-         
-         
-         # callback to send ACK messahe
-         $log->print("Detaching ack thread..." );
-         my $ack_thread =
-            threads->create( $ack_callback, $file );
-         $ack_thread->detach();   
-
-
-         # Writing to alert.log file
-         my $state_dir = File::Spec->catdir( $config->get_state_dir() );  
-         my $alert = File::Spec->catfile( $state_dir, "alert.log" );
-        
-         $log->debug("Opening alert log file: $alert");  
-          
-         # write the observation object to disk.
-         unless ( open ( ALERT, "+>>$alert" )) {
-            my $error = "Warning: Can not write to "  . $state_dir; 
-            $log->error( $error );
-            throw eSTAR::Error::FatalError($error, ESTAR__FATAL);   
-         } else {
-            unless ( flock( ALERT, LOCK_EX ) ) {
-              my $error = "Warning: unable to acquire exclusive lock: $!";
-              $log->error( $error );
-              throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
-            } else {
-              $log->debug("Acquiring exclusive lock...");
-            }
-         }        
-         
-         $log->debug("Writing file path to $alert");
-         print ALERT "$file\n";
-       
-         # close ALERT log file
-         $log->debug("Closing alert.log file...");
-         close(ALERT);
        
          $log->debug( "Done, listening..." );
       }
@@ -822,6 +880,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_alert.pl,v $
+# Revision 1.10  2005/12/19 15:03:24  aa
+# Bug fixes and changes to RSS feed item description
+#
 # Revision 1.9  2005/12/19 12:03:48  aa
 # Bug fix to raptor_alert.pl and added IAMALIVE functionality to raptor_gateway.pl
 #
