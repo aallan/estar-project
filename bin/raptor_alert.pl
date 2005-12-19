@@ -35,7 +35,7 @@ incoming alerts from the RAPTOR system.
 
 =head1 REVISION
 
-$Id: raptor_alert.pl,v 1.15 2005/12/19 21:32:57 aa Exp $
+$Id: raptor_alert.pl,v 1.16 2005/12/19 21:38:16 aa Exp $
 
 =head1 AUTHORS
 
@@ -52,7 +52,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.15 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.16 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -676,6 +676,11 @@ my $tcp_callback = sub {
        $log->thread2($thread_name, "Recieved at " . ctime() );
        $log->debug( $message );
        $log->debug( "Done.");
+       
+       # ADD CODE HERE TO SEND IAMALIVE MESSAGES BACK, NEEDS TO SPAWN AN
+       # IAMALIVE_CALLBACK( ) THREAD?
+       
+       
        return ESTAR__OK;
      }  
 
@@ -1073,6 +1078,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_alert.pl,v $
+# Revision 1.16  2005/12/19 21:38:16  aa
+# Placeholder for IAMALIVE handling code
+#
 # Revision 1.15  2005/12/19 21:32:57  aa
 # Generated a timestamp at reply time
 #
