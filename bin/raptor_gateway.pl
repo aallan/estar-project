@@ -36,7 +36,7 @@ requests for the RAPTOR/TALON telescopes.
 
 =head1 REVISION
 
-$Id: raptor_gateway.pl,v 1.14 2005/12/19 12:13:33 aa Exp $
+$Id: raptor_gateway.pl,v 1.15 2005/12/19 12:13:55 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.14 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.15 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -649,13 +649,12 @@ my $iamalive = sub {
                    $config->get_option( "raptor.host" ) . ":" .
                    $config->get_option( "raptor.port" ) );
                      
-      $log->debug( $ack ); 
+      $log->debug( $alive ); 
                      
       print $alive_sock $header;
       print $alive_sock $bytes;
       $alive_sock->flush();
       print $alive_sock $alive;
-      $log->debug( $alive );
       $alive_sock->flush();  
   
       # Wait for IAMALIVE response
@@ -834,6 +833,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_gateway.pl,v $
+# Revision 1.15  2005/12/19 12:13:55  aa
+# Bug fix to raptor_gateway.pl
+#
 # Revision 1.14  2005/12/19 12:13:33  aa
 # Bug fix to raptor_gateway.pl
 #
