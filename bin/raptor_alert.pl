@@ -35,7 +35,7 @@ incoming alerts from the RAPTOR system.
 
 =head1 REVISION
 
-$Id: raptor_alert.pl,v 1.12 2005/12/19 18:04:04 aa Exp $
+$Id: raptor_alert.pl,v 1.13 2005/12/19 21:09:40 aa Exp $
 
 =head1 AUTHORS
 
@@ -52,7 +52,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.13 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -306,6 +306,8 @@ if ( $config->get_state("gateway.unique_process") == 1 ) {
    
    my %user_id;
    tie %user_id, "CfgTie::TieUser";
+
+   $config->set_option( "local.host", $ip );
    
    # grab current user
    my $current_user = $user_id{$ENV{"USER"}};
@@ -460,7 +462,7 @@ my $iamalive = sub {
       $PING->param( 'iamalive.unique_number', $number );
       $log->debug('Incrementing unique number to ' . $number);
      
-      my $id = $config->get_option( 'soap.host' ) . "." . 
+      my $id = $config->get_option( 'local.host' ) . "." . 
                $PING->param( 'iamalive.unique_number' );
      
       # commit ID stuff to STATE file
@@ -624,7 +626,6 @@ my $tcp_callback = sub {
   $log->thread2($thread_name, "Callback from TCP client at " . ctime() . "...");
   $log->thread2($thread_name, "Handling broadcast message from RAPTOR");
 
-
   $log->debug( "Testing to see whether we have an RTML document..." );
   if ( $message =~ /RTML/ ) {
      my $rtml;
@@ -651,18 +652,23 @@ my $tcp_callback = sub {
      my $id = $event->id();
      
      if( $event->role() eq "ack" ) {
-        $log->debug( "Discarding ACK message...");
+        $log->thread2( $thread_name, "Recieved ACK message...");
+        $log->thread2( $thread_name, "Recieved at " . ctime() );
+        $log->debug( $message );
         $log->debug( "Done." );
         return ESTAR__OK;
         
      } elsif ( $event->role() eq "iamalive" ) {
        $log->thread2($thread_name, "Recieved IAMALIVE message from RAPTOR");
        $log->thread2($thread_name, "Recieved at " . ctime() );
+       $log->debug( $message );
        $log->debug( "Done.");
        return ESTAR__OK;
      }  
 
      # HANDLE VOEVENT MESSAGE --------------------------------------------
+     #
+     # At this stage we have a GCN or RAPTOR alert message
        
      # log the event message
      my $file;
@@ -795,7 +801,15 @@ my $tcp_callback = sub {
      }                  
      
      $log->print( "Creating RSS feed..." );     
-          
+
+ 
+     # ctime() returns:      Mon Dec 19 20:34:02 2005
+     # need RFC822 format:   Wed, 02 Oct 2002 08:00:00 EST
+ 
+     my @date = split " ", ctime();
+     my $rfc822 = $date[0] . ", " . $date[2] . " " . $date[1] . 
+             " " . $date[4] . " " . $date[3] . " GMT";
+                       
      my $year = 1900 + localtime->year();
      my $month = localtime->mon() + 1;
      my $day = localtime->mday();
@@ -811,8 +825,8 @@ my $tcp_callback = sub {
         title        => "eSTAR/TALONS GCN Feed",
         link         => "http://www.estar.org.uk",
         description  => "The combined brokered eSTAR and TALONS GCN Feed",
-        pubDate        => $timestamp,
-        lastBuildDate  => $timestamp,
+        pubDate        => $rfc822,
+        lastBuildDate  => $rfc822,
         language       => 'en-us' );
 
      $feed->image(title       => 'estar.org.uk',
@@ -1046,6 +1060,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_alert.pl,v $
+# Revision 1.13  2005/12/19 21:09:40  aa
+# Bug fixes, bringing the infrastrcuture to operational speed
+#
 # Revision 1.12  2005/12/19 18:04:04  aa
 # Moved all of the IAMALIVE fucntionality to raptor_alert.pl
 #

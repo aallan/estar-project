@@ -36,7 +36,7 @@ requests for the RAPTOR/TALON telescopes.
 
 =head1 REVISION
 
-$Id: raptor_gateway.pl,v 1.24 2005/12/19 18:04:04 aa Exp $
+$Id: raptor_gateway.pl,v 1.25 2005/12/19 21:09:40 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.24 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.25 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -412,13 +412,13 @@ my $tcp_callback = sub {
   my $type = $rtml->determine_type();
   $log->debug( "Recieved RTML message of type '$type'" );   
 
-  unless( $type eq 'update' || $type eq 'complete' ||
-          $type eq 'incomplete' || $type eq 'fail' ) {
-          
-     $log->warn( "Warning: Message of type $type not forwarded" );
-     $log->debug( "Returning ESTAR__OK, exiting callback..." );
-     return ESTAR__OK;
-  }
+  #unless( $type eq 'update' || $type eq 'complete' ||
+  #        $type eq 'incomplete' || $type eq 'fail' ) {
+  #        
+  #   $log->warn( "Warning: Message of type $type not forwarded" );
+  #   $log->debug( "Returning ESTAR__OK, exiting callback..." );
+  #   return ESTAR__OK;
+  #}
   
   #$log->debug( Dumper( $rtml ) );
   
@@ -596,8 +596,15 @@ while( $flag ) {
                 threads->create ( $tcp_callback, $response );
             $callback_thread->detach();    
             
-         } elsif ( $response =~ /VOEvent/ ) {
-            $log->debug( "Ignoring VOEvent message" );
+         } elsif ( $response =~ /VOEvent/ ) {            
+            my $object = new Astro::VO::VOEvent( XML => $response );
+            my $role;
+            eval { $role = $object->role( ); };
+            if ( $@ ) {
+               $log->debug( "Ignoring (an invalid) VOEvent message" );
+            } 
+            $log->debug( "Ignoring VOEvent message of role '".$role."'" );
+            
          } else {
             $log->warn( "Warning: Message type is unknown..." );
             $log->warn( $response );
@@ -686,6 +693,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_gateway.pl,v $
+# Revision 1.25  2005/12/19 21:09:40  aa
+# Bug fixes, bringing the infrastrcuture to operational speed
+#
 # Revision 1.24  2005/12/19 18:04:04  aa
 # Moved all of the IAMALIVE fucntionality to raptor_alert.pl
 #

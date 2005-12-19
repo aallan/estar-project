@@ -23,8 +23,6 @@ use Sys::Hostname;
 use Net::Domain qw(hostname hostdomain);
 use Config::Simple;
 use Config::User;
-#use Video::Capture::V4l;
-#use Video::RTjpeg;
 use Data::Dumper;
 
 # 
@@ -300,7 +298,7 @@ sub handle_voevent {
    
    } else { 
  
-      $log->print("Sending message to RAPTOR...");
+      $log->print("Sending VOEvent to RAPTOR...");
  
       # work out message length
       my $header = pack( "N", 7 );
@@ -327,17 +325,18 @@ sub handle_voevent {
                          $config->get_option( "raptor.host" ));      
       close($sock);
       
-      $log->debug( "Recieved a message from RAPTOR..." );
+      $log->debug( "Recieved an ACK message from RAPTOR..." );
       $log->debug( $response );  
-   }
-      
-   # SEND TO USER_AGENT
-   # ------------------
-   
-   # return an ACK response to the user_agent
 
-   $log->print("Returned 'ACK' response to user agent");
-   return SOAP::Data->name('return', "ACK" )->type('xsd:string');
+    
+      # SEND TO USER_AGENT
+      # ------------------
+   
+      # return an ACK response to the user_agent
+
+      $log->print("Returned 'ACK' response to user agent");
+      return SOAP::Data->name('return', $response )->type('xsd:string');
+   }
 
 } 
                             

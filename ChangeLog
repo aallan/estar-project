@@ -10,6 +10,8 @@
           in the alerter. Need to pull RTML forwarding out of the alerter and
           into the gateway (gateway needs a continous connection on 43002 as
           well as its current open/close in 5170).
+
+        * Bugfixes to RAPTOR infrastructre
           
 2005-11-24 Alasdair Allan <aa@astro.ex.ac.uk>
 
