@@ -36,7 +36,7 @@ requests for the RAPTOR/TALON telescopes.
 
 =head1 REVISION
 
-$Id: raptor_gateway.pl,v 1.19 2005/12/19 12:28:52 aa Exp $
+$Id: raptor_gateway.pl,v 1.20 2005/12/19 12:40:38 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.19 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.20 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -756,11 +756,12 @@ while( $flag ) {
             $callback_thread->detach();    
             
          } elsif ( $response =~ /VOEvent/ ) {
-            $log->debug( "Ignoring VOEvent message..." );
+            $log->debug( "Ignoring VOEvent message" );
          } else {
             $log->warn( "Warning: Message type is unknown..." );
             $log->warn( $response );
          }
+         $log->debug( "Reading from socket..." );
        
       }
                       
@@ -844,6 +845,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_gateway.pl,v $
+# Revision 1.20  2005/12/19 12:40:38  aa
+# Bug fix to raptor_gateway.pl
+#
 # Revision 1.19  2005/12/19 12:28:52  aa
 # Bug fix to raptor_gateway.pl
 #
