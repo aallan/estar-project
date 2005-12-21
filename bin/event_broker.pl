@@ -36,7 +36,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.1 2005/12/21 15:37:30 aa Exp $
+$Id: event_broker.pl,v 1.2 2005/12/21 17:55:25 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -334,14 +334,14 @@ if ( $config->get_state("broker.unique_process") == 1 ) {
    $config->set_option( "raptor.ack", 5170 );
    $config->set_option( "raptor.iamalive", 60 );
 
-   $config->set_option( "estar.host", "estar.astro.ex.ac.uk" );
-   $config->set_option( "estar.port", 8099 );
-   $config->set_option( "estar.ack", 8099 );
-   $config->set_option( "estar.iamalive", 60 );
+   #$config->set_option( "estar.host", "estar.astro.ex.ac.uk" );
+   #$config->set_option( "estar.port", 8099 );
+   #$config->set_option( "estar.ack", 8099 );
+   #$config->set_option( "estar.iamalive", 60 );
       
    # list of event servers
-   $config->set_option("server.raptor", "raptor" );
-   $config->set_option("server.test", "estar" );
+   $config->set_option("server.TALONS", "raptor" );
+   #$config->set_option("server.eSTAR", "estar" );
     
         
    # C O M M I T T   O P T I O N S  T O   F I L E S
@@ -380,10 +380,399 @@ $ua->set_ua( $lwp );
 
 # O P E N   I N C O M I N G   C L I E N T  -----------------------------------
 
-my $incoming_callback = sub {
+# Other port ACK callback
 
+my $other_ack_port_callback = sub {
+  my $server = shift;
+  my $file = shift;
+  my $host = $config->get_option( "$server.host");
+  my $port = $config->get_option( "$server.ack");
+  
+  my $thread_name = "ACK";
+  $log->thread($thread_name, "Sending ACK message at " . ctime() . "...");
+  $log->thread($thread_name, "Opening socket connection to $host:$port..." ) ;
+ 
+  my $ack_sock = new IO::Socket::INET( 
+                   PeerAddr => $config->get_option( "raptor.host" ),
+                   PeerPort => $config->get_option( "raptor.ack" ),
+                   Proto    => "tcp",
+                   Timeout  => $config->get_option( "connection.timeout" ) );
 
+  unless ( $ack_sock ) {
+     
+     # we have an error
+     my $error = "$!";
+     chomp($error);
+     $log->error( "Error: $error");
+     return ESTAR__FAULT;      
+  
+  } 
+ 
+  $log->thread($thread_name, "Sending ACK message to $host:$port...");
+  
+  # return an ack message
+  my $ack =
+   "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
+   '<VOEvent role="ack" version="1.1" id="ivo://estar.ex/ack" >' . "\n" . 
+   '<Who>' . "\n" . 
+   '   <PublisherID>ivo://estar.ex/</PublisherID>' . "\n" . 
+   '   <Date>' . eSTAR::Broker::Util::time_iso() . '</Date>' . "\n" .
+   '</Who>' . "\n" . 
+   '<What>' . "\n" . 
+   '   <Param value="stored" name="'. $file .'" />' . "\n" . 
+   '</What>' . "\n" . 
+   '</VOEvent>' . "\n";
+
+  # work out message length
+  my $header = pack( "N", 7 );
+  my $bytes = pack( "N", length($ack) ); 
+   
+  # send message                                   
+  $log->debug( "Sending " . length($ack) . " bytes to $host:$port" );
+                     
+  $log->debug( $ack ); 
+                     
+  print $ack_sock $header if $server eq "RAPTOR";  # RAPTOR specific hack
+  print $ack_sock $bytes;
+  $ack_sock->flush();
+  print $ack_sock $ack;
+  $ack_sock->flush();  
+  close($ack_sock);
+  
+  $log->debug( "Closed ACK socket"); 
+  $log->thread($thread_name, "Done.");
+  return ESTAR__OK;
 };
+
+# TCP/IP callback
+
+my $incoming_callback = sub {
+  my $server = shift;
+  my $message = shift;  
+  my $host = $config->get_option( "$server.host");
+  my $port = $config->get_option( "$server.port");  
+    
+  my $thread_name = "Client";
+  $log->thread2($thread_name, "Callback from TCP client at " . ctime() . "...");
+  $log->thread2($thread_name, "Handling broadcast message from $host:$port");
+
+  $log->debug( "Testing to see whether we have an RTML document..." );
+  if ( $message =~ /RTML/ ) {
+     my $rtml;
+     eval { $rtml = new eSTAR::RTML( Source => $message ) };
+     $log->warn( "Warning: Document identified as RTML..." );
+     my $type = $rtml->determine_type();
+     $log->warn( "Warning: Recieved RTML message of type '$type'" );  
+     $log->warn( "$message");       
+     $log->warn( "Warning: Returning ESTAR__FAULT, exiting callback...");
+     return ESTAR__FAULT; 
+         
+  } 
+
+  # It really, really should be a VOEvent message
+  $log->debug( "Testing to see whether we have a VOEvent document..." );
+  my $voevent;
+  if ( $message =~ /VOEvent/ ) {
+     $log->debug( "This looks like a VOEvent document..." );
+     $log->print( $message );
+     
+     # Ignore ACK and IAMALIVE messages
+     # --------------------------------
+     my $event = new Astro::VO::VOEvent( XML => $message );
+     my $id = $event->id();
+     
+     if( $event->role() eq "ack" ) {
+        $log->thread2( $thread_name, "Recieved ACK message from $host...");
+        $log->thread2( $thread_name, "Recieved at " . ctime() );
+        $log->debug( $message );
+        $log->debug( "Done." );
+	
+	# THE EVENT BROKER SHOULDN'T GET ACK MESSAGES HERE, IF IT DOES
+	# IT SHOULD IGNORE THEM. ONLY THE SERVER SIDE OF THE BROKER NEEDS
+	# TO DEAL WITH ACK MESSAGES.
+	
+        return ESTAR__OK;
+        
+     } elsif ( $event->role() eq "iamalive" ) {
+       $log->thread2($thread_name, "Recieved IAMALIVE message from $host");
+       $log->thread2($thread_name, "Recieved at " . ctime() );
+       $log->debug( $message );
+       $log->debug( "Done.");
+       
+       # ADD CODE HERE TO SEND IAMALIVE MESSAGES BACK to PUBLISHERS, NEEDS 
+       # TO SPAWN AN IAMALIVE_CALLBACK( ) THREAD? NEEDS TO CHECK THE PUBLISHER.
+       
+       
+       return ESTAR__OK;
+     }  
+
+     # HANDLE VOEVENT MESSAGE --------------------------------------------
+     #
+     # At this stage we have a GCN or RAPTOR alert message
+       
+     # log the event message
+     my $file;
+     eval { $file = eSTAR::Broker::Util::store_voevent( $server, $message ); };
+     if ( $@  ) {
+       $log->error( "Error: $@" );
+     } 
+     
+     unless ( defined $file ) {
+        $log->warn( "Warning: The message has not been serialised..." );
+     }
+     
+     # Upload the event message to estar.org.uk
+     # ----------------------------------------
+     
+     my @path = split( "/", $id );
+     if ( $path[0] eq "ivo:" ) {
+        splice @path, 0 , 1;
+     }
+     if ( $path[0] eq "" ) {
+        splice @path, 0 , 1;
+     }
+     my $path = "www.estar.org.uk/docs/voevent/$server";
+     foreach my $i ( 0 ... $#path - 1 ) {
+        $path = $path . "/$path[$i]"; 
+     }
+     $log->debug("Opening FTP connection to lion.drogon.net...");  
+     $log->debug("Logging into estar account...");  
+     my $ftp = Net::FTP->new( "lion.drogon.net", Debug => 1 );
+     $ftp->login( "estar", "tibileot" );
+     $log->debug("Changing directory to $path");
+     $ftp->cwd( $path );
+     $log->debug("Uploading $file");
+     $ftp->put( $file, "$id" . ".xml" );
+     $ftp->quit();    
+     $log->debug("Closing FTP connection"); 
+     
+     # Writing to alert.log file
+     my $state_dir = File::Spec->catdir( $config->get_state_dir() );  
+     my $alert = File::Spec->catfile( $state_dir, "alert.log" );
+     
+     $log->debug("Opening alert log file: $alert"); 
+      
+     # callback to send ACK message
+     # ----------------------------
+ 
+     unless( $config->get_option( "$server.ack") == $port ) {
+     
+        $log->print("Detaching ack thread..." );
+        my $ack_thread =
+           threads->create( $other_ack_port_callback, $server, $file );
+        $ack_thread->detach();   
+     } else {
+        $log->debug( "ACK message sent from main loop..." );
+     }
+
+     # Writing to alert.log file
+     my $state_dir = File::Spec->catdir( $config->get_state_dir() );  
+     my $alert = File::Spec->catfile( $state_dir, "alert.log" );
+     
+     $log->debug("Opening alert log file: $alert");  
+           
+     # write the observation object to disk.
+     # -------------------------------------
+     
+     unless ( open ( ALERT, "+>>$alert" )) {
+        my $error = "Warning: Can not write to "  . $state_dir; 
+        $log->error( $error );
+        throw eSTAR::Error::FatalError($error, ESTAR__FATAL);   
+     } else {
+        unless ( flock( ALERT, LOCK_EX ) ) {
+          my $error = "Warning: unable to acquire exclusive lock: $!";
+          $log->error( $error );
+          throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
+        } else {
+          $log->debug("Acquiring exclusive lock...");
+        }
+     }        
+     
+     $log->debug("Writing file path to $alert");
+     print ALERT "$file\n";
+     
+     # close ALERT log file
+     $log->debug("Closing alert.log file...");
+     close(ALERT);  
+
+     # GENERATE RSS FEED -------------------------------------------------
+     
+   
+     # Reading from alert.log file
+     # ---------------------------     
+     $log->debug("Opening alert log file: $alert");  
+      
+     # write the observation object to disk.
+     unless ( open ( LOG, "$alert" )) {
+        my $error = "Warning: Can not read from "  . $state_dir; 
+        $log->error( $error );
+        throw eSTAR::Error::FatalError($error, ESTAR__FATAL);   
+     } else {
+        unless ( flock( LOG, LOCK_EX ) ) {
+          my $error = "Warning: unable to acquire exclusive lock: $!";
+          $log->error( $error );
+          throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
+        } else {
+          $log->debug("Acquiring exclusive lock...");
+        }
+     }        
+     
+     $log->debug("Reading from $alert");
+     my @files;
+     {
+        local $/ = "\n";  # I shouldn't have to do this?
+        @files = <LOG>;
+     }   
+     # use Data::Dumper; print "\@files = " . Dumper( @files );
+     
+     $log->debug("Closing alert.log file...");
+     close(LOG);
+          
+     # Writing to broker.rdf
+     # ---------------------
+     my $state_dir = File::Spec->catdir( $config->get_state_dir() );  
+     my $rss = File::Spec->catfile( $state_dir, "$server.rdf" );
+        
+     $log->debug("Creating RSS file: $rss");  
+          
+     # write the observation object to disk.
+     unless ( open ( RSS, ">$rss" )) {
+        my $error = "Warning: Can not write to "  . $state_dir; 
+        $log->error( $error );
+        throw eSTAR::Error::FatalError($error, ESTAR__FATAL);   
+     } else {
+        unless ( flock( RSS, LOCK_EX ) ) {
+          my $error = "Warning: unable to acquire exclusive lock: $!";
+          $log->error( $error );
+          throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
+        } else {
+          $log->debug("Acquiring exclusive lock...");
+        }
+     }                  
+     
+     $log->print( "Creating RSS feed..." );     
+    
+     my $timestamp = eSTAR::Broker::Util::time_iso( );
+     my $rfc822 = eSTAR::Broker::Util::time_rfc822( );
+     
+     my $feed = new XML::RSS( version => "2.0" );
+     $feed->channel(
+        title        => "eSTAR $server Event Feed",
+        link         => "http://www.estar.org.uk",
+        description  => 
+	  'This is an RSS2.0 feed from '.$server.' of VOEvent notices brokered '.
+	  'through the eSTAR agent network.Contact Alasdair Allan '.
+	  '<aa@estar.org.uk> for information about this and other eSTAR feeds. ' .
+	  'More information about the eSTAR Project can be found on our '.
+	  '<a href="http://www.estar.org.uk/">website</a>.',
+        pubDate        => $rfc822,
+        lastBuildDate  => $rfc822,
+        language       => 'en-us' );
+
+     $feed->image(title       => 'estar.org.uk',
+             url         => 'http://www.estar.org.uk/favicon.png',
+             link        => 'http://www.estar.org.uk/',
+             width       => 16,
+             height      => 16,
+             description => 'eSTAR' );
+      
+     my $num_of_files = $#files;   
+     foreach my $i ( 0 ... $num_of_files ) {
+        $log->debug( "Reading $i of $num_of_files entries" );
+        my $data;
+        {
+           open( DATA_FILE, "$files[$i]" );
+           local ( $/ );
+           $data = <DATA_FILE>;
+           close( DATA_FILE );
+
+        }  
+        
+        #  use Data::Dumper; print "\@data = " . Dumper( $data );
+   
+        $log->debug( "Determing ID of message..." );
+        my $object = new Astro::VO::VOEvent( XML => $data );
+        my $id;
+        eval { $id = $object->id( ); };
+        if ( $@ ) {
+           $log->error( "Error: $@" );
+           $log->error( "\$data = " . $data );
+           $log->warn( "Warning: discarding message $i of $num_of_files" );
+           next;
+        } 
+        $log->debug( "ID: $id" );
+  
+        # grab <What>
+        my %what = $object->what();
+        my $packet_type = $what{Param}->{PACKET_TYPE}->{value};
+ 
+        my $timestamp = $object->time();
+               
+        # build url
+        my @path = split( "/", $id );
+        if ( $path[0] eq "ivo:" ) {
+           splice @path, 0 , 1;
+        }
+        if ( $path[0] eq "" ) {
+           splice @path, 0 , 1;
+        }
+        my $url = "http://www.estar.org.uk/voevent/$server";
+        foreach my $i ( 0 ... $#path ) {
+           $url = $url . "/$path[$i]"; 
+        }
+        $url = $url . ".xml";
+   
+        my $description;
+	if ( defined $packet_type ) {
+	  $description = "GCN PACKET_TYPE = $packet_type (via $server)<br>\n" .
+                         "Time stamp at $server was $timestamp";
+	} else {
+	  $description = "Packet (via $server) at $timestamp";
+	}  		 
+   
+        $log->print( "Creating RSS Feed Entry..." );
+        $feed->add_item(
+           title       => "$id",
+           description => "$description",
+           link        => "$url",
+           enclosure   => { 
+             url=>$url, 
+             type=>"application/xml+voevent" } );
+
+
+     }
+     $log->debug( "Creating XML representation of feed..." );
+     my $xml = $feed->as_string();
+
+     $log->debug( "Writing feed to $rss" );
+     print RSS $xml;
+       
+     # close ALERT log file
+     $log->debug("Closing raptor.rdf file...");
+     close(RSS);    
+     
+     $log->debug("Opening FTP connection to lion.drogon.net...");  
+     $log->debug("Logging into estar account...");  
+     $ftp->login( "estar", "tibileot" );
+     $ftp->cwd( "www.estar.org.uk/docs/voevent/$server" );
+     $log->debug("Transfering RSS file...");  
+     $ftp->put( $rss, "gcn.rdf" );
+     $ftp->quit();     
+     $log->debug("Closed FTP connection");  
+
+  
+  } else {
+     $log->warn( "Warning: Document unidentified..." );
+     $log->warn( "$message");       
+     $log->warn( "Warning: Returning ESTAR__FAULT, exiting callback...");
+     return ESTAR__FAULT;      
+  }  
+  
+  $log->debug( "Returning ESTAR__OK, exiting callback..." );
+  return ESTAR__OK;
+};
+
+# C L I E N T   C O N N E C T I O N S   T O   R E M O T E   H O S T S --------
 
 my $incoming_connection = sub {
    my $server = shift;
@@ -439,6 +828,34 @@ my $incoming_connection = sub {
            my $callback_thread = 
                threads->create ( $incoming_callback, $server, $response );
            $callback_thread->detach(); 
+	   
+           # send ACK message if we're on same port
+           if( $config->get_option( "$server.ack") == $port ) {
+              
+	       # return an ack message
+               my $ack =
+            "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
+            '<VOEvent role="ack" version="1.1" id="ivo://estar.ex/ack" >' . "\n" . 
+            '<Who>' . "\n" . 
+            '   <PublisherID>ivo://estar.ex/</PublisherID>' . "\n" .
+            '   <Date>' . eSTAR::Broker::Util::time_iso() . '</Date>' . "\n" .
+            '</Who>' . "\n" . 
+            '</VOEvent>' . "\n";
+              
+	      my $bytes = pack( "N", length($ack) ); 
+	      
+	      # send message                                   
+	      $log->debug( "Sending " . length($ack) . " bytes to $host:$port" );
+              $log->debug( $ack ); 
+                     
+              #print $sock $header;     # RAPTOR specific header
+              print $sock $bytes;
+              $sock->flush();
+              print $sock $ack;
+              $sock->flush();         
+           } else {
+	      $log->debug( "Sending ACK from callback thread..." );
+	   } 
        
            $log->debug( "Done, listening..." );
         }
@@ -546,6 +963,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.2  2005/12/21 17:55:25  aa
+# Shipping to estar servers
+#
 # Revision 1.1  2005/12/21 15:37:30  aa
 # Lots of changes, see ChangeLog
 #

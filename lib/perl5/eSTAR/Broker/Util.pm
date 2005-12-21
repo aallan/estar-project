@@ -26,6 +26,7 @@ use Digest::MD5 'md5_hex';
 use Fcntl qw(:DEFAULT :flock);
 use File::Spec;
 use XML::Parser;
+use Time::localtime;
 use eSTAR::Constants qw /:all/;
 use eSTAR::Logging;
 use eSTAR::Process;
@@ -34,11 +35,12 @@ use eSTAR::Error qw /:try/;
 use Astro::VO::VOEvent;
 
 @ISA = qw/Exporter/;
-@EXPORT_OK = qw/ store_voevent /;
+@EXPORT_OK = qw/ store_voevent time_iso time_rfc822 /;
 
-'$Revision: 1.1 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.2 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 sub store_voevent {
+   my $server = shift;
    my $message = shift;
 
    my $log = eSTAR::Logging::get_reference();
@@ -69,7 +71,7 @@ sub store_voevent {
    }   
    
    # Build path to save file in... yuck!
-   my $dir = File::Spec->catdir( $state_dir );
+   my $dir = File::Spec->catdir( $state_dir, $server );
    foreach my $i ( 0 ... ($#path - 1) ) {
       if ( $path[$i] eq "" ) {
          next;
@@ -117,12 +119,39 @@ sub store_voevent {
    
 }
 
+sub time_iso {
+   # ISO format
+   		     
+   my $year = 1900 + localtime->year();
+   my $month = localtime->mon() + 1;
+   my $day = localtime->mday();
+   my $hour = localtime->hour();
+   my $min = localtime->min();
+   my $sec = localtime->sec();
+
+   my $timestamp = $year ."-". $month ."-". $day ."T". 
+   		   $hour .":". $min .":". $sec;
+
+   return $timestamp;
+}   
+
+sub time_rfc822 {
+   # ctime() returns:	   Mon Dec 19 20:34:02 2005
+   # need RFC822 format:   Wed, 02 Oct 2002 08:00:00 EST
+ 
+   my @date = split " ", ctime();
+   my $rfc822 = $date[0] . ", " . $date[2] . " " . $date[1] . 
+   	   " " . $date[4] . " " . $date[3] . " GMT";
+
+   return $rfc822;
+}
+
 
 =back
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.1 2005/12/21 15:37:30 aa Exp $
+$Id: Util.pm,v 1.2 2005/12/21 17:55:25 aa Exp $
 
 =head1 AUTHORS
 
