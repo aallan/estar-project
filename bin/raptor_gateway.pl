@@ -36,7 +36,7 @@ requests for the RAPTOR/TALON telescopes.
 
 =head1 REVISION
 
-$Id: raptor_gateway.pl,v 1.27 2005/12/21 15:50:41 aa Exp $
+$Id: raptor_gateway.pl,v 1.28 2005/12/21 16:00:02 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.27 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.28 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -782,24 +782,22 @@ while( $flag ) {
                $log->debug( "Ignoring (an invalid) VOEvent message" );
             } 
 	    
-	         
-            # We deal with ACK and IAMALIVE messages in the Gateway
-            # -----------------------------------------------------
-
+            # We deal with ACK messages for VOEvent messages we have
+	    # passed to RAPTOR in the Handler class. The iamalive callback
+	    # handles incoming IAMALIVE messages in response to IAMALIVE
      
             if( $object->role() eq "ack" ) {
                $log->print( "Recieved ACK message...");
                $log->print( "Recieved at " . ctime() );
                $log->debug( $response );
                $log->debug( "Done." );
+	       
+	       # We have transmitted an VOEvent message to RAPTOR, this is
+	       # the ACK message in reply. We don't care about any other
+	       # type of VOEvent message transiting the gateway these are
+	       # all handled by the event_broker.pl or raptor_alert.pl
         
-            } elsif ( $object->role() eq "iamalive" ) {
-              $log->print( "Recieved IAMALIVE message from RAPTOR");
-              $log->print( "Recieved at " . ctime() );
-              $log->debug( $response );
-              $log->debug( "Done.");
-       
-           } else { 
+            } else { 
 	    
               $log->debug( "Ignoring VOEvent message of role '".$role."'" );
            } 
@@ -891,6 +889,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_gateway.pl,v $
+# Revision 1.28  2005/12/21 16:00:02  aa
+# Bug fix
+#
 # Revision 1.27  2005/12/21 15:50:41  aa
 # Bug fix
 #
