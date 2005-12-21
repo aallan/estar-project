@@ -36,7 +36,7 @@ requests for the RAPTOR/TALON telescopes.
 
 =head1 REVISION
 
-$Id: raptor_gateway.pl,v 1.26 2005/12/21 15:37:30 aa Exp $
+$Id: raptor_gateway.pl,v 1.27 2005/12/21 15:50:41 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.26 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.27 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -787,16 +787,16 @@ while( $flag ) {
             # -----------------------------------------------------
 
      
-            if( $event->role() eq "ack" ) {
+            if( $object->role() eq "ack" ) {
                $log->print( "Recieved ACK message...");
                $log->print( "Recieved at " . ctime() );
-               $log->debug( $message );
+               $log->debug( $response );
                $log->debug( "Done." );
         
-            } elsif ( $event->role() eq "iamalive" ) {
+            } elsif ( $object->role() eq "iamalive" ) {
               $log->print( "Recieved IAMALIVE message from RAPTOR");
               $log->print( "Recieved at " . ctime() );
-              $log->debug( $message );
+              $log->debug( $response );
               $log->debug( "Done.");
        
            } else { 
@@ -891,6 +891,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_gateway.pl,v $
+# Revision 1.27  2005/12/21 15:50:41  aa
+# Bug fix
+#
 # Revision 1.26  2005/12/21 15:37:30  aa
 # Lots of changes, see ChangeLog
 #
