@@ -36,7 +36,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.7 2005/12/21 18:32:25 aa Exp $
+$Id: event_broker.pl,v 1.8 2005/12/21 20:36:00 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -525,7 +525,11 @@ my $incoming_callback = sub {
      
      # Upload the event message to estar.org.uk
      # ----------------------------------------
-     
+     $log->debug("Opening FTP connection to lion.drogon.net...");  
+     $log->debug("Logging into estar account...");  
+     my $ftp = Net::FTP->new( "lion.drogon.net", Debug => 1 );
+     $ftp->login( "estar", "tibileot" );
+          
      my @path = split( "/", $id );
      if ( $path[0] eq "ivo:" ) {
         splice @path, 0 , 1;
@@ -535,12 +539,21 @@ my $incoming_callback = sub {
      }
      my $path = "www.estar.org.uk/docs/voevent/$name";
      foreach my $i ( 0 ... $#path - 1 ) {
-        $path = $path . "/$path[$i]"; 
+        if ( $path[$i] eq "" ) {
+          next;
+        }
+        $path = $path . "/$path[$i]";
+	if ( $ftp->cwd( $path ) ) {
+	   next;
+	} else {
+	   $ftp->mkdir( $path );
+	   if ( $ftp->cwd( $path ) ) {
+	      next;
+	   } else {
+	      $log->warn( "Warning: Unable to create directory $path" );
+	   }
+	}            
      }
-     $log->debug("Opening FTP connection to lion.drogon.net...");  
-     $log->debug("Logging into estar account...");  
-     my $ftp = Net::FTP->new( "lion.drogon.net", Debug => 1 );
-     $ftp->login( "estar", "tibileot" );
      $log->debug("Changing directory to $path");
      $ftp->cwd( $path );
      $log->debug("Uploading $file");
@@ -750,7 +763,7 @@ my $incoming_callback = sub {
      print RSS $xml;
        
      # close ALERT log file
-     $log->debug("Closing raptor.rdf file...");
+     $log->debug("Closing $name.rdf file...");
      close(RSS);    
      
      $log->debug("Opening FTP connection to lion.drogon.net...");  
@@ -758,7 +771,7 @@ my $incoming_callback = sub {
      $ftp->login( "estar", "tibileot" );
      $ftp->cwd( "www.estar.org.uk/docs/voevent/$name" );
      $log->debug("Transfering RSS file...");  
-     $ftp->put( $rss, "gcn.rdf" );
+     $ftp->put( $rss, "$name.rdf" );
      $ftp->quit();     
      $log->debug("Closed FTP connection");  
 
@@ -864,9 +877,13 @@ my $incoming_connection = sub {
         }
                       
      } elsif ( $bytes_read == 0 && $! != EWOULDBLOCK ) {
-        $log->warn("Recieved an empty packet on $port from $host" );   
+        $log->warn( "Recieved an empty packet on $port from $host" );   
         $log->warn( "Closing socket connection to $host..." );      
         $flag = undef;
+     } elsif ($bytes_read == 0 ) {
+        $log->warn( "Recieved a zero length on $port from $host" );   
+        $log->warn( "Closing socket connection to $host..." );      
+        $flag = undef;     
      }
 
      unless ( $sock->connected() ) {
@@ -887,6 +904,8 @@ my $incoming_connection = sub {
 # ===========================================================================
 # M A I N   B L O C K 
 # ===========================================================================
+
+# OPENING CLIENT CONNECTIONS ------------------------------------------------
 
 $log->debug("Opening client connections...");
 
@@ -915,9 +934,14 @@ foreach my $i ( 0 ... $#servers ) {
       threads->create( \&$incoming_connection , $server, $name );
    $incoming_thread->detach();
 }
+
+# START SERVER --------------------------------------------------------------
           
-	  
-while(1) {}	  
+
+# MAIN LOOP -----------------------------------------------------------------	  
+
+while(1) {}	
+  
 # ===========================================================================
 # E N D 
 # ===========================================================================
@@ -972,6 +996,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.8  2005/12/21 20:36:00  aa
+# Bug fixes to Event Broker and startup script
+#
 # Revision 1.7  2005/12/21 18:32:25  aa
 # Big fix
 #

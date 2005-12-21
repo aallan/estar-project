@@ -8,6 +8,8 @@
 	  broker. The broker will have a number of client connections, the
 	  RAPTOR connection being only one of many, consolidate the feeds
 	  and rebroadcast to connected clients.
+	
+	* etc/event_broker.pl: Added startup script for the event broker.
 	  
 	* bin/raptor_alert.pl & bin/raptor_gateway.pl: Moved the IAMALIVE
 	  functionality back to raptor_gateway.pl as this is ther correct
