@@ -36,7 +36,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.3 2005/12/21 18:24:33 aa Exp $
+$Id: event_broker.pl,v 1.4 2005/12/21 18:30:04 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -394,8 +394,8 @@ my $other_ack_port_callback = sub {
   $log->thread($thread_name, "Opening socket connection to $host:$port..." ) ;
  
   my $ack_sock = new IO::Socket::INET( 
-                   PeerAddr => $config->get_option( "raptor.host" ),
-                   PeerPort => $config->get_option( "raptor.ack" ),
+                   PeerAddr => $host,
+                   PeerPort => $port,
                    Proto    => "tcp",
                    Timeout  => $config->get_option( "connection.timeout" ) );
 
@@ -972,6 +972,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.4  2005/12/21 18:30:04  aa
+# Big fix?
+#
 # Revision 1.3  2005/12/21 18:24:33  aa
 # Big fix?
 #
