@@ -36,7 +36,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.2 2005/12/21 17:55:25 aa Exp $
+$Id: event_broker.pl,v 1.3 2005/12/21 18:24:33 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -340,7 +340,7 @@ if ( $config->get_state("broker.unique_process") == 1 ) {
    #$config->set_option( "estar.iamalive", 60 );
       
    # list of event servers
-   $config->set_option("server.TALONS", "raptor" );
+   $config->set_option("server.RAPTOR", "raptor" );
    #$config->set_option("server.eSTAR", "estar" );
     
         
@@ -384,6 +384,7 @@ $ua->set_ua( $lwp );
 
 my $other_ack_port_callback = sub {
   my $server = shift;
+  my $name = shift;
   my $file = shift;
   my $host = $config->get_option( "$server.host");
   my $port = $config->get_option( "$server.ack");
@@ -432,7 +433,7 @@ my $other_ack_port_callback = sub {
                      
   $log->debug( $ack ); 
                      
-  print $ack_sock $header if $server eq "RAPTOR";  # RAPTOR specific hack
+  print $ack_sock $header if $name eq "RAPTOR";  # RAPTOR specific hack
   print $ack_sock $bytes;
   $ack_sock->flush();
   print $ack_sock $ack;
@@ -448,6 +449,7 @@ my $other_ack_port_callback = sub {
 
 my $incoming_callback = sub {
   my $server = shift;
+  my $name = shift;
   my $message = shift;  
   my $host = $config->get_option( "$server.host");
   my $port = $config->get_option( "$server.port");  
@@ -512,7 +514,7 @@ my $incoming_callback = sub {
        
      # log the event message
      my $file;
-     eval { $file = eSTAR::Broker::Util::store_voevent( $server, $message ); };
+     eval { $file = eSTAR::Broker::Util::store_voevent( $name, $message ); };
      if ( $@  ) {
        $log->error( "Error: $@" );
      } 
@@ -531,7 +533,7 @@ my $incoming_callback = sub {
      if ( $path[0] eq "" ) {
         splice @path, 0 , 1;
      }
-     my $path = "www.estar.org.uk/docs/voevent/$server";
+     my $path = "www.estar.org.uk/docs/voevent/$name";
      foreach my $i ( 0 ... $#path - 1 ) {
         $path = $path . "/$path[$i]"; 
      }
@@ -548,7 +550,7 @@ my $incoming_callback = sub {
      
      # Writing to alert.log file
      my $state_dir = File::Spec->catdir( $config->get_state_dir() );  
-     my $alert = File::Spec->catfile( $state_dir, "alert.log" );
+     my $alert = File::Spec->catfile( $state_dir, $name, "alert.log" );
      
      $log->debug("Opening alert log file: $alert"); 
       
@@ -559,7 +561,7 @@ my $incoming_callback = sub {
      
         $log->print("Detaching ack thread..." );
         my $ack_thread =
-           threads->create( $other_ack_port_callback, $server, $file );
+           threads->create( $other_ack_port_callback, $server, $name, $file );
         $ack_thread->detach();   
      } else {
         $log->debug( "ACK message sent from main loop..." );
@@ -631,7 +633,7 @@ my $incoming_callback = sub {
      # Writing to broker.rdf
      # ---------------------
      my $state_dir = File::Spec->catdir( $config->get_state_dir() );  
-     my $rss = File::Spec->catfile( $state_dir, "$server.rdf" );
+     my $rss = File::Spec->catfile( $state_dir, $name, "$name.rdf" );
         
      $log->debug("Creating RSS file: $rss");  
           
@@ -657,10 +659,10 @@ my $incoming_callback = sub {
      
      my $feed = new XML::RSS( version => "2.0" );
      $feed->channel(
-        title        => "eSTAR $server Event Feed",
+        title        => "eSTAR $name Event Feed",
         link         => "http://www.estar.org.uk",
         description  => 
-	  'This is an RSS2.0 feed from '.$server.' of VOEvent notices brokered '.
+	  'This is an RSS2.0 feed from '.$name.' of VOEvent notices brokered '.
 	  'through the eSTAR agent network.Contact Alasdair Allan '.
 	  '<aa@estar.org.uk> for information about this and other eSTAR feeds. ' .
 	  'More information about the eSTAR Project can be found on our '.
@@ -716,7 +718,7 @@ my $incoming_callback = sub {
         if ( $path[0] eq "" ) {
            splice @path, 0 , 1;
         }
-        my $url = "http://www.estar.org.uk/voevent/$server";
+        my $url = "http://www.estar.org.uk/voevent/$name";
         foreach my $i ( 0 ... $#path ) {
            $url = $url . "/$path[$i]"; 
         }
@@ -724,10 +726,10 @@ my $incoming_callback = sub {
    
         my $description;
 	if ( defined $packet_type ) {
-	  $description = "GCN PACKET_TYPE = $packet_type (via $server)<br>\n" .
-                         "Time stamp at $server was $timestamp";
+	  $description = "GCN PACKET_TYPE = $packet_type (via $name)<br>\n" .
+                         "Time stamp at $name was $timestamp";
 	} else {
-	  $description = "Packet (via $server) at $timestamp";
+	  $description = "Received packet (via $name) at $timestamp";
 	}  		 
    
         $log->print( "Creating RSS Feed Entry..." );
@@ -754,7 +756,7 @@ my $incoming_callback = sub {
      $log->debug("Opening FTP connection to lion.drogon.net...");  
      $log->debug("Logging into estar account...");  
      $ftp->login( "estar", "tibileot" );
-     $ftp->cwd( "www.estar.org.uk/docs/voevent/$server" );
+     $ftp->cwd( "www.estar.org.uk/docs/voevent/$name" );
      $log->debug("Transfering RSS file...");  
      $ftp->put( $rss, "gcn.rdf" );
      $ftp->quit();     
@@ -776,6 +778,7 @@ my $incoming_callback = sub {
 
 my $incoming_connection = sub {
    my $server = shift;
+   my $name = shift;
    my $host = $config->get_option( "$server.host");
    my $port = $config->get_option( "$server.port");
    SOCKET: { 
@@ -826,7 +829,7 @@ my $incoming_connection = sub {
            # callback to handle incoming Events     
            $log->print("Detaching callback thread..." );
            my $callback_thread = 
-               threads->create ( $incoming_callback, $server, $response );
+               threads->create ( $incoming_callback, $server, $name, $response );
            $callback_thread->detach(); 
 	   
            # send ACK message if we're on same port
@@ -894,16 +897,22 @@ if ( $@ ) {
   $log->error( "Error: $@" );
 }  
 
-print Dumper( @servers );
+my @names;
+eval { @names = $config->get_block_names( "server" ); };
+if ( $@ ) {
+  $log->error( "Error: $@" );
+}  
 
 foreach my $i ( 0 ... $#servers ) {
    my $server = $servers[$i];
+   my $name = $names[$i];
    
    my $host = $config->get_option( "$server.host");
    my $port = $config->get_option( "$server.port");
    
-   $log->print( "Connecting to $host:$port");
-   my $incoming_thread = threads->create( \&$incoming_connection , $server );
+   $log->print( "Connecting to $name at $host:$port");
+   my $incoming_thread = 
+      threads->create( \&$incoming_connection , $server, $name );
    $incoming_thread->detach();
 }
           
@@ -963,6 +972,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.3  2005/12/21 18:24:33  aa
+# Big fix?
+#
 # Revision 1.2  2005/12/21 17:55:25  aa
 # Shipping to estar servers
 #
