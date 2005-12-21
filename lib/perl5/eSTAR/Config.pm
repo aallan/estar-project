@@ -17,11 +17,11 @@ use vars qw/$VERSION @EXPORT @ISA/;
 
 @ISA = qw/Exporter/;
 @EXPORT = qw/ get_option set_option write_option get_nodes get_node_names
-              get_state set_state write_state make_directories
-              get_data_dir get_state_dir get_tmp_dir
+              get_block get_block_names get_state set_state write_state 
+	      make_directories get_data_dir get_state_dir get_tmp_dir
               get_useragents get_useragent_names /;
 
-'$Revision: 1.17 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.18 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 my $SINGLETON;
 
@@ -352,9 +352,10 @@ sub write_state {
    return $status;
 }   
 
-sub get_nodes {
+sub get_block {
    my $self = shift;
-
+   my $block = shift;
+   
    # grab references to single instance objects
    my $log = eSTAR::Logging::get_reference();
    my $process = eSTAR::Process::get_reference();
@@ -370,7 +371,7 @@ sub get_nodes {
       return undef;      
    } 
       
-   my %hash = %{$CONFIG->get_block( "nodes" )};
+   my %hash = %{$CONFIG->get_block( $block )};
    #$CONFIG->close();
    #undef $CONFIG;
      
@@ -385,8 +386,19 @@ sub get_nodes {
    
 } 
 
-sub get_node_names {
+sub get_nodes {
    my $self = shift;
+   return $self->get_block( "nodes" );
+}
+   
+sub get_useragents {
+   my $self = shift;
+   return $self->get_block( "useragents" );   
+} 
+
+sub get_block_names {
+   my $self = shift;
+   my $block = shift;
 
    # grab references to single instance objects
    my $log = eSTAR::Logging::get_reference();
@@ -403,7 +415,7 @@ sub get_node_names {
       return undef;      
    } 
       
-   my %hash = %{$CONFIG->get_block( "nodes" )};
+   my %hash = %{$CONFIG->get_block( $block )};
    #$CONFIG->close();
    #undef $CONFIG;
      
@@ -419,71 +431,14 @@ sub get_node_names {
 
 }
 
-sub get_useragents {
+sub get_node_names {
    my $self = shift;
-
-   # grab references to single instance objects
-   my $log = eSTAR::Logging::get_reference();
-   my $process = eSTAR::Process::get_reference();
-
-   # grab users home directory and define options filename
-   my $config_file = $self->{CONFIG_FILE}; 
-
-   my $CONFIG = $self->{CONFIG};
-   unless ( defined $CONFIG ) {
-      # can't read/write to options file, bail out
-      my $error = "FatalError: Can not read from $config_file";
-      $log->error( $error );
-      return undef;      
-   } 
-      
-   my %hash = %{$CONFIG->get_block( "useragents" )};
-   #$CONFIG->close();
-   #undef $CONFIG;
-     
-   # loop through configuration hash
-   my @UAS;
-   foreach my $key ( sort keys %hash ) {
-      # grab the node name from the key value
-      push( @UAS, $hash{$key} ); 
-   }
-   
-   return @UAS;
-   
-} 
-
+   return $self->get_block_names( "nodes" );
+}
 
 sub get_useragent_names {
    my $self = shift;
-
-   # grab references to single instance objects
-   my $log = eSTAR::Logging::get_reference();
-   my $process = eSTAR::Process::get_reference();
-
-   # grab users home directory and define options filename
-   my $config_file = $self->{CONFIG_FILE}; 
-
-   my $CONFIG = $self->{CONFIG};
-   unless ( defined $CONFIG ) {
-      # can't read/write to options file, bail out
-      my $error = "FatalError: Can not read from $config_file";
-      $log->error( $error );
-      return undef;      
-   } 
-      
-   my %hash = %{$CONFIG->get_block( "useragents" )};
-   #$CONFIG->close();
-   #undef $CONFIG;
-     
-   # loop through configuration hash
-   my @UA_NAMES;
-   foreach my $key ( sort keys %hash ) {
-      # grab the node name from the key value
-      push( @UA_NAMES, $key ); 
-   }
-   
-   return @UA_NAMES;
-   
+   return $self->get_block_names( "useragents" );
 } 
 
 sub make_directories {

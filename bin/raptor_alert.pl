@@ -35,7 +35,7 @@ incoming alerts from the RAPTOR system.
 
 =head1 REVISION
 
-$Id: raptor_alert.pl,v 1.16 2005/12/19 21:38:16 aa Exp $
+$Id: raptor_alert.pl,v 1.17 2005/12/21 15:37:30 aa Exp $
 
 =head1 AUTHORS
 
@@ -52,7 +52,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.16 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.17 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -323,7 +323,6 @@ if ( $config->get_state("gateway.unique_process") == 1 ) {
    $config->set_option( "raptor.host", "astro.lanl.gov" );
    $config->set_option( "raptor.port", 43002 );
    $config->set_option( "raptor.ack", 5170 );
-   $config->set_option( "raptor.iamalive", 60 );
    
    # interprocess communication
    $config->set_option( "ua.user", "agent" );
@@ -372,181 +371,6 @@ $ua->set_ua( $lwp );
 # ===========================================================================
 # M A I N   B L O C K 
 # ===========================================================================
-
-
-# I A M A L I V E  C A L L B A C K ------------------------------------------
-
-# the thread
-my $iamalive_thread;
-
-# anonymous subroutine
-my $iamalive = sub {
-   my $thread_name = "IAMALIVE Thread";
-
-   # create SOAP daemon
-   $log->thread2($thread_name, "Starting IAMALIVE collection...");  
-   $log->thread2($thread_name, "Pinging every " .
-                 $config->get_option( "raptor.iamalive") . " seconds..." );
-
-   # STATE FILE
-   # ----------
-   my $ping_file = 
-      File::Spec->catfile( Config::User->Home(), '.estar', 
-                           $process->get_process(), 'ping.dat' );
-   
-   $log->debug("Writing state to \$ping_file = $ping_file");
-   #my $OBS = eSTAR::Util::open_ini_file( $obs_file );
-  
-   my $PING = new Config::Simple( syntax   => 'ini', 
-                                  mode     => O_RDWR|O_CREAT );
-                                    
-   if( open ( FILE, "<$ping_file" ) ) {
-      close ( FILE );
-      $log->debug("Reading configuration from $ping_file" );
-      $PING->read( $ping_file );
-   } else {
-      $log->warn("Warning: $ping_file does not exist");
-   }  
-   
-   while( 1 ) {
-      sleep $config->get_option( "raptor.iamalive" );
-      $log->print( "Pinging RAPTOR at ". ctime() );
-      $log->thread2( $thread_name,
-          "Sending IAMALIVE (\$tid = " . threads->tid() . ")");
-
-      $log->thread2($thread_name, 
-          "Opening socket connection to RAPTOR server..." ) ;
- 
-      my $alive_sock = new IO::Socket::INET( 
-                   PeerAddr => $config->get_option( "raptor.host" ),
-                   PeerPort => $config->get_option( "raptor.ack" ),
-                   Proto    => "tcp",
-                   Timeout  => $config->get_option( "connection.timeout" ) );
-
-      unless ( $alive_sock ) {
-     
-          # we have an error
-          my $error = "$!";
-          chomp($error);
-          $log->error( "Error: $error");
-          $log->error( "Error: Cannot reach RAPTOR..." );
-          next;  
-      } 
- 
-      $log->thread2($thread_name, "Sending IAMALIVE message to RAPTOR...");
-  
-      # unique ID for IAMALIVE message
-      $log->debug( "Retreving unique number from state file..." );
-      my $number = $PING->param( 'iamalive.unique_number' ); 
- 
-      if ( $number eq '' ) {
-         # $number is not defined correctly (first ever message?)
-         $PING->param( 'iamalive.unique_number', 0 );
-         $number = 0; 
-      } 
-      $log->debug("Generating unqiue ID: $number");      
-  
-      my $year = 1900 + localtime->year();
-      my $month = localtime->mon() + 1;
-      my $day = localtime->mday();
-      my $hour = localtime->hour();
-      my $min = localtime->min();
-      my $sec = localtime->sec();
-      
-      my $timestamp = $year ."-". $month ."-". $day ."T". 
-                      $hour .":". $min .":". $sec;
-      $log->debug( "Generating timestamp: $timestamp");
-      
-      # increment ID number
-      $number = $number + 1;
-      $PING->param( 'iamalive.unique_number', $number );
-      $log->debug('Incrementing unique number to ' . $number);
-     
-      my $id = $config->get_option( 'local.host' ) . "." . 
-               $PING->param( 'iamalive.unique_number' );
-     
-      # commit ID stuff to STATE file
-      my $status = $PING->save( $ping_file );           
-      # build the IAMALIVE message
-      my $alive =
-         "<?xml version='1.0' encoding='UTF-8'?>\n" .
-         '<VOEvent role="iamalive" id="' .
-         'ivo://estar.ex/' . $id . '" version="1.1">' . "\n" .
-         ' <Who>' . "\n" .
-         '   <PublisherID>ivo://estar.ex</PublisherID>' . "\n" .
-         '   <Date>' . $timestamp . '</Date>'  . "\n" .
-         ' </Who>' . "\n" .
-         '</VOEvent>' . "\n";
-
-      # work out message length
-      my $header = pack( "N", 7 );
-      my $bytes = pack( "N", length($alive) ); 
-   
-      # send message                                   
-      $log->debug( "Sending " . length($alive) . " bytes to " . 
-                   $config->get_option( "raptor.host" ) . ":" .
-                   $config->get_option( "raptor.ack" ) );
-                     
-      $log->debug( $alive ); 
-                     
-      print $alive_sock $header;
-      print $alive_sock $bytes;
-      $alive_sock->flush();
-      print $alive_sock $alive;
-      $alive_sock->flush();  
-  
-      # Wait for IAMALIVE response
-      $log->debug( "Waiting for response..." );
-      my $length;
-      my $bytes_read = sysread( $alive_sock, $length, 4 );  
-      $length = unpack( "N", $length );
- 
-      $log->debug( "Message is $length characters" );
-      my $response;               
-      $bytes_read = sysread( $alive_sock, $response, $length); 
-
-      close($alive_sock);
-      $log->debug( "Closed ALIVE socket");
-      
-      # Do I get an ACK or a IAMALIVE message?
-      # --------------------------------------
-      my $event = new Astro::VO::VOEvent( XML => $response );
-     
-      if( $event->role() eq "ack" ) {
-        $log->warn( "Warning: Recieved an ACK message in response");
-        $log->debug( $response );
-        $log->debug( "Done." );
-        
-      } elsif ( $event->role() eq "iamalive" ) {
-        $log->print( "Recieved a IAMALIVE message in response");
-        
-        $year = 1900 + localtime->year();
-        $month = localtime->mon() + 1;
-        $day = localtime->mday();
-        $hour = localtime->hour();
-        $min = localtime->min();
-        $sec = localtime->sec();
-      
-        $timestamp = $year ."-". $month ."-". $day ."T".
-                      $hour .":". $min .":". $sec;
-        $log->debug( "Reply timestamp: $timestamp");
-        $log->debug( $response );
-        $log->debug( "Done." );
-      }  
-         
-      # finished ping, loop to while(1) { ]
-      $log->thread2( $thread_name, "Done with IAMALIVE..." );
-   }
-}; 
-
-
-# S T A R T   I A M A L I V E   T H R E A D ---------------------------------
-
-# Spawn the thread that will send IAMALIVE messages to RAPTOR
-$log->print("Spawning IAMAMLIVE thread...");
-$iamalive_thread = threads->create( $iamalive );
-$iamalive_thread->detach();
-
 
 # A N O N Y M O U S   S U B - R O U T I N E S -------------------------------
 
@@ -678,7 +502,7 @@ my $tcp_callback = sub {
        $log->debug( "Done.");
        
        # ADD CODE HERE TO SEND IAMALIVE MESSAGES BACK, NEEDS TO SPAWN AN
-       # IAMALIVE_CALLBACK( ) THREAD?
+       # IAMALIVE_CALLBACK( ) THREAD? NEEDS TO CHECK THE PUBLISHER.
        
        
        return ESTAR__OK;
@@ -1078,6 +902,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_alert.pl,v $
+# Revision 1.17  2005/12/21 15:37:30  aa
+# Lots of changes, see ChangeLog
+#
 # Revision 1.16  2005/12/19 21:38:16  aa
 # Placeholder for IAMALIVE handling code
 #

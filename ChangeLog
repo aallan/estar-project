@@ -1,3 +1,19 @@
+2005-12-21 Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* eSTAR/Config.pm: Generalised get_nodes() and get_useragents()
+	  to get_block(), left stub routines in for backwards compatibility.
+	  
+	* bin/event_broker.pl: Started the big job of moving all the
+	  functionality of bin/raptor_alert.pl into a generalised event
+	  broker. The broker will have a number of client connections, the
+	  RAPTOR connection being only one of many, consolidate the feeds
+	  and rebroadcast to connected clients.
+	  
+	* bin/raptor_alert.pl & bin/raptor_gateway.pl: Moved the IAMALIVE
+	  functionality back to raptor_gateway.pl as this is ther correct
+	  place for it to be, we're testing my connection to RAPTOR to send
+	  events rather than the other way round.
+	    
 2005-12-19 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * Updated RAPTOR infrastructre to handle the new Astro::VO::VOEvent
