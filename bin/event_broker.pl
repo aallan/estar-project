@@ -36,7 +36,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.4 2005/12/21 18:30:04 aa Exp $
+$Id: event_broker.pl,v 1.5 2005/12/21 18:31:08 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -425,7 +425,7 @@ my $other_ack_port_callback = sub {
    '</VOEvent>' . "\n";
 
   # work out message length
-  my $header = pack( "N", 7 );
+  my $header = pack( "N", 7 ) if $name eq "RAPTOR";  # RAPTOR specific hack
   my $bytes = pack( "N", length($ack) ); 
    
   # send message                                   
@@ -972,6 +972,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.5  2005/12/21 18:31:08  aa
+# Big fix
+#
 # Revision 1.4  2005/12/21 18:30:04  aa
 # Big fix?
 #
