@@ -39,7 +39,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.26 2005/12/23 16:54:06 aa Exp $
+$Id: event_broker.pl,v 1.27 2005/12/23 17:04:03 aa Exp $
 
 =head1 AUTHORS
 
@@ -56,7 +56,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.26 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.27 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -619,7 +619,7 @@ my $incoming_callback = sub {
 
      # Writing to alert.log file
      my $state_dir = File::Spec->catdir( $config->get_state_dir() );  
-     my $alert = File::Spec->catfile( $state_dir, "alert.log" );
+     my $alert = File::Spec->catfile( $state_dir, $name, "alert.log" );
      
      $log->debug("Opening alert log file: $alert");  
            
@@ -809,12 +809,13 @@ my $incoming_callback = sub {
      close(RSS);    
      
      $log->debug("Opening FTP connection to lion.drogon.net...");  
+     my $ftp2 = Net::FTP->new( "lion.drogon.net", Debug => 1 );
      $log->debug("Logging into estar account...");  
-     $ftp->login( "estar", "tibileot" );
-     $ftp->cwd( "www.estar.org.uk/docs/voevent/$name" );
+     $ftp2->login( "estar", "tibileot" );
+     $ftp2->cwd( "www.estar.org.uk/docs/voevent/$name" );
      $log->debug("Transfering RSS file...");  
-     $ftp->put( $rss, "$name.rdf" );
-     $ftp->quit();     
+     $ftp2->put( $rss, "$name.rdf" );
+     $ftp2->quit();     
      $log->debug("Closed FTP connection");  
 
   
@@ -1258,6 +1259,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.27  2005/12/23 17:04:03  aa
+# Bug fix
+#
 # Revision 1.26  2005/12/23 16:54:06  aa
 # Bug fix
 #
