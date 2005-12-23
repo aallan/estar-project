@@ -36,7 +36,7 @@ requests for the RAPTOR/TALON telescopes.
 
 =head1 REVISION
 
-$Id: raptor_gateway.pl,v 1.29 2005/12/21 17:55:25 aa Exp $
+$Id: raptor_gateway.pl,v 1.30 2005/12/23 13:00:13 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.29 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.30 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -523,9 +523,15 @@ my $iamalive = sub {
       
       # Do I get an ACK or a IAMALIVE message?
       # --------------------------------------
-      my $event = new Astro::VO::VOEvent( XML => $response );
-     
-      if( $event->role() eq "ack" ) {
+      my $event;
+      eval { $event = new Astro::VO::VOEvent( XML => $response ); };
+      if ( $@ ) {
+         my $error = "$@";
+	 chomp ( $error );
+	 $log->error( "Error: Cannot parse VOEvent message" );
+	 $log->error( "Error: $error" );
+	 
+      } elsif( $event->role() eq "ack" ) {
         $log->warn( "Warning: Recieved an ACK message in response");
         $log->debug( $response );
         $log->debug( "Done." );
@@ -891,6 +897,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_gateway.pl,v $
+# Revision 1.30  2005/12/23 13:00:13  aa
+# Bug fix
+#
 # Revision 1.29  2005/12/21 17:55:25  aa
 # Shipping to estar servers
 #
