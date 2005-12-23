@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.34 2005/12/23 17:57:49 aa Exp $
+$Id: event_broker.pl,v 1.35 2005/12/23 18:42:22 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.34 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.35 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -565,6 +565,7 @@ my $incoming_callback = sub {
      unless ( defined $file ) {
         $log->warn( "Warning: The message has not been serialised..." );
      }
+         
      
      # Upload the event message to estar.org.uk
      # ----------------------------------------
@@ -955,9 +956,6 @@ my $incoming_connection = sub {
 
 # I A M A L I V E  C A L L B A C K ------------------------------------------
 
-# the thread
-my $iamalive_thread;
-
 # anonymous subroutine
 my $iamalive = sub {
    my $c = shift;
@@ -1104,11 +1102,12 @@ my $broker_callback = sub {
 
    # Spawn the thread that will send IAMALIVE messages to the client
    $log->print("Spawning IAMAMLIVE thread...");
-   $iamalive_thread = threads->create( \&$iamalive, $c, $server );
+   my $iamalive_thread = threads->create( \&$iamalive, $c, $server );
    $iamalive_thread->detach();
-   
+      
    # DROP INTO LOOP HERE LOOKING FOR NEW EVENT MESSAGES TO PASS ON
    while ( 1 ) { 
+     sleep(5);  
    
      my $connect = $c->connected();
      unless( defined $connect ) {
@@ -1118,10 +1117,81 @@ my $broker_callback = sub {
 	last;
      }
    
-     # CODE HERE TO HANDLE MESSAGES PASSING
-   
-   
-   
+     # 1) Check to see if there are any event messages in %messages
+     # 2) Check %collected to see whether we've picked this one up before
+     # 3) If new, and not collected, set collected, and forward it
+     
+     # (1) & (2)
+     my @uncollected = $run->list_messages();
+     my $id;
+     foreach my $i ( 0 ... $#uncollected ) {
+         unless( $run->is_collected( $tid, $uncollected[$i] ) {
+	    $id = $uncollected[$i];
+	    $run->set_collected( $tid, $id );
+	    
+	    last;
+	 }   
+     } 
+  
+     # (3) Send the messages to the client
+     my $xml = $run->get_message( $id );
+     
+     # work out message length
+     my $header = pack( "N", 7 );
+     my $bytes = pack( "N", length($xml) ); 
+  
+     # send message				      
+     $log->debug( "Sending " . length($xml) . " bytes to $server" );
+     $log->debug( $alive ); 
+		    
+     print $c $header if $server =~ /lanl\.gov/; # RAPTOR specific hack
+     print $c $bytes;
+     $c->flush();
+     print $c $alive;
+     $c->flush();  
+ 
+     # Wait for ACK response
+     $log->debug( "Waiting for response..." );
+     my $length;
+     my $bytes_read = sysread( $c, $length, 4 );  
+     $length = unpack( "N", $length );
+
+     $log->debug( "Message is $length characters" );
+     my $response;		 
+     $bytes_read = sysread( $c, $response, $length); 
+     
+     # Do I get an ACK or a IAMALIVE message?
+     # --------------------------------------
+     my $event;
+     eval { $event = new Astro::VO::VOEvent( XML => $response ); };
+     if ( $@ ) {
+	my $error = "$@";
+        chomp ( $error );
+        $log->error( "Error: Cannot parse VOEvent message" );
+        $log->error( "Error: $error" );
+        
+     } elsif( $event->role() eq "ack" ) {
+       $log->debug( "Recieved an ACK message from $server");
+       my $timestamp = eSTAR::Broker::Util::time_iso(); 
+       $log->debug( "Warning: Reply timestamp: $timestamp");
+       $log->debug( $response );
+       $log->debug( "Done." );
+       
+     } elsif ( $event->role() eq "iamalive" ) {
+       $log->warn( "Warning: Recieved a IAMALIVE message from $server");       
+       my $timestamp = eSTAR::Broker::Util::time_iso(); 
+       $log->warn( "Warning: Reply timestamp: $timestamp");
+       $log->warn( "Warning: This should have been an ACK message");
+       $log->debug( $response );
+       $log->debug( "Done." );
+     }  
+	
+     # finished ping, loop to while(1) { ]
+     $log->debug( "Done sending IAMALIVE to $server, next message in " .
+		  $config->get_option( "broker.ping" ) . " seconds" );     
+     
+          
+          
    }
 
 
@@ -1220,6 +1290,12 @@ while(1) {
     $log->print( "Garbage collection at " . ctime() );
     $log->debug( "Mesages: " . Dumper( $run->list_messages() ) );
     $log->debug( "TIDs: " . Dumper( $run->list_tids() ) );
+    $log->debug( "Collected: " .$run->dump_collected() );
+    
+    # Remove message id off %messages when all @tids have collected it
+    # Also need to remove all mention of the message id from the
+    # %collected hash
+    
     $log->print( "Done with garbage collection" );
 }	
   
@@ -1277,6 +1353,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.35  2005/12/23 18:42:22  aa
+# Added forwarding, but no garbage collection yet
+#
 # Revision 1.34  2005/12/23 17:57:49  aa
 # functionality?
 #

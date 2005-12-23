@@ -6,8 +6,8 @@ package eSTAR::Broker::Running;
 use strict;
 use vars qw/ $VERSION /;
 use subs qw/ new swallow_messages swallow_collected swallow_tids
-             list_messages add_message register_tid deregister_tid 
-	     dump_collected set_collected garbage_collect /;
+             get_message list_messages add_message register_tid deregister_tid 
+	     dump_collected set_collected is_collected garbage_collect /;
 
 use threads;
 use threads::shared;
@@ -16,7 +16,7 @@ use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:status/;
 use Data::Dumper;
 
-'$Revision: 1.12 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.13 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # C O N S T R U C T O R ----------------------------------------------------
 
@@ -114,6 +114,19 @@ sub list_messages {
   return @messages;
 } 
 
+sub get_message {
+  my $self = shift;         
+  my $id = shift;
+ 
+  my $xml;
+  {
+     lock( %{$self->{MESSAGES}} );
+     $xml = ${$self->{MESSAGES}}{$id};
+  } 
+  
+  return $xml;    
+}  
+  
 sub add_message {
   my $self = shift;         
   my $id = shift;
@@ -173,6 +186,21 @@ sub set_collected {
   }   
 
 }
+
+sub is_collected {
+  my $self = shift;
+  my $tid = shift;
+  my $id = shift;
+  
+  my $flag;
+  {
+     lock( %{$self->{COLLECTED}} );
+     foreach my $i ( 0 ... $#{${$self->{COLLECTED}}{$tid}} ) {
+        $flag = 1 if ${${$self->{COLLECTED}}{$tid}}[$i] eq "$id";
+     }	
+  }  
+  return flag;
+}  
 
 sub dump_collected {
   my $self = shift;
