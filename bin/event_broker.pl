@@ -36,7 +36,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.11 2005/12/23 14:00:03 aa Exp $
+$Id: event_broker.pl,v 1.12 2005/12/23 14:00:33 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -1080,9 +1080,10 @@ my $broker_callback = sub {
 
 my $broker = sub { 
   
+  my $server_sock;
   SERVER: {
    $log->print( "Starting TCP/IP server..." );
-   my $server_sock = new IO::Socket::INET( 
+   $server_sock = new IO::Socket::INET( 
 		  LocalHost => $config->get_option( "broker.host" ),
 		  LocalPort => $config->get_option( "broker.port" ),
 		  Proto     => 'tcp',
@@ -1224,6 +1225,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.12  2005/12/23 14:00:33  aa
+# Bug fix
+#
 # Revision 1.11  2005/12/23 14:00:03  aa
 # Bug fix
 #
