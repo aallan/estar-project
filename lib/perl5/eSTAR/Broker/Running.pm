@@ -7,15 +7,16 @@ use strict;
 use vars qw/ $VERSION /;
 use subs qw/ new swallow_messages swallow_collected swallow_tids
              list_messages add_message register_tid deregister_tid 
-	     set_collected garbage_collect /;
+	     dump_collected set_collected garbage_collect /;
 
 use threads;
 use threads::shared;
 
 use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:status/;
+use Data::Dumper;
 
-'$Revision: 1.11 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.12 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # C O N S T R U C T O R ----------------------------------------------------
 
@@ -165,7 +166,23 @@ sub set_collected {
   my $self = shift;
   my $tid = shift;
   my $id = shift;
+  
+  {
+     lock( %{$self->{COLLECTED}} );
+     push @{${$self->{COLLECTED}}{$tid}}, $id;
+  }   
 
+}
+
+sub dump_collected {
+  my $self = shift;
+  
+  my $string;
+  {
+     lock( %{$self->{COLLECTED}} );
+     $string = Dumper( %{$self->{COLLECTED}} );
+  }   
+  return $string;
 }
 
 sub garbage_collect {
