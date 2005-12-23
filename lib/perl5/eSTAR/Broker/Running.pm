@@ -15,7 +15,7 @@ use threads::shared;
 use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:status/;
 
-'$Revision: 1.8 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.9 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # C O N S T R U C T O R ----------------------------------------------------
 
@@ -90,7 +90,7 @@ sub swallow_collected {
   
 }
 
-sub swallow_collected {
+sub swallow_tids {
   my $self = shift;
   my $array = shift;
    
