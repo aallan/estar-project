@@ -39,7 +39,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.27 2005/12/23 17:04:03 aa Exp $
+$Id: event_broker.pl,v 1.28 2005/12/23 17:07:17 aa Exp $
 
 =head1 AUTHORS
 
@@ -56,7 +56,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.27 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.28 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -545,7 +545,7 @@ my $incoming_callback = sub {
      
      # Push message onto running hash via the object we've set up for that
      # purpose...
-     eval { $run->add_messsage( $id, $message ); };
+     eval { $run->add_message( $id, $message ); };
      if ( $@ ) {
         my $error = "$@";
 	chomp( $error );
@@ -1259,6 +1259,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.28  2005/12/23 17:07:17  aa
+# Bug fix
+#
 # Revision 1.27  2005/12/23 17:04:03  aa
 # Bug fix
 #
