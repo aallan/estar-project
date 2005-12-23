@@ -5,7 +5,7 @@ package eSTAR::Broker::Running;
 
 use strict;
 use vars qw/ $VERSION /;
-use subs qw/ new swallow_messages swallow_collected /;
+use subs qw/ new swallow_messages swallow_collected list_messages /;
 
 use threads;
 use threads::shared;
@@ -13,7 +13,7 @@ use threads::shared;
 use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:status/;
 
-'$Revision: 1.1 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.2 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # C O N S T R U C T O R ----------------------------------------------------
 
@@ -73,6 +73,7 @@ sub swallow_messages {
   my $self = shift;
   my $hash = shift;
    
+  share( %$hash ); 
   $self->{MESSAGES} = $hash; 
   
 }     
@@ -81,8 +82,23 @@ sub swallow_collected {
   my $self = shift;
   my $hash = shift;
    
+  share( %$hash ); 
   $self->{COLLECTED} = $hash; 
   
-}     
+}
+
+sub list_messages {
+  my $self = shift;
+  my @messages;
+  
+  { 
+     lock( %{$self->{MESSAGES}} );
+     foreach my $key ( sort keys %{$self->{MESSAGES}} ) {
+        push @messages, $key;
+     } 
+  } # implict unlock() here, end of locking block
+  
+  return @messages;
+}          
 
 1;                                                                  

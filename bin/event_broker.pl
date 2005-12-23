@@ -39,7 +39,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.19 2005/12/23 15:30:30 aa Exp $
+$Id: event_broker.pl,v 1.20 2005/12/23 15:49:39 aa Exp $
 
 =head1 AUTHORS
 
@@ -56,7 +56,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.19 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.20 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -181,9 +181,13 @@ $SIG{INT} = sub {
 
 # S H A R E   C R O S S - T H R E A D   V A R I A B L E S -------------------
 
-# share the running array across threads
-share( %messages );
-share( %collect );
+# share the running hashs across threads, I'd love to do this with an proper
+# object, but unfortuantely the Perl threading model really sucks rocks. So
+# the hashs are shared across the running threads by the object, so part of
+# the object data structre is shared and some isn't. At least, I think this
+# is how things work... 
+
+$log->debug( "Stuffing the running hashes into an placeholder object..." );
 my $run = new eSTAR::Broker::Running( $process->get_process() );
 $run->swallow_messages( \%messages ); 
 $run->swallow_collected( \%collect ); 
@@ -352,6 +356,7 @@ if ( $config->get_state("broker.unique_process") == 1 ) {
    $config->set_option( "broker.host", $ip );
    $config->set_option( "broker.port", 8099 );
    $config->set_option( "broker.ping", 60 );
+   $config->set_option( "broker.garbage", 45 );
       
    # server parameters
    # -----------------
@@ -1247,6 +1252,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.20  2005/12/23 15:49:39  aa
+# More work on shared hashes
+#
 # Revision 1.19  2005/12/23 15:30:30  aa
 # Bug fix
 #
