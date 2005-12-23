@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.35 2005/12/23 18:42:22 aa Exp $
+$Id: event_broker.pl,v 1.36 2005/12/23 18:43:17 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.35 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.36 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -1142,12 +1142,12 @@ my $broker_callback = sub {
   
      # send message				      
      $log->debug( "Sending " . length($xml) . " bytes to $server" );
-     $log->debug( $alive ); 
+     $log->debug( $xml ); 
 		    
      print $c $header if $server =~ /lanl\.gov/; # RAPTOR specific hack
      print $c $bytes;
      $c->flush();
-     print $c $alive;
+     print $c $xml;
      $c->flush();  
  
      # Wait for ACK response
@@ -1353,6 +1353,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.36  2005/12/23 18:43:17  aa
+# Bug fix
+#
 # Revision 1.35  2005/12/23 18:42:22  aa
 # Added forwarding, but no garbage collection yet
 #

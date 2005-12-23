@@ -16,7 +16,7 @@ use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:status/;
 use Data::Dumper;
 
-'$Revision: 1.13 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.14 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # C O N S T R U C T O R ----------------------------------------------------
 
@@ -199,7 +199,7 @@ sub is_collected {
         $flag = 1 if ${${$self->{COLLECTED}}{$tid}}[$i] eq "$id";
      }	
   }  
-  return flag;
+  return $flag;
 }  
 
 sub dump_collected {
