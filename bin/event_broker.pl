@@ -39,7 +39,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.25 2005/12/23 16:47:31 aa Exp $
+$Id: event_broker.pl,v 1.26 2005/12/23 16:54:06 aa Exp $
 
 =head1 AUTHORS
 
@@ -56,7 +56,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.25 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.26 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -594,7 +594,7 @@ my $incoming_callback = sub {
 	$log->debug("Changing directory to $path");
      }
      $log->debug("Uploading $file");
-     $ftp->put( $file, "$id" . ".xml" );
+     $ftp->put( $file, "$path[$#path].xml" );
      $ftp->quit();    
      $log->debug("Closing FTP connection"); 
      
@@ -729,8 +729,12 @@ my $incoming_callback = sub {
              height      => 16,
              description => 'eSTAR' );
       
-     my $num_of_files = $#files;   
-     foreach my $i ( 0 ... $num_of_files ) {
+     my $num_of_files = $#files;
+     my $start = 0;
+     if ( $num_of_files >= 20 ) {
+        $start = $num_of_files - 20;
+     }	   
+     foreach my $i ( $start ... $num_of_files ) {
         $log->debug( "Reading $i of $num_of_files entries" );
         my $data;
         {
@@ -1254,6 +1258,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.26  2005/12/23 16:54:06  aa
+# Bug fix
+#
 # Revision 1.25  2005/12/23 16:47:31  aa
 # Bug fix
 #
