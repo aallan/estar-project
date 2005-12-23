@@ -39,7 +39,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.22 2005/12/23 16:38:32 aa Exp $
+$Id: event_broker.pl,v 1.23 2005/12/23 16:44:27 aa Exp $
 
 =head1 AUTHORS
 
@@ -56,7 +56,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.22 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.23 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -578,35 +578,21 @@ my $incoming_callback = sub {
      if ( $path[0] eq "" ) {
         splice @path, 0 , 1;
      }
-     my $path = "www.estar.org.uk/docs/voevent/$name";
-     unless ( $ftp->cwd( $path ) ) {
-     	$ftp->mkdir( $path );
-     	if ( $ftp->cwd( $path ) ) {
-     	   next;
-     	} else {
-     	   $log->warn( "Warning: Unable to create directory $path" );
-     	}
-     }  	  
-     
-     
+     my $path = "www.estar.org.uk/docs/voevent/$name";  
      foreach my $i ( 0 ... $#path - 1 ) {
         if ( $path[$i] eq "" ) {
           next;
         }
-        $path = $path . "/$path[$i]";
-	if ( $ftp->cwd( $path ) ) {
-	   next;
-	} else {
-	   $ftp->mkdir( $path );
-	   if ( $ftp->cwd( $path ) ) {
-	      next;
-	   } else {
-	      $log->warn( "Warning: Unable to create directory $path" );
-	   }
-	}            
+        $path = $path . "/$path[$i]";        
      }
      $log->debug("Changing directory to $path");
-     $ftp->cwd( $path );
+     unless ( $ftp->cwd( $path ) ) {
+        $log->warn( "Warning: Recursively creating directories..." );
+	$log->warn( "Warning: Path is $path");
+	$ftp->mkdir( $path, RECURSE => 1 );
+        $ftp->cwd( $path )
+	$log->debug("Changing directory to $path");
+     }
      $log->debug("Uploading $file");
      $ftp->put( $file, "$id" . ".xml" );
      $ftp->quit();    
@@ -1268,6 +1254,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.23  2005/12/23 16:44:27  aa
+# Bug fix
+#
 # Revision 1.22  2005/12/23 16:38:32  aa
 # Bug fix
 #
