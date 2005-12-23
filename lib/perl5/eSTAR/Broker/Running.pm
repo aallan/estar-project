@@ -5,9 +5,9 @@ package eSTAR::Broker::Running;
 
 use strict;
 use vars qw/ $VERSION /;
-use subs qw/ new swallow_messages swallow_collected list_messages 
-             add_message register_tid deregister_tid set_collected 
-	     garbage_collect /;
+use subs qw/ new swallow_messages swallow_collected swallow_tids
+             list_messages add_message register_tid deregister_tid 
+	     set_collected garbage_collect /;
 
 use threads;
 use threads::shared;
@@ -15,7 +15,7 @@ use threads::shared;
 use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:status/;
 
-'$Revision: 1.7 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.8 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # C O N S T R U C T O R ----------------------------------------------------
 
@@ -87,6 +87,15 @@ sub swallow_collected {
    
   share( %$hash ); 
   $self->{COLLECTED} = $hash; 
+  
+}
+
+sub swallow_collected {
+  my $self = shift;
+  my $array = shift;
+   
+  share( @$array ); 
+  $self->{TIDS} = $array; 
   
 }
 
