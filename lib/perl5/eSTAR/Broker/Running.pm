@@ -15,7 +15,7 @@ use threads::shared;
 use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:status/;
 
-'$Revision: 1.9 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.10 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # C O N S T R U C T O R ----------------------------------------------------
 
@@ -155,7 +155,7 @@ sub list_tids {
   {
     lock( @{$self->{TIDS}} );
     foreach my $i ( 0 ... $#{$self->{TIDS}} ) {
-       push @tids, ${$self->{TIDS}};
+       push @tids, ${$self->{TIDS}}[$i];
     }		     
   }
 }    
