@@ -39,7 +39,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.17 2005/12/23 15:29:27 aa Exp $
+$Id: event_broker.pl,v 1.18 2005/12/23 15:30:00 aa Exp $
 
 =head1 AUTHORS
 
@@ -56,7 +56,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.17 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.18 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -183,7 +183,7 @@ $SIG{INT} = sub {
 
 # share the running array across threads
 share( %messages );
-share( %collect
+share( %collect );
 my $run = new eSTAR::Broker::Running( $process->get_process() );
 $run->swallow_messages( \%messages ); 
 $run->swallow_collected( \%collect ); 
@@ -1246,6 +1246,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.18  2005/12/23 15:30:00  aa
+# Bug fix
+#
 # Revision 1.17  2005/12/23 15:29:27  aa
 # Added shared messages and collected hashes in preparation for pasing messages between the client and server threads.
 #
