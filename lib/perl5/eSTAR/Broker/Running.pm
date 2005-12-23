@@ -15,7 +15,7 @@ use threads::shared;
 use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:status/;
 
-'$Revision: 1.6 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.7 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # C O N S T R U C T O R ----------------------------------------------------
 
@@ -33,7 +33,7 @@ sub new {
   $SINGLETON = bless { PROCESS      => undef,
                        TAGNUM       => undef,
                        MESSAGES     => undef,
-		       COLLECTED    => undef
+		       COLLECTED    => undef,
 		       TIDS         => undef  }, $class;
   
   # Configure the object
