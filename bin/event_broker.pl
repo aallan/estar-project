@@ -39,7 +39,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.28 2005/12/23 17:07:17 aa Exp $
+$Id: event_broker.pl,v 1.29 2005/12/23 17:13:48 aa Exp $
 
 =head1 AUTHORS
 
@@ -56,7 +56,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.28 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.29 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -507,7 +507,7 @@ my $incoming_callback = sub {
   my $voevent;
   if ( $message =~ /VOEvent/ ) {
      $log->debug( "This looks like a VOEvent document..." );
-     $log->print( $message );
+     #$log->print( $message );
      
      # Ignore ACK and IAMALIVE messages
      # --------------------------------
@@ -764,7 +764,10 @@ my $incoming_callback = sub {
         my $packet_type = $what{Param}->{PACKET_TYPE}->{value};
  
         my $timestamp = $object->time();
-               
+              
+	# grab role
+	my $packet_role = $object->role();
+	       
         # build url
         my @path = split( "/", $id );
         if ( $path[0] eq "ivo:" ) {
@@ -782,9 +785,11 @@ my $incoming_callback = sub {
         my $description;
 	if ( defined $packet_type ) {
 	  $description = "GCN PACKET_TYPE = $packet_type (via $name)<br>\n" .
-                         "Time stamp at $name was $timestamp";
+                         "Time stamp at $name was $timestamp<br>\n".
+	                 "Packet role was '".$role."'";
 	} else {
-	  $description = "Received packet (via $name) at $timestamp";
+	  $description = "Received packet (via $name) at $timestamp<br>\n".
+	                 "Packet role was '".$role."'";
 	}  		 
    
         $log->print( "Creating RSS Feed Entry..." );
@@ -1203,7 +1208,13 @@ $server_thread->detach();
 
 # MAIN LOOP -----------------------------------------------------------------	  
 
-while(1) {}	
+$log->print( "Entering main garbage collection loop..." );
+while(1) {
+    sleep $config->get_option( "broker.garbage" );
+    $log->print( "Garbage collection at " . ctime() );
+    $log->debug( Dumper( $run->get_messages() );
+    $log->print( "Done with garbage collection" );
+}	
   
 # ===========================================================================
 # E N D 
@@ -1259,6 +1270,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.29  2005/12/23 17:13:48  aa
+# Bug fix, handed test code to see if we're sharing the running hashes correctly between threads
+#
 # Revision 1.28  2005/12/23 17:07:17  aa
 # Bug fix
 #
