@@ -37,7 +37,7 @@ use Astro::VO::VOEvent;
 @ISA = qw/Exporter/;
 @EXPORT_OK = qw/ store_voevent time_iso time_rfc822 /;
 
-'$Revision: 1.3 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.4 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 sub store_voevent {
    my $server = shift;
@@ -78,7 +78,6 @@ sub store_voevent {
       mkdir $dir, 0755;
       if ( opendir ( DIR, $dir ) ) {
      	 closedir DIR;
-     	 next;
       } else {
      	 $log->warn( "Warning: Unable to create $dir");
      	 return undef;  			     
@@ -164,7 +163,7 @@ sub time_rfc822 {
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.3 2005/12/23 16:37:05 aa Exp $
+$Id: Util.pm,v 1.4 2005/12/23 16:47:31 aa Exp $
 
 =head1 AUTHORS
 
