@@ -16,7 +16,7 @@ use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:status/;
 use Data::Dumper;
 
-'$Revision: 1.15 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.16 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # C O N S T R U C T O R ----------------------------------------------------
 
@@ -196,7 +196,7 @@ sub is_collected {
   {
      lock( %{$self->{COLLECTED}} );
      
-     ${${$self->{COLLECTED}}{$tid}} = ( ) unless defined ${${$self->{COLLECTED}}{$tid}};
+     ${${$self->{COLLECTED}}{$tid}} = ( ) unless defined ${$self->{COLLECTED}}{$tid};
      foreach my $i ( 0 ... $#{${$self->{COLLECTED}}{$tid}} ) {
         $flag = 1 if ${${$self->{COLLECTED}}{$tid}}[$i] eq "$id";
      }	
