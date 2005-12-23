@@ -12,8 +12,9 @@ use strict;
 #  %messages - Shared hash holding the messages being passed between threads
 #  %collect  - Shared hash holding the semaphore flags to tell the garabage
 #	       collection thread that the message has been picked up
+#  @tids     - list of currently active server threads (with live clients)
 
-use vars qw / $VERSION %OPT $log $config %messages %collect /;
+use vars qw / $VERSION %OPT $log $config %messages %collect @tids/;
 
 # share the lookup hash across threads
 
@@ -39,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.33 2005/12/23 17:16:46 aa Exp $
+$Id: event_broker.pl,v 1.34 2005/12/23 17:57:49 aa Exp $
 
 =head1 AUTHORS
 
@@ -56,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.33 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.34 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -160,6 +161,20 @@ if ( $Config{'useithreads'} ne "define" ) {
 }
 
 
+# S H A R E   C R O S S - T H R E A D   V A R I A B L E S -------------------
+
+# share the running hashs across threads, I'd love to do this with an proper
+# object, but unfortuantely the Perl threading model really sucks rocks. So
+# the hashs are shared across the running threads by the object, so part of
+# the object data structre is shared and some isn't. At least, I think this
+# is how things work... 
+
+$log->debug( "Stuffing the running hashes into an placeholder object..." );
+my $run = new eSTAR::Broker::Running( $process->get_process() );
+$run->swallow_messages( \%messages ); 
+$run->swallow_collected( \%collect ); 
+$run->swallow_tids( \@tids ); 
+
 # C A T C H   S I G N A L S -------------------------------------------------
 
 #  Catch as many signals as possible so that the END{} blocks work correctly
@@ -178,19 +193,6 @@ $SIG{INT} = sub {
               $log->error( "Recieved Interrupt" ); 
               $server_flag = 1;
               exit(1); };
-
-# S H A R E   C R O S S - T H R E A D   V A R I A B L E S -------------------
-
-# share the running hashs across threads, I'd love to do this with an proper
-# object, but unfortuantely the Perl threading model really sucks rocks. So
-# the hashs are shared across the running threads by the object, so part of
-# the object data structre is shared and some isn't. At least, I think this
-# is how things work... 
-
-$log->debug( "Stuffing the running hashes into an placeholder object..." );
-my $run = new eSTAR::Broker::Running( $process->get_process() );
-$run->swallow_messages( \%messages ); 
-$run->swallow_collected( \%collect ); 
 
 # A G E N T  C O N F I G U R A T I O N ----------------------------------------
 
@@ -1092,6 +1094,9 @@ my $broker_callback = sub {
    my $c = shift;
    my $server = shift;
    
+   my $tid = threads->tid();
+   $run->register_tid( $tid );
+   
    # create IAMALIVE thread
    $log->debug( "Starting IAMALIVE callback...");  
    $log->debug( "Pinging $server every " .
@@ -1108,6 +1113,7 @@ my $broker_callback = sub {
      my $connect = $c->connected();
      unless( defined $connect ) {
         $log->warn( "Closing socket to $server" );
+	$run->deregister_tid( $tid );
 	close( $c );
 	last;
      }
@@ -1212,7 +1218,8 @@ $log->print( "Entering main garbage collection loop..." );
 while(1) {
     sleep $config->get_option( "broker.garbage" );
     $log->print( "Garbage collection at " . ctime() );
-    $log->debug( Dumper( $run->list_messages() ) );
+    $log->debug( "Mesages: " . Dumper( $run->list_messages() ) );
+    $log->debug( "TIDs: " . Dumper( $run->list_tids() ) );
     $log->print( "Done with garbage collection" );
 }	
   
@@ -1270,6 +1277,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.34  2005/12/23 17:57:49  aa
+# functionality?
+#
 # Revision 1.33  2005/12/23 17:16:46  aa
 # Bug fix
 #

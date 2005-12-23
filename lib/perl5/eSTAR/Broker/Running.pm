@@ -6,7 +6,8 @@ package eSTAR::Broker::Running;
 use strict;
 use vars qw/ $VERSION /;
 use subs qw/ new swallow_messages swallow_collected list_messages 
-             add_message /;
+             add_message register_tid deregister_tid set_collected 
+	     garbage_collect /;
 
 use threads;
 use threads::shared;
@@ -14,7 +15,7 @@ use threads::shared;
 use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:status/;
 
-'$Revision: 1.5 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.6 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # C O N S T R U C T O R ----------------------------------------------------
 
@@ -29,10 +30,11 @@ sub new {
   my $class = ref($proto) || $proto;
 
   # bless the query hash into the class
-  $SINGLETON = bless { PROCESS       => undef,
-                       TAGNUM        => undef,
-                       MESSAGES      => undef,
-		       COLLECTED    => undef }, $class;
+  $SINGLETON = bless { PROCESS      => undef,
+                       TAGNUM       => undef,
+                       MESSAGES     => undef,
+		       COLLECTED    => undef
+		       TIDS         => undef  }, $class;
   
   # Configure the object
   $SINGLETON->configure( @_ );
@@ -112,6 +114,53 @@ sub add_message {
      ${$self->{MESSAGES}}{$id} = $message;
   }     
 }
+
+sub register_tid {
+  my $self = shift;
+  my $tid = shift;
+  
+  {
+    lock( @{$self->{TIDS}} );
+    push @{$self->{TIDS}}, $tid;
+  }  
+}
+
+sub deregister_tid {
+  my $self = shift;
+  my $tid = shift;
+  
+  {
+    lock( @{$self->{TIDS}} );
+    foreach my $i ( 0 ... $#{$self->{TIDS}} ) {
+       if ( ${$self->{TIDS}} == $tid ) {
+             splice @{$self->{TIDS}}, $i, 1;
+	     last;
+        }
+    }		     
+  }
+}  
+
+sub list_tids {
+  my $self = shift;
+  my @tids;
+  {
+    lock( @{$self->{TIDS}} );
+    foreach my $i ( 0 ... $#{$self->{TIDS}} ) {
+       push @tids, ${$self->{TIDS}};
+    }		     
+  }
+}    
+    
+sub set_collected {
+  my $self = shift;
+  my $tid = shift;
+  my $id = shift;
+
+}
+
+sub garbage_collect {
+
+} 
   
 1;
 
