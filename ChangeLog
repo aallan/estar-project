@@ -1,3 +1,7 @@
+2005-12-23 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * bin/event_broker.pl: Added server thread to the event broker.
+	
 2005-12-21 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* eSTAR/Config.pm: Generalised get_nodes() and get_useragents()

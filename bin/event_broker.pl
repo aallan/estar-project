@@ -36,7 +36,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.8 2005/12/21 20:36:00 aa Exp $
+$Id: event_broker.pl,v 1.9 2005/12/23 13:48:55 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -327,6 +327,11 @@ if ( $config->get_state("broker.unique_process") == 1 ) {
    $config->set_option("mailhost.timeout", 30 );
    $config->set_option("mailhost.debug", 0 );  
 
+   # broker
+   $config->set_option( "broker.host", $ip );
+   $config->set_option( "broker.port", 8099 );
+   $config->set_option( "broker.ping", 60 );
+      
    # server parameters
    # -----------------
    $config->set_option( "raptor.host", "astro.lanl.gov" );
@@ -445,7 +450,7 @@ my $other_ack_port_callback = sub {
   return ESTAR__OK;
 };
 
-# TCP/IP callback
+# TCP/IP client callback
 
 my $incoming_callback = sub {
   my $server = shift;
@@ -672,7 +677,7 @@ my $incoming_callback = sub {
      
      my $feed = new XML::RSS( version => "2.0" );
      $feed->channel(
-        title        => "eSTAR $name Event Feed",
+        title        => "$name Event Feed",
         link         => "http://www.estar.org.uk",
         description  => 
 	  'This is an RSS2.0 feed from '.$name.' of VOEvent notices brokered '.
@@ -684,7 +689,8 @@ my $incoming_callback = sub {
         lastBuildDate  => $rfc822,
         language       => 'en-us' );
 
-     $feed->image(title       => 'estar.org.uk',
+     $feed->image(
+             title       => 'estar.org.uk',
              url         => 'http://www.estar.org.uk/favicon.png',
              link        => 'http://www.estar.org.uk/',
              width       => 16,
@@ -900,6 +906,223 @@ my $incoming_connection = sub {
   }          
 };
   
+# BROKER SERVER STARTUP AND CALLBACKS ---------------------------------------
+
+# I A M A L I V E  C A L L B A C K ------------------------------------------
+
+# the thread
+my $iamalive_thread;
+
+# anonymous subroutine
+my $iamalive = sub {
+   my $c = shift;
+   my $server = shift;
+
+   # STATE FILE
+   # ----------
+   my $ping_file = 
+      File::Spec->catfile( Config::User->Home(), '.estar', 
+                           $process->get_process(), "ping_$server.dat" );
+   
+   $log->debug("Writing state to \$ping_file = $ping_file");
+   #my $OBS = eSTAR::Util::open_ini_file( $obs_file );
+  
+   my $PING = new Config::Simple( syntax   => 'ini', 
+                                  mode     => O_RDWR|O_CREAT );
+                                    
+   if( open ( FILE, "<$ping_file" ) ) {
+      close ( FILE );
+      $log->debug("Reading configuration from $ping_file" );
+      $PING->read( $ping_file );
+   } else {
+      $log->warn("Warning: $ping_file does not exist");
+   }  
+   
+   while( 1 ) {
+      sleep $config->get_option( "broker.ping" );
+      
+      my $connect = $c->connected();
+      unless( defined $connect ) {
+         $log->warn( "Closing socket to $server" );
+	 close( $c );
+	 last;
+      }
+      
+      $log->print( "Pinging $server at ". ctime() . " from " .
+                   "(\$tid = " . threads->tid() . ")");
+      $log->print ("Sending IAMALIVE message to $server...");
+  
+      # unique ID for IAMALIVE message
+      $log->debug( "Retreving unique number from state file..." );
+      my $number = $PING->param( 'iamalive.unique_number' ); 
+ 
+      if ( $number eq '' ) {
+         # $number is not defined correctly (first ever message?)
+         $PING->param( 'iamalive.unique_number', 0 );
+         $number = 0; 
+      } 
+      $log->debug("Generating unqiue ID: $number");      
+  
+      my $timestamp = eSTAR::Broker::Util::time_iso() 
+      $log->debug( "Generating timestamp: $timestamp");
+      
+      # increment ID number
+      $number = $number + 1;
+      $PING->param( 'iamalive.unique_number', $number );
+      $log->debug('Incrementing unique number to ' . $number);
+     
+      my $id = $config->get_option( 'local.host' ) . "." . 
+               $PING->param( 'iamalive.unique_number' );
+     
+      # commit ID stuff to STATE file
+      my $status = $PING->save( $ping_file );           
+      # build the IAMALIVE message
+      my $alive =
+         "<?xml version='1.0' encoding='UTF-8'?>\n" .
+         '<VOEvent role="iamalive" id="' .
+         'ivo://estar.ex/' . $id . '" version="1.1">' . "\n" .
+         ' <Who>' . "\n" .
+         '   <PublisherID>ivo://estar.ex</PublisherID>' . "\n" .
+         '   <Date>' . $timestamp . '</Date>'  . "\n" .
+         ' </Who>' . "\n" .
+         '</VOEvent>' . "\n";
+
+      # work out message length
+      my $header = pack( "N", 7 );
+      my $bytes = pack( "N", length($alive) ); 
+   
+      # send message                                   
+      $log->debug( "Sending " . length($alive) . " bytes to $server" );
+      $log->debug( $alive ); 
+                     
+      print $c $header if $server =~ /lanl\.gov/; # RAPTOR specific hack
+      print $c $bytes;
+      $c->flush();
+      print $c $alive;
+      $c->flush();  
+  
+      # Wait for IAMALIVE response
+      $log->debug( "Waiting for response..." );
+      my $length;
+      my $bytes_read = sysread( $c, $length, 4 );  
+      $length = unpack( "N", $length );
+ 
+      $log->debug( "Message is $length characters" );
+      my $response;               
+      $bytes_read = sysread( $c, $response, $length); 
+      
+      # Do I get an ACK or a IAMALIVE message?
+      # --------------------------------------
+      my $event;
+      eval { $event = new Astro::VO::VOEvent( XML => $response ); };
+      if ( $@ ) {
+         my $error = "$@";
+	 chomp ( $error );
+	 $log->error( "Error: Cannot parse VOEvent message" );
+	 $log->error( "Error: $error" );
+	 
+      } elsif( $event->role() eq "ack" ) {
+        $log->warn( "Warning: Recieved an ACK message from $server");
+        $log->warn( "Warning: This should have been an IAMALIVE message");
+        $log->debug( $response );
+        $log->debug( "Done." );
+        
+      } elsif ( $event->role() eq "iamalive" ) {
+        $log->print( "Recieved a IAMALIVE message from $server");
+        
+        my $timestamp = eSTAR::Broker::Util::time_iso() 
+        $log->debug( "Reply timestamp: $timestamp");
+        $log->debug( $response );
+        $log->debug( "Done." );
+      }  
+         
+      # finished ping, loop to while(1) { ]
+      $log->debug( "Done sending IAMALIVE to $server, next message in " .
+                   $config->get_option( "broker.ping" ) . " seconds" );
+   }
+   
+   $log->warn( "Warning: Shutting down IAMALIVE connection to $server");
+   
+}; 
+
+my $broker_callback = sub {
+   my $c = shift;
+   my $server = shift;
+   
+   # create IAMALIVE thread
+   $log->debug( "Starting IAMALIVE callback...");  
+   $log->debug( "Pinging $server every " .
+                 $config->get_option( "broker.ping") . " seconds..." );
+
+   # Spawn the thread that will send IAMALIVE messages to the client
+   $log->print("Spawning IAMAMLIVE thread...");
+   $iamalive_thread = threads->create( $iamalive, $c, $server );
+   $iamalive_thread->detach();
+   
+   # DROP INTO LOOP HERE LOOKING FOR NEW EVENT MESSAGES TO PASS ON
+   while ( 1 ) { 
+   
+     my $connect = $c->connected();
+     unless( defined $connect ) {
+        $log->warn( "Closing socket to $server" );
+	close( $c );
+	last;
+     }
+   
+     # CODE HERE TO HANDLE MESSAGES PASSING
+   
+   
+   
+   }
+
+
+};
+
+my $broker = sub { 
+  my $server = shift;
+  my $name = shift;
+  
+  SERVER: {
+   $log->print( "Starting TCP/IP server..." );
+   my $server_sock = new IO::Socket::INET( 
+		  LocalHost => $config->get_option( "broker.host" ),
+		  LocalPort => $config->get_option( "broker.port" ),
+		  Proto     => 'tcp',
+		  Listen    => 2,
+		  Reuse     => 1 ); 
+
+   unless ( $server_sock ) {	           
+       my $error = "$@";
+       chomp($error);
+       $log->warn("Warning: $error");
+       $log->warn("Warning: Trying to restart TCP server on port " .
+                  $config->get_option( "broker.port" ) );
+       sleep 5;
+       redo SERVER;
+   };        
+   $log->print( "Server started on port ".$config->get_option( "broker.port" ) );
+  
+  }
+
+  while( !$quit ) {
+     next unless my $c = $server_sock->accept();
+     
+     my $server = $c->peerhost();
+     	
+     $log->print("Accepted connection from $server" ); 
+     $log->debug("Spawning server thread to handle the connection..." ); 
+     my $thread = threads->new( \&broker_callback, $c, $server );
+     $thread->detach();
+     $log->ebug("Closing socket in main thread..." ); 
+     close( $c );
+     
+  
+  } 
+  $log->error( "Error: Shutting down broker on port " .
+               $config->get_option( "broker.port" ) );
+  $log->error( "Error: Stopping server..." );
+  return ESTAR__FAULT;
+};  
 
 # ===========================================================================
 # M A I N   B L O C K 
@@ -936,7 +1159,20 @@ foreach my $i ( 0 ... $#servers ) {
 }
 
 # START SERVER --------------------------------------------------------------
-          
+
+my $server_flag;
+
+$SIG{PIPE} = sub { $log->warn( "Client Disconnecting" ); };
+$SIG{INT} = sub { $log->error( "Recieved Interrupt" ); $server_flag = 1; };
+
+my $server_thread = 
+      threads->create( \&$broker );
+   $server_thread->detach();
+}
+
+
+
+
 
 # MAIN LOOP -----------------------------------------------------------------	  
 
@@ -996,6 +1232,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.9  2005/12/23 13:48:55  aa
+# Added server thread to event_broker.pl
+#
 # Revision 1.8  2005/12/21 20:36:00  aa
 # Bug fixes to Event Broker and startup script
 #
