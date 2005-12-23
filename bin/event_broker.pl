@@ -36,7 +36,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.13 2005/12/23 14:02:20 aa Exp $
+$Id: event_broker.pl,v 1.14 2005/12/23 14:02:53 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.13 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.14 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -164,6 +164,9 @@ use sigtrap qw/die normal-signals error-signals/;
 
 # make unbuffered
 $|=1;					
+
+# flag to kill server
+my $server_flag;
 
 # signals
 $SIG{PIPE} = sub { 
@@ -1225,6 +1228,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.14  2005/12/23 14:02:53  aa
+# Bug fix
+#
 # Revision 1.13  2005/12/23 14:02:20  aa
 # Bug fix
 #
