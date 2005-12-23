@@ -36,7 +36,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.14 2005/12/23 14:02:53 aa Exp $
+$Id: event_broker.pl,v 1.15 2005/12/23 14:42:29 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.14 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.15 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -174,7 +174,7 @@ $SIG{PIPE} = sub {
 $SIG{INT} = sub {  
               $log->error( "Recieved Interrupt" ); 
               $server_flag = 1;
-              \&kill_agent };
+              exit(1); };
 
 # A G E N T  C O N F I G U R A T I O N ----------------------------------------
 
@@ -1064,7 +1064,7 @@ my $broker_callback = sub {
 
    # Spawn the thread that will send IAMALIVE messages to the client
    $log->print("Spawning IAMAMLIVE thread...");
-   $iamalive_thread = threads->create( $iamalive, $c, $server );
+   $iamalive_thread = threads->create( \&$iamalive, $c, $server );
    $iamalive_thread->detach();
    
    # DROP INTO LOOP HERE LOOKING FOR NEW EVENT MESSAGES TO PASS ON
@@ -1118,7 +1118,7 @@ my $broker = sub {
      	
      $log->print("Accepted connection from $server" ); 
      $log->debug("Spawning server thread to handle the connection..." ); 
-     my $thread = threads->new( \&broker_callback, $c, $server );
+     my $thread = threads->new( \&$broker_callback, $c, $server );
      $thread->detach();
      $log->ebug("Closing socket in main thread..." ); 
      close( $c );
@@ -1228,6 +1228,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.15  2005/12/23 14:42:29  aa
+# Bug fix
+#
 # Revision 1.14  2005/12/23 14:02:53  aa
 # Bug fix
 #
