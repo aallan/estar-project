@@ -5,7 +5,8 @@ package eSTAR::Broker::Running;
 
 use strict;
 use vars qw/ $VERSION /;
-use subs qw/ new swallow_messages swallow_collected list_messages /;
+use subs qw/ new swallow_messages swallow_collected list_messages 
+             add_message /;
 
 use threads;
 use threads::shared;
@@ -13,7 +14,7 @@ use threads::shared;
 use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:status/;
 
-'$Revision: 1.3 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.4 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # C O N S T R U C T O R ----------------------------------------------------
 
