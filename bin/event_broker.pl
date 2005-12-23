@@ -36,7 +36,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.12 2005/12/23 14:00:33 aa Exp $
+$Id: event_broker.pl,v 1.13 2005/12/23 14:02:20 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.13 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -128,18 +128,6 @@ my $process = new eSTAR::Process( $process_name );
 # status files for this process will be stored.
 $process->set_version( $VERSION );
 
-# C A T C H   S I G N A L S -------------------------------------------------
-
-#  Catch as many signals as possible so that the END{} blocks work correctly
-use sigtrap qw/die normal-signals error-signals/;
-
-# make unbuffered
-$|=1;					
-
-# signals
-$SIG{'INT'} = \&kill_agent;
-$SIG{'PIPE'} = 'IGNORE';
-
 # S T A R T   L O G   S Y S T E M -------------------------------------------
 
 # We want a consistent look and feel to the logging, so now we've identified
@@ -167,6 +155,23 @@ if ( $Config{'useithreads'} ne "define" ) {
    $log->error($error);
    throw eSTAR::Error::FatalError($error, ESTAR__FATAL);      
 }
+
+
+# C A T C H   S I G N A L S -------------------------------------------------
+
+#  Catch as many signals as possible so that the END{} blocks work correctly
+use sigtrap qw/die normal-signals error-signals/;
+
+# make unbuffered
+$|=1;					
+
+# signals
+$SIG{PIPE} = sub { 
+              $log->warn( "Client Disconnecting" ); };
+$SIG{INT} = sub {  
+              $log->error( "Recieved Interrupt" ); 
+              $server_flag = 1;
+              \&kill_agent };
 
 # A G E N T  C O N F I G U R A T I O N ----------------------------------------
 
@@ -1159,11 +1164,6 @@ foreach my $i ( 0 ... $#servers ) {
 
 # START SERVER --------------------------------------------------------------
 
-my $server_flag;
-
-$SIG{PIPE} = sub { $log->warn( "Client Disconnecting" ); };
-$SIG{INT} = sub { $log->error( "Recieved Interrupt" ); $server_flag = 1; };
-
 my $server_thread =  threads->create( \&$broker );
 $server_thread->detach();
 
@@ -1225,6 +1225,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.13  2005/12/23 14:02:20  aa
+# Bug fix
+#
 # Revision 1.12  2005/12/23 14:00:33  aa
 # Bug fix
 #
