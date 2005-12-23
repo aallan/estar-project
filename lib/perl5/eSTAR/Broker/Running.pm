@@ -13,7 +13,7 @@ use threads::shared;
 use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:status/;
 
-'$Revision: 1.2 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.3 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # C O N S T R U C T O R ----------------------------------------------------
 
@@ -99,6 +99,19 @@ sub list_messages {
   } # implict unlock() here, end of locking block
   
   return @messages;
-}          
+} 
 
-1;                                                                  
+sub add_message {
+  my $self = shift;         
+  my $id = shift;
+  my $message = shift;
+  
+  {
+     lock( %{$self->{MESSAGES}} );
+     ${$self->{MESSAGES}}->{$id} = $message;
+  }     
+}
+  
+1;
+
+                                                                  
