@@ -9,8 +9,11 @@ use strict;
 #  $VERSION  - CVS Revision Number
 #  %OPT      - Options hash for things we don't want to be persistant
 #  $log      - Handle for logging object
+#  %messages - Shared hash holding the messages being passed between threads
+#  %collect  - Shared hash holding the semaphore flags to tell the garabage
+#	       collection thread that the message has been picked up
 
-use vars qw / $VERSION %OPT $log $config /;
+use vars qw / $VERSION %OPT $log $config %messages %collect /;
 
 # share the lookup hash across threads
 
@@ -36,7 +39,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.16 2005/12/23 14:43:19 aa Exp $
+$Id: event_broker.pl,v 1.17 2005/12/23 15:29:27 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +56,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.16 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.17 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -175,6 +178,15 @@ $SIG{INT} = sub {
               $log->error( "Recieved Interrupt" ); 
               $server_flag = 1;
               exit(1); };
+
+# S H A R E   C R O S S - T H R E A D   V A R I A B L E S -------------------
+
+# share the running array across threads
+share( %messages );
+share( %collect
+my $run = new eSTAR::Broker::Running( $process->get_process() );
+$run->swallow_messages( \%messages ); 
+$run->swallow_collected( \%collect ); 
 
 # A G E N T  C O N F I G U R A T I O N ----------------------------------------
 
@@ -532,6 +544,10 @@ my $incoming_callback = sub {
        $log->error( "Error: $@" );
      } 
      
+     
+     # CODE HERE TO PUSH EVENT MESSAGES TO SHARED HASH? NEED TO MOVE THE
+     # MESSAGES FROM THIS THREAD TO THE SERVER THREAD
+     
      unless ( defined $file ) {
         $log->warn( "Warning: The message has not been serialised..." );
      }
@@ -814,7 +830,8 @@ my $incoming_connection = sub {
    my $sock = new IO::Socket::INET( 
                  PeerAddr => $host,
                  PeerPort => $port,
-                 Proto    => "tcp" );
+                 Proto    => "tcp",
+		 Timeout  => $config->get_option( "connection.timeout" ) );
 
    unless ( $sock ) {
        my $error = "$@";
@@ -1096,7 +1113,8 @@ my $broker = sub {
 		  LocalPort => $config->get_option( "broker.port" ),
 		  Proto     => 'tcp',
 		  Listen    => 2,
-		  Reuse     => 1 ); 
+		  Reuse     => 1,
+		  Timeout  => $config->get_option( "connection.timeout" ) ); 
 
    unless ( $server_sock ) {	           
        my $error = "$@";
@@ -1228,6 +1246,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.17  2005/12/23 15:29:27  aa
+# Added shared messages and collected hashes in preparation for pasing messages between the client and server threads.
+#
 # Revision 1.16  2005/12/23 14:43:19  aa
 # Bug fix
 #
