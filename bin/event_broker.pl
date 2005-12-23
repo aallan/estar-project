@@ -39,7 +39,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.30 2005/12/23 17:14:14 aa Exp $
+$Id: event_broker.pl,v 1.31 2005/12/23 17:14:49 aa Exp $
 
 =head1 AUTHORS
 
@@ -56,7 +56,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.30 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.31 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -786,10 +786,10 @@ my $incoming_callback = sub {
 	if ( defined $packet_type ) {
 	  $description = "GCN PACKET_TYPE = $packet_type (via $name)<br>\n" .
                          "Time stamp at $name was $timestamp<br>\n".
-	                 "Packet role was '".$role."'";
+	                 "Packet role was '".$packet_role."'";
 	} else {
 	  $description = "Received packet (via $name) at $timestamp<br>\n".
-	                 "Packet role was '".$role."'";
+	                 "Packet role was '".$packet_role."'";
 	}  		 
    
         $log->print( "Creating RSS Feed Entry..." );
@@ -1270,6 +1270,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.31  2005/12/23 17:14:49  aa
+# Bug fix
+#
 # Revision 1.30  2005/12/23 17:14:14  aa
 # removed debuggging code
 #
