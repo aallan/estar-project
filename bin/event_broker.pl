@@ -39,7 +39,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.21 2005/12/23 16:17:45 aa Exp $
+$Id: event_broker.pl,v 1.22 2005/12/23 16:38:32 aa Exp $
 
 =head1 AUTHORS
 
@@ -56,7 +56,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.21 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.22 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -579,6 +579,16 @@ my $incoming_callback = sub {
         splice @path, 0 , 1;
      }
      my $path = "www.estar.org.uk/docs/voevent/$name";
+     unless ( $ftp->cwd( $path ) ) {
+     	$ftp->mkdir( $path );
+     	if ( $ftp->cwd( $path ) ) {
+     	   next;
+     	} else {
+     	   $log->warn( "Warning: Unable to create directory $path" );
+     	}
+     }  	  
+     
+     
      foreach my $i ( 0 ... $#path - 1 ) {
         if ( $path[$i] eq "" ) {
           next;
@@ -1258,6 +1268,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.22  2005/12/23 16:38:32  aa
+# Bug fix
+#
 # Revision 1.21  2005/12/23 16:17:45  aa
 # Added test harness code
 #
