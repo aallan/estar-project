@@ -39,7 +39,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.20 2005/12/23 15:49:39 aa Exp $
+$Id: event_broker.pl,v 1.21 2005/12/23 16:17:45 aa Exp $
 
 =head1 AUTHORS
 
@@ -56,7 +56,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.20 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.21 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -365,14 +365,14 @@ if ( $config->get_state("broker.unique_process") == 1 ) {
    $config->set_option( "raptor.ack", 5170 );
    $config->set_option( "raptor.iamalive", 60 );
 
-   #$config->set_option( "estar.host", "estar.astro.ex.ac.uk" );
-   #$config->set_option( "estar.port", 8099 );
-   #$config->set_option( "estar.ack", 8099 );
-   #$config->set_option( "estar.iamalive", 60 );
+   $config->set_option( "estar.host", "estar.astro.ex.ac.uk" );
+   $config->set_option( "estar.port", 9999 );
+   $config->set_option( "estar.ack", 9999 );
+   $config->set_option( "estar.iamalive", 60 );
       
    # list of event servers
    $config->set_option("server.RAPTOR", "raptor" );
-   #$config->set_option("server.eSTAR", "estar" );
+   $config->set_option("server.eSTAR", "estar" );
     
         
    # C O M M I T T   O P T I O N S  T O   F I L E S
@@ -541,18 +541,24 @@ my $incoming_callback = sub {
 
      # HANDLE VOEVENT MESSAGE --------------------------------------------
      #
-     # At this stage we have a GCN or RAPTOR alert message
-       
+     # At this stage we have a valid alert message
+     
+     # Push message onto running hash via the object we've set up for that
+     # purpose...
+     eval { $run->add_messsage( $id, $message ); };
+     if ( $@ ) {
+        my $error = "$@";
+	chomp( $error );
+	$log->error( "Error: Can't add message $id to new message hash");
+	$log->error( "Error: $error" );
+     }	
+            
      # log the event message
      my $file;
      eval { $file = eSTAR::Broker::Util::store_voevent( $name, $message ); };
      if ( $@  ) {
        $log->error( "Error: $@" );
      } 
-     
-     
-     # CODE HERE TO PUSH EVENT MESSAGES TO SHARED HASH? NEED TO MOVE THE
-     # MESSAGES FROM THIS THREAD TO THE SERVER THREAD
      
      unless ( defined $file ) {
         $log->warn( "Warning: The message has not been serialised..." );
@@ -1252,6 +1258,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.21  2005/12/23 16:17:45  aa
+# Added test harness code
+#
 # Revision 1.20  2005/12/23 15:49:39  aa
 # More work on shared hashes
 #
