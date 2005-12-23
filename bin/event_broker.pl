@@ -39,7 +39,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.29 2005/12/23 17:13:48 aa Exp $
+$Id: event_broker.pl,v 1.30 2005/12/23 17:14:14 aa Exp $
 
 =head1 AUTHORS
 
@@ -56,7 +56,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.29 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.30 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -568,7 +568,7 @@ my $incoming_callback = sub {
      # ----------------------------------------
      $log->debug("Opening FTP connection to lion.drogon.net...");  
      $log->debug("Logging into estar account...");  
-     my $ftp = Net::FTP->new( "lion.drogon.net", Debug => 1 );
+     my $ftp = Net::FTP->new( "lion.drogon.net", Debug => 0 );
      $ftp->login( "estar", "tibileot" );
           
      my @path = split( "/", $id );
@@ -814,7 +814,7 @@ my $incoming_callback = sub {
      close(RSS);    
      
      $log->debug("Opening FTP connection to lion.drogon.net...");  
-     my $ftp2 = Net::FTP->new( "lion.drogon.net", Debug => 1 );
+     my $ftp2 = Net::FTP->new( "lion.drogon.net", Debug => 0 );
      $log->debug("Logging into estar account...");  
      $ftp2->login( "estar", "tibileot" );
      $ftp2->cwd( "www.estar.org.uk/docs/voevent/$name" );
@@ -1270,6 +1270,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.30  2005/12/23 17:14:14  aa
+# removed debuggging code
+#
 # Revision 1.29  2005/12/23 17:13:48  aa
 # Bug fix, handed test code to see if we're sharing the running hashes correctly between threads
 #
