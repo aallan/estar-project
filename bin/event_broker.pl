@@ -14,7 +14,7 @@ use strict;
 #	       collection thread that the message has been picked up
 #  @tids     - list of currently active server threads (with live clients)
 
-use vars qw / $VERSION %OPT $log $config %messages %collect @tids/;
+use vars qw / $VERSION %OPT $log $config %messages %collect %tids/;
 
 # share the lookup hash across threads
 
@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.40 2005/12/23 19:04:42 aa Exp $
+$Id: event_broker.pl,v 1.41 2005/12/26 10:21:39 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.40 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.41 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -173,7 +173,7 @@ $log->debug( "Stuffing the running hashes into an placeholder object..." );
 my $run = new eSTAR::Broker::Running( $process->get_process() );
 $run->swallow_messages( \%messages ); 
 $run->swallow_collected( \%collect ); 
-$run->swallow_tids( \@tids ); 
+$run->swallow_tids( \%tids ); 
 
 # C A T C H   S I G N A L S -------------------------------------------------
 
@@ -986,7 +986,7 @@ my $iamalive = sub {
       
       my $connect = $c->connected();
       unless( defined $connect ) {
-         $log->warn( "Closing socket to $server" );
+         $log->warn( "Closing socket to $server (IAMALIVE)" );
 	 close( $c );
 	 last;
       }
@@ -1049,7 +1049,16 @@ my $iamalive = sub {
       my $length;
       my $bytes_read = sysread( $c, $length, 4 );  
       $length = unpack( "N", $length );
- 
+
+      if ( $bytes_read == 0 ) {
+        $log->warn( "Recieved an empty packet..." );
+        $log->warn( "Dropping connection to $server" );
+        $log->warn( "Closing socket to $server (IAMALIVE)" );
+	close( $c );
+        return ESTAR__FAULT;
+        
+      }  
+       
       $log->debug( "Message is $length characters" );
       my $response;               
       $bytes_read = sysread( $c, $response, $length); 
@@ -1093,7 +1102,7 @@ my $broker_callback = sub {
    my $server = shift;
    
    my $tid = threads->tid();
-   $run->register_tid( $tid );
+   $run->register_tid( $tid, $server );
    
    # create IAMALIVE thread
    $log->debug( "Starting IAMALIVE callback...");  
@@ -1107,39 +1116,55 @@ my $broker_callback = sub {
       
    # DROP INTO LOOP HERE LOOKING FOR NEW EVENT MESSAGES TO PASS ON
    while ( 1 ) { 
-     #sleep(5);  
+     sleep(5);  # REMOVE BEFORE FLIGHT TAG
    
      my $connect = $c->connected();
      unless( defined $connect ) {
-        $log->warn( "Closing socket to $server" );
+        $log->warn( "Closing socket to $server (tid = $tid)" );
 	$run->deregister_tid( $tid );
 	close( $c );
 	last;
      }
-
-    #  TEST HARNESS CUT OFF TO REMOVE FORWARDING AND DROP BACK TO IAMALIVE
-    #  MESSAGES TO CLIENT ONLY. REMOVE BEFORE FLIGHT...
-    next;
        
      # 1) Check to see if there are any event messages in %messages
      # 2) Check %collected to see whether we've picked this one up before
      # 3) If new, and not collected, set collected, and forward it
      
      # (1) & (2)
+     $log->debug("(tid = $tid) Checking for uncollected messages..." );
      my @uncollected = $run->list_messages();
      my $id;
+     my $have_message;
      foreach my $i ( 0 ... $#uncollected ) {
+	 $id = $uncollected[$i];
          unless( $run->is_collected( $tid, $uncollected[$i] ) ) {
-	    $id = $uncollected[$i];
-	    $run->set_collected( $tid, $id );
 	    
+            # Can't set it collected here, it might get garbage
+            # collected before we dispatch it to our client
+            $log->debug( "(tid = $tid) Forwarding $id..." );
+	    $have_message = 1;
 	    last;
-	 }   
+	 } else {
+            $log->debug( "(tid = $tid) Already collected $id..."); 
+            
+         }    
      } 
+     
+     # loop if we don't have a message to forward
+     next unless $have_message;
+     
+     # we have a message, but we need to reset the $have_message
+     # flag so we don't go here again until we have another
+     $have_message = undef;
   
      # (3) Send the messages to the client
      my $xml = $run->get_message( $id );
-     
+
+     # Set it as collected, we don't need to access the Running object
+     # from this thread anymore.
+     $run->set_collected( $tid, $id );
+     $log->debug( "(tid = $tid) Setting $id as collected..." );
+          
      # work out message length
      my $header = pack( "N", 7 );
      my $bytes = pack( "N", length($xml) ); 
@@ -1152,14 +1177,25 @@ my $broker_callback = sub {
      print $c $bytes;
      $c->flush();
      print $c $xml;
-     $c->flush();  
- 
+     $c->flush();   
+
      # Wait for ACK response
      $log->debug( "Waiting for response..." );
      my $length;
      my $bytes_read = sysread( $c, $length, 4 );  
      $length = unpack( "N", $length );
 
+     if ( $bytes_read == 0 ) {
+        $log->warn( "Recieved an empty packet..." );
+        $log->warn( "Dropping connection to $server" );
+        $log->warn( "De-registering thread (tid = $tid)" );
+	$run->deregister_tid( $tid );
+        $log->warn( "Closing socket to $server (tid = $tid)" );
+	close( $c );
+        return ESTAR__FAULT;
+        
+     }  
+      
      $log->debug( "Message is $length characters" );
      my $response;		 
      $bytes_read = sysread( $c, $response, $length); 
@@ -1292,14 +1328,34 @@ $log->print( "Entering main garbage collection loop..." );
 while(1) {
     sleep $config->get_option( "broker.garbage" );
     $log->print( "Garbage collection at " . ctime() );
-    $log->debug( "Mesages: " . Dumper( $run->list_messages() ) );
-    $log->debug( "TIDs: " . Dumper( $run->list_tids() ) );
-    $log->debug( "Collected: " .$run->dump_collected() );
+    
+    my %tids = $run->dump_tids();
+    my @tids = keys %tids;
+    my @servers = values %tids;
+
+    foreach my $key ( sort keys %tids ) {
+       $log->debug ( "Handler \$tid = $key: connected to $tids{$key}" );
+    }   
+    
+    my %messages;
+    my @ids = keys %messages;
+    my $num = scalar( @ids );
+    if ( $num == 0 ) {
+       $log->debug( "There are no queued messages from these machines");
+    } else {
+       $log->debug( "There are $num messages in the queue" );
+    }
     
     # Remove message id off %messages when all @tids have collected it
     # Also need to remove all mention of the message id from the
-    # %collected hash
+    # %collected hash. No point running this if we don't have any
+    # live connections though.
+    unless( scalar( @servers ) == 0 ) {
+       $log->debug( "Running garabage_collect( ) routine");
+       $run->garbage_collect();
+    }
     
+    $log->debug( $run->dump_self() );
     $log->print( "Done with garbage collection" );
 }	
   
@@ -1357,6 +1413,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.41  2005/12/26 10:21:39  aa
+# Working event_broker.pl
+#
 # Revision 1.40  2005/12/23 19:04:42  aa
 # Bug fix
 #

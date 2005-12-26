@@ -6,8 +6,9 @@ package eSTAR::Broker::Running;
 use strict;
 use vars qw/ $VERSION /;
 use subs qw/ new swallow_messages swallow_collected swallow_tids
-             get_message list_messages add_message register_tid deregister_tid 
-	     dump_collected set_collected is_collected garbage_collect /;
+             get_message list_messages add_message register_tid 
+             deregister_tid list_collections set_collected is_collected 
+             garbage_collect list_connections dump_tids dump_self /;
 
 use threads;
 use threads::shared;
@@ -16,7 +17,7 @@ use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:status/;
 use Data::Dumper;
 
-'$Revision: 1.16 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.17 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # C O N S T R U C T O R ----------------------------------------------------
 
@@ -33,9 +34,9 @@ sub new {
   # bless the query hash into the class
   $SINGLETON = bless { PROCESS      => undef,
                        TAGNUM       => undef,
-                       MESSAGES     => undef,
-		       COLLECTED    => undef,
-		       TIDS         => undef  }, $class;
+                       MESSAGES     => (),
+		       COLLECTED    => (),
+		       TIDS         => ()  }, $class;
   
   # Configure the object
   $SINGLETON->configure( @_ );
@@ -87,16 +88,17 @@ sub swallow_collected {
   my $hash = shift;
    
   share( %$hash ); 
-  $self->{COLLECTED} = $hash; 
+  $self->{COLLECTED} = $hash;
+   
   
 }
 
 sub swallow_tids {
   my $self = shift;
-  my $array = shift;
+  my $hash = shift;
    
-  share( @$array ); 
-  $self->{TIDS} = $array; 
+  share( %$hash ); 
+  $self->{TIDS} = $hash; 
   
 }
 
@@ -141,11 +143,13 @@ sub add_message {
 sub register_tid {
   my $self = shift;
   my $tid = shift;
+  my $server = shift;
   
   {
-    lock( @{$self->{TIDS}} );
-    push @{$self->{TIDS}}, $tid;
+     lock( %{$self->{TIDS}} );
+     ${$self->{TIDS}}{$tid} = $server;
   }  
+
 }
 
 sub deregister_tid {
@@ -153,27 +157,48 @@ sub deregister_tid {
   my $tid = shift;
   
   {
-    lock( @{$self->{TIDS}} );
-    foreach my $i ( 0 ... $#{$self->{TIDS}} ) {
-       if ( ${$self->{TIDS}} == $tid ) {
-             splice @{$self->{TIDS}}, $i, 1;
-	     last;
-        }
-    }		     
+    lock( %{$self->{TIDS}} );
+    delete ${$self->{TIDS}}{$tid};
+    	     
   }
+  {
+    lock( %{$self->{COLLECTED}} );
+    delete ${$self->{COLLECTED}}{$tid};
+  }    
+  
+  
 }  
 
 sub list_tids {
   my $self = shift;
   my @tids;
   {
-    lock( @{$self->{TIDS}} );
-    foreach my $i ( 0 ... $#{$self->{TIDS}} ) {
-       push @tids, ${$self->{TIDS}}[$i];
-    }		     
+    lock( %{$self->{TIDS}} );
+    @tids = keys %{$self->{TIDS}}		     
   }
   return @tids;
 }    
+
+
+sub list_connections {
+  my $self = shift;
+  my @values;
+  {
+    lock( %{$self->{TIDS}} );
+    @values = values %{$self->{TIDS}}		     
+  }
+  return @values;
+}    
+
+sub dump_tids {
+  my $self = shift;
+  my %hash;
+  {
+    lock( %{$self->{TIDS}} );
+    %hash = %{$self->{TIDS}}	     
+  }
+  return %hash;
+}
     
 sub set_collected {
   my $self = shift;
@@ -181,8 +206,21 @@ sub set_collected {
   my $id = shift;
   
   {
+  
+     # if would be better if we could use a hash of arrays here, but the
+     # array reference would have to be dynamically created after the threads
+     # have already detached and wouldn't be shared (in reality we'd get a 
+     # inapprorpaiate scalar reference error and the thread wou;d die since
+     # we'd be creating an non-shared array reference inside an shared hash)
+     #
+     # so we're going to do it the hard way and use a string, hopefully a space
+     # shouldn't turn up in an IVORN so this should be a good separator.
      lock( %{$self->{COLLECTED}} );
-     push @{${$self->{COLLECTED}}{$tid}}, $id;
+     my $string = ${$self->{COLLECTED}}{$tid};
+     $string = $string . " " . $id;
+     $string =~ s/^\s+//;
+     $string =~ s/\s+$//;
+     ${$self->{COLLECTED}}{$tid} = $string;
   }   
 
 }
@@ -195,29 +233,77 @@ sub is_collected {
   my $flag;
   {
      lock( %{$self->{COLLECTED}} );
-     
-     ${${$self->{COLLECTED}}{$tid}} = ( ) unless defined ${$self->{COLLECTED}}{$tid};
-     foreach my $i ( 0 ... $#{${$self->{COLLECTED}}{$tid}} ) {
-        $flag = 1 if ${${$self->{COLLECTED}}{$tid}}[$i] eq "$id";
-     }	
-  }  
+     my @array = split " ", ${$self->{COLLECTED}}{$tid};
+     foreach my $i ( 0 ... $#array ) {
+        $flag = 1 if $array[$i] eq "$id";
+     }	     
+  } 
   return $flag;
 }  
 
-sub dump_collected {
+sub list_collections {
   my $self = shift;
   
-  my $string;
+  my %hash;
   {
      lock( %{$self->{COLLECTED}} );
-     $string = Dumper( %{$self->{COLLECTED}} );
+     foreach my $key ( keys %{$self->{COLLECTED}} ) {
+        my $string = ${$self->{COLLECTED}}{$key};
+        my @array = split " ", $string;
+        $hash{$key} = [ @array ]; 
+     }
   }   
-  return $string;
+  return %hash;
 }
 
 sub garbage_collect {
+  my $self = shift;
+  
+  {
+     lock( %{$self->{MESSAGES}} );
+     lock( %{$self->{COLLECTED}} );
+     
+     my $num_tids = scalar( $self->list_tids() );
+     
+     # Loop through all current messages
+     foreach my $id ( keys %{$self->{MESSAGES}} ) {
+        
+        # Loop through each TID's list of collected messages
+        my $counter = 0;
+        foreach my $tid ( keys %{$self->{COLLECTED}} ) {
+           my @array = split " ", ${$self->{COLLECTED}}{$tid};
+           foreach my $i ( 0 ... $#array ) {
+           
+              # increment collected counter if the message has been
+              # collected by the TID we're currently looking at
+              $counter = $counter + 1 if $array[$i] eq $id;
+           }  
+        }
+        
+        # If the number TIDs which have collected this message is the
+        # same as the total number of TIDs we can garbage collect
+        if ( $counter == $num_tids ) {
+        
+            # remove from MESSAGES
+            delete ${$self->{MESSAGES}}{$id};
+            
+            # remove from all strings
+            foreach my $tid ( keys %{$self->{COLLECTED}} ) {
+               ${$self->{COLLECTED}}{$tid} =~ s/$id//;
+               ${$self->{COLLECTED}}{$tid} =~ s/\s+/ /;
+            }   
+        }
+     }  
+     
+  } # unlock the shared variables
 
 } 
+
+sub dump_self {
+   my $self = shift;
+   return Dumper( $self );
+}   
+   
   
 1;
 

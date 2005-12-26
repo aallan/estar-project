@@ -1,3 +1,11 @@
+2005-12-26 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * bin/event_broker.pl & eSTAR/Broker/Running.pm: Functioning event
+          broker, between thread garbage collection should now work.
+          
+        * bin/event_client.pl: Simple client which doesn't use too much of
+          the eSTAR infrastructure.
+            
 2005-12-23 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * bin/event_broker.pl: Added server thread to the event broker.
