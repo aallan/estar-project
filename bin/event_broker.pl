@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.43 2005/12/26 10:26:35 aa Exp $
+$Id: event_broker.pl,v 1.44 2005/12/26 10:28:41 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.43 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.44 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -1333,7 +1333,7 @@ while(1) {
     my @tids = keys %tids;
     my @servers = values %tids;
 
-    if ( scalar( @servers ) > 0 ) {
+    unless ( scalar( @servers ) > 0 ) {
        $log->debug( "There are no active client connections...");
     } else {
        foreach my $key ( sort keys %tids ) {
@@ -1417,6 +1417,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.44  2005/12/26 10:28:41  aa
+# Bug fix
+#
 # Revision 1.43  2005/12/26 10:26:35  aa
 # Bug fix
 #
