@@ -17,7 +17,7 @@ use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:status/;
 use Data::Dumper;
 
-'$Revision: 1.17 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.18 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # C O N S T R U C T O R ----------------------------------------------------
 
@@ -264,6 +264,7 @@ sub garbage_collect {
      lock( %{$self->{COLLECTED}} );
      
      my $num_tids = scalar( $self->list_tids() );
+     $num_tids = 0 unless defined $num_tids; # there are no active connections
      
      # Loop through all current messages
      foreach my $id ( keys %{$self->{MESSAGES}} ) {

@@ -1,4 +1,4 @@
-#!/home/perl/bin/perl
+#!/software/perl-5.8.6/bin/perl
   
 #use strict;
 
@@ -9,7 +9,7 @@ use Getopt::Long;
 
 use Astro::VO::VOEvent;
 
-unless ( scalar @ARGV >= 1 ) {
+unless ( scalar @ARGV >= 2 ) {
    die "USAGE: $0 [-host hostname] [-port portname]\n";
 }
 
@@ -19,7 +19,7 @@ my $status = GetOptions( "host=s"	=> \$host,
 
 unless ( defined $host && defined $port ) {
    $host = "127.0.0.1";
-   $port = "8000";
+   $port = "9999";
 }   
  
 SOCKET: { 

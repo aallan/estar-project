@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.44 2005/12/26 10:28:41 aa Exp $
+$Id: event_broker.pl,v 1.45 2005/12/28 14:22:05 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.44 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.45 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -447,7 +447,8 @@ my $other_ack_port_callback = sub {
   # return an ack message
   my $ack =
    "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
-   '<VOEvent role="ack" version="1.1" id="ivo://estar.ex/ack" >' . "\n" . 
+   '<VOEvent role="ack" version="1.1" id="ivo://estar.ex/ack" '.
+   'xmlns="http://www.ivoa.net/xml/VOEvent/v1.1">' . "\n" . 
    '<Who>' . "\n" . 
    '   <PublisherID>ivo://estar.ex/</PublisherID>' . "\n" . 
    '   <Date>' . eSTAR::Broker::Util::time_iso() . '</Date>' . "\n" .
@@ -801,8 +802,9 @@ my $incoming_callback = sub {
            description => "$description",
            link        => "$url",
            enclosure   => { 
-             url=>$url, 
-             type=>"application/xml+voevent" } );
+             url    => $url, 
+             type   => "application/xml+voevent",
+             length => length($data) } );
 
 
      }
@@ -903,7 +905,9 @@ my $incoming_connection = sub {
 	       # return an ack message
                my $ack =
             "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
-            '<VOEvent role="ack" version="1.1" id="ivo://estar.ex/ack" >' . "\n" . 
+            '<VOEvent role="ack" version="1.1" '.
+            'id="ivo://estar.ex/ack" '.
+            'xmlns="http://www.ivoa.net/xml/VOEvent/v1.1">' . "\n" . 
             '<Who>' . "\n" . 
             '   <PublisherID>ivo://estar.ex/</PublisherID>' . "\n" .
             '   <Date>' . eSTAR::Broker::Util::time_iso() . '</Date>' . "\n" .
@@ -1023,9 +1027,10 @@ my $iamalive = sub {
       my $alive =
          "<?xml version='1.0' encoding='UTF-8'?>\n" .
          '<VOEvent role="iamalive" id="' .
-         'ivo://estar.ex/' . $id . '" version="1.1">' . "\n" .
+         'ivo://estar.ex/' . $id . '" version="1.1" '.
+         'xmlns="http://www.ivoa.net/xml/VOEvent/v1.1">' . "\n" .
          ' <Who>' . "\n" .
-         '   <PublisherID>ivo://estar.ex</PublisherID>' . "\n" .
+         '   <PublisherID>ivo://estar.ex/</PublisherID>' . "\n" .
          '   <Date>' . $timestamp . '</Date>'  . "\n" .
          ' </Who>' . "\n" .
          '</VOEvent>' . "\n";
@@ -1417,6 +1422,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.45  2005/12/28 14:22:05  aa
+# Added test server and some minor bug fixes
+#
 # Revision 1.44  2005/12/26 10:28:41  aa
 # Bug fix
 #

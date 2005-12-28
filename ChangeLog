@@ -1,3 +1,10 @@
+2005-12-28 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * bin/event_broker.pl: Some minor bug and logging fixes
+        
+        * bin/event_test.pl: A test server to emit test messages for the
+          event_broker.pl to handle as an incoming event feed.
+          
 2005-12-26 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * bin/event_broker.pl & eSTAR/Broker/Running.pm: Functioning event
