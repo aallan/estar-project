@@ -8,7 +8,8 @@ use vars qw/ $VERSION /;
 use subs qw/ new swallow_messages swallow_collected swallow_tids
              get_message list_messages add_message register_tid 
              deregister_tid list_collections set_collected is_collected 
-             garbage_collect list_connections dump_tids dump_self /;
+             garbage_collect list_connections dump_tids dump_self 
+             delete_messages /;
 
 use threads;
 use threads::shared;
@@ -17,7 +18,7 @@ use eSTAR::Error qw /:try/;
 use eSTAR::Constants qw /:status/;
 use Data::Dumper;
 
-'$Revision: 1.18 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.19 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # C O N S T R U C T O R ----------------------------------------------------
 
@@ -264,7 +265,6 @@ sub garbage_collect {
      lock( %{$self->{COLLECTED}} );
      
      my $num_tids = scalar( $self->list_tids() );
-     $num_tids = 0 unless defined $num_tids; # there are no active connections
      
      # Loop through all current messages
      foreach my $id ( keys %{$self->{MESSAGES}} ) {
@@ -282,7 +282,7 @@ sub garbage_collect {
         }
         
         # If the number TIDs which have collected this message is the
-        # same as the total number of TIDs we can garbage collect
+        # same as the total number of TIDs we can garbage collect        
         if ( $counter == $num_tids ) {
         
             # remove from MESSAGES
@@ -298,6 +298,35 @@ sub garbage_collect {
      
   } # unlock the shared variables
 
+} 
+
+sub delete_messages {
+  my $self = shift;
+  
+  # returns the number of deleted messages, however it will only delete 
+  # the message hash if there are no current client connections, otherwise 
+  #return undef. Safety first people...
+  my $messages = 0;
+  {
+     lock( %{$self->{MESSAGES}} );
+     
+     my $num_tids = scalar( $self->list_tids() );
+     unless( $num_tids == 0 ) {
+        return undef;
+     }   
+     
+     # Loop through all current messages
+     foreach my $id ( keys %{$self->{MESSAGES}} ) {
+        
+        # remove from MESSAGES
+        delete ${$self->{MESSAGES}}{$id};
+        $messages = $messages + 1;
+      
+     }  
+     
+  } # unlock the shared variables
+
+  return $messages;
 } 
 
 sub dump_self {
