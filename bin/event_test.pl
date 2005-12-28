@@ -86,7 +86,7 @@ sub callback {
       my $xml = 
   "<?xml version = '1.0' encoding = 'UTF-8'?>\n".
   '<VOEvent role="test" version="1.1" '.
-  'id="ivo://estar.ex/'. $pid . "." $counter .'" '.
+  'id="ivo://estar.ex/'. $pid . ".". $counter .'" '.
   'xmlns="http://www.ivoa.net/xml/VOEvent/v1.1" '.
   'xsi:schemaLocation="http://www.ivoa.net/xml/STC/stc-v1.20.xsd'. 
   ' http://hea-www.harvard.edu/~arots/nvometa/v1.2/stc-v1.20.xsd'. 
@@ -97,8 +97,8 @@ sub callback {
   'xmlns:stc="http://www.ivoa.net/xml/STC/stc-v1.20.xsd" '. 
   'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '. 
   'xmlns:crd="http://www.ivoa.net/xml/STC/STCcoords/v1.20">'."\n".
-  '<Citations>'."\n"
-  '  <EventID cite="supersedes">ivo://estar.ex/'. $pid . "." $previous . 
+  '<Citations>'."\n".
+  '  <EventID cite="supersedes">ivo://estar.ex/'. $pid . "." . $previous . 
   '</EventID>' . "\n".
   '</Citations>'. "\n".
   '<Who>'. "\n".
