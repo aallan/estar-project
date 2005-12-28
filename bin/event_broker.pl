@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.47 2005/12/28 16:15:54 aa Exp $
+$Id: event_broker.pl,v 1.48 2005/12/28 16:25:24 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.47 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.48 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -1369,8 +1369,14 @@ while(1) {
        unless ( defined $messages ) {
           $log->warn( "Warning: The message hash was not garbage collected");
           $log->warn( "Warning: There may be currently connected clients");
-       } else {   
-          $log->debug( "Deleted $messages from the message hash");
+       } else { 
+          if ( $messages == 0 ) {
+             $log->debug( "The message hash was empty...");
+          } elsif ( $messages == 1 ) {  
+             $log->debug( "Deleted $messages message from the message hash");
+          } else {
+             $log->debug( "Deleted $messages messages from the message hash");
+          }             
        }
     }   
     $log->debug( $run->dump_self() );
@@ -1431,6 +1437,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.48  2005/12/28 16:25:24  aa
+# Bug fixes
+#
 # Revision 1.47  2005/12/28 16:15:54  aa
 # Bug fix, will clean out the messages hash if there are no connected clients during the garbage connection phase
 #
