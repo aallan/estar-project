@@ -8,6 +8,7 @@ use POSIX qw/:sys_wait_h/;
 use Data::Dumper;
 use Net::Domain qw(hostname hostdomain);
 use Time::localtime;
+use Getopt::Long;
 
 my $quit;
 my ( $port, $wait );   
@@ -86,7 +87,7 @@ sub callback {
       my $xml = 
   "<?xml version = '1.0' encoding = 'UTF-8'?>\n".
   '<VOEvent role="test" version="1.1" '.
-  'id="ivo://estar.ex/'. $pid . ".". $counter .'" '.
+  'id="ivo://estar.ex/test/'. $pid . ".". $counter .'" '.
   'xmlns="http://www.ivoa.net/xml/VOEvent/v1.1" '.
   'xsi:schemaLocation="http://www.ivoa.net/xml/STC/stc-v1.20.xsd'. 
   ' http://hea-www.harvard.edu/~arots/nvometa/v1.2/stc-v1.20.xsd'. 
@@ -102,7 +103,7 @@ sub callback {
   '</EventID>' . "\n".
   '</Citations>'. "\n".
   '<Who>'. "\n".
-  '<PublisherID>ivo://estar.ex/</PublisherID>'. "\n".
+  '  <PublisherID>ivo://estar.ex/</PublisherID>'. "\n".
   '  <Date>'.time_iso().'</Date>'. "\n".
   '</Who>'. "\n".
   '<What>'. "\n".
