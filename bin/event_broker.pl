@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.48 2005/12/28 16:25:24 aa Exp $
+$Id: event_broker.pl,v 1.49 2006/01/12 15:26:00 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.48 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.49 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -364,7 +364,7 @@ if ( $config->get_state("broker.unique_process") == 1 ) {
    # -----------------
    $config->set_option( "raptor.host", "astro.lanl.gov" );
    $config->set_option( "raptor.port", 43002 );
-   $config->set_option( "raptor.ack", 5170 );
+   $config->set_option( "raptor.ack", 43002 );
    $config->set_option( "raptor.iamalive", 60 );
 
    $config->set_option( "estar.host", "estar.astro.ex.ac.uk" );
@@ -514,32 +514,32 @@ my $incoming_callback = sub {
      
      # Ignore ACK and IAMALIVE messages
      # --------------------------------
-     my $event = new Astro::VO::VOEvent( XML => $message );
+     my $event;
+     eval { $event = new Astro::VO::VOEvent( XML => $message ); };
+     if ( $@ ) {
+        my $error = "$@";
+        chomp( $error );
+        $log->error( "Error: $error" );
+        $log->error( "Warning: Returning ESTAR__FAULT" );
+        return ESTAR__FAULT;
+     }   
      my $id = $event->id();
      
      if( $event->role() eq "ack" ) {
-        $log->thread2( $thread_name, "Recieved ACK message from $host...");
-        $log->thread2( $thread_name, "Recieved at " . ctime() );
-        $log->debug( $message );
-        $log->debug( "Done." );
-	
-	# THE EVENT BROKER SHOULDN'T GET ACK MESSAGES HERE, IF IT DOES
-	# IT SHOULD IGNORE THEM. ONLY THE SERVER SIDE OF THE BROKER NEEDS
-	# TO DEAL WITH ACK MESSAGES.
-	
-        return ESTAR__OK;
+        # The event broker shouldn't get ack messages here, if it does
+	# it should ignore them. Only the server side of the broker needs
+	# to deal with ack messages.
+
+        $log->warn( "Warning: Recieved ACK message from $host...");
+        $log->warn( "Warning: Recieved at " . ctime() );
+        $log->warn( $message );
+        $log->warn( "Warning: Returning ESTAR__FAULT" );
+        return ESTAR__FAULT;
         
      } elsif ( $event->role() eq "iamalive" ) {
-       $log->thread2($thread_name, "Recieved IAMALIVE message from $host");
-       $log->thread2($thread_name, "Recieved at " . ctime() );
-       $log->debug( $message );
-       $log->debug( "Done.");
-       
-       # ADD CODE HERE TO SEND IAMALIVE MESSAGES BACK to PUBLISHERS, NEEDS 
-       # TO SPAWN AN IAMALIVE_CALLBACK( ) THREAD? NEEDS TO CHECK THE PUBLISHER.
-       
-       
-       return ESTAR__OK;
+        $log->debug( "Ignoring IAMALIVE message from $host");
+        $log->debug( "Done.");
+        return ESTAR__OK;
      }  
 
      # HANDLE VOEVENT MESSAGE --------------------------------------------
@@ -605,9 +605,7 @@ my $incoming_callback = sub {
      # Writing to alert.log file
      my $state_dir = File::Spec->catdir( $config->get_state_dir() );  
      my $alert = File::Spec->catfile( $state_dir, $name, "alert.log" );
-     
-     $log->debug("Opening alert log file: $alert"); 
-      
+           
      # callback to send ACK message
      # ----------------------------
  
@@ -738,7 +736,8 @@ my $incoming_callback = sub {
      if ( $num_of_files >= 20 ) {
         $start = $num_of_files - 20;
      }	   
-     #foreach my $i ( $start ... $num_of_files ) {
+ 
+     my @not_present;
      for ( my $i = $num_of_files; $i >= $start; $i-- ) {
         $log->debug( "Reading $i of $num_of_files entries" );
         my $data;
@@ -751,13 +750,26 @@ my $incoming_callback = sub {
         }  
         
         #  use Data::Dumper; print "\@data = " . Dumper( $data );
-   
+        
+        #$log->debug( "Opening: $files[$i]" );
         $log->debug( "Determing ID of message..." );
-        my $object = new Astro::VO::VOEvent( XML => $data );
+        my $object;
+        eval { $object = new Astro::VO::VOEvent( XML => $data ); };
+        if ( $@ ) {
+           my $error = "$@";
+           chomp( $error );
+           $log->error( "Error: $error" );
+           $log->error( "Error: Can't open ". $files[$i] );
+           $log->warn( "Warning: discarding message $i of $num_of_files" );
+           push @not_present, $i;
+           next;
+        } 
         my $id;
         eval { $id = $object->id( ); };
         if ( $@ ) {
-           $log->error( "Error: $@" );
+           my $error = "$@";
+           chomp( $error );
+           $log->error( "Error: $error" );
            $log->error( "\$data = " . $data );
            $log->warn( "Warning: discarding message $i of $num_of_files" );
            next;
@@ -829,7 +841,48 @@ my $incoming_callback = sub {
      $ftp2->quit();     
      $log->debug("Closed FTP connection");  
 
+     # Clean up the alert.log file
+     # ---------------------------
+     if ( defined $not_present[0] ) {
+       $log->warn( "Cleaning up $name alert.log file" );
   
+       $log->warn( "Warning: Opening $alert" );
+       unless ( open ( ALERT, "+>$alert" )) {
+          my $error = "Error: Can not write to "  . $state_dir; 
+          $log->error( $error );
+          throw eSTAR::Error::FatalError($error, ESTAR__FATAL);   
+       } else {
+          unless ( flock( ALERT, LOCK_EX ) ) {
+            my $error = "Error: unable to acquire exclusive lock: $!";
+            $log->error( $error );
+            throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
+         } else {
+           $log->warn("Warning: Acquiring exclusive lock...");
+         }
+       }        
+     
+      $log->warn( "Warning: Writing to $alert" );
+      foreach my $k ( 0 ... $#files ) {
+          
+          my $flag = 0;
+          foreach my $l ( 0 ... $#not_present ) {
+             $flag = 1 if $k == $not_present[$l];
+          }
+          
+          unless ( $flag ) {   
+             $log->warn("$files[$k] (line $k of $#files)");
+             print ALERT "$files[$k]";
+          } else {
+             $log->error("$files[$k] (DELETED)");
+          }         
+       }
+       
+       # close ALERT log file
+       $log->warn("Warning: Closing alert.log file...");
+       close(ALERT);       
+       
+     } # end clenaup of alert.log file
+     
   } else {
      $log->warn( "Warning: Document unidentified..." );
      $log->warn( "$message");       
@@ -901,10 +954,18 @@ my $incoming_connection = sub {
            $callback_thread->detach(); 
 	   
            # send ACK message if we're on same port
-           if( $config->get_option( "$server.ack") == $port ) {
-              
-	       # return an ack message
-               my $ack =
+           if( $config->get_option( "$server.ack") == $port ) {    
+                      
+               my $header = pack( "N", 7 );   # RAPTOR specific hack
+
+               my $message;
+               if ( $response =~ 'role="iamalive"' ) {
+ 	         $log->debug( "Echoing IAMALIVE message back to $name..." );
+                 $message = $response;
+               } else {
+ 	          # return an ack message
+ 	          $log->debug( "Building ACK message..." );
+                  my $message =
             "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
             '<VOEvent role="ack" version="1.1" '.
             'id="ivo://estar.ex/ack" '.
@@ -914,20 +975,22 @@ my $incoming_connection = sub {
             '   <Date>' . eSTAR::Broker::Util::time_iso() . '</Date>' . "\n" .
             '</Who>' . "\n" . 
             '</VOEvent>' . "\n";
-              
-	      my $bytes = pack( "N", length($ack) ); 
+               }
+
+	       my $bytes = pack( "N", length($message) ); 
 	      
-	      # send message                                   
-	      $log->debug( "Sending " . length($ack) . " bytes to $host:$port" );
-              $log->debug( $ack ); 
-                     
-              #print $sock $header;     # RAPTOR specific header
-              print $sock $bytes;
-              $sock->flush();
-              print $sock $ack;
-              $sock->flush();         
+	       # send message                                   
+	       $log->debug("Sending ".length($message)." bytes to $host:$port");
+               $log->debug( $message ); 
+                   
+               print $sock $header if $name eq "RAPTOR";  # RAPTOR specific
+               print $sock $bytes;
+               $sock->flush();
+               print $sock $message;
+               $sock->flush();  
+                      
            } else {
-	      $log->debug( "Sending ACK from callback thread..." );
+	      $log->debug( "Sending ACK/IAMALIVE from callback thread..." );
 	   } 
        
            $log->debug( "Done, listening..." );
@@ -1437,6 +1500,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.49  2006/01/12 15:26:00  aa
+# Major big fix to event broker
+#
 # Revision 1.48  2005/12/28 16:25:24  aa
 # Bug fixes
 #
