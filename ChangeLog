@@ -1,9 +1,8 @@
 2006-01-12 Alasdair Allan <aa@astro.ex.ac.uk>
 
-        * bin/event_borker.pl: Major bug fix, although I'm not sure what the
-          bug was. Yes, I'm confused to, but hopefully the remedial measures
-          I've just put in place will stop the alert.log file getting into the
-          mess it was in when the broker fell over.
+        * bin/event_broker.pl: Major bug fix, although it hard to say what went
+          wrong to get the code into the state it was in to cause the bug. Also
+          added IAMALIVE echoing to the main, and "other port response" code.
           
 2005-12-28 Alasdair Allan <aa@astro.ex.ac.uk>
 

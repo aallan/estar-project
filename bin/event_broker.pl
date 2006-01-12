@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.49 2006/01/12 15:26:00 aa Exp $
+$Id: event_broker.pl,v 1.50 2006/01/12 15:35:11 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.49 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.50 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -419,11 +419,13 @@ my $other_ack_port_callback = sub {
   my $server = shift;
   my $name = shift;
   my $file = shift;
+  my $message = shift;
   my $host = $config->get_option( "$server.host");
   my $port = $config->get_option( "$server.ack");
   
   my $thread_name = "ACK";
-  $log->thread($thread_name, "Sending ACK message at " . ctime() . "...");
+  $log->thread($thread_name, 
+               "Sending ACK/IAMALIVE message at " . ctime() . "...");
   $log->thread($thread_name, "Opening socket connection to $host:$port..." ) ;
  
   my $ack_sock = new IO::Socket::INET( 
@@ -442,11 +444,18 @@ my $other_ack_port_callback = sub {
   
   } 
  
-  $log->thread($thread_name, "Sending ACK message to $host:$port...");
-  
-  # return an ack message
-  my $ack =
-   "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
+
+  my $response;
+  if ( $response =~ 'role="iamalive"' ) {
+    $log->thread($thread_name, "Sending IAMALIVE message to $host:$port...");
+    $log->debug( "Echoing IAMALIVE message back to $name..." );
+    $response = $message;
+  } else {
+    # return an ack message
+    $log->thread($thread_name, "Sending ACK message to $host:$port...");
+    $log->debug( "Building ACK message..." );
+    $response =
+  "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
    '<VOEvent role="ack" version="1.1" id="ivo://estar.ex/ack" '.
    'xmlns="http://www.ivoa.net/xml/VOEvent/v1.1">' . "\n" . 
    '<Who>' . "\n" . 
@@ -457,20 +466,21 @@ my $other_ack_port_callback = sub {
    '   <Param value="stored" name="'. $file .'" />' . "\n" . 
    '</What>' . "\n" . 
    '</VOEvent>' . "\n";
-
+  }
+  
   # work out message length
   my $header = pack( "N", 7 );                    # RAPTOR specific hack
-  my $bytes = pack( "N", length($ack) ); 
+  my $bytes = pack( "N", length($response) ); 
    
   # send message                                   
-  $log->debug( "Sending " . length($ack) . " bytes to $host:$port" );
+  $log->debug( "Sending " . length($response) . " bytes to $host:$port" );
                      
-  $log->debug( $ack ); 
+  $log->debug( $response ); 
                      
   print $ack_sock $header if $name eq "RAPTOR";  # RAPTOR specific hack
   print $ack_sock $bytes;
   $ack_sock->flush();
-  print $ack_sock $ack;
+  print $ack_sock $response;
   $ack_sock->flush();  
   close($ack_sock);
   
@@ -613,7 +623,8 @@ my $incoming_callback = sub {
      
         $log->print("Detaching ack thread..." );
         my $ack_thread =
-           threads->create( $other_ack_port_callback, $server, $name, $file );
+             threads->create( $other_ack_port_callback, 
+                              $server, $name, $file, $message );
         $ack_thread->detach();   
      } else {
         $log->debug( "ACK message sent from main loop..." );
@@ -1500,6 +1511,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.50  2006/01/12 15:35:11  aa
+# Added other port response IAMALIVE echoing, I think
+#
 # Revision 1.49  2006/01/12 15:26:00  aa
 # Major big fix to event broker
 #
