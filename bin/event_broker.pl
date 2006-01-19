@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.53 2006/01/19 10:40:43 aa Exp $
+$Id: event_broker.pl,v 1.54 2006/01/19 11:15:31 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.53 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.54 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -791,8 +791,14 @@ my $incoming_callback = sub {
         my %what = $object->what();
         my $packet_type = $what{Param}->{PACKET_TYPE}->{value};
  
-        my $timestamp = $object->time();
-	my $rfc822 = eSTAR::Broker::Util::iso_to_rfc822( $timestamp );
+        my $packet_timestamp = $object->time();
+	my $packet_rfc822;
+	eval { $packet_rfc822 = 
+	           eSTAR::Broker::Util::iso_to_rfc822( $packet_timestamp ); };
+	if ( $@ ) {
+	   $log->warn( 
+	      "Warning: Unable to parse $packet_timestamp as valid ISO8601");
+	}   
               
 	# grab role
 	my $packet_role = $object->role();
@@ -814,25 +820,34 @@ my $incoming_callback = sub {
         my $description;
 	if ( defined $packet_type && lc($id) =~ "gcn" ) {
 	  $description = "GCN PACKET_TYPE = $packet_type (via $name)<br>\n" .
-                         "Time stamp at $name was $timestamp<br>\n".
+                         "Time stamp at $name was $packet_timestamp<br>\n".
 	                 "Packet role was '".$packet_role."'";
 	} else {
-	  $description = "Received packet (via $name) at $timestamp<br>\n".
+	  $description = "Received packet (via $name) at $packet_timestamp<br>\n".
 	                 "Packet role was '".$packet_role."'";
 	}  		 
    
         $log->print( "Creating RSS Feed Entry..." );
-        $feed->add_item(
+        if ( defined $packet_rfc822 ) {
+	   $feed->add_item(
            title       => "$id",
            description => "$description",
            link        => "$url",
-	   pubDate     => "$rfc822",
+	   pubDate     => "$packet_rfc822",
            enclosure   => { 
              url    => $url, 
              type   => "application/xml+voevent",
              length => length($data) } );
-
-
+        } else {
+	   $feed->add_item(
+           title       => "$id",
+           description => "$description",
+           link        => "$url",
+           enclosure   => { 
+             url    => $url, 
+             type   => "application/xml+voevent",
+             length => length($data) } );
+	}     
      }
      $log->debug( "Creating XML representation of feed..." );
      my $xml = $feed->as_string();
@@ -1510,6 +1525,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.54  2006/01/19 11:15:31  aa
+# bug fixes
+#
 # Revision 1.53  2006/01/19 10:40:43  aa
 # bug fix
 #

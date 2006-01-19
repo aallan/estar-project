@@ -151,11 +151,21 @@ sub time_iso {
    # ISO format
    		     
    my $year = 1900 + localtime->year();
+   
    my $month = localtime->mon() + 1;
+   $month = "0$month" if $month < 10;
+   
    my $day = localtime->mday();
+   $day = "0$day" if $day < 10;
+   
    my $hour = localtime->hour();
+   $hour = "0$hour" if $hour < 10;
+   
    my $min = localtime->min();
+   $min = "0$min" if $min < 10;
+   
    my $sec = localtime->sec();
+   $sec = "0$sec" if $sec < 10;
 
    my $timestamp = $year ."-". $month ."-". $day ."T". 
    		   $hour .":". $min .":". $sec;
