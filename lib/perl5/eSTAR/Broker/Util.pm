@@ -28,6 +28,7 @@ use File::Spec;
 use XML::Parser;
 use Time::localtime;
 use DateTime;
+use DateTime::Format::ISO8601;
 use eSTAR::Constants qw /:all/;
 use eSTAR::Logging;
 use eSTAR::Process;
@@ -38,7 +39,7 @@ use Astro::VO::VOEvent;
 @ISA = qw/Exporter/;
 @EXPORT_OK = qw/ store_voevent time_iso time_rfc822 iso_to_rfc822 /;
 
-'$Revision: 1.6 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.7 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 sub store_voevent {
    my $server = shift;
@@ -161,10 +162,7 @@ sub time_rfc822 {
 
 sub iso_to_rfc822 {
    my $iso = shift;
-   $iso =~ m/^(\d{4})(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/;
-   my $date = new DateTime( year => $1, month => $2, day => $3,
-                            hour => $4, minute => $5, second => $6,
-			    time_zone => 'UTC' );
+   my $date = new  DateTime::Format::ISO8601( $iso );
    my $rfc822 = $date->day_abbr() . ", " .
              $date->day_of_month() . " " . $date->month_abbr() . 
    	   " " . $date->year() . " " . 
@@ -176,7 +174,7 @@ sub iso_to_rfc822 {
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.6 2006/01/19 10:38:24 aa Exp $
+$Id: Util.pm,v 1.7 2006/01/19 10:48:56 aa Exp $
 
 =head1 AUTHORS
 
