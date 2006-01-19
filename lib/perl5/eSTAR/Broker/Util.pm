@@ -27,6 +27,7 @@ use Fcntl qw(:DEFAULT :flock);
 use File::Spec;
 use XML::Parser;
 use Time::localtime;
+use DateTime;
 use eSTAR::Constants qw /:all/;
 use eSTAR::Logging;
 use eSTAR::Process;
@@ -35,9 +36,9 @@ use eSTAR::Error qw /:try/;
 use Astro::VO::VOEvent;
 
 @ISA = qw/Exporter/;
-@EXPORT_OK = qw/ store_voevent time_iso time_rfc822 /;
+@EXPORT_OK = qw/ store_voevent time_iso time_rfc822 iso_to_rfc822 /;
 
-'$Revision: 1.4 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.5 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 sub store_voevent {
    my $server = shift;
@@ -132,7 +133,7 @@ sub store_voevent {
 }
 
 sub time_iso {
-   # ISO format
+   # ISO format 2006-01-05T08:00:00
    		     
    my $year = 1900 + localtime->year();
    my $month = localtime->mon() + 1;
@@ -158,12 +159,24 @@ sub time_rfc822 {
    return $rfc822;
 }
 
+sub iso_to_rfc822 {
+   my $iso = shift;
+   $iso =~ m/^(\d{4})(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/;
+   my $date = new DateTime( year => $1, month => $2, day => $3,
+                            hour => $4, minute => $5, second => $6,
+			    time_zone = 'UTC' );
+   my $rfc822 = $date->day_abbr() . ", " .
+             $date->day_of_month() . " " . $date->month_abbr() . 
+   	   " " . $date->year() . " " . 
+	   $date->hour() .":" . $date->min() .":". $date->sec() . " GMT";
+   return $rfc822; 		    
+}
 
 =back
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.4 2005/12/23 16:47:31 aa Exp $
+$Id: Util.pm,v 1.5 2006/01/19 10:36:46 aa Exp $
 
 =head1 AUTHORS
 

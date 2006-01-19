@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.51 2006/01/19 10:34:56 aa Exp $
+$Id: event_broker.pl,v 1.52 2006/01/19 10:36:46 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.51 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.52 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -792,6 +792,7 @@ my $incoming_callback = sub {
         my $packet_type = $what{Param}->{PACKET_TYPE}->{value};
  
         my $timestamp = $object->time();
+	my $rfc822 = eSTAR::Broker::Util::iso_to_rfc822( $timestamp );
               
 	# grab role
 	my $packet_role = $object->role();
@@ -825,6 +826,7 @@ my $incoming_callback = sub {
            title       => "$id",
            description => "$description",
            link        => "$url",
+	   pubDate     => "$rfc822"
            enclosure   => { 
              url    => $url, 
              type   => "application/xml+voevent",
@@ -1508,6 +1510,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.52  2006/01/19 10:36:46  aa
+# Added a pubDate attribute to each RSS feed item
+#
 # Revision 1.51  2006/01/19 10:34:56  aa
 # Fixed RAPTOR specific hacks
 #

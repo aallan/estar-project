@@ -1,5 +1,11 @@
 2006-01-12 Alasdair Allan <aa@astro.ex.ac.uk>
 
+	* bin/event_broker.pl: Added a pubDate to each feed item.
+	
+	* eSTAR/Broker/Util.pm: Added an iso_to_rfc822() conversion routine.
+
+2006-01-12 Alasdair Allan <aa@astro.ex.ac.uk>
+
         * bin/event_broker.pl: Major bug fix, although it hard to say what went
           wrong to get the code into the state it was in to cause the bug. Also
           added IAMALIVE echoing to the main, and "other port response" code.
