@@ -22,7 +22,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: gcn_server.pl,v 1.17 2005/11/24 17:18:35 aa Exp $
+$Id: gcn_server.pl,v 1.18 2006/01/19 10:34:56 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -41,7 +41,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.17 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.18 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -389,23 +389,126 @@ my $tcp_callback = sub {
          if ( $bits[0] == 1 ) {
              $log->warn( "Message: A point source was found..." );
              
-         } elsif ( $bits[1] == 1 ) {  
+         }
+         if ( $bits[1] == 1 ) {  
              $log->warn( "Message: THIS TARGET IS A GAMMA RAY BURST" );
-          
-         } elsif ( $bits[2] == 1 ) { 
+             
+         }
+         if ( $bits[2] == 1 ) { 
              $log->warn( "Message: This is an interesting target..." );
            
-         } elsif ( $bits[3] == 1 ) { 
+         }
+         if ( $bits[3] == 1 ) { 
              $log->warn( "Message: This target is in the catalog..." );
            
-         } elsif ( $bits[4] == 1 ) { 
+         }
+         if ( $bits[4] == 1 ) { 
              $log->warn( "Message: This target is an image trigger..." );
            
-         } elsif ( $bits[5] == 1 ) {   
+         }
+         if ( $bits[5] == 1 ) {   
              $log->warn( "Message: THIS TARET IS NOT A GAMMA RAY BURST" );
              
          }          
-                                
+
+         my $image_signif = $$message[20] / 100.0;
+
+         if( $bits[1] == 1 && $image_signif >= 7 ) {
+         
+             # Send a notification
+             # -------------------
+         
+             $log->print( "Sending notification email...");
+         
+             my $mail_body = 
+               "Recieved a TYPE_SWIFT_BAT_POSITION_SRC message\n" .
+               "Position $ra, $dec +- $error acrmin\n" .
+               "\n" .
+               "This message indicates that the eSTAR system has recieved\n" . 
+               "an initial BAT position alert and is currently attempting to\n" .
+               "place initial followup observations into the UKIRT queue.\n" .
+               "If you do not recieve notification that this has been successful\n".
+               "you may wish to attempt manual followup.\n";
+         
+             eSTAR::Mail::send_mail( $config->get_option("user.email_address"), 
+                                     $config->get_option("user.real_name"),
+                                     'aa@astro.ex.ac.uk',
+                                     'eSTAR ACK SWIFT BAT postion',
+                                     $mail_body, 'estar-devel@estar.org.uk' ); 
+             # Make SOAP calls
+             # ---------------
+
+
+             # build endpoint
+             my $endpoint = "http://" . $config->get_option("ua.host") . 
+                            ":" . $config->get_option("ua.port");
+             my $uri = new URI($endpoint);         
+         
+             $log->debug("Connecting to server at $endpoint");
+
+             # create authentication cookie
+             $log->debug("Creating authentication token");
+             my $cookie =  eSTAR::Util::make_cookie( 
+               $config->get_option("gcn.user"), $config->get_option("gcn.passwd") );
+         
+                      
+             $log->debug("Placing it in the cookie jar...");
+             my $cookie_jar = HTTP::Cookies->new();
+             $cookie_jar->set_cookie(0, 
+                             user => $cookie, '/', $uri->host(), $uri->port()); 
+                                   
+             $log->print("Building SOAP client...");
+ 
+             # create SOAP connection
+             my $soap = new SOAP::Lite();
+             $soap->uri('urn:/user_agent'); 
+             $soap->proxy($endpoint, cookie_jar => $cookie_jar);
+         
+             # Submit an inital burst followup block
+             # -------------------------------------
+
+             $log->print("Making a SOAP conncetion for InitialBurstFollowup...");
+             eval { $result = $soap->new_observation( 
+                              user     => $config->get_option("gcn.user"),
+                              pass     => $config->get_option("gcn.passwd"),
+                              type     => 'InitialBurstFollowup',
+                              ra       => $ra,
+                              dec      => $dec,
+                              followup => 0,
+                              exposure => 30,
+                              passband => "k98" ); };
+             if ( $@ ) {
+                $log->warn("Warning: Problem connecting to user agent");
+                $log->error("Error: $@");
+                $log->error("Error: Aborting submission of observations");
+             } 
+             $log->print("Connection closed");  
+         } else {
+             $log->warn("Warning: Not making inital observations");
+             if( $bits[1] != 1 ) {
+                $log->warn("Target was not flagged as a GRB");
+             }
+             if( $image_signif < 7 ) {
+                $log->warn("Target had image significance of $image_signif");
+             }
+             
+             my $mail_body = 
+               "Recieved a TYPE_SWIFT_BAT_POSITION_SRC message\n" .
+               "Position $ra, $dec +- $error acrmin\n" .
+               "\n" .
+               "This message indicates that the eSTAR system has recieved\n" . 
+               "an initial BAT position alert however no observations have\n" .
+               "been scheduled since the target was not identified as a GRB\n".
+               "with an image significance value > 7 centi-sigma.\n";
+         
+             eSTAR::Mail::send_mail( $config->get_option("user.email_address"), 
+                                     $config->get_option("user.real_name"),
+                                     'aa@astro.ex.ac.uk',
+                                     'eSTAR ACK SWIFT BAT (no observation)',
+                                     $mail_body, 'estar-devel@estar.org.uk' ); 
+             
+         }       
+                               
       # TYPE_SWIFT_BAT_GRB_POS_NACK_SRC (type 62)
       # SWIFT BAT GRB Position NOT Acknowledge message
       # ----------------------------------------------
@@ -432,7 +535,6 @@ my $tcp_callback = sub {
 
          # Send a notification
          # -------------------
-         
          
          $log->print( "Sending notification email...");
          
@@ -482,50 +584,26 @@ my $tcp_callback = sub {
          $soap->uri('urn:/user_agent'); 
          $soap->proxy($endpoint, cookie_jar => $cookie_jar);
 
- 
-         
-         # Submit an inital burst followup block
-         # -------------------------------------
-         $log->print("Making a SOAP conncetion for InitialBurstFollowup...");
+         # Submit an burst followup block
+         # ------------------------------
+         $log->print("Making a SOAP conncetion for BurstFollowup...");
          eval { $result = $soap->new_observation( 
-                              user     => $config->get_option("gcn.user"),
-                              pass     => $config->get_option("gcn.passwd"),
-                              type     => 'InitialBurstFollowup',
-                              ra       => $ra,
-                              dec      => $dec,
-                              followup => 0,
-                              exposure => 30,
-                              passband => "k98" ); };
+                           user     => $config->get_option("gcn.user"),
+                           pass     => $config->get_option("gcn.passwd"),
+                           type     => 'BurstFollowup',
+                           ra       => $ra,
+                           dec      => $dec,
+                           followup => 0,
+                           exposure => 30,
+                           passband => "k98" ); };
          if ( $@ ) {
             $log->warn("Warning: Problem connecting to user agent");
             $log->error("Error: $@");
             $log->error("Error: Aborting submission of observations");
-            $log->print("Connection closed");      
-           
          } else {
             $log->print("Connection closed");      
+         } 
          
-            # Submit an burst followup block
-            # -------------------------------------
-            $log->print("Making a SOAP conncetion for BurstFollowup...");
-            eval { $result = $soap->new_observation( 
-                              user     => $config->get_option("gcn.user"),
-                              pass     => $config->get_option("gcn.passwd"),
-                              type     => 'BurstFollowup',
-                              ra       => $ra,
-                              dec      => $dec,
-                              followup => 0,
-                              exposure => 30,
-                              passband => "k98" ); };
-            if ( $@ ) {
-               $log->warn("Warning: Problem connecting to user agent");
-               $log->error("Error: $@");
-            } else {
-               $log->print("Connection closed");      
-            } 
-         
-         }
-        
       # TYPE_SWIFT_XRT_CENTROID_SRC (type 71)
       # SWIFT XRT Position NOT Ack message (Centroid Error)
       # ---------------------------------------------------
