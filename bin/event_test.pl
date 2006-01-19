@@ -99,7 +99,7 @@ sub callback {
   'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '. 
   'xmlns:crd="http://www.ivoa.net/xml/STC/STCcoords/v1.20">'."\n".
   '<Citations>'."\n".
-  '  <EventID cite="supersedes">ivo://estar.ex/'. $pid . "." . $previous . 
+  '  <EventID cite="supersedes">ivo://estar.ex/test/'. $pid . "." . $previous . 
   '</EventID>' . "\n".
   '</Citations>'. "\n".
   '<Who>'. "\n".
