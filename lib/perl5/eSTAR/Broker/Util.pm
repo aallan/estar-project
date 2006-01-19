@@ -39,7 +39,7 @@ use Astro::VO::VOEvent;
 @ISA = qw/Exporter/;
 @EXPORT_OK = qw/ store_voevent time_iso time_rfc822 iso_to_rfc822 /;
 
-'$Revision: 1.9 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.10 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 sub store_voevent {
    my $server = shift;
@@ -137,15 +137,22 @@ sub time_iso {
    # ISO format 2006-01-05T08:00:00
    		     
    my $year = 1900 + localtime->year();
-   my $month = localtime->mon() + 1;
    
-   $month = "0" . $month if( $month < 10 );
+   my $month = localtime->mon() + 1;
+   $month = "0$month" if $month < 10;
    
    my $day = localtime->mday();
+   $mday = "0$mday" if $mday < 10;
+   
    my $hour = localtime->hour();
+   $hour = "0$hour" if $hour < 10;
+   
    my $min = localtime->min();
+   $min = "0$min" if $min < 10;
+   
    my $sec = localtime->sec();
-
+   $sec = "0$sec" if $sec < 10;
+   
    my $timestamp = $year ."-". $month ."-". $day ."T". 
    		   $hour .":". $min .":". $sec;
 
@@ -177,7 +184,7 @@ sub iso_to_rfc822 {
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.9 2006/01/19 10:58:08 aa Exp $
+$Id: Util.pm,v 1.10 2006/01/19 11:03:52 aa Exp $
 
 =head1 AUTHORS
 
