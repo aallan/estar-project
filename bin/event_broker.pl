@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.55 2006/01/20 09:19:03 aa Exp $
+$Id: event_broker.pl,v 1.56 2006/01/20 09:24:18 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.55 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.56 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -584,8 +584,9 @@ my $incoming_callback = sub {
      $log->debug("Logging into estar account...");  
      my $ftp = Net::FTP->new( "lion.drogon.net", Debug => 0 );
      $ftp->login( "estar", "tibileot" );
-     
-     my $idpath =~ s/#/\//;     
+    
+     my $idpath = $id; 
+     $idpath =~ s/#/\//;     
      my @path = split( "/", $idpath );
      if ( $path[0] eq "ivo:" ) {
         splice @path, 0 , 1;
@@ -805,7 +806,8 @@ my $incoming_callback = sub {
 	my $packet_role = $object->role();
 	       
         # build url
-        my $idpath =~ s/#/\//;
+        my $idpath = $id;
+        $idpath =~ s/#/\//;
         my @path = split( "/", $idpath );
         if ( $path[0] eq "ivo:" ) {
            splice @path, 0 , 1;
@@ -1527,6 +1529,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.56  2006/01/20 09:24:18  aa
+# big fix
+#
 # Revision 1.55  2006/01/20 09:19:03  aa
 # Fixed IVORNs
 #
