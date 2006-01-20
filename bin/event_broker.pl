@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.56 2006/01/20 09:24:18 aa Exp $
+$Id: event_broker.pl,v 1.57 2006/01/20 09:46:25 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.56 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.57 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -371,11 +371,16 @@ if ( $config->get_state("broker.unique_process") == 1 ) {
    $config->set_option( "estar.port", 9999 );
    $config->set_option( "estar.ack", 9999 );
    $config->set_option( "estar.iamalive", 60 );
-      
+   
+   $config->set_option( "caltech.host", "devnoor.cacr.caltech.edu" );
+   $config->set_option( "caltech.port", 15003 ); 
+   $config->set_option( "caltech.ack", 15003 ); 
+   $config->set_option( "caltech.iamalive", 60 ); 
+   
    # list of event servers
    $config->set_option("server.RAPTOR", "raptor" );
    $config->set_option("server.eSTAR", "estar" );
-    
+   #$config->set_option("server.Caltech", "caltech" ); 
         
    # C O M M I T T   O P T I O N S  T O   F I L E S
    # ----------------------------------------------
@@ -1529,6 +1534,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.57  2006/01/20 09:46:25  aa
+# Added Caltech relay to default configuration
+#
 # Revision 1.56  2006/01/20 09:24:18  aa
 # big fix
 #
