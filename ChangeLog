@@ -4,6 +4,8 @@
 
 	* bin/event_test.pl: Fixed IVORNs
 
+	* eSTAR/Broker/Util.pm: Fixed IVORNs
+
 2006-01-18 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* bin/event_broker.pl: Added a pubDate to each feed item.

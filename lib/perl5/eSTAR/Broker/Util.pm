@@ -39,7 +39,7 @@ use Astro::VO::VOEvent;
 @ISA = qw/Exporter/;
 @EXPORT_OK = qw/ store_voevent time_iso time_rfc822 iso_to_rfc822 /;
 
-'$Revision: 1.12 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.13 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 sub store_voevent {
    my $server = shift;
@@ -64,7 +64,8 @@ sub store_voevent {
    $log->debug( "Storing event $id in " . $state_dir );   
 
    $log->debug( "Splitting \$id..." );   
-   my @path = split( "/", $id );
+   my $idpath =~ s/#/\//;
+   my @path = split( "/", $idpath );
    if ( $path[0] eq "ivo:" ) {
       splice @path, 0 , 1;
    }
@@ -184,7 +185,7 @@ sub iso_to_rfc822 {
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.12 2006/01/19 11:05:36 aa Exp $
+$Id: Util.pm,v 1.13 2006/01/20 09:19:03 aa Exp $
 
 =head1 AUTHORS
 

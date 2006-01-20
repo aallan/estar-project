@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.54 2006/01/19 11:15:31 aa Exp $
+$Id: event_broker.pl,v 1.55 2006/01/20 09:19:03 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.54 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.55 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -456,16 +456,16 @@ my $other_ack_port_callback = sub {
     $log->debug( "Building ACK message..." );
     $response =
   "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
-   '<VOEvent role="ack" version="1.1" id="ivo://estar.ex/ack" '.
-   'xmlns="http://www.ivoa.net/xml/VOEvent/v1.1">' . "\n" . 
-   '<Who>' . "\n" . 
-   '   <PublisherID>ivo://estar.ex/</PublisherID>' . "\n" . 
-   '   <Date>' . eSTAR::Broker::Util::time_iso() . '</Date>' . "\n" .
-   '</Who>' . "\n" . 
-   '<What>' . "\n" . 
-   '   <Param value="stored" name="'. $file .'" />' . "\n" . 
-   '</What>' . "\n" . 
-   '</VOEvent>' . "\n";
+  '<VOEvent role="ack" version="1.1" id="ivo://uk.org.estar/estar.broker#ack" '.
+  'xmlns="http://www.ivoa.net/xml/VOEvent/v1.1">' . "\n" . 
+  '<Who>' . "\n" . 
+  '   <PublisherID>ivo://uk.org.estar/estar.broker#</PublisherID>' . "\n" . 
+  '   <Date>' . eSTAR::Broker::Util::time_iso() . '</Date>' . "\n" .
+  '</Who>' . "\n" . 
+  '<What>' . "\n" . 
+  '   <Param value="stored" name="'. $file .'" />' . "\n" . 
+  '</What>' . "\n" . 
+  '</VOEvent>' . "\n";
   }
   
   # work out message length
@@ -584,8 +584,9 @@ my $incoming_callback = sub {
      $log->debug("Logging into estar account...");  
      my $ftp = Net::FTP->new( "lion.drogon.net", Debug => 0 );
      $ftp->login( "estar", "tibileot" );
-          
-     my @path = split( "/", $id );
+     
+     my $idpath =~ s/#/\//;     
+     my @path = split( "/", $idpath );
      if ( $path[0] eq "ivo:" ) {
         splice @path, 0 , 1;
      }
@@ -804,7 +805,8 @@ my $incoming_callback = sub {
 	my $packet_role = $object->role();
 	       
         # build url
-        my @path = split( "/", $id );
+        my $idpath =~ s/#/\//;
+        my @path = split( "/", $idpath );
         if ( $path[0] eq "ivo:" ) {
            splice @path, 0 , 1;
         }
@@ -992,15 +994,15 @@ my $incoming_connection = sub {
  	          # return an ack message
  	          $log->debug( "Building ACK message..." );
                   my $message =
-            "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
-            '<VOEvent role="ack" version="1.1" '.
-            'id="ivo://estar.ex/ack" '.
-            'xmlns="http://www.ivoa.net/xml/VOEvent/v1.1">' . "\n" . 
-            '<Who>' . "\n" . 
-            '   <PublisherID>ivo://estar.ex/</PublisherID>' . "\n" .
-            '   <Date>' . eSTAR::Broker::Util::time_iso() . '</Date>' . "\n" .
-            '</Who>' . "\n" . 
-            '</VOEvent>' . "\n";
+       "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
+       '<VOEvent role="ack" version="1.1" '.
+       'id="ivo://uk.org.estar/estar.broker#ack" '.
+       'xmlns="http://www.ivoa.net/xml/VOEvent/v1.1">' . "\n" . 
+       '<Who>' . "\n" . 
+       '   <PublisherID>ivo://uk.org.estar/estar.broker#</PublisherID>' . "\n" .
+       '   <Date>' . eSTAR::Broker::Util::time_iso() . '</Date>' . "\n" .
+       '</Who>' . "\n" . 
+       '</VOEvent>' . "\n";
                }
 
 	       my $bytes = pack( "N", length($message) ); 
@@ -1114,15 +1116,15 @@ my $iamalive = sub {
       my $status = $PING->save( $ping_file );           
       # build the IAMALIVE message
       my $alive =
-         "<?xml version='1.0' encoding='UTF-8'?>\n" .
-         '<VOEvent role="iamalive" id="' .
-         'ivo://estar.ex/' . $id . '" version="1.1" '.
-         'xmlns="http://www.ivoa.net/xml/VOEvent/v1.1">' . "\n" .
-         ' <Who>' . "\n" .
-         '   <PublisherID>ivo://estar.ex/</PublisherID>' . "\n" .
-         '   <Date>' . $timestamp . '</Date>'  . "\n" .
-         ' </Who>' . "\n" .
-         '</VOEvent>' . "\n";
+       "<?xml version='1.0' encoding='UTF-8'?>\n" .
+       '<VOEvent role="iamalive" id="' .
+       'ivo://uk.org.estar/estar.broker#' . $id . '" version="1.1" '.
+       'xmlns="http://www.ivoa.net/xml/VOEvent/v1.1">' . "\n" .
+       ' <Who>' . "\n" .
+       '   <PublisherID>ivo://uk.org.estar/estar.broker#</PublisherID>' . "\n" .
+       '   <Date>' . $timestamp . '</Date>'  . "\n" .
+       ' </Who>' . "\n" .
+       '</VOEvent>' . "\n";
 
       # work out message length
       #my $header = pack( "N", 7 );
@@ -1525,6 +1527,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.55  2006/01/20 09:19:03  aa
+# Fixed IVORNs
+#
 # Revision 1.54  2006/01/19 11:15:31  aa
 # bug fixes
 #
