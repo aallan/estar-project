@@ -127,7 +127,7 @@ sub callback {
       my $bytes = pack( "N", length($xml) );
       print $c $bytes;
       print "THREAD: Sending message\n";
-      #print "$xml\n";
+      print "$xml\n";
       $c->flush();
       print $c $xml;
       $c->flush();
