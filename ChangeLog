@@ -1,4 +1,10 @@
-2006-01-12 Alasdair Allan <aa@astro.ex.ac.uk>
+2006-01-20 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * bin/event_broker.pl: Fixed IVORNs
+
+	* bin/event_test.pl: Fixed IVORNs
+
+2006-01-18 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* bin/event_broker.pl: Added a pubDate to each feed item.
 	
