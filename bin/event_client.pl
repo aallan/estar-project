@@ -6,6 +6,7 @@ use IO::Socket;
 use POSIX qw/:sys_wait_h/;
 use Errno qw/EAGAIN/;
 use Getopt::Long;
+use Time::localtime;
 
 use Astro::VO::VOEvent;
 
@@ -50,6 +51,7 @@ while( $flag ) {
    next unless defined $bytes_read;
    
    print "\nRecieved a packet from $host...\n";
+   print "Time at recieving host is " . ctime() . "\n";
    if ( $bytes_read > 0 ) {
 
       print "Recieved $bytes_read bytes on $port from ".$sock->peerhost()."\n";
