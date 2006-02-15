@@ -35,6 +35,18 @@
   $log->header("Starting JACH Template Test: Version $VERSION");
   my $config = new eSTAR::Config(  );  
 
+   # mail server
+   $config->set_option("mailhost.name", 'ieie' );
+   $config->set_option("mailhost.domain", 'jach.hawaii.edu' );
+   $config->set_option("mailhost.timeout", 30 );
+   $config->set_option("mailhost.debug", 0 );  
+
+   # committ CONFIG and STATE changes
+   $log->warn("Initial default options being generated");
+   $log->warn("Committing options and state changes...");
+   $status = $config->write_option( );
+   $status = $config->write_state();
+
   # Start of main body
 
   unless ( scalar @ARGV >= 2 ) {
@@ -69,7 +81,7 @@
      eSTAR::Mail::send_mail( 'aa@astro.ex.ac.uk', 'Alasdair Allan',
                              'frossie@jach.hawaii.edu',
                              "eSTAR $curr_inst template files",
-                              $mail_body );     
+                              $mail_body, 'estar-devel@estar.org.uk' );     
      
      exit;
   }; 

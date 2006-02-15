@@ -1,3 +1,11 @@
+2006-02-15 Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* bin/jach_agent.pl: Changed mapping to new project IDs
+
+	* bin/test_templates.pl: Changed to Cc the estar-devel list
+
+	* eSTAR/JAC/Handler.pm: Ignore filters when checking observability
+
 2006-01-20 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * bin/event_broker.pl: Fixed IVORNs

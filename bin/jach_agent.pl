@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: jach_agent.pl,v 1.18 2005/07/25 08:10:42 aa Exp $
+#     $Id: jach_agent.pl,v 1.19 2006/02/15 12:31:52 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -67,7 +67,7 @@ translation layer, which also handles external phase 0 discovery requests.
 
 =head1 REVISION
 
-$Id: jach_agent.pl,v 1.18 2005/07/25 08:10:42 aa Exp $
+$Id: jach_agent.pl,v 1.19 2006/02/15 12:31:52 aa Exp $
 
 =head1 AUTHORS
 
@@ -84,7 +84,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.18 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.19 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -295,16 +295,18 @@ my %projects;
 $projects{"TJ03"} = "fainguat";
 $projects{"U/03B/D10"} = "strytess";
 $projects{"U/05A/18"} = "reeminge";
+$projects{"U/06A/36"} = "screfera";
 
 # PROJECTS REFERENCED BY ESTAR USER ID
 # ------------------------------------
 
 # list of users with access to specific JAC project ID's, can have many
 # eSTAR users mapped to one JAC project ID, but not a single eSTAR user
-# mapped to many JAC project IDs (at least for now)>=.
+# mapped to many JAC project IDs (at least for now).
 $project->set_project( "user.aa", "TJ03" );
 $project->set_project( "user.timj", "TJ03" );
-$project->set_project( "user.nt", "U/05A/18" );
+#$project->set_project( "user.nt", "U/05A/18" );
+$project->set_project( "user.nt", "U/06A/36" );
 
 # PROJECT LOOKUP FILE
 # -------------------
@@ -821,6 +823,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: jach_agent.pl,v $
+# Revision 1.19  2006/02/15 12:31:52  aa
+# Fixes for new project U/06A/36 for GRB work
+#
 # Revision 1.18  2005/07/25 08:10:42  aa
 # Updated user to project mappings
 #

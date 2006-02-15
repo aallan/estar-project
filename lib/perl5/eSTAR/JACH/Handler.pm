@@ -381,26 +381,28 @@ sub handle_rtml {
       # check the telescope, and then the instrument we're specifically
       # using. For now lets just use the is_observable() method.
       
-      if( Astro::WaveBand::has_filter( 
-           eSTAR::JACH::Util::current_instrument( 
-	   $config->get_option( "dn.telescope") ) => uc($parsed->filter())) ) {
-      #if ( Astro::WaveBand::is_observable( 
-      #    $config->get_option( "dn.telescope") => $parsed->filter() ) ) {
-          
-          # don't modify an already set $isobs
-          $log->debug(  $config->get_option( "dn.telescope") . " has a " . 
-                   $parsed->filter() . " filter on " . 
-		   eSTAR::JACH::Util::current_instrument( 
-	              $config->get_option( "dn.telescope") )  );
-      } else {
-                         
-          # $isobs must now be set to bad
-          $isobs = 0;
-          $log->warn(  $config->get_option( "dn.telescope") . 
-                      " doesn't have a " . $parsed->filter() . " filter on " . 
-		   eSTAR::JACH::Util::current_instrument( 
-	              $config->get_option( "dn.telescope") ));
-      }
+#      if( Astro::WaveBand::has_filter( 
+#           eSTAR::JACH::Util::current_instrument( 
+#	   $config->get_option( "dn.telescope") ) => uc($parsed->filter())) ) {
+#      #if ( Astro::WaveBand::is_observable( 
+#      #    $config->get_option( "dn.telescope") => $parsed->filter() ) ) {
+#          
+#          # don't modify an already set $isobs
+#          $log->debug(  $config->get_option( "dn.telescope") . " has a " . 
+#                   $parsed->filter() . " filter on " . 
+#		   eSTAR::JACH::Util::current_instrument( 
+#	              $config->get_option( "dn.telescope") )  );
+#      } else {
+#                         
+#          # $isobs must now be set to bad
+#          $isobs = 0;
+#          $log->warn(  $config->get_option( "dn.telescope") . 
+#                      " doesn't have a " . $parsed->filter() . " filter on " . 
+#		   eSTAR::JACH::Util::current_instrument( 
+#	              $config->get_option( "dn.telescope") ));
+#      }  
+      
+      $log->warn( "Warning: Not checking for instrument/filter combination");
                           
       # BUILD MESSAGE
       # -------------
