@@ -82,7 +82,7 @@ while( $flag ) {
 #' </Who>'."\n".
 #'</VOEvent>'."\n";
 
-            $response = $mesage;
+            $response = $message;
          } else {
 	    $response = "<?xml version='1.0' encoding='UTF-8'?>"."\n".
 '<VOEvent role="ack" id="ivo://estar.ex/144.173.229.20.1" version="1.1">'."\n".

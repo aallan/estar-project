@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.58 2006/01/20 10:05:11 aa Exp $
+$Id: event_broker.pl,v 1.59 2006/02/16 22:56:47 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.58 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.59 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -970,16 +970,16 @@ my $incoming_connection = sub {
       $log->print("\nRecieved a packet from $host..." );
       if ( $bytes_read > 0 ) {
    
-         $log->debug( "Recieved $bytes_read bytes on $port from $host" );    
+        $log->debug( "Recieved $bytes_read bytes on $port from $host" );    
       
         $length = unpack( "N", $length );
+        $log->debug( "Message is $length characters" );               
         if ( $length > 512000 ) {
           $log->error( "Error: Message length is > 512000 characters" );
           $log->error( "Error: Message claims to be $length long" );
           $log->warn( "Warning: Discarding bogus message" );
         } else {   
          
-           $log->debug( "Message is $length characters" );               
            $bytes_read = read( $sock, $response, $length); 
       
            $log->debug( "Read $bytes_read characters from socket" );
@@ -1163,37 +1163,45 @@ my $iamalive = sub {
       }  
        
       $log->debug( "Message is $length characters" );
-      my $response;               
-      $bytes_read = sysread( $c, $response, $length); 
-      
-      # Do I get an ACK or a IAMALIVE message?
-      # --------------------------------------
-      my $event;
-      eval { $event = new Astro::VO::VOEvent( XML => $response ); };
-      if ( $@ ) {
-         my $error = "$@";
-	 chomp ( $error );
-	 $log->error( "Error: Cannot parse VOEvent message" );
-	 $log->error( "Error: $error" );
+      if ( $length > 512000 ) {
+         $log->error( "Error: Message length is > 512000 characters" );
+         $log->error( "Error: Message claims to be $length long" );
+         $log->warn( "Warning: Discarding bogus message" );
+      } else {   
+  
+         my $response;               
+         $bytes_read = sysread( $c, $response, $length); 
+                  
+         # Do I get an ACK or a IAMALIVE message?
+         # --------------------------------------
+         my $event;
+         eval { $event = new Astro::VO::VOEvent( XML => $response ); };
+         if ( $@ ) {
+            my $error = "$@";
+	    chomp ( $error );
+	    $log->error( "Error: Cannot parse VOEvent message" );
+	    $log->error( "Error: $error" );
 	 
-      } elsif( $event->role() eq "ack" ) {
-        $log->warn( "Warning: Recieved an ACK message from $server");
-        $log->warn( "Warning: This should have been an IAMALIVE message");
-        $log->debug( $response );
-        $log->debug( "Done." );
+         } elsif( $event->role() eq "ack" ) {
+           $log->warn( "Warning: Recieved an ACK message from $server");
+           $log->warn( "Warning: This should have been an IAMALIVE message");
+           $log->debug( $response );
+           $log->debug( "Done." );
         
-      } elsif ( $event->role() eq "iamalive" ) {
-        $log->print( "Recieved a IAMALIVE message from $server");
+         } elsif ( $event->role() eq "iamalive" ) {
+           $log->print( "Recieved a IAMALIVE message from $server");
         
-        my $timestamp = eSTAR::Broker::Util::time_iso(); 
-        $log->debug( "Reply timestamp: $timestamp");
-        $log->debug( $response );
-        $log->debug( "Done." );
-      }  
-         
+           my $timestamp = eSTAR::Broker::Util::time_iso(); 
+           $log->debug( "Reply timestamp: $timestamp");
+           $log->debug( $response );
+           $log->debug( "Done." );
+         }  
+      
+      }
+            
       # finished ping, loop to while(1) { ]
       $log->debug( "Done sending IAMALIVE to $server, next message in " .
-                   $config->get_option( "broker.ping" ) . " seconds" );
+                      $config->get_option( "broker.ping" ) . " seconds" );
    }
    
    $log->warn( "Warning: Shutting down IAMALIVE connection to $server");
@@ -1300,35 +1308,42 @@ my $broker_callback = sub {
      }  
       
      $log->debug( "Message is $length characters" );
-     my $response;		 
-     $bytes_read = sysread( $c, $response, $length); 
-     
-     # Do I get an ACK or a IAMALIVE message?
-     # --------------------------------------
-     my $event;
-     eval { $event = new Astro::VO::VOEvent( XML => $response ); };
-     if ( $@ ) {
-	my $error = "$@";
-        chomp ( $error );
-        $log->error( "Error: Cannot parse VOEvent message" );
-        $log->error( "Error: $error" );
+     if ( $length > 512000 ) {
+         $log->error( "Error: Message length is > 512000 characters" );
+         $log->error( "Error: Message claims to be $length long" );
+         $log->warn( "Warning: Discarding bogus message" );
+     } else {   
+
+       my $response;		 
+       $bytes_read = sysread( $c, $response, $length);                  
+
+       # Do I get an ACK or a IAMALIVE message?
+       # --------------------------------------
+       my $event;
+       eval { $event = new Astro::VO::VOEvent( XML => $response ); };
+       if ( $@ ) {
+          my $error = "$@";
+          chomp ( $error );
+          $log->error( "Error: Cannot parse VOEvent message" );
+          $log->error( "Error: $error" );
         
-     } elsif( $event->role() eq "ack" ) {
-       $log->debug( "Recieved an ACK message from $server");
-       my $timestamp = eSTAR::Broker::Util::time_iso(); 
-       $log->debug( "Warning: Reply timestamp: $timestamp");
-       $log->debug( $response );
-       $log->debug( "Done." );
+       } elsif( $event->role() eq "ack" ) {
+         $log->debug( "Recieved an ACK message from $server");
+         my $timestamp = eSTAR::Broker::Util::time_iso(); 
+         $log->debug( "Warning: Reply timestamp: $timestamp");
+         $log->debug( $response );
+         $log->debug( "Done." );
        
-     } elsif ( $event->role() eq "iamalive" ) {
-       $log->warn( "Warning: Recieved a IAMALIVE message from $server");       
-       my $timestamp = eSTAR::Broker::Util::time_iso(); 
-       $log->warn( "Warning: Reply timestamp: $timestamp");
-       $log->warn( "Warning: This should have been an ACK message");
-       $log->debug( $response );
-       $log->debug( "Done." );
-     }  
-	
+       } elsif ( $event->role() eq "iamalive" ) {
+         $log->warn( "Warning: Recieved a IAMALIVE message from $server");       
+         my $timestamp = eSTAR::Broker::Util::time_iso(); 
+         $log->warn( "Warning: Reply timestamp: $timestamp");
+         $log->warn( "Warning: This should have been an ACK message");
+         $log->debug( $response );
+         $log->debug( "Done." );
+       }  
+     }
+     
      # finished ping, loop to while(1) { ]
      $log->debug( "Done sending IAMALIVE to $server, next message in " .
 		  $config->get_option( "broker.ping" ) . " seconds" );     
@@ -1534,6 +1549,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.59  2006/02/16 22:56:47  aa
+# Fixed bug where it would actually read bogus length messages before discarding them, ooops! Now discards the messages before filling the entire memory of the machine iwth junk.
+#
 # Revision 1.58  2006/01/20 10:05:11  aa
 # Fixed ACK bug
 #
