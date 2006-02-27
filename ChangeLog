@@ -1,3 +1,8 @@
+2006-02-27 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * bin/node_agent.pl: Made remote TCP host and port setable via the
+          command line, overriding the config file values.
+
 2006-02-15 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* bin/jach_agent.pl: Changed mapping to new project IDs

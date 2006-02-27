@@ -23,7 +23,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: node_agent.pl,v 1.14 2005/07/22 16:50:29 aa Exp $
+#     $Id: node_agent.pl,v 1.15 2006/02/27 15:47:01 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -69,7 +69,7 @@ have a duplicate copy of the current user database.
 
 =head1 REVISION
 
-$Id: node_agent.pl,v 1.14 2005/07/22 16:50:29 aa Exp $
+$Id: node_agent.pl,v 1.15 2006/02/27 15:47:01 aa Exp $
 
 =head1 AUTHORS
 
@@ -86,7 +86,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.14 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.15 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -142,8 +142,10 @@ use Config;
 use Data::Dumper;
 use Getopt::Long;
 
-my ( $name, $cmd_soap_port, $cmd_tcp_port );   
+my ( $name, $cmd_soap_port, $cmd_tcp_port, $ers_host, $ers_port );   
 GetOptions( "name=s" => \$name,
+            "host=s" => \$ers_host,
+            "port=s" => \$ers_port,
             "soap=s" => \$cmd_soap_port,
             "tcp=s"  => \$cmd_tcp_port );
 
@@ -364,12 +366,23 @@ if ( $config->get_state("na.unique_process") == 1 ) {
       $config->set_option( "tcp.port", $cmd_tcp_port );
    } else {
       $config->set_option( "tcp.port", 2050 );
-   }  
+   } 
+    
    # DN ERS server parameters
-   $config->set_option( "ers.host", "161.72.57.3" );
-   $config->set_option( "ers.port", 8080 );
+   if ( defined $ers_port ) {
+      $config->set_option( "ers.port", $ers_port );
+   } else {
+      $config->set_option( "ers.port", 8081 );
+   }   
+   if ( defined $ers_host ) {
+      $config->set_option( "ers.host", $ers_host );
+   } else {
+      $config->set_option( "ers.host", "161.72.57.3" );
+   }    
+   
+   #$config->set_option( "ers.host", "161.72.57.3" );
    #$config->set_option( "ers.host", "132.160.98.239" );
-   #$config->set_option( "ers.port", 8080 );
+   #$config->set_option( "ers.port", 8081 );
    
    # interprocess communication
    $config->set_option( "ua.user", "agent" );
@@ -406,6 +419,17 @@ if ( defined $cmd_tcp_port ) {
    $log->warn("Warning: Setting TCP/IP port to $cmd_tcp_port");
    $config->set_option("tcp.port", $cmd_tcp_port );
 }
+
+if ( defined $ers_host ) {
+   $log->warn("Warning: Setting ERS host to $ers_host");
+   $config->set_option( "ers.host", $ers_host );
+}
+if ( defined $ers_port ) {
+   $log->warn("Warning: Setting ERS port to $ers_port");
+   $config->set_option( "ers.port", $ers_port );
+}   
+
+
 
 # ===========================================================================
 # H T T P   U S E R   A G E N T 
@@ -762,6 +786,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: node_agent.pl,v $
+# Revision 1.15  2006/02/27 15:47:01  aa
+# remote TEA host and port now command line arguements
+#
 # Revision 1.14  2005/07/22 16:50:29  aa
 # big fix
 #
