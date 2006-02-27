@@ -851,7 +851,7 @@ sub new_observation {
                               $config->get_option("user.real_name"),
                               'aa@astro.ex.ac.uk',
                               'eSTAR User Agent (Failed)',
-                              $mail_body ); 
+                              $mail_body, 'estar-devel@estar.org.uk' ); 
       }           
       
       $log->error( $error );
@@ -888,7 +888,7 @@ sub new_observation {
                               $config->get_option("user.real_name"),
                               'aa@astro.ex.ac.uk',
                               'eSTAR User Agent (Score 0)',
-                              $mail_body ); 
+                              $mail_body, 'estar-devel@estar.org.uk'); 
       }                                          
       
       $log->error( $error );
@@ -1185,7 +1185,7 @@ sub new_observation {
                               $config->get_option("user.real_name"),
                               'aa@astro.ex.ac.uk',
                               'eSTAR User Agent (Node Down)',
-                              $mail_body ); 
+                              $mail_body, 'estar-devel@estar.org.uk' ); 
       }         
       
       
@@ -1227,7 +1227,7 @@ sub new_observation {
                               $config->get_option("user.real_name"),
                               'aa@astro.ex.ac.uk',
                               'eSTAR User Agent (Bad Parse)',
-                              $mail_body ); 
+                              $mail_body, 'estar-devel@estar.org.uk' ); 
       }      
       
       $log->error("Error: $@");
@@ -1260,7 +1260,7 @@ sub new_observation {
                               $config->get_option("user.real_name"),
                               'aa@astro.ex.ac.uk',
                               'eSTAR User Agent (Node Down)',
-                              $mail_body ); 
+                              $mail_body, 'estar-devel@estar.org.uk'); 
       }            
       
       $log->warn("Warning: node $best_node has gone down since scoring");
@@ -1339,7 +1339,7 @@ sub new_observation {
                               $config->get_option("user.real_name"),
                               'aa@astro.ex.ac.uk',
                               'eSTAR User Agent (Reject)',
-                              $mail_body ); 
+                              $mail_body, 'estar-devel@estar.org.uk' ); 
          }               
          
          $log->error( $error );
@@ -1363,7 +1363,7 @@ sub new_observation {
                               $config->get_option("user.real_name"),
                               'aa@astro.ex.ac.uk',
                               'eSTAR User Agent (Success)',
-                              $mail_body ); 
+                              $mail_body, 'estar-devel@estar.org.uk'); 
    }      
    
    # return sucess code
