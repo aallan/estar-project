@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: user_agent.pl,v 1.19 2005/07/25 17:30:13 aa Exp $
+#     $Id: user_agent.pl,v 1.20 2006/02/27 17:56:35 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -65,7 +65,7 @@ itself.
 
 =head1 REVISION
 
-$Id: user_agent.pl,v 1.19 2005/07/25 17:30:13 aa Exp $
+$Id: user_agent.pl,v 1.20 2006/02/27 17:56:35 aa Exp $
 
 =head1 AUTHORS
 
@@ -82,7 +82,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.19 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.20 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -136,6 +136,11 @@ use CfgTie::TieUser;
 use Config;
 use Data::Dumper;
 use Fcntl qw(:DEFAULT :flock);
+use Getopt::Long;
+
+my ( $user_name, $email_address );   
+GetOptions( "user=s" => \$user_name,
+            "mail=s" => \$email_address );
 
 # tag name of the current process, this identifies where log and 
 # status files for this process will be stored.
@@ -376,6 +381,19 @@ if ( $config->get_state("ua.unique_process") == 1 ) {
    $status = $config->write_option( );
    $status = $config->write_state();
 }
+
+if ( defined $user_name ) {
+   $log->warn("Warning: Setting username to $user_name");
+   $config->set_option( "user.user_name", $user_name );
+   $log->warn("Committing options change...");
+   $status = $config->write_option( );
+}
+if ( defined $email_address ) {
+   $log->warn("Warning: Setting notification address to $email_address");
+   $config->set_option("user.email_address", $email_address);
+   $log->warn("Committing options change...");
+   $status = $config->write_option( );
+}
    
 # ===========================================================================
 # H T T P   U S E R   A G E N T 
@@ -404,9 +422,9 @@ $ua->set_ua( $lwp );
 #$config->set_option( "nodes.Exeter", "dn2.astro.ex.ac.uk:8080" );
 #$config->set_option( "nodes.LJM", "150.204.240.111:8080" );
 #$config->set_option( "nodes.UKIRT", "estar.ukirt.jach.hawaii.edu:8080" );
-#$config->set_option( "nodes.LTproxy", "estar.astro.ex.ac.uk:8080" );
-#$config->set_option( "nodes.FTNproxy", "estar2.astro.ex.ac.uk:8080" );
-$config->set_option( "nodes.Test", "127.0.0.1:8080" );
+$config->set_option( "nodes.LTproxy", "estar.astro.ex.ac.uk:8078" );
+$config->set_option( "nodes.FTNproxy", "estar.astro.ex.ac.uk:8077" );
+#$config->set_option( "nodes.Test", "127.0.0.1:8080" );
 $status = $config->write_option( );
 
 # ===========================================================================
@@ -585,6 +603,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: user_agent.pl,v $
+# Revision 1.20  2006/02/27 17:56:35  aa
+# default nodes change, added command line infrastructre
+#
 # Revision 1.19  2005/07/25 17:30:13  aa
 # End of night check-in
 #
