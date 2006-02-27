@@ -241,7 +241,21 @@ sub handle_rtml {
    
    my ( $new_user, $new_project );
    if ( $original_user eq "aa" ) {
+   
+      if ( $process->get_process() =~ "LT" ) {
       
+         # KDH Live PATT
+         $new_user = "PATT/keith.horne";
+         $new_project = "PL04B17";        
+      }
+      
+      if ( $process->get_process() =~ "FTN" ) {
+      
+         # KDH Live PATT
+         $new_user = "Robonet/keith.horne";
+         $new_project = "Planetsearch1";        
+      }
+            
       # Expired Test Project on LT
       #$new_user = "TEST/estar";
       #$new_project = "TEA01";
@@ -251,8 +265,8 @@ sub handle_rtml {
       #$new_project = "agent_test";
       
       # KDH Live PATT
-      $new_user = "PATT/keith.horne";
-      $new_project = "PL04B17";
+      #$new_user = "PATT/keith.horne";
+      #$new_project = "PL04B17";
       
    } else {   
       $new_user = $original_user;
