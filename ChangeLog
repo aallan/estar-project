@@ -2,6 +2,11 @@
 
         * bin/node_agent.pl: Made remote TCP host and port setable via the
           command line, overriding the config file values.
+          
+        * eSTAR/NA/Handler.pm: Updated project lookups.
+        
+        * bin/user_agent.pl: Default nodes now LTproxy and FTNproxy, added
+          settings from username and email address to command line.  
 
 2006-02-15 Alasdair Allan <aa@astro.ex.ac.uk>
 
