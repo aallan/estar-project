@@ -69,7 +69,7 @@ while( $flag ) {
          print "Read $bytes_read characters from socket\n";
       
          # callback to handle incoming Events     
-	 print $message . "\n";
+	     print $message . "\n";
        
          my $object = new Astro::VO::VOEvent( XML => $message );
 	 

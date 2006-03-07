@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.59 2006/02/16 22:56:47 aa Exp $
+$Id: event_broker.pl,v 1.60 2006/03/07 09:59:54 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.59 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.60 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -131,6 +131,9 @@ my $process = new eSTAR::Process( $process_name );
 # tag name of the current process, this identifies where log and 
 # status files for this process will be stored.
 $process->set_version( $VERSION );
+
+# process id in this case...
+$process->set_urn( $process_name );
 
 # S T A R T   L O G   S Y S T E M -------------------------------------------
 
@@ -306,6 +309,8 @@ use Astro::VO::VOEvent;
 #
 use eSTAR::Broker::Util;
 use eSTAR::Broker::Running;
+use eSTAR::Broker::SOAP::Daemon;
+use eSTAR::Broker::SOAP::Handler;
 
 # M A K E   D I R E C T O R I E S -------------------------------------------
 
@@ -357,8 +362,9 @@ if ( $config->get_state("broker.unique_process") == 1 ) {
    # broker
    $config->set_option( "broker.host", $ip );
    $config->set_option( "broker.port", 8099 );
+   $config->set_option( "broker.soap", 9099 );
    $config->set_option( "broker.ping", 60 );
-   $config->set_option( "broker.garbage", 45 );
+   $config->set_option( "broker.garbage", 45 );   
       
    # server parameters
    # -----------------
@@ -1435,10 +1441,59 @@ foreach my $i ( 0 ... $#servers ) {
    $incoming_thread->detach();
 }
 
-# START SERVER --------------------------------------------------------------
+# TCP SERVER ----------------------------------------------------------------
 
 my $server_thread =  threads->create( \&$broker );
 $server_thread->detach();
+
+# SOAP SERVER ---------------------------------------------------------------
+
+# anonymous subroutine which starts a SOAP server which will accept
+# incoming SOAP requests and route them to the appropriate module
+my $soap_server = sub {
+   my $thread_name = "SOAP Thread";
+   
+   # create SOAP daemon
+   $log->thread($thread_name,"Starting SOAP server (\$tid = ".threads->tid().")");  
+   my $daemon = eval{ new eSTAR::UA::SOAP::Daemon( 
+                      LocalPort     => $config->get_option( "broker.soap"),
+                      Listen        => 5, 
+                      Reuse         => 1 ) };   
+                    
+   if ($@) {
+      # If we restart the user agent process quickly after a crash the port 
+      # will still be blocked by the operating system and we won't be able 
+      # to start the daemon. Other than the port being in use I can't see
+      # why we're going to end up here.
+      my $error = "$@";
+      chomp($error);
+      return "FatalError: $error";
+   };
+   
+   # print some info
+   $log->thread($thread_name, "SOAP server at " . $daemon->url() );
+   #$log->thread($thread_name, "Certificate ".$CONFIG->param("ssl.cert_file"));
+   #$log->thread($thread_name, "Key File ".$CONFIG->param("ssl.cert_key")  );     
+    
+   # handlers directory
+   my $handler = "eSTAR::Broker::SOAP::Handler";
+   
+   # defined handlers for the server
+   $daemon->dispatch_with({ 'urn:/event_broker' => $handler });
+   $daemon->objects_by_reference( $handler );
+      
+   # handle it!
+   $log->thread($thread_name, "Starting handlers..."  );
+   $daemon->handle;
+
+};
+
+# S T A R T   S O A P   S E R V E R -----------------------------------------
+
+# Spawn the SOAP server thread
+$log->print("Spawning SOAP Server thread...");
+my $listener_thread = threads->create( \&$soap_server );
+$listener_thread->detach();
 
 # MAIN LOOP -----------------------------------------------------------------	  
 
@@ -1549,6 +1604,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.60  2006/03/07 09:59:54  aa
+# Added skeleton SOAP daemon to event_broker.pl
+#
 # Revision 1.59  2006/02/16 22:56:47  aa
 # Fixed bug where it would actually read bogus length messages before discarding them, ooops! Now discards the messages before filling the entire memory of the machine iwth junk.
 #
