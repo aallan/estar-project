@@ -325,7 +325,7 @@ sub handle_voevent {
    	  
    # log the event message
    my $file;
-   eval { $file = eSTAR::Broker::Util::store_voevent( $name, $message ); };
+   eval { $file = eSTAR::Broker::Util::store_voevent( $name, $voevent ); };
    if ( $@  ) {
      my $error = "$@";
       $log->error( "Error: Can't store message $id on disk");
