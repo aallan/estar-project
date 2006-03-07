@@ -21,6 +21,7 @@ my $port = 9099;
 my $urn = 'event_broker';
 my $method = 'handle_voevent';
 my $name = 'eSTAR';
+$urn = "urn:/" . $urn;
 
 # generate a list of VOEvents from the mail message on <STDIN>
 my @events;
@@ -194,7 +195,6 @@ foreach my $j ( 0 ... $#events ) {
 
   # create SOAP connection
   my $soap = new SOAP::Lite();
-  $urn = "urn:/" . $urn;
   
   $soap->uri($urn); 
   $soap->proxy($endpoint, cookie_jar => $cookie_jar);
