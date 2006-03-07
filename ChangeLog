@@ -5,7 +5,9 @@
 	  efectively making the Broker a publisher. This will be the default
 	  publication route for eSTAR native messages.
 	  
-	* eSTAR/Broker/Handler.pm: Added skeleton file.
+	* eSTAR/Broker/Handler.pm: Added standard skeleton and additionally a
+	  handle_voevent() callback to take an "event", parse and ship to the
+	  running hash of the broker.
 	
 	* eSTAR/Broker/SOAP/Daemon.pm: Threaded SOAP daemon.
 	
