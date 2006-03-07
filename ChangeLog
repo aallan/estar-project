@@ -21,6 +21,11 @@
 	  parse mail incoming to estar@estar.astro.ex.ac.uk and pull all the
 	  OGLE III EWS messages, parse them and forward them to the eSTAR
 	  event_broker which now has a SOAP port (on 9099) 
+	  
+	* bin/test_servers.pl: Added pinging of event_broker.pl now it has
+	  an embedded SOAP port.
+	  
+	* eSTAR/Config.pm: Infrastructre support for event broker pinging    
 	
 2006-02-27 Alasdair Allan <aa@astro.ex.ac.uk>
 

@@ -19,9 +19,9 @@ use vars qw/$VERSION @EXPORT @ISA/;
 @EXPORT = qw/ get_option set_option write_option get_nodes get_node_names
               get_block get_block_names get_state set_state write_state 
 	      make_directories get_data_dir get_state_dir get_tmp_dir
-              get_useragents get_useragent_names /;
+              get_useragents get_useragent_names get_brokers get_broker_names /;
 
-'$Revision: 1.18 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.19 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 my $SINGLETON;
 
@@ -395,6 +395,11 @@ sub get_useragents {
    my $self = shift;
    return $self->get_block( "useragents" );   
 } 
+ 
+sub get_brokers {
+   my $self = shift;
+   return $self->get_block( "brokers" );   
+} 
 
 sub get_block_names {
    my $self = shift;
@@ -439,6 +444,11 @@ sub get_node_names {
 sub get_useragent_names {
    my $self = shift;
    return $self->get_block_names( "useragents" );
+} 
+
+sub get_useragent_names {
+   my $self = shift;
+   return $self->get_block_names( "brokers" );
 } 
 
 sub make_directories {

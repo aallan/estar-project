@@ -335,8 +335,95 @@ unless ( defined $status ) {
      }  
   }  
 
+
+# K N O W N   B R O K E R S -------------------------------------------------
+
+  # list of "default" known nodes  
+  $config->set_option( "brokers.eSTAR", "estar.astro.ex.ac.uk:9099" );
+  $status = $config->write_option( );    
+    
+  
+# L O O P   T H R O U G H  A G E N T S  -------------------------------------
+
+  print SERIAL "# EVENT BROKERS\n";
+  $content = $content . "\nBrokers\n-------\n\n";   
+
+  # NODE ARRAY
+  my ( @BROKERS, @BROKER_NAMES );   
+
+  # we might not have any nodes! So check!
+  my $broker_flag = 0;
+  @BROKERS = $config->get_brokers();   
+  @BROKER_NAMES = $config->get_broker_names();   
+  $broker_flag = 1 if defined $BROKERS[0];
+  
+  # if there are no nodes add a default menu entry
+  if ( $broker_flag == 0 ) {
+     my $error = "Error: No known Brokers";
+     $log->error( $error );
+     throw eSTAR::Error::FatalError( $error );
+  }    
+  
+  foreach my $i ( 0 ... $#BROKERS ) {
+     
+     my ($broker_host, $broker_port) = split ":", $BROKERS[$i];
+     $log->header("\n$BROKER_NAMES[$i] ( $broker_host:$broker_port )");
+ 
+     # end point
+     my $endpoint = "http://" . $broker_host . ":" . $broker_port;
+     $log->debug( "Endpoint for request is " . $endpoint );
+     my $uri = new URI($endpoint);
+   
+     # create a user/passwd cookie
+     my $cookie = eSTAR::Util::make_cookie( "agent", "InterProcessCommunication" );
+  
+     my $cookie_jar = HTTP::Cookies->new();
+     $cookie_jar->set_cookie( 0, user => $cookie, '/', 
+                              $uri->host(), $uri->port());
+     
+     # create SOAP connection
+     my $soap = new SOAP::Lite();
+  
+     $urn = "urn:/event_broker";
+     $log->debug( "URN for broker is " . $urn );
+  
+     $soap->uri($urn); 
+     $soap->proxy($endpoint, cookie_jar => $cookie_jar);
+    
+     # report
+     $log->debug("Calling ping( ) at $broker_host");
+    
+     # grab result 
+     my $result;
+     eval { $result = $soap->ping( ); };
+     if ( $@ ) {
+        my $error = $@;
+        chomp ( $error );
+        $log->error( "Error ($broker_host): BROKER DOWN" );
+        print SERIAL "$BROKER_NAMES[$i] $broker_host $broker_port DOWN\n";
+        $content = $content . "$BROKER_NAMES[$i] $broker_host $broker_port DOWN\n";
+     }
+  
+     if ( defined $result ) {     
+        # Check for errors
+        $log->debug("Transport Status: " . $soap->transport()->status() );
+        unless ($result->fault() ) {
+           $log->print( "$BROKER_NAMES[$i] ($broker_host): " . $result->result() );
+           print SERIAL "$BROKER_NAMES[$i] $broker_host $broker_port UP\n";
+           $content = $content . "$BROKER_NAMES[$i] $broker_host $broker_port UP\n";
+        } else {
+           $log->error( "Error ($broker_host): ". $result->faultcode() );
+           $log->error( "Error ($un_host): " . $result->faultstring() );
+           print SERIAL "$BROKER_NAMES[$i] $broker_host $broker_port FAULT\n";
+           $content = $content . "$BROKER_NAMES[$i] $broker_host $broker_port FAULT\n";
+        }
+     }  
+  }  
+    
+
   $content = $content . "\nLatest status at information available at " .
                         "http://www.estar.org.uk/network.status\n";
+        
     
 # C L E A N   U P -----------------------------------------------------------
   
