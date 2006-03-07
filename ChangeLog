@@ -16,6 +16,11 @@
 	* bin/soap_client.pl: If we pass a filename to the soap client it
 	  will make the content arg2 if we've already defined an arg1 and
 	  not default it to make this arg1 in all cases.
+	  
+	* bin/ogle_parsemail.pl: Script to be run from .procmailrc file to
+	  parse mail incoming to estar@estar.astro.ex.ac.uk and pull all the
+	  OGLE III EWS messages, parse them and forward them to the eSTAR
+	  event_broker which now has a SOAP port (on 9099) 
 	
 2006-02-27 Alasdair Allan <aa@astro.ex.ac.uk>
 
