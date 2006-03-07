@@ -181,7 +181,7 @@ foreach my $i ( 0 ... $#message ) {
 foreach my $j ( 0 ... $#events ) {
 
   # end point
-  $endpoint = "http://" . $host . ":" . $port;
+  my $endpoint = "http://" . $host . ":" . $port;
   my $uri = new URI($endpoint);
   print "End Point       : " . $endpoint . "\n";
   
