@@ -302,7 +302,7 @@ sub handle_voevent {
          ->faultcode("Client.DataError")
          ->faultstring("Client Error: $error\nVOEvent Document:\n$voevent");
    }      
-   my $id = $event->id();
+   my $id = $message->id();
    
 
    # HANDLE VOEVENT MESSAGE --------------------------------------------
@@ -311,7 +311,7 @@ sub handle_voevent {
    
    # Push message onto running hash via the object we've set up for that
    # purpose...
-   eval { $running->add_message( $id, $message ); };
+   eval { $running->add_message( $id, $voevent ); };
    if ( $@ ) {
       my $error = "$@";
       chomp( $error );
