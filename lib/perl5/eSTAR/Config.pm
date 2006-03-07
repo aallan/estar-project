@@ -21,7 +21,7 @@ use vars qw/$VERSION @EXPORT @ISA/;
 	      make_directories get_data_dir get_state_dir get_tmp_dir
               get_useragents get_useragent_names get_brokers get_broker_names /;
 
-'$Revision: 1.19 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.20 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 my $SINGLETON;
 
@@ -446,7 +446,7 @@ sub get_useragent_names {
    return $self->get_block_names( "useragents" );
 } 
 
-sub get_useragent_names {
+sub get_broker_names {
    my $self = shift;
    return $self->get_block_names( "brokers" );
 } 
