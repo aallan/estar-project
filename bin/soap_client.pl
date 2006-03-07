@@ -57,7 +57,11 @@
      $xml = <FILE>;
      close FILE;
 
-     $arg1 = $xml;
+     if ( defined $arg1 ) {
+       $arg2 = $xml;
+     } else {
+       $arg1 = $xml;
+     }    
   }
                
   # end point

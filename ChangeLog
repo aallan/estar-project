@@ -8,10 +8,14 @@
 	* eSTAR/Broker/Handler.pm: Added standard skeleton and additionally a
 	  handle_voevent() callback to take an "event", parse and ship to the
 	  running hash of the broker.
-	
+	  	
 	* eSTAR/Broker/SOAP/Daemon.pm: Threaded SOAP daemon.
 	
 	* eSTAR/Broker/SOAP/Handler.pm: SOAP wrapper for the Handler.
+	
+	* bin/soap_client.pl: If we pass a filename to the soap client it
+	  will make the content arg2 if we've already defined an arg1 and
+	  not default it to make this arg1 in all cases.
 	
 2006-02-27 Alasdair Allan <aa@astro.ex.ac.uk>
 
