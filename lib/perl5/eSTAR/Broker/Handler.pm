@@ -672,11 +672,10 @@ sub handle_voevent {
   '<What>' . "\n" . 
   '   <Param value="stored" name="'. $file .'" />' . "\n" . 
   '</What>' . "\n" . 
-  '</VOEvent>' . "\n";
-      
+  '</VOEvent>' . "\n";      
    
    $log->debug( "Returning 'ACK' message" );
-   return SOAP::Data->name('return', $ack_response )->type('xsd:string');
+   return SOAP::Data->name('return', $ack_response )->type('base64');
 }
 
               
