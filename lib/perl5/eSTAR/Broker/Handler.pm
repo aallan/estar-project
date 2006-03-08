@@ -659,10 +659,24 @@ sub handle_voevent {
      close(ALERT);	 
      
    } # end clenaup of alert.log file
+
+    $log->debug( "Building role='ack' message..." );
+    my $ack_response =
+  "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
+  '<VOEvent role="ack" version="1.1" id="ivo://uk.org.estar/estar.broker#ack" '.
+  'xmlns="http://www.ivoa.net/xml/VOEvent/v1.1">' . "\n" . 
+  '<Who>' . "\n" . 
+  '   <PublisherID>ivo://uk.org.estar/estar.broker#</PublisherID>' . "\n" . 
+  '   <Date>' . eSTAR::Broker::Util::time_iso() . '</Date>' . "\n" .
+  '</Who>' . "\n" . 
+  '<What>' . "\n" . 
+  '   <Param value="stored" name="'. $file .'" />' . "\n" . 
+  '</What>' . "\n" . 
+  '</VOEvent>' . "\n";
       
    
    $log->debug( "Returning 'ACK' message" );
-   return SOAP::Data->name('return', 'ACK')->type('xsd:string');
+   return SOAP::Data->name('return', $ack_response )->type('xsd:string');
 }
 
               

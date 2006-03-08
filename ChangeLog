@@ -1,3 +1,12 @@
+2006-03-08 Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* eSTAR/Broker/Handler.pm: Added proper ACK message response to 
+	  message submission to broker via the SOAP server.
+	  
+	* bin/event_broker.pl: Wrapped the initial 4 byte sysread calls
+	  with an eval and $SIG{ALRM} to try and catch any timeouts. It'll
+	  drop the socket connection if it times out on the read.  
+
 2006-03-07 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* bin/event_broker.pl: Added SOAP server, this will have a method

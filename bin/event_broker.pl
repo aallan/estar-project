@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.60 2006/03/07 09:59:54 aa Exp $
+$Id: event_broker.pl,v 1.61 2006/03/08 09:52:33 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.60 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.61 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -1156,9 +1156,26 @@ my $iamalive = sub {
       # Wait for IAMALIVE response
       $log->debug( "Waiting for response..." );
       my $length;
-      my $bytes_read = sysread( $c, $length, 4 );  
+      my $bytes_read;
+      
+      eval {
+        local $SIG{ALRM} = sub { die "socket connection timed out\n" };
+        alarm $config->get_option( "connection.timeout" );
+        $bytes_read = sysread( $c, $length, 4 );  
+        alarm 0;
+      };
+      if ($@) {
+        my $error = "$@";
+	chomp $error;
+	$log->error( "Error: $error" );
+        $log->warn( "Dropping connection to $server" );
+        $log->warn( "Closing socket to $server (IAMALIVE)" );
+	close( $c );
+        return ESTAR__FAULT;
+        
+      }        
       $length = unpack( "N", $length );
-
+      
       if ( $bytes_read == 0 ) {
         $log->warn( "Recieved an empty packet..." );
         $log->warn( "Dropping connection to $server" );
@@ -1167,7 +1184,7 @@ my $iamalive = sub {
         return ESTAR__FAULT;
         
       }  
-       
+             
       $log->debug( "Message is $length characters" );
       if ( $length > 512000 ) {
          $log->error( "Error: Message length is > 512000 characters" );
@@ -1299,7 +1316,26 @@ my $broker_callback = sub {
      # Wait for ACK response
      $log->debug( "Waiting for response..." );
      my $length;
-     my $bytes_read = sysread( $c, $length, 4 );  
+     my $bytes_read;
+     eval {
+       local $SIG{ALRM} = sub { die "socket connection timed out\n" };
+       alarm $config->get_option( "connection.timeout" );
+       $bytes_read = sysread( $c, $length, 4 );  
+       alarm 0;
+     };
+     if ($@) {
+       my $error = "$@";
+       chomp $error;
+       $log->error( "Error: $error" );
+       $log->warn( "Dropping connection to $server" );
+       $log->warn( "De-registering thread (tid = $tid)" );
+       $run->deregister_tid( $tid );
+       $log->warn( "Closing socket to $server (tid = $tid)" );
+       close( $c );
+       return ESTAR__FAULT;
+       
+     }      
+     
      $length = unpack( "N", $length );
 
      if ( $bytes_read == 0 ) {
@@ -1336,7 +1372,7 @@ my $broker_callback = sub {
        } elsif( $event->role() eq "ack" ) {
          $log->debug( "Recieved an ACK message from $server");
          my $timestamp = eSTAR::Broker::Util::time_iso(); 
-         $log->debug( "Warning: Reply timestamp: $timestamp");
+         $log->debug( "Reply timestamp: $timestamp");
          $log->debug( $response );
          $log->debug( "Done." );
        
@@ -1604,6 +1640,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.61  2006/03/08 09:52:33  aa
+# Added sysread wrapping for timeouts and ack messages to SOAP interface
+#
 # Revision 1.60  2006/03/07 09:59:54  aa
 # Added skeleton SOAP daemon to event_broker.pl
 #
