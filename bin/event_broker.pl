@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.61 2006/03/08 09:52:33 aa Exp $
+$Id: event_broker.pl,v 1.62 2006/03/21 09:50:49 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.61 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.62 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -369,8 +369,8 @@ if ( $config->get_state("broker.unique_process") == 1 ) {
    # server parameters
    # -----------------
    $config->set_option( "raptor.host", "astro.lanl.gov" );
-   $config->set_option( "raptor.port", 43002 );
-   $config->set_option( "raptor.ack", 43002 );
+   $config->set_option( "raptor.port", 43003 );
+   $config->set_option( "raptor.ack", 43003 );
    $config->set_option( "raptor.iamalive", 60 );
 
    $config->set_option( "estar.host", "estar.astro.ex.ac.uk" );
@@ -1640,6 +1640,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.62  2006/03/21 09:50:49  aa
+# Changed RAPTOR port to use STC
+#
 # Revision 1.61  2006/03/08 09:52:33  aa
 # Added sysread wrapping for timeouts and ack messages to SOAP interface
 #
