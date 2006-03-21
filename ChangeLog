@@ -4,7 +4,7 @@
           to the STC version of their feed.
           
         * bin/ogle_fetch.pl: Fixed to default to observation request in UTC, 
-          from now till 12 hours later  
+          from now till 12 hours later. Set tolerance multiplier to 0.95
           
         * bin/ogle_parsemail.pl: Fixed to generate semi-1.1 compliant messages 
           

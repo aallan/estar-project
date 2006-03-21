@@ -20,7 +20,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: ogle_fetch.pl,v 1.9 2006/03/21 09:51:57 aa Exp $
+$Id: ogle_fetch.pl,v 1.10 2006/03/21 11:44:25 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -37,7 +37,7 @@ use vars qw / $VERSION /;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.10 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -728,7 +728,7 @@ unless( defined $opt{"start"} ) {
 foreach my $n ( 0 ... $#data ) {
 
    my $interval = 6.0*60.0*60.0/${$data[$n]}{SeriesCount};
-   my $tolerance = $interval/2.0;
+   my $tolerance = $interval*0.95;  # set t0 0.5 later in the season
    $interval = $interval . "S";
    $tolerance = $tolerance . "S";
 
