@@ -409,6 +409,24 @@ sub new_observation {
          my $month = localtime->mon() + 1;
          my $day = localtime->mday();
          my $dayplusone = $day + 1;
+         if ( $day >= 28 && $day <= 31 ) {
+            if ( $month == 2 ) {
+               $month = $month + 1;
+               $day = 1;
+            } elsif ( $month == 9 || $month == 4 || 
+                      $month == 6 || $month == 11 ) {
+               if( $day == 30 ) {
+                  $month = $month + 1;
+                  $day = 1;
+               }
+            } elsif ( $day == 31 ) {
+               $month = $month + 1;
+               $day = 1;
+            }  
+         }
+         $month = "0$month" if $month < 10;
+         $day = "0$day" if $day < 10;            
+         $dayplusone = "0$dayplusone" if $dayplusone < 10;   
                
          # mid-afternoon local till 24 hours later 
          $observation{'starttime'} = "$year-$month-$day" . "T12:00:00";
