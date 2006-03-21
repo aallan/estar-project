@@ -23,14 +23,26 @@ my $method = 'handle_voevent';
 my $name = 'eSTAR';
 $urn = "urn:/" . $urn;
 
+print "ogle_parsemail.pl run at " . localtime() . "\n";
+
 # generate a list of VOEvents from the mail message on <STDIN>
 my @events;
 my @message = <STDIN>;
+
+print "\nMessage:\n";
+foreach my $j ( 0 ... $#message ) {
+   print "> ". $message[$j];
+}
+print "\n";
+
 foreach my $i ( 0 ... $#message ) {
-   if( $message[$i] =~ "OGLE Early Warning System has detected another microlensing candidate event" ) {
+   if( $message[$i] =~ "OGLE Early Warning System has detected another microlensing" ) {
+     print "This is an OGLE related email...\n";
+     
      my %event;
      if( $message[$i+2] =~ "OGLE" && $message[$i+2] =~ "BLG" ) {
         $event{name} = $message[$i+2];
+        chomp( $event{name} );
         
         my $field = $message[$i+4];
         $field =~ s/Field//;
@@ -44,17 +56,31 @@ foreach my $i ( 0 ... $#message ) {
         $starno =~ s/\s+$//;
         $event{starno} = $starno;
 
+        # parse RA
         my $ra = $message[$i+6];
         $ra =~ s/RA\(J2000\.0\)//;
         $ra =~ s/^\s+//;
         $ra =~ s/\s+$//;
         $event{ra} = $ra;
+        
+        # convert to degrees
+        my @ra = split ":", $event{ra};
+        $event{ra} = 15.0*( $ra[0] + $ra[1]/60 + $ra[2]/(3600) );
 
+        # parse dec
         my $dec = $message[$i+7];
         $dec =~ s/Dec\(J2000\.0\)//;
         $dec =~ s/^\s+//;
         $dec =~ s/\s+$//;
         $event{dec} = $dec;
+
+        # convert to degrees
+        my @dec = split ":", $event{dec};
+        if( $dec[0] > 0 ) {
+          $event{dec} = $dec[0] + $dec[1]/60 + $dec[2]/(3600);
+        } else {
+          $event{dec} = $dec[0] - $dec[1]/60 - $dec[2]/(3600);
+        }        
 	
 	if( $message[$i+8] =~ "Remarks" ) {
 	   my $tmax = $message[$i+10];
@@ -127,12 +153,35 @@ foreach my $i ( 0 ... $#message ) {
            $tmax_epoch =~ s/\s+$//;
            $tmax_epoch =~ s/\.+$//;
 	   $event{"tmax epoch"} = $tmax_epoch;
+           
+           my @time = split "-", $event{"tmax epoch"};
+           my @daynumber = split " ", $time[2];
+           
+           my $day = int( $daynumber[0] );
+           my $hour = 24.0*( $daynumber[0] - $day );
+           my $min = 60.0*( $hour - int($hour) );
+           my $sec = 60.0*( $min - int($min) );
+           $hour = int($hour);
+           $min = int($min);
+           $sec = int($sec);
+           
+           $hour = "0$hour" if $hour < 10;
+           $min = "0$min" if $min < 10;
+           $sec = "0$sec" if $sec < 10;
+                   
+           $event{"tmax epoch"} = $time[0] ."-". $time[1] ."-". $day ."T". 
+   		                  $hour .":". $min .":". $sec;
+           if( $daynumber[1] =~ "UT" ) {
+                $event{"tmax epoch"} =  $event{"tmax epoch"} . "+0000"
+           }                          
 	   
 	   my $finding_url = $message[$i+24];
 	   $event{"finding chart"} = $finding_url;
+           chomp ( $event{"finding chart"} );
 	   
 	   my $voevent = new Astro::VO::VOEvent();
 	   my $xml = $voevent->build( 
+        UseSTC => 1,   
 	Role => 'observation',
 	ID   => 'ivo://uk.org.estar/pl.edu.ogle#'.$event{name},
 	Description => "The OGLE early warning system (EWS) has detected a ".
@@ -149,32 +198,40 @@ foreach my $i ( 0 ... $#message ) {
 	               Time => $event{"tmax epoch"} 
 		     },
         What	    => [ { Name  => 'Field',
+                           UCD   => 'meta.dataset',
         		   Value => $event{field} },
         		 { Name  => 'StarNo',
+                           UCD   => 'meta.id',
         		   Value => $event{starno} },
-        	         { Group => [ { Name  => 'tmax',
-        		              Value => $event{tmax} },
-		                    { Name  => 'error',
-        		              Value => $event{'tmax error'} } ], },
-        	         { Group => [ { Name  => 'tau',
+        	         { Group => [ { Name  => 'Tmax',
+                                        UCD => 'time.epoch',
+        		                Value => $event{tmax},
+                                        Units => "days" },
+		                    { Name  => 'Error',
+                                      UCD => 'time.interval',
+        		              Value => $event{'tmax error'},
+                                        Units => "days" } ], },
+        	         { Group => [ { Name  => 'Tau',
                                         UCD => 'time.scale',
-        		              Value => $event{tau} },
-		                    { Name  => 'error',
-                                        UCD => 'time.interval',
-        		              Value => $event{'tau error'} } ], },
+        		                Value => $event{tau},
+                                        Units => "days" },
+		                    { Name  => 'Error',
+                                      UCD => 'time.interval',
+        		              Value => $event{'tau error'},
+                                        Units => "days" } ], },
         		 { Name  => 'Finding Chart',
+                           UCD   => 'meta.ref.url',
         		   Value => $event{"finding chart"} },
 		       ],
-        Why  => { Classification => { 
-        			  Probability  => "0.9",
-        			  Type         => "microlensing",
-        			  Description  => "Microlensing Event" }, }				
+        Why  => [ { Inference => { Probability  => "1.0",
+        			 Concept  => "Microlensing Event",
+                                 Name     => $event{name} } } ]
 	
 	   );	       
            push @events, $xml;
 	}   
      }
-   }
+   } 
 }
 
 # Connect to the event broker once per event and forward them to the broker
