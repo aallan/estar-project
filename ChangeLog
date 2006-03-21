@@ -1,3 +1,15 @@
+2006-03-21 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * bin/event_broker.pl: Changed default RAPTOR socket to connect
+          to the STC version of their feed.
+          
+        * bin/ogle_fetch.pl: Fixed to default to observation request in UTC, 
+          from now till 12 hours later  
+          
+        * bin/ogle_parsemail.pl: Fixed to generate semi-1.1 compliant messages 
+          
+        * eSTAR/UA/Handler.pm: Fixed default start/end time handling
+            
 2006-03-08 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* eSTAR/Broker/Handler.pm: Added proper ACK message response to 
