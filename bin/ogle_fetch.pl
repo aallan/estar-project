@@ -20,7 +20,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: ogle_fetch.pl,v 1.8 2006/03/08 10:21:55 aa Exp $
+$Id: ogle_fetch.pl,v 1.9 2006/03/21 09:51:57 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -37,7 +37,7 @@ use vars qw / $VERSION /;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -663,21 +663,64 @@ foreach my $n ( 0 ... $#data ) {
 my $year = 1900 + localtime->year();
 my $month = localtime->mon() + 1;
 my $day = localtime->mday();
-my $dayplusone = $day + 1;
 
-# defaults of mid-afternoon local today till 24 hours later 
+my $hour = localtime->hour();
+my $min = localtime->min();
+$sec = localtime->sec();
+
+# could be last day of the month
+if ( $day >= 28 && $day <= 31 ) {
+  
+  # Special case for Februry
+  if ( $month == 2 ) {
+  
+     # insert code to handle leap year here
+  
+     $month = $month + 1;
+     $day = 1;
+     
+  } elsif ( $month == 9 || $month == 4 || $month == 6 || $month == 11 ) {
+    if( $day == 30 ) {
+       $month = $month + 1;
+       $day = 1;
+    }
+    
+  } elsif ( $day == 31 ) {
+    $month = $month + 1;
+    $day = 1;
+  }  
+}
+
+# fix roll over errors
+my $dayplusone = $day + 1;
+my $hourplustwelve = $hour + 12;
+if( $hourplustwelve > 24 ) {
+  $hourplustwelve = $hourplustwelve - 24;
+} 
+ 
+# fix less than 10 errors
+$month = "0$month" if $month < 10;
+$day = "0$day" if $day < 10;   
+$hour = "0$hour" if $hour < 10;   
+$min = "0$min" if $min < 10;   
+$sec = "0$sec" if $sec < 10;   
+$dayplusone = "0$dayplusone" if $dayplusone < 10;   
+$hourplustwelve = "0$hourplustwelve" if $hourplustwelve < 10;
+
+# defaults of now till 12 hours later 
 my ( $start_time, $end_time ); 
  
 # modify start time
 unless( defined $opt{"start"} ) {
-   $start_time = "$year-$month-$day" . "T15:00:00";
+   $start_time = "$year-$month-$day" . "T". $hour.":".$min.":".$sec . "UTC";
 } else {
    $start_time = $opt{"start"};
 } 
 
 # modify end time
 unless( defined $opt{"start"} ) {
-   $end_time = "$year-$month-$dayplusone" . "T15:00:00";
+   $end_time = "$year-$month-$dayplusone" . 
+               "T". $hourplustwelve.":".$min.":".$sec . "UTC"; 
 } else {
    $end_time = $opt{"end"};  
 }    
