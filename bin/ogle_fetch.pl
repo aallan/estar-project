@@ -20,7 +20,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: ogle_fetch.pl,v 1.10 2006/03/21 11:44:25 aa Exp $
+$Id: ogle_fetch.pl,v 1.11 2006/03/27 10:56:29 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -37,7 +37,7 @@ use vars qw / $VERSION /;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.10 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -693,7 +693,7 @@ if ( $day >= 28 && $day <= 31 ) {
 
 # fix roll over errors
 my $dayplusone = $day + 1;
-my $hourplustwelve = $hour + 12;
+my $hourplustwelve = $hour + 13; # Actually plus 13 hours, not 12 now!
 if( $hourplustwelve > 24 ) {
   $hourplustwelve = $hourplustwelve - 24;
 } 
