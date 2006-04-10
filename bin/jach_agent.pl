@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: jach_agent.pl,v 1.19 2006/02/15 12:31:52 aa Exp $
+#     $Id: jach_agent.pl,v 1.20 2006/04/10 22:59:53 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -67,7 +67,7 @@ translation layer, which also handles external phase 0 discovery requests.
 
 =head1 REVISION
 
-$Id: jach_agent.pl,v 1.19 2006/02/15 12:31:52 aa Exp $
+$Id: jach_agent.pl,v 1.20 2006/04/10 22:59:53 aa Exp $
 
 =head1 AUTHORS
 
@@ -84,7 +84,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.19 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.20 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -492,7 +492,7 @@ if ( $config->get_state("jach.unique_process") == 1 ) {
    $config->set_option("connection.proxy", 'NONE'  ); 
    
    # mail server
-   $config->set_option("mailhost.name", 'ieie' );
+   $config->set_option("mailhost.name", 'mailhost' );
    $config->set_option("mailhost.domain", 'jach.hawaii.edu' );
    $config->set_option("mailhost.timeout", 30 );
    $config->set_option("mailhost.debug", 1 );
@@ -823,6 +823,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: jach_agent.pl,v $
+# Revision 1.20  2006/04/10 22:59:53  aa
+# Mail via mailhost.jach.hawaii.edu
+#
 # Revision 1.19  2006/02/15 12:31:52  aa
 # Fixes for new project U/06A/36 for GRB work
 #

@@ -36,7 +36,7 @@
   my $config = new eSTAR::Config(  );  
 
    # mail server
-   $config->set_option("mailhost.name", 'ieie' );
+   $config->set_option("mailhost.name", 'mailhost' );
    $config->set_option("mailhost.domain", 'jach.hawaii.edu' );
    $config->set_option("mailhost.timeout", 30 );
    $config->set_option("mailhost.debug", 0 );  

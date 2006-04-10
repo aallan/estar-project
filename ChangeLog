@@ -8,6 +8,8 @@
 	* eSTAR/Mail.pm: removed automatic Cc to aa@astro.ex.ac.uk, as all
           current messages are now getting Cc'd to estar-status
 
+        * Mail should go via mailhost.jach.hawaii.edu rather than ieie now?
+
 2006-03-23 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * bin/ogle_fetch.pl: Fixed to default to observation request to run 
