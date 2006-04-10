@@ -20,7 +20,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: ogle_fetch.pl,v 1.11 2006/03/27 10:56:29 aa Exp $
+$Id: ogle_fetch.pl,v 1.12 2006/04/10 22:47:23 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -37,7 +37,7 @@ use vars qw / $VERSION /;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -254,7 +254,7 @@ if ( $config->get_state("of.unique_process") == 1 ) {
    $config->set_option("science.seeing", "1.0" );
    $config->set_option("science.q", "0.001" );
    $config->set_option("science.dchi", "25" );
-   $config->set_option("science.hours", "0.5" );
+   $config->set_option("science.hours", "2.0" );
     
    # C O M M I T T   O P T I O N S  T O   F I L E S
    # ----------------------------------------------

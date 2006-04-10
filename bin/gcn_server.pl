@@ -22,7 +22,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: gcn_server.pl,v 1.19 2006/02/16 22:56:47 aa Exp $
+$Id: gcn_server.pl,v 1.20 2006/04/10 22:47:23 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -41,7 +41,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.19 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.20 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -433,9 +433,9 @@ my $tcp_callback = sub {
          
              eSTAR::Mail::send_mail( $config->get_option("user.email_address"), 
                                      $config->get_option("user.real_name"),
-                                     'aa@astro.ex.ac.uk',
+                                     'estar@astro.ex.ac.uk',
                                      'eSTAR ACK SWIFT BAT postion',
-                                     $mail_body, 'estar-devel@estar.org.uk' );         
+                                     $mail_body, 'estar-status@estar.org.uk' );         
          
          
 #             # Send a notification
@@ -455,9 +455,9 @@ my $tcp_callback = sub {
 #         
 #             eSTAR::Mail::send_mail( $config->get_option("user.email_address"), 
 #                                     $config->get_option("user.real_name"),
-#                                     'aa@astro.ex.ac.uk',
+#                                     'estar@astro.ex.ac.uk',
 #                                     'eSTAR ACK SWIFT BAT postion',
-#                                     $mail_body, 'estar-devel@estar.org.uk' ); 
+#                                     $mail_body, 'estar-status@estar.org.uk' ); 
 
 #             # Make SOAP calls
 #             # ---------------
@@ -514,9 +514,9 @@ my $tcp_callback = sub {
 #         
 #                   eSTAR::Mail::send_mail( $config->get_option("user.email_address"), 
 #                                           $config->get_option("user.real_name"),
-#                                           'aa@astro.ex.ac.uk',
+#                                           'estar@astro.ex.ac.uk',
 #                                           'eSTAR User Agent Connection Problem (initial)',
-#                                           $mail_body, 'estar-devel@estar.org.uk' ); 
+#                                           $mail_body, 'estar-status@estar.org.uk' ); 
 #             } 
 #             $log->print("Connection closed");  
 #          } else {
@@ -539,9 +539,9 @@ my $tcp_callback = sub {
 #         
 #             eSTAR::Mail::send_mail( $config->get_option("user.email_address"), 
 #                                     $config->get_option("user.real_name"),
-#                                     'aa@astro.ex.ac.uk',
+#                                     'estar@astro.ex.ac.uk',
 #                                     'eSTAR ACK SWIFT BAT (no observation)',
-#                                     $mail_body, 'estar-devel@estar.org.uk' ); 
+#                                     $mail_body, 'estar-status@estar.org.uk' ); 
 #             
 #          }       
          }
@@ -587,9 +587,9 @@ my $tcp_callback = sub {
          
          eSTAR::Mail::send_mail( $config->get_option("user.email_address"), 
                                  $config->get_option("user.real_name"),
-                                 'aa@astro.ex.ac.uk',
+                                 'estar@astro.ex.ac.uk',
                                  'eSTAR ACK SWIFT XRT postion',
-                                 $mail_body, 'estar-devel@estar.org.uk' ); 
+                                 $mail_body, 'estar-status@estar.org.uk' ); 
                                             
 
          # Make SOAP calls
@@ -647,9 +647,9 @@ my $tcp_callback = sub {
          
                 eSTAR::Mail::send_mail( $config->get_option("user.email_address"), 
                                         $config->get_option("user.real_name"),
-                                        'aa@astro.ex.ac.uk',
+                                        'estar@astro.ex.ac.uk',
                                         'eSTAR User Agent Connection Problem (initial)',
-                                        $mail_body, 'estar-devel@estar.org.uk' );                 
+                                        $mail_body, 'estar-status@estar.org.uk' );                 
                   
          } 
          $log->print("Connection closed");  
@@ -680,9 +680,9 @@ my $tcp_callback = sub {
          
             eSTAR::Mail::send_mail( $config->get_option("user.email_address"), 
                                     $config->get_option("user.real_name"),
-                                    'aa@astro.ex.ac.uk',
+                                    'estar@astro.ex.ac.uk',
                                     'eSTAR User Agent Connection Problem (burst)',
-                                    $mail_body, 'estar-devel@estar.org.uk' );    
+                                    $mail_body, 'estar-status@estar.org.uk' );    
                                        
                                                    
          } else {

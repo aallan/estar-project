@@ -104,10 +104,10 @@ unless ( defined $status ) {
      my $real_name = ${$current_user}{"GCOS"};
   
      # user defaults
-     $config->set_option("user.user_name", "aa" );
-     $config->set_option("user.real_name", "Alasdair Allan" );
-     $config->set_option("user.email_address", 'aa@astro.ex.ac.uk');
-     $config->set_option("user.institution", "University of Exeter" );
+     $config->set_option("user.user_name", "estar" );
+     $config->set_option("user.real_name", "eSTAR Status List" );
+     $config->set_option("user.email_address", 'estar-status@estar.org.uk');
+     $config->set_option("user.institution", "eSTAR Project at Exeter University" );
      $config->set_option("user.notify", 1 );
 
      # node port
@@ -447,14 +447,14 @@ unless ( defined $status ) {
   my $mail_body = $content;
   
   my $cc = undef;
-  if ( ctime() =~ "18:00" ) {
-     # Cc estar-devel mailing list once per day
-     $cc = 'estar-devel@estar.org.uk';
-  }   
+#  if ( ctime() =~ "18:00" ) {
+#     # Cc estar-status mailing list once per day
+     $cc = 'estar-status@estar.org.uk';
+#  }   
   
   eSTAR::Mail::send_mail( $config->get_option("user.email_address"), 
                           $config->get_option("user.real_name"),
-                          'aa@astro.ex.ac.uk',
+                          'estar@astro.ex.ac.uk',
                           'eSTAR Network Status',
                           $mail_body, $cc );              
   

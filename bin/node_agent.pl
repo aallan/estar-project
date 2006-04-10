@@ -23,7 +23,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: node_agent.pl,v 1.15 2006/02/27 15:47:01 aa Exp $
+#     $Id: node_agent.pl,v 1.16 2006/04/10 22:47:23 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -69,7 +69,7 @@ have a duplicate copy of the current user database.
 
 =head1 REVISION
 
-$Id: node_agent.pl,v 1.15 2006/02/27 15:47:01 aa Exp $
+$Id: node_agent.pl,v 1.16 2006/04/10 22:47:23 aa Exp $
 
 =head1 AUTHORS
 
@@ -86,7 +86,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.15 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.16 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -538,7 +538,7 @@ my $tcp_callback = sub {
    # HANDLE MESSAGE
    # --------------
    
-   #print "\n\n\n$rtml\n\n\n";
+   $log->warn( "$rtml" );
    
    # fudge the message
    my ( $host, $port, $ident ) = eSTAR::Util::fudge_message( $rtml );  
@@ -675,7 +675,7 @@ my $tcpip_server = sub {
       $buffer = undef;
      
       # read network ordered long int
-      $bytes_read = sysread( $listen, $length, 4 );
+      $bytes_read = read( $listen, $length, 4 );
       $length = unpack( "N", $length );
       
       if ( $length > 512000 ) {
@@ -684,10 +684,11 @@ my $tcpip_server = sub {
          $log->warn( "Warning: Discarding bogus message" );
       } else {   
          
+         $log->thread2( $thread_name,  "Message recieved at ". localtime() );
          $log->thread2( $thread_name,  "Message is $length characters" );
       
          # read message
-         $bytes_read = sysread( $listen, $buffer, $length);
+         $bytes_read = read( $listen, $buffer, $length);
        
          # callback to handle incoming RTML     
          my $callback_thread = threads->create ( $tcp_callback, $buffer );
@@ -786,6 +787,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: node_agent.pl,v $
+# Revision 1.16  2006/04/10 22:47:23  aa
+# Changes since disk crash on butch.astro.ex.ac.uk, CVS archive moved to pinky.astro.ex.ac.uk
+#
 # Revision 1.15  2006/02/27 15:47:01  aa
 # remote TEA host and port now command line arguements
 #

@@ -78,10 +78,10 @@
      "the template observations. If this is not fixed then GCN alerts will\n".
      "not be observed by the eSTAR system.\n\n".
      "$error\n";
-     eSTAR::Mail::send_mail( 'aa@astro.ex.ac.uk', 'Alasdair Allan',
+     eSTAR::Mail::send_mail( 'estar-status@estar.org.uk', 'eSTAR Status List',
                              'frossie@jach.hawaii.edu',
                              "eSTAR $curr_inst template files",
-                              $mail_body, 'estar-devel@estar.org.uk' );     
+                              $mail_body, 'frossie@jach.hawaii.edu' );     
      
      exit;
   }; 
@@ -108,7 +108,7 @@
      eSTAR::Mail::send_mail( 'nrt@star.herts.ac.uk', 'Nial Tanvir',
                              'frossie@jach.hawaii.edu',
                              "eSTAR $curr_inst template files",
-                              $mail_body );
+                              $mail_body, 'estar-status@estar.org.uk' );
                                    
   } else {
      $log->print("Verified template for '" . $name . "' MSB");
@@ -131,7 +131,7 @@
      eSTAR::Mail::send_mail( 'nrt@star.herts.ac.uk', 'Nial Tanvir',
                              'frossie@jach.hawaii.edu',
                              "eSTAR $curr_inst template files",
-                              $mail_body, 'estar-devel@estar.org.uk' );
+                              $mail_body, 'estar-status@estar.org.uk' );
                                    
   } else {
      $log->print("Verified template for '" . $name . "' MSB");
