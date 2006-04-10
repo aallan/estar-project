@@ -1,3 +1,18 @@
+2006-04-10 Alasdair Allan <aa@astro.ex.ac.uk>
+
+ 	* Changed all Cc'ing from estar-devel to estar-status lists. Changes
+          to gcn_server.pl, test_templates.pl, test_servers.pl and the UA
+          and JACH Handler.pm modules. Also changed things so emails are
+	  sent from estar@astro.ex.ac.uk rather than aa@astro.ex.ac.uk
+
+	* eSTAR/Mail.pm: removed automatic Cc to aa@astro.ex.ac.uk, as all
+          current messages are now getting Cc'd to estar-status
+
+2006-03-23 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * bin/ogle_fetch.pl: Fixed to default to observation request to run 
+          from now till 13 hours (not 12 hours) later. 
+          
 2006-03-21 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * bin/event_broker.pl: Changed default RAPTOR socket to connect
