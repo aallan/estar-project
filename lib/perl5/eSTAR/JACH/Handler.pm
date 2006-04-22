@@ -604,7 +604,13 @@ sub handle_rtml {
          my $password =  $project->get_project("project.".$project_id);
 
          try {                                  
-            $sp = OMP::SpServer->fetchProgram( $project_id, $password, 1 );
+            eval { $sp = 
+                 OMP::SpServer->fetchProgram( $project_id, $password, 1 ); };
+            if ( $@ ) {
+               my $error = "$@";
+               throw eSTAR::Error::FatalError( 
+                   "OMP::SpServer()->fetchProgram returned: $error" );
+            }       
             unless ( $sp ) {
                throw eSTAR::Error::FatalError( 
                    "OMP::SpServer()->fetchProgram returned undef..."); 
@@ -616,6 +622,7 @@ sub handle_rtml {
             $log->error( "Error: $error" );
             $flag = 1;
          }; 
+
          if ( $flag ) { 
                
             # return the RTML document
