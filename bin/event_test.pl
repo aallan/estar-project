@@ -61,20 +61,31 @@ sub callback {
     
     my $counter = 1;
     
-      # read from data block
-      my @buffer = <DATA>;
+    # read from data block
+    my @buffer = <DATA>;
 
-      my $pid = getpgrp();
+    my $pid = getpgrp();
 
-      my $xml = "";
-      foreach my $i ( 0 ... $#buffer ) {
-         $xml = $xml . $buffer[$i];
-      }
+    my $xml = "";
+    foreach my $i ( 0 ... $#buffer ) {
+       $xml = $xml . $buffer[$i];
+    }
 
     while ( 1 ) {
       print "THREAD: Sleeping for $wait seconds...\n";
       sleep $wait;
       $counter = $counter + 1;
+      my $ra = 0.2;
+      $ra = $ra + 10*$counter;
+      my $dec = 75.2;
+
+      # SMC
+      #my $ra = "13.273740468478499";
+      #my $dec ="-72.80148644174551";
+      
+      # LMC
+      #my $ra = "79.94189584185203",
+      #my $dec = "-68.83347100046278";  
       
       my $connect = $c->connected();
       unless( defined $connect ) {
@@ -87,7 +98,7 @@ sub callback {
       my $xml = 
   "<?xml version = '1.0' encoding = 'UTF-8'?>\n".
   '<VOEvent role="test" version="1.1" '.
-  'id="ivo://uk.org.estar/estar.ex#test/'. $pid . ".". $counter .'" '.
+  'ivorn="ivo://uk.org.estar/estar.ex#test/'. $pid . ".". $counter .'" '.
   'xmlns="http://www.ivoa.net/xml/VOEvent/v1.1" '.
   'xsi:schemaLocation="http://www.ivoa.net/xml/STC/stc-v1.20.xsd'. 
   ' http://hea-www.harvard.edu/~arots/nvometa/v1.2/stc-v1.20.xsd'. 
@@ -106,6 +117,22 @@ sub callback {
   '  <PublisherID>ivo://uk.org.estar/estar.ex#</PublisherID>'. "\n".
   '  <Date>'.time_iso().'</Date>'. "\n".
   '</Who>'. "\n".
+  '   <WhereWhen type="simple">'. "\n".
+  '      <RA units="deg">'. "\n".
+  '          <Coord>'.$ra.'</Coord>'. "\n".
+  '          <Error value="4" units="arcmin" />'. "\n".
+  '      </RA>'. "\n".
+  '      <Dec units="deg">'. "\n".
+  '          <Coord>'.$dec.'</Coord>'. "\n".
+  '          <Error value="4" units="arcmin" />'. "\n".
+  '      </Dec>'. "\n".
+  '      <Epoch value="J2000.0" />'. "\n".
+  '      <Equinox value="2000.0" />'. "\n".
+  '      <Time>'. "\n".
+  '          <Value>2005-04-15T23:59:59</Value>'. "\n".
+  '          <Error value="30" units="s" />'. "\n".
+  '      </Time>'. "\n".
+  '  </WhereWhen>'. "\n".
   '<What>'. "\n".
   '  <Param value="test" name="TYPE" />'. "\n".
   '  <Param value="'.$counter.'" name="COUNTER" />'. "\n".

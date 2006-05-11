@@ -76,7 +76,7 @@ while( $flag ) {
 	 my $response;
 	 if ( $object->role() eq "iamalive" ) {
 #	    $response = "<?xml version='1.0' encoding='UTF-8'?>"."\n".
-#'<VOEvent role="iamalive" id="ivo://estar.ex/144.173.229.20.1" version="1.1">'."\n".
+#'<VOEvent role="iamalive" ivorn="ivo://estar.ex/144.173.229.20.1" version="1.1">'."\n".
 #' <Who>'."\n".
 #'   <PublisherID>ivo://estar.ex</PublisherID>'."\n".
 #' </Who>'."\n".
@@ -85,7 +85,7 @@ while( $flag ) {
             $response = $message;
          } else {
 	    $response = "<?xml version='1.0' encoding='UTF-8'?>"."\n".
-'<VOEvent role="ack" id="ivo://estar.ex/144.173.229.20.1" version="1.1">'."\n".
+'<VOEvent role="ack" ivorn="ivo://estar.ex/144.173.229.20.1" version="1.1">'."\n".
 ' <Who>'."\n".
 '   <PublisherID>ivo://estar.ex</PublisherID>'."\n".
 ' </Who>'."\n".

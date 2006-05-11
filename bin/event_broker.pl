@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.62 2006/03/21 09:50:49 aa Exp $
+$Id: event_broker.pl,v 1.63 2006/05/11 15:36:52 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.62 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.63 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -467,7 +467,7 @@ my $other_ack_port_callback = sub {
     $log->debug( "Building ACK message..." );
     $response =
   "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
-  '<VOEvent role="ack" version="1.1" id="ivo://uk.org.estar/estar.broker#ack" '.
+  '<VOEvent role="ack" version="1.1" ivorn="ivo://uk.org.estar/estar.broker#ack" '.
   'xmlns="http://www.ivoa.net/xml/VOEvent/v1.1">' . "\n" . 
   '<Who>' . "\n" . 
   '   <PublisherID>ivo://uk.org.estar/estar.broker#</PublisherID>' . "\n" . 
@@ -1009,7 +1009,7 @@ my $incoming_connection = sub {
                   $message =
        "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
        '<VOEvent role="ack" version="1.1" '.
-       'id="ivo://uk.org.estar/estar.broker#ack" '.
+       'ivorn="ivo://uk.org.estar/estar.broker#ack" '.
        'xmlns="http://www.ivoa.net/xml/VOEvent/v1.1">' . "\n" . 
        '<Who>' . "\n" . 
        '   <PublisherID>ivo://uk.org.estar/estar.broker#</PublisherID>' . "\n" .
@@ -1130,7 +1130,7 @@ my $iamalive = sub {
       # build the IAMALIVE message
       my $alive =
        "<?xml version='1.0' encoding='UTF-8'?>\n" .
-       '<VOEvent role="iamalive" id="' .
+       '<VOEvent role="iamalive" ivorn="' .
        'ivo://uk.org.estar/estar.broker#' . $id . '" version="1.1" '.
        'xmlns="http://www.ivoa.net/xml/VOEvent/v1.1">' . "\n" .
        ' <Who>' . "\n" .
@@ -1162,8 +1162,9 @@ my $iamalive = sub {
         local $SIG{ALRM} = sub { die "socket connection timed out\n" };
         alarm $config->get_option( "connection.timeout" );
         $bytes_read = sysread( $c, $length, 4 );  
-        alarm 0;
       };
+      alarm 0;
+
       if ($@) {
         my $error = "$@";
 	chomp $error;
@@ -1640,6 +1641,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.63  2006/05/11 15:36:52  aa
+# Event related changes
+#
 # Revision 1.62  2006/03/21 09:50:49  aa
 # Changed RAPTOR port to use STC
 #
