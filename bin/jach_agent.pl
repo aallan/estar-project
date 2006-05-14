@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: jach_agent.pl,v 1.20 2006/04/10 22:59:53 aa Exp $
+#     $Id: jach_agent.pl,v 1.21 2006/05/14 17:27:34 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -67,7 +67,7 @@ translation layer, which also handles external phase 0 discovery requests.
 
 =head1 REVISION
 
-$Id: jach_agent.pl,v 1.20 2006/04/10 22:59:53 aa Exp $
+$Id: jach_agent.pl,v 1.21 2006/05/14 17:27:34 aa Exp $
 
 =head1 AUTHORS
 
@@ -84,7 +84,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.20 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.21 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -338,7 +338,7 @@ unless ( defined $status ) {
 use POSIX qw/:sys_wait_h/;
 use Errno qw/EAGAIN/;
 use Proc::Simple;
-use Proc::Killfam;
+#use Proc::Killfam;
 use Digest::MD5 'md5_hex';
 use Config::Simple;
 use Config::User;
@@ -813,7 +813,8 @@ sub kill_agent {
    #}
    
    # kill -9 the agent process, hung threads should die screaming
-   killfam 9, ( $config->get_state( "jach.pid") );
+   #killfam 9, ( $config->get_state( "jach.pid") );
+   $log->warn( "Warning: Not calling killfam 9" );
    
    # close the door behind you!   
    exit;
@@ -823,6 +824,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: jach_agent.pl,v $
+# Revision 1.21  2006/05/14 17:27:34  aa
+# Modifications to work on OSX, removed killfam. Fixed gcn_server.pl so that it fires on BAT positions
+#
 # Revision 1.20  2006/04/10 22:59:53  aa
 # Mail via mailhost.jach.hawaii.edu
 #

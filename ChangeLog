@@ -1,3 +1,9 @@
+2006-04-14 Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* bin/gcn_server.pl: Changed to run both initial and burst followup
+	  on BAT position. Need to do a Phase 0 lookup at UKIRT somehow so
+	  I don't have to manually fiddle this every time we change instruments
+	  
 2006-04-10 Alasdair Allan <aa@astro.ex.ac.uk>
 
  	* Changed all Cc'ing from estar-devel to estar-status lists. Changes

@@ -20,6 +20,9 @@
 
 #  History:
 #     $Log: user_agent.csh,v $
+#     Revision 1.2  2006/05/14 17:27:34  aa
+#     Modifications to work on OSX, removed killfam. Fixed gcn_server.pl so that it fires on BAT positions
+#
 #     Revision 1.1  2004/11/30 19:05:31  aa
 #     Working user_agent.pl, Handler.pm cleaned of most $main:: references. Only $main::OPT{http_agent} reference remains, similar to jach_agent.pl. Not tried a loopback test yet
 #
@@ -34,12 +37,21 @@
 #
 
 #  Revision:
-#     $Id: user_agent.csh,v 1.1 2004/11/30 19:05:31 aa Exp $
+#     $Id: user_agent.csh,v 1.2 2006/05/14 17:27:34 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
 
 #-
+
+# Set up back door for the version number
+
+if ($?ESTAR_VERSION) then
+  set pkgvers = $ESTAR_VERSION
+  echo "ESTAR_VERSION = ${ESTAR_VERSION}"
+else
+  set pkgvers = 3.0
+endif
 
 # Need to make sure we use the right PERL (v5.8.0)
 
@@ -66,15 +78,6 @@ else
   exit
 endif
       
-# Set up back door for the version number
-
-if ($?ESTAR_VERSION) then
-  set pkgvers = $ESTAR_VERSION
-  echo "ESTAR_VERSION = ${ESTAR_VERSION}"
-else
-  set pkgvers = 3.0
-endif
-
 # Default for ESTAR_PERL5LIB
 
 if (! $?ESTAR_PERL5LIB) then
