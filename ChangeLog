@@ -4,6 +4,18 @@
 	  on BAT position. Need to do a Phase 0 lookup at UKIRT somehow so
 	  I don't have to manually fiddle this every time we change instruments
 	  
+2006-05-13 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * bin/ogle_fetch.pl: Fixed code to have alternative OB06xxx representation
+          when passing the name to telescopes, supposrting Dan's code.
+
+2006-05-11 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * bin/event_broker.pl: Fixed "Alarm Clock" bug, moved alarm(0)
+          outside of the eval{ } block where the network timeout is set.
+
+        * In all VOEvent related code, changed id="" to ivorn="" for v1.1
+
 2006-04-10 Alasdair Allan <aa@astro.ex.ac.uk>
 
  	* Changed all Cc'ing from estar-devel to estar-status lists. Changes

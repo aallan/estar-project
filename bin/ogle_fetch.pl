@@ -20,7 +20,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: ogle_fetch.pl,v 1.12 2006/04/10 22:47:23 aa Exp $
+$Id: ogle_fetch.pl,v 1.13 2006/05/14 17:31:13 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -37,7 +37,7 @@ use vars qw / $VERSION /;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.13 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -739,6 +739,13 @@ foreach my $n ( 0 ... $#data ) {
    
    $log->print("Building observation object for ${$data[$n]}{ID}" );
    $log->print("Co-ordinates (RA ${$data[$n]}{RA}, Dec ${$data[$n]}{Dec}" .")");
+
+   my @name = split "-", ${$data[$n]}{ID};
+   my $year = $name[1];
+   $year =~ s/20//;
+   my $id = "OB". $year. sprintf("%03d", $name[3]);
+   ${$data[$n]}{ID} = $id;
+   $log->warn("Warning: Fixing object name to ${$data[$n]}{ID}" );
     
    my %observation;
    if ( defined ${$data[$n]}{GroupCount} &&
