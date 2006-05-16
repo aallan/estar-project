@@ -96,43 +96,51 @@ sub callback {
 
       my $previous = $counter - 1;
       my $xml = 
-  "<?xml version = '1.0' encoding = 'UTF-8'?>\n".
-  '<VOEvent role="test" version="1.1" '.
+  "<?xml version = '1.0' encoding = 'UTF-8'?>"."\n".
+  '<VOEvent role="test" version= "1.1x" '.
   'ivorn="ivo://uk.org.estar/estar.ex#test/'. $pid . ".". $counter .'" '.
   'xmlns="http://www.ivoa.net/xml/VOEvent/v1.1" '.
-  'xsi:schemaLocation="http://www.ivoa.net/xml/STC/stc-v1.20.xsd'. 
-  ' http://hea-www.harvard.edu/~arots/nvometa/v1.2/stc-v1.20.xsd'. 
-  ' http://www.ivoa.net/xml/STC/STCcoords/v1.20'. 
-  ' http://hea-www.harvard.edu/~arots/nvometa/v1.2/coords-v1.20.xsd'.
-  ' http://www.ivoa.net/xml/VOEvent/v1.1 '. 
-  ' http://www.ivoa.net/internal/IVOA/IvoaVOEvent/VOEvent-v1.0.xsd" '. 
-  'xmlns:stc="http://www.ivoa.net/xml/STC/stc-v1.20.xsd" '. 
-  'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '. 
-  'xmlns:crd="http://www.ivoa.net/xml/STC/STCcoords/v1.20">'."\n".
-  '<Citations>'."\n".
-  '  <EventID cite="supersedes">ivo://uk.org.estar/estar.ex#test/'. $pid . "." . $previous . 
-  '</EventID>' . "\n".
+  'xmlns:xlink="http://www.w3.org/1999/xlink" '.
+  'xsi:schemaLocation="http://www.ivoa.net/xml/VOEvent/v1.1'.
+  ' http://www.ivoa.net/internal/IVOA/IvoaVOEvent/VOEvent-v1.1-060425.xsd" '. 
+  'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'."\n".
+  '<Citations>'."\n".  
+  '  <EventIVORN cite="supersedes">'.
+  'ivo://uk.org.estar/estar.ex#test/'. $pid . "." . $previous .
+  '</EventIVORN>' . "\n".
   '</Citations>'. "\n".
   '<Who>'. "\n".
-  '  <PublisherID>ivo://uk.org.estar/estar.ex#</PublisherID>'. "\n".
+  '  <AuthorIVORN>ivo://uk.org.estar/estar.ex#</AuthorIVORN>'. "\n".
   '  <Date>'.time_iso().'</Date>'. "\n".
   '</Who>'. "\n".
-  '   <WhereWhen type="simple">'. "\n".
-  '      <RA units="deg">'. "\n".
-  '          <Coord>'.$ra.'</Coord>'. "\n".
-  '          <Error value="4" units="arcmin" />'. "\n".
-  '      </RA>'. "\n".
-  '      <Dec units="deg">'. "\n".
-  '          <Coord>'.$dec.'</Coord>'. "\n".
-  '          <Error value="4" units="arcmin" />'. "\n".
-  '      </Dec>'. "\n".
-  '      <Epoch value="J2000.0" />'. "\n".
-  '      <Equinox value="2000.0" />'. "\n".
-  '      <Time>'. "\n".
-  '          <Value>2005-04-15T23:59:59</Value>'. "\n".
-  '          <Error value="30" units="s" />'. "\n".
-  '      </Time>'. "\n".
-  '  </WhereWhen>'. "\n".
+  '<WhereWhen>'. "\n".
+  '  <ObsDataLocation '.
+  'xmlns="http://www.ivoa.net/xml/STC/stc-v1.30.xsd" '.
+  'xmlns:xlink="http://www.w3.org/1999/xlink">'. "\n".
+  '    <ObservatoryLocation id="GEOLUN" xlink:type="simple" '.
+  'xlink:href="ivo://STClib/Observatories#GEOLUN">'. "\n".
+  '      <ObservationLocation>'. "\n".
+  '        <AstroCoordSystem id="UTC-FKC-GEO" xlink:type="simple" '.
+  'xlink:href="ivo://STClib/CoordSys#UTC-FK5-GEO/">'. "\n".
+  '          <AstroCoords coord_system_id="UTC-FK5-GEO">'. "\n".
+  '            <Time unit="s">'. "\n".
+  '              <TimeInstant>'. "\n".
+  '                <ISOTime>'.time_iso().'</ISOTime>'. "\n".
+  '              </TimeInstant>'. "\n".
+  '            </Time>'. "\n".
+  '            <Position2D unit="deg">'. "\n".
+  '              <Value2>'. "\n".
+  '                <C1>'.$ra.'</C1>'. "\n".
+  '                <C2>'.$dec.'</C2>'. "\n".
+  '              </Value2>'. "\n".
+  '              <Error2Radius>0.01</Error2Radius>'. "\n".
+  '            </Position2D>'. "\n".
+  '          </AstroCoords>'. "\n".
+  '        </AstroCoordSystem>'. "\n".
+  '      </ObservationLocation>'. "\n".
+  '    </ObservatoryLocation>'. "\n".
+  '  </ObsDataLocation>'. "\n".
+  '</WhereWhen>'. "\n".
   '<What>'. "\n".
   '  <Param value="test" name="TYPE" />'. "\n".
   '  <Param value="'.$counter.'" name="COUNTER" />'. "\n".
@@ -149,7 +157,7 @@ sub callback {
   '    <Description>An esSTAR test packet</Description>'. "\n".
   '  </Inference>'. "\n".
   '</Why>'. "\n".
-  '</VOEvent>'. "\n"; 
+  '</VOEvent>'. "\n";
       
       my $bytes = pack( "N", length($xml) );
       print $c $bytes;
