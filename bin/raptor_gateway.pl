@@ -36,7 +36,7 @@ requests for the RAPTOR/TALON telescopes.
 
 =head1 REVISION
 
-$Id: raptor_gateway.pl,v 1.30 2005/12/23 13:00:13 aa Exp $
+$Id: raptor_gateway.pl,v 1.31 2006/05/19 21:58:52 aa Exp $
 
 =head1 AUTHORS
 
@@ -53,7 +53,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.30 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.31 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -482,14 +482,19 @@ my $iamalive = sub {
       my $status = $PING->save( $ping_file );           
       # build the IAMALIVE message
       my $alive =
-         "<?xml version='1.0' encoding='UTF-8'?>\n" .
-         '<VOEvent role="iamalive" id="' .
-         'ivo://estar.ex/' . $id . '" version="1.1">' . "\n" .
-         ' <Who>' . "\n" .
-         '   <PublisherID>ivo://estar.ex</PublisherID>' . "\n" .
-         '   <Date>' . $timestamp . '</Date>'  . "\n" .
-         ' </Who>' . "\n" .
-         '</VOEvent>' . "\n";
+  "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
+  '<voe:VOEvent role="iamalive" version= "1.1" '.
+  'ivorn="ivo://uk.org.estar/estar.broker#' . $id . '" '.
+  'xmlns:voe="http://www.ivoa.net/xml/VOEvent/v1.1" '.
+  'xmlns:xlink="http://www.w3.org/1999/xlink" '.
+  'xsi:schemaLocation="http://www.ivoa.net/xml/VOEvent/v1.1'.
+  ' http://www.ivoa.net/internal/IVOA/IvoaVOEvent/VOEvent-v1.1-060425.xsd" '. 
+  'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'."\n".  
+  '<Who>' . "\n" . 
+  '   <AuthorIVORN>ivo://uk.org.estar/estar.broker#</AuthorIVORN>' . "\n" . 
+  '   <Date>' . $timestamp . '</Date>' . "\n" .
+  '</Who>' . "\n" . 
+  '</voe:VOEvent>' . "\n";      
 
       # work out message length
       my $header = pack( "N", 7 );
@@ -897,6 +902,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_gateway.pl,v $
+# Revision 1.31  2006/05/19 21:58:52  aa
+# Moved to VOEvent v1.1
+#
 # Revision 1.30  2005/12/23 13:00:13  aa
 # Bug fix
 #

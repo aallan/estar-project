@@ -75,21 +75,20 @@ while( $flag ) {
 	 
 	 my $response;
 	 if ( $object->role() eq "iamalive" ) {
-#	    $response = "<?xml version='1.0' encoding='UTF-8'?>"."\n".
-#'<VOEvent role="iamalive" ivorn="ivo://estar.ex/144.173.229.20.1" version="1.1">'."\n".
-#' <Who>'."\n".
-#'   <PublisherID>ivo://estar.ex</PublisherID>'."\n".
-#' </Who>'."\n".
-#'</VOEvent>'."\n";
-
-            $response = $message;
+	    $response = $message;
          } else {
-	    $response = "<?xml version='1.0' encoding='UTF-8'?>"."\n".
-'<VOEvent role="ack" ivorn="ivo://estar.ex/144.173.229.20.1" version="1.1">'."\n".
-' <Who>'."\n".
-'   <PublisherID>ivo://estar.ex</PublisherID>'."\n".
-' </Who>'."\n".
-'</VOEvent>'."\n";
+	    $response = "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
+  '<voe:VOEvent role="ack" version= "1.1" '.
+  'ivorn="ivo://uk.org.estar/estar.broker#ack" '.
+  'xmlns:voe="http://www.ivoa.net/xml/VOEvent/v1.1" '.
+  'xmlns:xlink="http://www.w3.org/1999/xlink" '.
+  'xsi:schemaLocation="http://www.ivoa.net/xml/VOEvent/v1.1'.
+  ' http://www.ivoa.net/internal/IVOA/IvoaVOEvent/VOEvent-v1.1-060425.xsd" '. 
+  'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'."\n".  
+  '<Who>' . "\n" . 
+  '   <AuthorIVORN>ivo://uk.org.estar/estar.broker#</AuthorIVORN>' . "\n" . 
+  '</Who>' . "\n" . 
+  '</voe:VOEvent>' . "\n";
 	 }
 	 
 	 my $bytes = pack( "N", length($response) ); 

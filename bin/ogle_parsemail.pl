@@ -181,7 +181,6 @@ foreach my $i ( 0 ... $#message ) {
 	   
 	   my $voevent = new Astro::VO::VOEvent();
 	   my $xml = $voevent->build( 
-        UseSTC => 1,   
 	Role => 'observation',
 	ID   => 'ivo://uk.org.estar/pl.edu.ogle#'.$event{name},
 	Description => "The OGLE early warning system (EWS) has detected a ".

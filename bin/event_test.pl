@@ -97,17 +97,17 @@ sub callback {
       my $previous = $counter - 1;
       my $xml = 
   "<?xml version = '1.0' encoding = 'UTF-8'?>"."\n".
-  '<VOEvent role="test" version= "1.1x" '.
+  '<voe:VOEvent role="test" version= "1.1" '.
   'ivorn="ivo://uk.org.estar/estar.ex#test/'. $pid . ".". $counter .'" '.
-  'xmlns="http://www.ivoa.net/xml/VOEvent/v1.1" '.
+  'xmlns:voe="http://www.ivoa.net/xml/VOEvent/v1.1" '.
   'xmlns:xlink="http://www.w3.org/1999/xlink" '.
   'xsi:schemaLocation="http://www.ivoa.net/xml/VOEvent/v1.1'.
   ' http://www.ivoa.net/internal/IVOA/IvoaVOEvent/VOEvent-v1.1-060425.xsd" '. 
   'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'."\n".
   '<Citations>'."\n".  
-  '  <EventIVORN cite="supersedes">'.
-  'ivo://uk.org.estar/estar.ex#test/'. $pid . "." . $previous .
-  '</EventIVORN>' . "\n".
+  '  <EventIVORN cite="supersedes">'."\n".
+  '    ivo://uk.org.estar/estar.ex#test/'. $pid . "." . $previous .
+  '  </EventIVORN>' . "\n".
   '</Citations>'. "\n".
   '<Who>'. "\n".
   '  <AuthorIVORN>ivo://uk.org.estar/estar.ex#</AuthorIVORN>'. "\n".
@@ -152,13 +152,13 @@ sub callback {
   '</What>'. "\n".
   '<Why importance="0.0">'. "\n".
   '  <Inference probability="1.0" >'. "\n".
-  '    <Concept>Test Packet</Concept>'. "\n".
-  '    <Name>test</Name>'. "\n".
-  '    <Description>An esSTAR test packet</Description>'. "\n".
+  '    <Concept>meta</Concept>'. "\n".
+  '    <Name>Test Packet</Name>'. "\n".
+  '    <Description>An eSTAR test packet</Description>'. "\n".
   '  </Inference>'. "\n".
   '</Why>'. "\n".
-  '</VOEvent>'. "\n";
-      
+  '</voe:VOEvent>'. "\n";
+
       my $bytes = pack( "N", length($xml) );
       print $c $bytes;
       print "THREAD: Sending message\n";

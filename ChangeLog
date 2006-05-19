@@ -1,3 +1,19 @@
+2006-05-19 Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* bin/event_broker.pl: Moved to VOEvent v1.1
+	
+	* bin/event_client.pl: Moved to VOEvent v1.1
+	
+	* bin/event_test.pl: Moved to VOEvent v1.1
+	
+	* bin/raptor_alert.pl: Moved to VOEvent v1.1
+	
+	* bin/raptor_gateway.pl: Moved to VOEvent v1.1
+	
+	* eSTAR/Broker/Handler.pm: Moved to VOEvent v1.1
+	
+	* bin/ogle_parsemail.pl: Removed redundant UseSTC hash element
+	
 2006-05-16 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * bin/event_test.pl: Fixed STC block
@@ -10,8 +26,9 @@
 	  
 2006-05-13 Alasdair Allan <aa@astro.ex.ac.uk>
 
-        * bin/ogle_fetch.pl: Fixed code to have alternative OB06xxx representation
-          when passing the name to telescopes, supposrting Dan's code.
+        * bin/ogle_fetch.pl: Fixed code to have alternative OB06xxx
+	  representation when passing the name to telescopes, supposrting 
+	  Dan's code.
 
 2006-05-11 Alasdair Allan <aa@astro.ex.ac.uk>
 

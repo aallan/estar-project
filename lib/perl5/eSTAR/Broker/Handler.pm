@@ -663,16 +663,21 @@ sub handle_voevent {
     $log->debug( "Building role='ack' message..." );
     my $ack_response =
   "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
-  '<VOEvent role="ack" version="1.1" id="ivo://uk.org.estar/estar.broker#ack" '.
-  'xmlns="http://www.ivoa.net/xml/VOEvent/v1.1">' . "\n" . 
+  '<voe:VOEvent role="ack" version= "1.1" '.
+  'ivorn="ivo://uk.org.estar/estar.broker#ack" '.
+  'xmlns:voe="http://www.ivoa.net/xml/VOEvent/v1.1" '.
+  'xmlns:xlink="http://www.w3.org/1999/xlink" '.
+  'xsi:schemaLocation="http://www.ivoa.net/xml/VOEvent/v1.1'.
+  ' http://www.ivoa.net/internal/IVOA/IvoaVOEvent/VOEvent-v1.1-060425.xsd" '. 
+  'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'."\n".  
   '<Who>' . "\n" . 
-  '   <PublisherID>ivo://uk.org.estar/estar.broker#</PublisherID>' . "\n" . 
+  '   <AuthorIVORN>ivo://uk.org.estar/estar.broker#</AuthorIVORN>' . "\n" . 
   '   <Date>' . eSTAR::Broker::Util::time_iso() . '</Date>' . "\n" .
   '</Who>' . "\n" . 
   '<What>' . "\n" . 
   '   <Param value="stored" name="'. $file .'" />' . "\n" . 
   '</What>' . "\n" . 
-  '</VOEvent>' . "\n";      
+  '</voe:VOEvent>' . "\n";   
    
    $log->debug( "Returning 'ACK' message" );
    return SOAP::Data->name('return', $ack_response )->type('base64');

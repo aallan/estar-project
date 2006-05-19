@@ -35,7 +35,7 @@ incoming alerts from the RAPTOR system.
 
 =head1 REVISION
 
-$Id: raptor_alert.pl,v 1.17 2005/12/21 15:37:30 aa Exp $
+$Id: raptor_alert.pl,v 1.18 2006/05/19 21:58:52 aa Exp $
 
 =head1 AUTHORS
 
@@ -52,7 +52,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.17 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.18 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -405,30 +405,20 @@ my $ack_callback = sub {
   # return an ack message
   my $ack =
    "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
-   '<VOEvent xmlns="http://www.ivoa.net/xml/VOEvent/v1.0"' . "\n" .
-   'xmlns:schemaLocation="http://www.ivoa.net/xml/STC/stc-v1.20.xsd ' .
-   'http://hea-www.harvard.edu/~arots/nvometa/v1.2/stc-v1.20.xsd ' .
-   'http://www.ivoa.net/xml/STC/STCcoords/v1.20 ' .
-   'http://hea-www.harvard.edu/~arots/nvometa/v1.2/coords-v1.20.xsd ' .
-   'http://www.ivoa.net/xml/VOEvent/v1.0 ' .
-   'http://www.ivoa.net/internal/IVOA/IvoaVOEvent/VOEvent-v1.0.xsd" ' . "\n" .
-   'role="ack"' . "\n" .
-   'xmlns:stc="http://www.ivoa.net/xml/STC/stc-v1.20.xsd"' . "\n" .
-   'version="1.0"' . "\n" .
-   'xmlns:crd="http://www.ivoa.net/xml/STC/STCcoords/v1.20"' . "\n" . 
-   'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"' . "\n" . 
-   'id="ivo://estar.ex/ack" >' . "\n" . 
-   '<Citations/>' . "\n" . 
-   '<Who>' . "\n" . 
-   '   <PublisherID>ivo://estar.ex/</PublisherID>' . "\n" . 
-   '</Who>' . "\n" . 
-   '<What>' . "\n" . 
-   '   <Param value="stored" name="'. $file .'" />' . "\n" . 
-   '</What>' . "\n" . 
-   '<WhereWhen/>' . "\n" . 
-   '<How/>' . "\n" . 
-   '<Why/>' . "\n" . 
-   '</VOEvent>' . "\n";
+  '<voe:VOEvent role="ack" version= "1.1" '.
+  'ivorn="ivo://uk.org.estar/estar.broker#ack" '.
+  'xmlns:voe="http://www.ivoa.net/xml/VOEvent/v1.1" '.
+  'xmlns:xlink="http://www.w3.org/1999/xlink" '.
+  'xsi:schemaLocation="http://www.ivoa.net/xml/VOEvent/v1.1'.
+  ' http://www.ivoa.net/internal/IVOA/IvoaVOEvent/VOEvent-v1.1-060425.xsd" '. 
+  'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'."\n".  
+  '<Who>' . "\n" . 
+  '   <AuthorIVORN>ivo://uk.org.estar/estar.broker#</AuthorIVORN>' . "\n" . 
+  '</Who>' . "\n" . 
+  '<What>' . "\n" . 
+  '   <Param value="stored" name="'. $file .'" />' . "\n" . 
+  '</What>' . "\n" . 
+  '</voe:VOEvent>' . "\n";
 
   # work out message length
   my $header = pack( "N", 7 );
@@ -902,6 +892,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_alert.pl,v $
+# Revision 1.18  2006/05/19 21:58:52  aa
+# Moved to VOEvent v1.1
+#
 # Revision 1.17  2005/12/21 15:37:30  aa
 # Lots of changes, see ChangeLog
 #
