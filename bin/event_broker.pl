@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.64 2006/05/19 21:58:52 aa Exp $
+$Id: event_broker.pl,v 1.65 2006/05/19 22:15:12 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.64 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.65 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -1218,6 +1218,7 @@ my $iamalive = sub {
 	    chomp ( $error );
 	    $log->error( "Error: Cannot parse VOEvent message" );
 	    $log->error( "Error: $error" );
+	    $log->error( $response );
 	 
          } elsif( $event->role() eq "ack" ) {
            $log->warn( "Warning: Recieved an ACK message from $server");
@@ -1654,6 +1655,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.65  2006/05/19 22:15:12  aa
+# Added more debug
+#
 # Revision 1.64  2006/05/19 21:58:52  aa
 # Moved to VOEvent v1.1
 #
