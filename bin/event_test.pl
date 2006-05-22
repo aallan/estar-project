@@ -114,32 +114,26 @@ sub callback {
   '  <Date>'.time_iso().'</Date>'. "\n".
   '</Who>'. "\n".
   '<WhereWhen>'. "\n".
-  '  <ObsDataLocation '.
-  'xmlns="http://www.ivoa.net/xml/STC/stc-v1.30.xsd" '.
-  'xmlns:xlink="http://www.w3.org/1999/xlink">'. "\n".
-  '    <ObservatoryLocation id="GEOLUN" xlink:type="simple" '.
-  'xlink:href="ivo://STClib/Observatories#GEOLUN">'. "\n".
-  '      <ObservationLocation>'. "\n".
-  '        <AstroCoordSystem id="UTC-FKC-GEO" xlink:type="simple" '.
-  'xlink:href="ivo://STClib/CoordSys#UTC-FK5-GEO/">'. "\n".
-  '          <AstroCoords coord_system_id="UTC-FK5-GEO">'. "\n".
-  '            <Time unit="s">'. "\n".
-  '              <TimeInstant>'. "\n".
-  '                <ISOTime>'.time_iso().'</ISOTime>'. "\n".
-  '              </TimeInstant>'. "\n".
-  '            </Time>'. "\n".
-  '            <Position2D unit="deg">'. "\n".
-  '              <Value2>'. "\n".
-  '                <C1>'.$ra.'</C1>'. "\n".
-  '                <C2>'.$dec.'</C2>'. "\n".
-  '              </Value2>'. "\n".
-  '              <Error2Radius>0.01</Error2Radius>'. "\n".
-  '            </Position2D>'. "\n".
-  '          </AstroCoords>'. "\n".
-  '        </AstroCoordSystem>'. "\n".
-  '      </ObservationLocation>'. "\n".
-  '    </ObservatoryLocation>'. "\n".
-  '  </ObsDataLocation>'. "\n".
+  '    <ObsDataLocation xmlns="http://www.ivoa.net/xml/STC/stc-v1.30.xsd" xmlns:xlink="http://www.w3.org/1999/xlink">'. "\n".
+  '	  <ObservatoryLocation id="GEOLUN" xlink:type="simple" xlink:href="ivo://STClib/Observatories#GEOLUN" />'. "\n".
+  '	  <ObservationLocation>'. "\n".
+  '	      <AstroCoordSystem id="UTC-FK5-GEO" xlink:type="simple" xlink:href="ivo://STClib/CoordSys#UTC-FK5-GEO/" />'. "\n".
+  '	      <AstroCoords coord_system_id="UTC-FK5-GEO">'. "\n".
+  '		  <Time unit="s">'. "\n".
+  '		      <TimeInstant>'. "\n".
+  '			  <ISOTime>2005-04-15T23:59:59</ISOTime>'. "\n".
+  '		      </TimeInstant>'. "\n".
+  '		  </Time>'. "\n".
+  '		  <Position2D unit="deg">'. "\n".
+  '		      <Value2>'. "\n".
+  '			  <C1>'.$ra.'</C1>'. "\n".
+  '			  <C2>'.$dec.'</C2>'. "\n".
+  '		      </Value2>'. "\n".
+  '		      <Error2Radius>0.01</Error2Radius>'. "\n".
+  '		  </Position2D>'. "\n".
+  '	      </AstroCoords>'. "\n".
+  '	  </ObservationLocation>'. "\n".
+  '    </ObsDataLocation>'. "\n".
   '</WhereWhen>'. "\n".
   '<What>'. "\n".
   '  <Param value="test" name="TYPE" />'. "\n".
