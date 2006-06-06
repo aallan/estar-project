@@ -1,0 +1,10 @@
+#!/bin/sh
+#
+# This script will be executed *after* all the other init scripts.
+# You can put your own initialization stuff in here if you don't
+# want to do the full Sys V style init stuff.
+
+su -l -c ~estar/startup/gcn_programme estar 2>&1 > /tmp/user.'date -I'
+
+touch /var/lock/subsys/local
+

@@ -1,0 +1,7 @@
+# start exo-planets on LT at 3pm local
+#
+0 18 * * * ~/startup/cron/ogle_fetch_LT  
+#
+# start exo-planets on FTN at 4am local
+#
+0 6 * * * ~/startup/cron/ogle_fetch_FTN

@@ -1,0 +1,3 @@
+# run the network tests on the hour  
+#
+0 * * * * ~/startup/cron/test_servers
