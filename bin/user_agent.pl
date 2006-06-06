@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: user_agent.pl,v 1.21 2006/05/14 17:27:34 aa Exp $
+#     $Id: user_agent.pl,v 1.22 2006/06/06 19:54:30 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -65,7 +65,7 @@ itself.
 
 =head1 REVISION
 
-$Id: user_agent.pl,v 1.21 2006/05/14 17:27:34 aa Exp $
+$Id: user_agent.pl,v 1.22 2006/06/06 19:54:30 aa Exp $
 
 =head1 AUTHORS
 
@@ -82,7 +82,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.21 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.22 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -422,8 +422,8 @@ $ua->set_ua( $lwp );
 #$config->set_option( "nodes.Exeter", "dn2.astro.ex.ac.uk:8080" );
 #$config->set_option( "nodes.LJM", "150.204.240.111:8080" );
 #$config->set_option( "nodes.UKIRT", "estar.ukirt.jach.hawaii.edu:8080" );
-$config->set_option( "nodes.LTproxy", "estar.astro.ex.ac.uk:8078" );
-$config->set_option( "nodes.FTNproxy", "estar.astro.ex.ac.uk:8077" );
+$config->set_option( "nodes.LTproxy", "estar3.astro.ex.ac.uk:8078" );
+$config->set_option( "nodes.FTNproxy", "estar3.astro.ex.ac.uk:8077" );
 #$config->set_option( "nodes.Test", "127.0.0.1:8080" );
 $status = $config->write_option( );
 
@@ -603,6 +603,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: user_agent.pl,v $
+# Revision 1.22  2006/06/06 19:54:30  aa
+# Updated end points
+#
 # Revision 1.21  2006/05/14 17:27:34  aa
 # Modifications to work on OSX, removed killfam. Fixed gcn_server.pl so that it fires on BAT positions
 #

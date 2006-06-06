@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.65 2006/05/19 22:15:12 aa Exp $
+$Id: event_broker.pl,v 1.66 2006/06/06 19:54:30 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.65 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.66 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -373,7 +373,7 @@ if ( $config->get_state("broker.unique_process") == 1 ) {
    $config->set_option( "raptor.ack", 43003 );
    $config->set_option( "raptor.iamalive", 60 );
 
-   $config->set_option( "estar.host", "estar.astro.ex.ac.uk" );
+   $config->set_option( "estar.host", "estar3.astro.ex.ac.uk" );
    $config->set_option( "estar.port", 9999 );
    $config->set_option( "estar.ack", 9999 );
    $config->set_option( "estar.iamalive", 60 );
@@ -386,7 +386,7 @@ if ( $config->get_state("broker.unique_process") == 1 ) {
    # list of event servers
    $config->set_option("server.RAPTOR", "raptor" );
    $config->set_option("server.eSTAR", "estar" );
-   #$config->set_option("server.Caltech", "caltech" ); 
+   $config->set_option("server.Caltech", "caltech" ); 
         
    # C O M M I T T   O P T I O N S  T O   F I L E S
    # ----------------------------------------------
@@ -1655,6 +1655,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.66  2006/06/06 19:54:30  aa
+# Updated end points
+#
 # Revision 1.65  2006/05/19 22:15:12  aa
 # Added more debug
 #
