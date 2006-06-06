@@ -1,3 +1,9 @@
+2006-06-06 Aladair Allan <aa@astro.ex.ac.uk>
+
+	* Moved services off the sying estar.astro.ex.ac.uk machine
+
+        * bin/test_servers.pl: Modified the hardcoded endpoints
+
 2006-05-22 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* bin/event_test.pl: Fixed STC block in boiler plate test message

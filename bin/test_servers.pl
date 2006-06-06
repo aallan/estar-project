@@ -168,9 +168,9 @@ unless ( defined $status ) {
 
   # list of "default" known nodes  
   $config->set_option( "nodes.UKIRT", "estar.ukirt.jach.hawaii.edu:8080" );
-  $config->set_option( "nodes.LT", "estar.astro.ex.ac.uk:8078" );
-  $config->set_option( "nodes.FTN", "estar.astro.ex.ac.uk:8077" );
-  $config->set_option( "nodes.FTS", "estar.astro.ex.ac.uk:8079" );
+  $config->set_option( "nodes.LT", "estar3.astro.ex.ac.uk:8078" );
+  $config->set_option( "nodes.FTN", "estar3.astro.ex.ac.uk:8077" );
+  $config->set_option( "nodes.FTS", "estar3.astro.ex.ac.uk:8079" );
   $config->set_option( "nodes.RAPTOR", "estar2.astro.ex.ac.uk:8080" );
   $status = $config->write_option( );
 
@@ -255,7 +255,7 @@ unless ( defined $status ) {
 
   # list of "default" known nodes  
   $config->set_option( "useragents.GRB", "estar2.astro.ex.ac.uk:8000" );
-  $config->set_option( "useragents.EXO-PLANET", "estar.astro.ex.ac.uk:8000" );
+  $config->set_option( "useragents.EXO-PLANET", "estar3.astro.ex.ac.uk:8000" );
   $status = $config->write_option( );
   
 # L O O P   T H R O U G H  A G E N T S  -------------------------------------
@@ -339,7 +339,7 @@ unless ( defined $status ) {
 # K N O W N   B R O K E R S -------------------------------------------------
 
   # list of "default" known nodes  
-  $config->set_option( "brokers.eSTAR", "estar.astro.ex.ac.uk:9099" );
+  $config->set_option( "brokers.eSTAR", "estar3.astro.ex.ac.uk:9099" );
   $status = $config->write_option( );    
     
   
