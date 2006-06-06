@@ -2,7 +2,8 @@
 
 	* Moved services off the dying estar.astro.ex.ac.uk machine
 
-        * bin/test_servers.pl: Modified the hardcoded endpoints
+        * bin/test_servers.pl: Modified the hardcoded endpoints, added
+	  pining of the actual servers as well checks on the software.
 
 	* bin/ogle_parsemail.pl: Modified the harcoded endpoint
 
@@ -11,7 +12,7 @@
 	* crontab/*: Added the crontab files into the repository
 
 	* etc/rc.d/*: Added the /etc/rc.d/rc.local files into archive
-
+	
 2006-05-22 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* bin/event_test.pl: Fixed STC block in boiler plate test message

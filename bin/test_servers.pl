@@ -195,6 +195,7 @@ unless ( defined $status ) {
     } 
     $ping->close();
   }
+  $content = $content . "\n";
 
 # K N O W N   N O D E S ---------------------------------------------------
 
