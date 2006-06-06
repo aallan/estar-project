@@ -1,0 +1,4 @@
+#! /bin/tcsh
+
+source /export/data/estar/third_generation/etc/jach_agent.csh >& ~estar/logs/jach.`date -Iseconds` &
+

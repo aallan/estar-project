@@ -1,0 +1,6 @@
+#! /bin/tcsh
+
+source ~/startup/setup_environment 
+setenv OMP_LOG_LEVEL DEBUG
+~estar/third_generation/bin/test_templates.pl -project "U/06A/36" -pass "screfera"
+

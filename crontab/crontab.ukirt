@@ -1,0 +1,2 @@
+30 * * * * $HOME/startup/test_template > ~estar/logs/templates/test.`date -Iseconds` 2>&1
+

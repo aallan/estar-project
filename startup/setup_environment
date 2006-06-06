@@ -1,0 +1,264 @@
+
+set noclobber
+set editmode=vi
+set esc="\033["
+
+umask 2
+
+###############################################################################
+#
+# Define Colours
+#
+set esc="\033["
+
+# black
+set normal="${esc}39;29m"
+set bold="${esc}39;29m"
+
+# blue
+set blue_bold="${esc}39;34;1m"
+set blue_norm="${esc}39;34m"
+
+# green
+set green_bold="${esc}39;32;1m"
+set green_norm="${esc}39;32m"
+
+# red
+set red_bold="${esc}39;31;1m"
+set red_norm="${esc}39;31m"
+
+# cyan
+set cyan_bold="${esc}39;36;1m"
+set cyan_norm="${esc}39;36m"
+
+###############################################################################
+#
+# Enable starlink software
+#
+
+echo "${cyan_norm}STARLINK Configuration${normal}"
+
+if ( -f /stardev/etc/login ) then
+  setenv STARLINK /stardev
+  source /stardev/etc/login
+  echo "  ${blue_norm}login.csh         : "\
+       "${green_norm}Development System${normal}"
+else if ( -f /star/etc/login ) then
+  setenv STARLINK /star
+  source /star/etc/login
+  echo "  ${blue_norm}login.csh         : "\
+       "${green_norm}Distributed System${normal}"
+else
+  setenv STARLINK NONE
+  echo "  ${blue_norm}login.csh         : "\
+       "${red_norm}Not Found${normal}"
+endif
+
+if ( -f /stardev/etc/cshrc ) then
+  setenv STARLINK /stardev
+  source /stardev/etc/cshrc
+  echo "  ${blue_norm}cshrc.csh         : "\
+       "${green_norm}Development System${normal}"
+else if ( -f /star/etc/cshrc ) then
+  setenv STARLINK /star
+  source /star/etc/cshrc
+  echo "  ${blue_norm}cshrc.csh         : "\
+       "${green_norm}Distributed System${normal}"
+else
+  setenv STARLINK NONE
+  echo "  ${blue_norm}cshrc.csh         : "\
+       "${red_norm}Not Found${normal}"
+endif
+echo ""
+
+###############################################################################
+#
+# Environment
+#
+
+# 
+# Generic
+#
+setenv ADAM_USER $HOME/.adam
+setenv AGI_USER $HOME/.agi
+setenv SYSTEM ix86_Linux
+setenv RSYNC_RSH ssh
+# setenv MOZILLA_NO_ASYNC_DNS True
+
+# LS ordering fix
+setenv LC_COLLATE C
+
+#
+# Path
+#
+setenv PATH ${PATH}:/export/data/estar/bin:/sbin:/usr/sbin:/star/Perl/bin
+
+#
+# Man Path
+#
+setenv MANPATH /export/data/estar/man:/usr/man:/usr/local/man:/usr/X11R6/man
+setenv MANPATH ${MANPATH}:/man:/usr/share/man
+
+#
+# Shared Library Path
+#
+setenv LD_LIBRARY_PATH /usr/lib:/usr/local/lib:/export/data/estar/lib
+
+###############################################################################
+#
+# CVS
+#
+
+echo "${cyan_norm}CVS Configuration"
+
+setenv CVS_RSH ssh
+echo "  ${blue_norm}Shell             : ${green_norm}$CVS_RSH${normal}"
+
+#setenv CVSROOT :ext:allan@ssh.jach.hawaii.edu:/jac_sw/cvsroot
+#setenv CVSROOT :ext:aa@cvs.starlink.ac.uk:/cvs
+setenv CVSROOT :ext:aa@butch.astro.ex.ac.uk:/h/CVS
+echo "  ${blue_norm}Repository        : ${green_norm}$CVSROOT${normal}"
+
+echo ""
+
+###############################################################################
+# 
+# ORAC-DR
+#
+
+echo "${cyan_norm}ORAC-DR Configuration${normal}"
+
+if ( -d /jac_sw/estar/oracdr ) then
+ setenv ORAC_DIR /jac_sw/estar/oracdr/oracdr
+ setenv ORAC_PERL5LIB ${ORAC_DIR}/lib/perl5
+ setenv ORAC_PERLBIN /local/perl-5.6/bin/perl
+ setenv ORAC_CAL_ROOT /jac_sw/estar/oracdr/oracdr_cal
+ setenv ORAC_DATA_ROOT /export/data/estar/data_in
+ setenv ORAC_DATA_IN /export/data/estar/data_in
+ setenv ORAC_DATA_OUT /export/data/estar/data_out
+ echo "  ${blue_norm}ORAC Directory    : ${green_norm}$ORAC_DIR${normal}"
+ echo "  ${blue_norm}Library Path      : ${green_norm}$ORAC_PERL5LIB${normal}"
+ echo "  ${blue_norm}Perl Path         : ${green_norm}$ORAC_PERLBIN${normal}"
+ echo "  ${blue_norm}Calibration       : ${green_norm}$ORAC_CAL_ROOT${normal}"
+ echo "  ${blue_norm}Data Root         : ${green_norm}$ORAC_DATA_ROOT${normal}"
+ echo "  ${blue_norm}Data Out          : ${green_norm}$ORAC_DATA_OUT${normal}\n"
+
+ alias oracdr_cgs4         'source ${ORAC_DIR}/etc/oracdr_cgs4.csh'
+ alias oracdr_ircam        'source ${ORAC_DIR}/etc/oracdr_ircam.csh'
+ alias oracdr_scuba        'source ${ORAC_DIR}/etc/oracdr_scuba.csh'
+ alias oracdr_ufti         'source ${ORAC_DIR}/etc/oracdr_ufti.csh'
+ alias oracdr_parse_recipe 'source ${ORAC_DIR}/bin/oracdr_parse_recipe'
+ alias oracdr_monitor      '${ORAC_PERLBIN} ${ORAC_DIR}/bin/oracdr_monitor'
+ alias oracdr_nuke         'source ${ORAC_DIR}/bin/oracdr_nuke'
+ alias oracman             'source ${ORAC_DIR}/bin/oracman'
+ alias fitseditor          'source ${ORAC_DIR}/etc/fitseditor_start.csh'
+ alias xoracdr             'source ${ORAC_DIR}/etc/xoracdr_start.csh'
+else
+ echo "  ${blue_norm}ORAC Directory    : ${red_norm}Not Found${normal}\n"
+endif
+
+
+###############################################################################
+#
+# PGPLOT setup
+#
+
+echo "${cyan_norm}PGPLOT Configuration${normal}"
+
+if ( -e /jac_sw/estar/support/lib/libpgplot.a ) then
+
+   setenv PGPLOT_DIR /jac_sw/estar/support 
+   setenv PGPLOT_FONT /jac_sw/estar/support/bin/grfont.dat
+   #setenv PGPLOT_DEV /XW
+   setenv PGPLOT_BUFFER yes 
+   setenv PGPLOT_DEBUG yes 
+   setenv PGPLOT_FOREGROUND white
+   setenv PGPLOT_BACKGROUND black
+
+   echo -n "  ${blue_norm}Directory                : "
+   echo "${green_norm}$PGPLOT_DIR${normal}"
+   echo -n "  ${blue_norm}Fonts                    : "
+   echo "${green_norm}$PGPLOT_FONT${normal}"
+   #echo -n "  ${blue_norm}Device                   : "
+   #echo "${green_norm}$PGPLOT_DEV${normal}"
+   echo -n "  ${blue_norm}Buffer                   : "
+   echo "${green_norm}$PGPLOT_BUFFER${normal}"
+   echo -n "  ${blue_norm}Debug                    : "
+   echo "${green_norm}$PGPLOT_DEBUG${normal}"
+   echo -n "  ${blue_norm}Foreground               : "
+   echo "${green_norm}$PGPLOT_FOREGROUND${normal}"
+   echo -n "  ${blue_norm}Background               : "
+   echo "${green_norm}$PGPLOT_BACKGROUND${normal}\n"
+else
+   echo -n "  ${blue_norm}Directory                : "
+   echo "${red_norm}Not Found${normal}\n"
+endif
+   
+
+   
+###############################################################################
+# 
+# eSTAR setup
+#
+
+echo "${cyan_norm}eSTAR 3G Configuration"
+
+if ( -d /jac_sw/estar ) then
+   setenv ESTAR_DIR /export/data/estar/third_generation
+   setenv ESTAR_DATA /export/data/estar/data
+   setenv ESTAR_PERL5LIB ${ESTAR_DIR}/lib/perl5
+   
+   # Perl 5.8
+   setenv ESTAR_PERLBIN /jac_sw/estar/perl-5.8.6/bin/perl
+   setenv MANPATH ${MANPATH}:/jac_sw/estar/perl-5.8.6/man
+   
+   # PGPLOT
+   setenv ESTAR_TKPGPLOT ${PGPLOT_DIR}/lib
+
+   # OMP
+   setenv ESTAR_OMPLIB  /jac_sw/estar/omp/msbserver   
+   setenv OMP_CFG_DIR ${ESTAR_OMPLIB}/cfg
+   setenv SYBASE /local/progs/sybase
+   setenv SYBASE_OCS OCS
+   setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:${SYBASE}/lib
+   setenv LANG C
+
+   # JACH Instruments
+   setenv ESTAR_INST_TYPE /jac_sw/estar/instrument
+   setenv INST_TYPE ${ESTAR_INST_TYPE}
+
+   # Other software
+   setenv ESTAR_OTHER_SOFT /jac_sw/estar/support
+   setenv LD_LIBRARY_PATH ${ESTAR_OTHER_SOFT}/lib:${LD_LIBRARY_PATH}
+   setenv PATH ${ESTAR_OTHER_SOFT}/bin:${PATH}
+   
+   # SSL
+   setenv CRYPT_SSLEAY_DEFAULT ${ESTAR_OTHER_SOFT}
+   
+   # CFITSIO
+   setenv CFITSIO ${ESTAR_OTHER_SOFT}
+   
+   echo -n "  ${blue_norm}Agent Directory          : "
+   echo "${green_norm}$ESTAR_DIR${normal}"
+   echo -n "  ${blue_norm}Library Path             : "
+   echo "${green_norm}$ESTAR_PERL5LIB${normal}"
+   echo -n "  ${blue_norm}Perl Path                : "
+   echo "${green_norm}$ESTAR_PERLBIN${normal}"
+   echo -n "  ${blue_norm}PGPLOT Path              : "
+   echo "${green_norm}$ESTAR_TKPGPLOT${normal}"
+   echo -n "  ${blue_norm}SSL Libraries            : "
+   echo "${green_norm}$CRYPT_SSLEAY_DEFAULT${normal}"    
+   echo -n "  ${blue_norm}CFITSIO Libraries        : "
+   echo "${green_norm}$CFITSIO${normal}"   
+   echo -n "  ${blue_norm}Extra Libraries          : "
+   echo "${green_norm}$ESTAR_OTHER_SOFT/lib${normal}"
+   echo -n "  ${blue_norm}Data Directory           : "
+   echo "${green_norm}$ESTAR_DATA${normal}"
+   echo -n "  ${blue_norm}OMP Directory            : "
+   echo "${green_norm}$ESTAR_OMPLIB${normal}" 
+   echo -n "  ${blue_norm}Instrument Directory     : "
+   echo "${green_norm}$ESTAR_INST_TYPE${normal}\n"
+else
+   echo -n "  ${blue_norm}eSTAR 3G                 : "
+   echo "${red_norm}Not Found${normal}\n"
+endif
