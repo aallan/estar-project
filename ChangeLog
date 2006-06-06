@@ -4,6 +4,12 @@
 
         * bin/test_servers.pl: Modified the hardcoded endpoints
 
+        * startup/*: Added the startup scripts into the repository
+
+	* crontab/*: Added the crontab files into the repository
+
+	* etc/rc.d/*: Added the /etc/rc.d/rc.local files into archive
+
 2006-05-22 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* bin/event_test.pl: Fixed STC block in boiler plate test message
