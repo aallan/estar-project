@@ -1,0 +1,4 @@
+#! /bin/tcsh
+
+source /work/estar/third_generation/etc/node_agent.csh -name LT -soap 8078 -tcp 2048 -host '161.72.57.3' -port 8081 >& ~estar/logs/node.LT.`date -Iseconds` &
+

@@ -1,0 +1,4 @@
+#! /bin/tcsh
+
+source /work/estar/third_generation/etc/event_broker.csh >& ~estar/logs/voevent/broker.`date -Iseconds` &
+

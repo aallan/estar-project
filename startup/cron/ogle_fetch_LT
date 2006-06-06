@@ -1,0 +1,4 @@
+#! /bin/tcsh
+
+/work/estar/third_generation/bin/ogle_fetch.pl -user aa -pass wibble >& ~estar/logs/ogle/ogle_LT.`date -Iseconds` &
+

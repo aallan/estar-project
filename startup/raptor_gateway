@@ -1,0 +1,4 @@
+#! /bin/tcsh
+
+source /work/estar/third_generation/etc/raptor_gateway.csh >& ~estar/logs/raptor/gateway.`date -Iseconds` &
+

@@ -1,0 +1,4 @@
+#! /bin/tcsh
+
+/work/estar/third_generation/bin/test_servers.pl >& ~estar/logs/test/test.`date -Iseconds` &
+

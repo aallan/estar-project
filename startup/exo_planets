@@ -1,0 +1,6 @@
+#! /bin/tcsh
+
+source /work/estar/third_generation/etc/user_agent.csh -user aa -mail 'aa@astro.ex.ac.uk' >& ~estar/logs/exo/user.`date -Iseconds` &
+source /work/estar/third_generation/etc/node_agent.csh -name LT -soap 8078 -tcp 2048 -host '161.72.57.3' -port 8081 >& ~estar/logs/exo/node.LT.`date -Iseconds` &
+source /work/estar/third_generation/etc/node_agent.csh -name FTN -soap 8077 -tcp 2047 -host '132.160.98.239' -port 8081 >& ~estar/logs/exo/node.FTN.`date -Iseconds` &
+

@@ -1,0 +1,4 @@
+#! /bin/tcsh
+
+source /work/estar/third_generation/etc/user_agent.csh >& ~estar/logs/user.`date -Iseconds` &
+

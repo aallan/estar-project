@@ -1,0 +1,4 @@
+#! /bin/tcsh
+
+source /work/estar/third_generation/etc/node_agent.csh -name FTN -soap 8077 -tcp 2047 -host '132.160.98.239' -port 8081 >& ~estar/logs/node.FTN.`date -Iseconds` &
+

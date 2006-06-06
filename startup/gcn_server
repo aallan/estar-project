@@ -1,0 +1,11 @@
+#! /bin/tcsh
+
+setenv CLASSPATH .:/home/estar/gcn_release
+cd ~estar/gcn_release
+./gcnserver -port 5221 >& ~estar/logs/gcn/gcn_server_5221.`date -Iseconds` &
+./gcnserver -port 5284 >& ~estar/logs/gcn/gcn_server_5284.`date -Iseconds` &
+/work/estar/third_generation/bin/gcn_server.pl -user nt -pass GRBoverride -port 5286 >& ~estar/logs/gcn/gcn_server.`date -Iseconds` &
+sleep 5
+./gcnforwarder -forward_address 144.173.229.20 -forward_port 5286 >& ~estar/logs/gcn/gcn_forward.`date -Iseconds` &
+
+
