@@ -173,6 +173,7 @@ unless ( defined $status ) {
   push @hosts, "estar2.astro.ex.ac.uk";
   push @hosts, "estar3.astro.ex.ac.uk";
   push @hosts, "estar.ukirt.jach.hawaii.edu";
+  push @hosts, "www.estar.org.uk";
   
   #use Data::Dumper;
   #print Dumper( @hosts);
