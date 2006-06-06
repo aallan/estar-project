@@ -1,6 +1,6 @@
 2006-06-06 Aladair Allan <aa@astro.ex.ac.uk>
 
-	* Moved services off the sying estar.astro.ex.ac.uk machine
+	* Moved services off the dying estar.astro.ex.ac.uk machine
 
         * bin/test_servers.pl: Modified the hardcoded endpoints
 
