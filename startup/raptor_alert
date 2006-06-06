@@ -1,0 +1,4 @@
+#! /bin/tcsh
+
+source /work/estar/third_generation/etc/raptor_alert.csh >& ~estar/logs/raptor/alert.`date -Iseconds` &
+
