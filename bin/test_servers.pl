@@ -18,6 +18,7 @@
   use Net::Domain qw(hostname hostdomain);
   use Socket;
   use Net::FTP;
+  use Net::Ping;
   use File::Spec;
   use Time::localtime;
   
@@ -163,6 +164,37 @@ unless ( defined $status ) {
   }
   print SERIAL "# " . ctime() . "\n"; 
   $content = $content . "Network Status at " . ctime() . "\n\n";   
+
+# E S T A R   H O S T S ---------------------------------------------------
+
+  # list of "default" known nodes  
+  my @hosts;
+  push @hosts, "estar.astro.ex.ac.uk";
+  push @hosts, "estar2.astro.ex.ac.uk";
+  push @hosts, "estar3.astro.ex.ac.uk";
+  push @hosts, "estar.ukirt.jach.hawaii.edu";
+  
+  #use Data::Dumper;
+  #print Dumper( @hosts);
+  
+  print SERIAL "# MACHINES\n";
+  $content = $content . "Machines\n--------\n\n";   
+  
+  foreach my $i ( 0 ... $#hosts ) {
+    $log->header("\n$hosts[$i]");
+    $log->debug( "Pinging $hosts[$i]...");
+    my $ping = Net::Ping->new();
+    if ( $ping->ping( $hosts[$i] ) ) {
+        print SERIAL "$hosts[$i] PING\n";
+        $content = $content . "$hosts[$i] PING\n";  
+        $log->print( "$hosts[$i]: ACK");
+    } else {	
+        print SERIAL "$hosts[$i] UNREACHABLE\n";
+        $content = $content . "$hosts[$i] UNREACHABLE\n";     
+        $log->error( "$hosts[$i]: UNREACHABLE");
+    } 
+    $ping->close();
+  }
 
 # K N O W N   N O D E S ---------------------------------------------------
 
