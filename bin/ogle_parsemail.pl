@@ -16,7 +16,7 @@ use lib $ENV{"ESTAR_PERL5LIB"};
 use eSTAR::Util;
 
 # contact details for the event broker
-my $host = 'estar.astro.ex.ac.uk';
+my $host = 'estar3.astro.ex.ac.uk';
 my $port = 9099;
 my $urn = 'event_broker';
 my $method = 'handle_voevent';

@@ -4,6 +4,8 @@
 
         * bin/test_servers.pl: Modified the hardcoded endpoints
 
+	* bin/ogle_parsemail.pl: Modified the harcoded endpoint
+
         * startup/*: Added the startup scripts into the repository
 
 	* crontab/*: Added the crontab files into the repository
