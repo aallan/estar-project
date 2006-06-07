@@ -190,9 +190,9 @@ unless ( defined $status ) {
         $content = $content . "$hosts[$i] PING\n";  
         $log->print( "$hosts[$i]: ACK");
     } else {	
-        print SERIAL "$hosts[$i] UNREACHABLE\n";
-        $content = $content . "$hosts[$i] UNREACHABLE\n";     
-        $log->error( "$hosts[$i]: UNREACHABLE");
+        print SERIAL "$hosts[$i] NACK\n";
+        $content = $content . "$hosts[$i] NACK\n";     
+        $log->error( "$hosts[$i]: NACK");
     } 
     $ping->close();
   }
