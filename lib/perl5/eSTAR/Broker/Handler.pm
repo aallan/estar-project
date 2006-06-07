@@ -47,6 +47,7 @@ use eSTAR::Broker::Running;
 # Astro modules
 #
 use Astro::VO::VOEvent;
+use XML::Document::Transport;
 
 my ($log, $process, $ua, $config, $running);
 
@@ -663,7 +664,7 @@ sub handle_voevent {
     $log->debug( "Building role='ack' message..." );
     my $ack_response;
     if ( $name eq "RAPTOR" || $name eq "eSTAR" ) {
-      my $ip = inet_ntoa(scalar(gethostbyname(hostname())));
+      my $object = new XML::Document::Transport();
       $ack_response = $object->build(
          Role      => 'ack',
 	 Origin    => 'ivo://uk.org.estar/estar.broker#',
