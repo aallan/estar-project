@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.68 2006/06/07 19:25:41 aa Exp $
+$Id: event_broker.pl,v 1.69 2006/06/07 20:11:50 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.68 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.69 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -1198,7 +1198,7 @@ my $iamalive = sub {
       my $status = $PING->save( $ping_file );           
       # build the IAMALIVE message
       my $alive;
-      if ( $name eq "RAPTOR" || $name eq "eSTAR" ) {
+      if ( $server =~ "144.173" ) {
          my $ip = inet_ntoa(scalar(gethostbyname(hostname())));
          $alive = 
   "<?xml version='1.0' encoding='UTF-8'?>\n" .
@@ -1218,14 +1218,14 @@ my $iamalive = sub {
   '</trn:Transport>'."\n";      
       
       } else {
-      my $object = new Astro::VO::VOEvent();
-      $alive = $object->build( 
-         Role => 'iamalive',
-	 ID   => 'ivo://uk.org.estar/estar.broker#' . $id ,
-	 Who  => { AuthorIVORN => 'ivo://uk.org.estar/estar.broker#',
-	           Date        => $timestamp,
-		 }
-	 );	
+        my $object = new Astro::VO::VOEvent();
+        $alive = $object->build( 
+           Role => 'iamalive',
+	   ID   => 'ivo://uk.org.estar/estar.broker#' . $id ,
+	   Who  => { AuthorIVORN => 'ivo://uk.org.estar/estar.broker#',
+	             Date        => $timestamp,
+	  	   }
+	   );	
 #        $alive =
 # "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
 #  '<voe:VOEvent role="iamalive" version= "1.1" '.
@@ -1745,6 +1745,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.69  2006/06/07 20:11:50  aa
+# bug fix
+#
 # Revision 1.68  2006/06/07 19:25:41  aa
 # bug fix
 #
