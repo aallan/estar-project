@@ -664,24 +664,12 @@ sub handle_voevent {
     my $ack_response;
     if ( $name eq "RAPTOR" || $name eq "eSTAR" ) {
       my $ip = inet_ntoa(scalar(gethostbyname(hostname())));
-      $ack_response = 
-  "<?xml version='1.0' encoding='UTF-8'?>\n" .
-  '<trn:Transport role="ack" version="0.1" '.
-  'xmlns:trn="http://www.telescope-networks.org/xml/Transport/v0.1" '. 
-  'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '.
-  'xsi:schemaLocation="http://www.telescope-networks.org/xml/Transport/v0.1'.
-  ' http://www.telescope-networks.org/schema/Transport-v0.1.xsd">'."\n".
-  '<Origin>'.$id.'</Origin>'."\n".
-  '<Response>ivo://uk.org.estar/estar.broker#</Response>'."\n".
-  '<TimeStamp>' . eSTAR::Broker::Util::time_iso() . '</TimeStamp>'."\n".
-  '<Meta>'."\n".
-  '  <Group name="Server Parameters" >'."\n".
-  '    <Param name="HOST" value="'.$ip.'" />'."\n".
-  '    <Param name="PORT" value="8099"  />'."\n".
-  '  </Group>'."\n".
-  '<Param name="STORED" ucd="meta.ref.url" value="'.$file.'" />'."\n".
-  '</Meta>'."\n".
-  '</trn:Transport>'."\n";
+      $ack_response = $object->build(
+         Role      => 'ack',
+	 Origin    => 'ivo://uk.org.estar/estar.broker#',
+	 TimeStamp => eSTAR::Broker::Util::time_iso(),
+	 Meta => [{ Name => 'stored',UCD => 'meta.ref.url', Value => $file },]
+	 );
     } else {
       my $object = new Astro::VO::VOEvent();
       $ack_response = $object->build( 
@@ -692,24 +680,6 @@ sub handle_voevent {
 		 },
 	 What => [{ Name => 'stored',UCD => 'meta.ref.url', Value => $file }]
 	 );	   
-    
-#      $ack_response =
-#  "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
-#  '<voe:VOEvent role="ack" version= "1.1" '.
-#  'ivorn="ivo://uk.org.estar/estar.broker#ack" '.
-#  'xmlns:voe="http://www.ivoa.net/xml/VOEvent/v1.1" '.
-#  'xmlns:xlink="http://www.w3.org/1999/xlink" '.
-#  'xsi:schemaLocation="http://www.ivoa.net/xml/VOEvent/v1.1'.
-#  ' http://www.ivoa.net/internal/IVOA/IvoaVOEvent/VOEvent-v1.1-060425.xsd" '. 
-#  'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'."\n".  
-#  '<Who>' . "\n" . 
-#  '   <AuthorIVORN>ivo://uk.org.estar/estar.broker#</AuthorIVORN>' . "\n" . 
-#  '   <Date>' . eSTAR::Broker::Util::time_iso() . '</Date>' . "\n" .
-#  '</Who>' . "\n" . 
-#  '<What>' . "\n" . 
-#  '   <Param value="stored" name="'. $file .'" />' . "\n" . 
-#  '</What>' . "\n" . 
-#  '</voe:VOEvent>' . "\n";   
    }
    
    $log->debug( "Returning 'ACK' message" );
