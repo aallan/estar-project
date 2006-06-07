@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.70 2006/06/07 22:02:35 aa Exp $
+$Id: event_broker.pl,v 1.71 2006/06/07 22:53:05 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.70 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.71 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -468,7 +468,7 @@ my $other_ack_port_callback = sub {
     # return an ack message
     $log->thread($thread_name, "Sending ACK message to $host:$port...");
     $log->debug( "Building ACK message..." );
-    if ( $name eq "RAPTOR" || $name eq "eSTAR" ) {
+    unless ( $name eq "Caltech" ) {
       my $object = new XML::Document::Transport();
       $response = $object->build(
          Role      => 'ack',
@@ -1049,7 +1049,7 @@ my $incoming_connection = sub {
 	       } else {
  	          # return an ack message
  	          $log->debug( "Building ACK message..." );
-                  if ( $name eq "RAPTOR" || $name eq "eSTAR" ) {
+                  unless ( $name eq "Caltech" ) {
                      my $object = new XML::Document::Transport();
                      $message = $object->build(
                         Role      => 'ack',
@@ -1178,7 +1178,7 @@ my $iamalive = sub {
       my $status = $PING->save( $ping_file );           
       # build the IAMALIVE message
       my $alive;
-      if ( $server =~ "144.173" ) {
+      unless ( $server =~ "131.215"  ) {  # VOEvents for Caltech
          my $object = new XML::Document::Transport();
          $alive = $object->build(
          Role      => 'iamalive',
@@ -1697,6 +1697,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.71  2006/06/07 22:53:05  aa
+# Moved to <Transport> documents for everyone connecting, except for Caltech
+#
 # Revision 1.70  2006/06/07 22:02:35  aa
 # use of the new XML::Document::Transport class
 #

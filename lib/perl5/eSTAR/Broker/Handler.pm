@@ -663,7 +663,7 @@ sub handle_voevent {
 
     $log->debug( "Building role='ack' message..." );
     my $ack_response;
-    if ( $name eq "RAPTOR" || $name eq "eSTAR" ) {
+    unless ( $name eq "Caltech" ) {
       my $object = new XML::Document::Transport();
       $ack_response = $object->build(
          Role      => 'ack',
