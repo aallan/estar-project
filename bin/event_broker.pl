@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.66 2006/06/06 19:54:30 aa Exp $
+$Id: event_broker.pl,v 1.67 2006/06/07 18:01:00 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.66 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.67 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -430,6 +430,7 @@ my $other_ack_port_callback = sub {
   my $server = shift;
   my $name = shift;
   my $file = shift;
+  my $id = shift;
   my $message = shift;
   my $host = $config->get_option( "$server.host");
   my $port = $config->get_option( "$server.ack");
@@ -465,23 +466,54 @@ my $other_ack_port_callback = sub {
     # return an ack message
     $log->thread($thread_name, "Sending ACK message to $host:$port...");
     $log->debug( "Building ACK message..." );
-    $response =
-  "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
-  '<voe:VOEvent role="ack" version= "1.1" '.
-  'ivorn="ivo://uk.org.estar/estar.broker#ack" '.
-  'xmlns:voe="http://www.ivoa.net/xml/VOEvent/v1.1" '.
-  'xmlns:xlink="http://www.w3.org/1999/xlink" '.
-  'xsi:schemaLocation="http://www.ivoa.net/xml/VOEvent/v1.1'.
-  ' http://www.ivoa.net/internal/IVOA/IvoaVOEvent/VOEvent-v1.1-060425.xsd" '. 
-  'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'."\n".  
-  '<Who>' . "\n" . 
-  '   <AuthorIVORN>ivo://uk.org.estar/estar.broker#</AuthorIVORN>' . "\n" . 
-  '   <Date>' . eSTAR::Broker::Util::time_iso() . '</Date>' . "\n" .
-  '</Who>' . "\n" . 
-  '<What>' . "\n" . 
-  '   <Param value="stored" name="'. $file .'" />' . "\n" . 
-  '</What>' . "\n" . 
-  '</voe:VOEvent>' . "\n";
+    if ( $name eq "RAPTOR" || $name eq "eSTAR" ) {
+      my $ip = inet_ntoa(scalar(gethostbyname(hostname())));
+      $response = 
+  "<?xml version='1.0' encoding='UTF-8'?>\n" .
+  '<trn:Transport role="ack" version="0.1" '.
+  'xmlns:trn="http://www.telescope-networks.org/xml/Transport/v0.1" '. 
+  'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '.
+  'xsi:schemaLocation="http://www.telescope-networks.org/xml/Transport/v0.1'.
+  ' http://www.telescope-networks.org/schema/Transport-v0.1.xsd">'."\n".
+  '<Origin>'.$id.'</Origin>'."\n".
+  '<Response>ivo://uk.org.estar/estar.broker#</Response>'."\n".
+  '<TimeStamp>' . eSTAR::Broker::Util::time_iso() . '</TimeStamp>'."\n".
+  '<Meta>'."\n".
+  '  <Group name="Server Parameters" >'."\n".
+  '    <Param name="HOST" value="'.$ip.'" />'."\n".
+  '    <Param name="PORT" value="8099"  />'."\n".
+  '  </Group>'."\n".
+  '<Param name="STORED" ucd="meta.ref.url" value="'.$file.'" />'."\n".
+  '</Meta>'."\n".
+  '</trn:Transport>'."\n";
+    } else {
+      my $object = new Astro::VO::VOEvent();
+      $response = $object->build( 
+         Role => 'ack',
+	 ID   => 'ivo://uk.org.estar/estar.broker#ack',
+	 Who  => { AuthorIVORN => 'ivo://uk.org.estar/estar.broker#',
+	           Date        => eSTAR::Broker::Util::time_iso(),
+		 },
+	 What => [{ Name => 'stored',UCD => 'meta.ref.url', Value => $file }]
+	 );
+#    $response =
+#  "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
+#  '<voe:VOEvent role="ack" version= "1.1" '.
+#  'ivorn="ivo://uk.org.estar/estar.broker#ack" '.
+#  'xmlns:voe="http://www.ivoa.net/xml/VOEvent/v1.1" '.
+#  'xmlns:xlink="http://www.w3.org/1999/xlink" '.
+#  'xsi:schemaLocation="http://www.ivoa.net/xml/VOEvent/v1.1'.
+#  ' http://www.ivoa.net/internal/IVOA/IvoaVOEvent/VOEvent-v1.1-060425.xsd" '. 
+#  'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'."\n".  
+#  '<Who>' . "\n" . 
+#  '   <AuthorIVORN>ivo://uk.org.estar/estar.broker#</AuthorIVORN>' . "\n" . 
+#  '   <Date>' . eSTAR::Broker::Util::time_iso() . '</Date>' . "\n" .
+#  '</Who>' . "\n" . 
+#  '<What>' . "\n" . 
+#  '   <Param value="stored" name="'. $file .'" />' . "\n" . 
+#  '</What>' . "\n" . 
+#  '</voe:VOEvent>' . "\n";
+    }
   }
   
   # work out message length
@@ -642,7 +674,7 @@ my $incoming_callback = sub {
         $log->print("Detaching ack thread..." );
         my $ack_thread =
              threads->create( $other_ack_port_callback, 
-                              $server, $name, $file, $message );
+                              $server, $name, $file, $id, $message );
         $ack_thread->detach();   
      } else {
         $log->debug( "ACK message sent from main loop..." );
@@ -1007,24 +1039,53 @@ my $incoming_connection = sub {
                my $message;
                if ( $response =~ 'role="iamalive"' ) {
  	         $log->debug( "Echoing IAMALIVE message back to $name..." );
-                 $message = $response;
-               } else {
+		 $message = $response;
+	       } else {
  	          # return an ack message
  	          $log->debug( "Building ACK message..." );
-                  $message =
-  "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
-  '<voe:VOEvent role="ack" version= "1.1" '.
-  'ivorn="ivo://uk.org.estar/estar.broker#ack" '.
-  'xmlns:voe="http://www.ivoa.net/xml/VOEvent/v1.1" '.
-  'xmlns:xlink="http://www.w3.org/1999/xlink" '.
-  'xsi:schemaLocation="http://www.ivoa.net/xml/VOEvent/v1.1'.
-  ' http://www.ivoa.net/internal/IVOA/IvoaVOEvent/VOEvent-v1.1-060425.xsd" '. 
-  'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'."\n".  
-  '<Who>' . "\n" . 
-  '   <AuthorIVORN>ivo://uk.org.estar/estar.broker#</AuthorIVORN>' . "\n" . 
-  '   <Date>' . eSTAR::Broker::Util::time_iso() . '</Date>' . "\n" .
-  '</Who>' . "\n" . 
-  '</voe:VOEvent>' . "\n";		  
+                  if ( $name eq "RAPTOR" || $name eq "eSTAR" ) {
+                     my $ip = inet_ntoa(scalar(gethostbyname(hostname())));
+                     $message = 
+  "<?xml version='1.0' encoding='UTF-8'?>\n" .
+  '<trn:Transport role="ack" version="0.1" '.
+  'xmlns:trn="http://www.telescope-networks.org/xml/Transport/v0.1" '. 
+  'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '.
+  'xsi:schemaLocation="http://www.telescope-networks.org/xml/Transport/v0.1'.
+  ' http://www.telescope-networks.org/schema/Transport-v0.1.xsd">'."\n".
+  '<Response>ivo://uk.org.estar/estar.broker#</Response>'."\n".
+  '<TimeStamp>' . eSTAR::Broker::Util::time_iso() . '</TimeStamp>'."\n".
+  '<Meta>'."\n".
+  '  <Group name="Server Parameters" >'."\n".
+  '    <Param name="HOST" value="'.$ip.'" />'."\n".
+  '    <Param name="PORT" value="8099"  />'."\n".
+  '  </Group>'."\n".
+  '</Meta>'."\n".
+  '</trn:Transport>'."\n";
+                  } else {
+      my $object = new Astro::VO::VOEvent();
+      $message = $object->build( 
+         Role => 'ack',
+	 ID   => 'ivo://uk.org.estar/estar.broker#ack',
+	 Who  => { AuthorIVORN => 'ivo://uk.org.estar/estar.broker#',
+	           Date        => eSTAR::Broker::Util::time_iso(),
+		 },
+	 What => [{ Name => 'stored',UCD => 'meta.ref.url', Value => $file }]
+	 );
+#                     $message =
+#  "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
+#  '<voe:VOEvent role="ack" version= "1.1" '.
+#  'ivorn="ivo://uk.org.estar/estar.broker#ack" '.
+#  'xmlns:voe="http://www.ivoa.net/xml/VOEvent/v1.1" '.
+#  'xmlns:xlink="http://www.w3.org/1999/xlink" '.
+#  'xsi:schemaLocation="http://www.ivoa.net/xml/VOEvent/v1.1'.
+# ' http://www.ivoa.net/internal/IVOA/IvoaVOEvent/VOEvent-v1.1-060425.xsd" '. 
+#  'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'."\n".  
+#  '<Who>' . "\n" . 
+#  '   <AuthorIVORN>ivo://uk.org.estar/estar.broker#</AuthorIVORN>' . "\n" . 
+#  '   <Date>' . eSTAR::Broker::Util::time_iso() . '</Date>' . "\n" .
+#  '</Who>' . "\n" . 
+# '</voe:VOEvent>' . "\n";		  
+                  }
                }
 
 	       my $bytes = pack( "N", length($message) ); 
@@ -1137,21 +1198,51 @@ my $iamalive = sub {
       # commit ID stuff to STATE file
       my $status = $PING->save( $ping_file );           
       # build the IAMALIVE message
-      my $alive =
-  "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
-  '<voe:VOEvent role="iamalive" version= "1.1" '.
-  'ivorn="ivo://uk.org.estar/estar.broker#' . $id . '" '.
-  'xmlns:voe="http://www.ivoa.net/xml/VOEvent/v1.1" '.
-  'xmlns:xlink="http://www.w3.org/1999/xlink" '.
-  'xsi:schemaLocation="http://www.ivoa.net/xml/VOEvent/v1.1'.
-  ' http://www.ivoa.net/internal/IVOA/IvoaVOEvent/VOEvent-v1.1-060425.xsd" '. 
-  'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'."\n".  
-  '<Who>' . "\n" . 
-  '   <AuthorIVORN>ivo://uk.org.estar/estar.broker#</AuthorIVORN>' . "\n" . 
-  '   <Date>' . $timestamp . '</Date>' . "\n" .
-  '</Who>' . "\n" . 
-  '</voe:VOEvent>' . "\n";      
-
+      my $alive;
+      if ( $name eq "RAPTOR" || $name eq "eSTAR" ) {
+         my $ip = inet_ntoa(scalar(gethostbyname(hostname())));
+         $alive = 
+  "<?xml version='1.0' encoding='UTF-8'?>\n" .
+  '<trn:Transport role="iamalive" version="0.1" '.
+  'xmlns:trn="http://www.telescope-networks.org/xml/Transport/v0.1" '. 
+  'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '.
+  'xsi:schemaLocation="http://www.telescope-networks.org/xml/Transport/v0.1'.
+  ' http://www.telescope-networks.org/schema/Transport-v0.1.xsd">'."\n".
+  '<Origin>ivo://uk.org.estar/estar.broker#'.$id.'</Origin>'."\n".
+  '<TimeStamp>' . $timestamp . '</TimeStamp>'."\n".
+  '<Meta>'."\n".
+  '  <Group name="Server Parameters" >'."\n".
+  '    <Param name="HOST" value="'.$ip.'" />'."\n".
+  '    <Param name="PORT" value="8099"  />'."\n".
+  '  </Group>'."\n".
+  '</Meta>'."\n".
+  '</trn:Transport>'."\n";      
+      
+      } else {
+      my $object = new Astro::VO::VOEvent();
+      $alive = $object->build( 
+         Role => 'iamalive',
+	 ID   => 'ivo://uk.org.estar/estar.broker#' . $id ,
+	 Who  => { AuthorIVORN => 'ivo://uk.org.estar/estar.broker#',
+	           Date        => $timestamp,
+		 }
+	 );	
+#        $alive =
+# "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
+#  '<voe:VOEvent role="iamalive" version= "1.1" '.
+#  'ivorn="ivo://uk.org.estar/estar.broker#' . $id . '" '.
+#  'xmlns:voe="http://www.ivoa.net/xml/VOEvent/v1.1" '.
+#  'xmlns:xlink="http://www.w3.org/1999/xlink" '.
+#  'xsi:schemaLocation="http://www.ivoa.net/xml/VOEvent/v1.1'.
+#  ' http://www.ivoa.net/internal/IVOA/IvoaVOEvent/VOEvent-v1.1-060425.xsd" '. 
+#  'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'."\n".  
+#  '<Who>' . "\n" . 
+#  '   <AuthorIVORN>ivo://uk.org.estar/estar.broker#</AuthorIVORN>' . "\n" . 
+#  '   <Date>' . $timestamp . '</Date>' . "\n" .
+#  '</Who>' . "\n" . 
+#  '</voe:VOEvent>' . "\n";      
+      }
+      
       # work out message length
       #my $header = pack( "N", 7 );
       my $bytes = pack( "N", length($alive) ); 
@@ -1655,6 +1746,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.67  2006/06/07 18:01:00  aa
+# Initial move to <Transport>
+#
 # Revision 1.66  2006/06/06 19:54:30  aa
 # Updated end points
 #

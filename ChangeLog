@@ -1,3 +1,10 @@
+2006-06-07 Aladair Allan <aa@astro.ex.ac.uk>
+
+        * bin/event_broker.pm & eSTAR/Broker/Handler.pm: Moved to using
+	  <Transport> rather than <VOEvent> XML for acks and iamalives,
+	  still echo iamalives from upstream. Also moved to using VOEvent
+	  module to build these messages for none RAPTOR or eSTAR hosts.
+	  
 2006-06-06 Aladair Allan <aa@astro.ex.ac.uk>
 
 	* Moved services off the dying estar.astro.ex.ac.uk machine
