@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.67 2006/06/07 18:01:00 aa Exp $
+$Id: event_broker.pl,v 1.68 2006/06/07 19:25:41 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.67 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.68 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -1068,9 +1068,8 @@ my $incoming_connection = sub {
 	 ID   => 'ivo://uk.org.estar/estar.broker#ack',
 	 Who  => { AuthorIVORN => 'ivo://uk.org.estar/estar.broker#',
 	           Date        => eSTAR::Broker::Util::time_iso(),
-		 },
-	 What => [{ Name => 'stored',UCD => 'meta.ref.url', Value => $file }]
-	 );
+		 }
+	);
 #                     $message =
 #  "<?xml version = '1.0' encoding = 'UTF-8'?>\n" .
 #  '<voe:VOEvent role="ack" version= "1.1" '.
@@ -1746,6 +1745,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.68  2006/06/07 19:25:41  aa
+# bug fix
+#
 # Revision 1.67  2006/06/07 18:01:00  aa
 # Initial move to <Transport>
 #
