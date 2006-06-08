@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.74 2006/06/08 20:56:57 aa Exp $
+$Id: event_broker.pl,v 1.75 2006/06/08 21:24:02 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.74 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.75 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -558,14 +558,14 @@ my $incoming_callback = sub {
 	# it should ignore them. Only the server side of the broker needs
 	# to deal with ack messages.
 
-        $log->warn( "Warning: Recieved ACK message from $host...");
+        $log->warn( "Warning: Recieved <Transport> ACK message from $host...");
         $log->warn( "Warning: Recieved at " . ctime() );
         $log->warn( $transport );
         $log->warn( "Warning: Returning ESTAR__FAULT" );
         return ESTAR__FAULT;
         
      } elsif ( $transport->role() eq "iamalive" ) {
-        $log->debug( "Ignoring IAMALIVE message from $host");
+        $log->debug( "Ignoring <Transport> IAMALIVE message from $host");
         $log->debug( "Done.");
         return ESTAR__OK;
      } 
@@ -596,14 +596,14 @@ my $incoming_callback = sub {
 	# it should ignore them. Only the server side of the broker needs
 	# to deal with ack messages.
 
-        $log->warn( "Warning: Recieved ACK message from $host...");
+        $log->warn( "Warning: Recieved <VOEvent> ACK message from $host...");
         $log->warn( "Warning: Recieved at " . ctime() );
         $log->warn( $message );
         $log->warn( "Warning: Returning ESTAR__FAULT" );
         return ESTAR__FAULT;
         
      } elsif ( $event->role() eq "iamalive" ) {
-        $log->debug( "Ignoring IAMALIVE message from $host");
+        $log->debug( "Ignoring <VOEvent> IAMALIVE message from $host");
         $log->debug( "Done.");
         return ESTAR__OK;
      }  
@@ -1088,7 +1088,8 @@ my $incoming_connection = sub {
         }
                       
      } elsif ( $bytes_read == 0 && $! != EWOULDBLOCK ) {
-        $log->warn( "Recieved an empty packet on $port from $host" );   
+        $log->warn( "Error: $!" );
+        $log->warn( "Recieved an empty packet on $port from $host" );
         $log->warn( "Closing socket connection to $host..." );      
         $flag = undef;
      } elsif ($bytes_read == 0 ) {
@@ -1702,6 +1703,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.75  2006/06/08 21:24:02  aa
+# bug fix
+#
 # Revision 1.74  2006/06/08 20:56:57  aa
 # bug fix
 #
