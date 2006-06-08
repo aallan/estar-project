@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.73 2006/06/08 20:04:16 aa Exp $
+$Id: event_broker.pl,v 1.74 2006/06/08 20:56:57 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.73 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.74 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -542,28 +542,29 @@ my $incoming_callback = sub {
      $log->debug( "This looks like a Transport document..." );
      # Ignore ACK and IAMALIVE messages
      # --------------------------------
-     my $message;
-     eval { $message = new XML::Document::Transport( XML => $message ); };
+     my $transport;
+     eval { $transport = new XML::Document::Transport( XML => $message ); };
      if ( $@ ) {
         my $error = "$@";
         chomp( $error );
         $log->error( "Error: $error" );
-        $log->error( "Warning: Returning ESTAR__FAULT" );
+        $log->error( $transport );
+        $log->warn( "Warning: Returning ESTAR__FAULT" );
         return ESTAR__FAULT;
      }   
      
-     if( $message->role() eq "ack" ) {
+     if( $transport->role() eq "ack" ) {
         # The event broker shouldn't get ack messages here, if it does
 	# it should ignore them. Only the server side of the broker needs
 	# to deal with ack messages.
 
         $log->warn( "Warning: Recieved ACK message from $host...");
         $log->warn( "Warning: Recieved at " . ctime() );
-        $log->warn( $message );
+        $log->warn( $transport );
         $log->warn( "Warning: Returning ESTAR__FAULT" );
         return ESTAR__FAULT;
         
-     } elsif ( $message->role() eq "iamalive" ) {
+     } elsif ( $transport->role() eq "iamalive" ) {
         $log->debug( "Ignoring IAMALIVE message from $host");
         $log->debug( "Done.");
         return ESTAR__OK;
@@ -1701,6 +1702,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.74  2006/06/08 20:56:57  aa
+# bug fix
+#
 # Revision 1.73  2006/06/08 20:04:16  aa
 # Bug Fix, more Alarm Clock issues??
 #
