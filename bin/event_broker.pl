@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.71 2006/06/07 22:53:05 aa Exp $
+$Id: event_broker.pl,v 1.72 2006/06/08 19:18:12 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.71 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.72 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -537,6 +537,7 @@ my $incoming_callback = sub {
   } 
 
   # Transport packets, we ignore those here...
+  $log->debug( "Testing to see whether we have a Transport document..." );
   if ( $message =~ /Transport/ ) {
      $log->debug( "This looks like a Transport document..." );
      # Ignore ACK and IAMALIVE messages
@@ -1378,8 +1379,9 @@ my $broker_callback = sub {
        local $SIG{ALRM} = sub { die "socket connection timed out\n" };
        alarm $config->get_option( "connection.timeout" );
        $bytes_read = sysread( $c, $length, 4 );  
-       alarm 0;
      };
+     alarm 0;
+     
      if ($@) {
        my $error = "$@";
        chomp $error;
@@ -1697,6 +1699,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.72  2006/06/08 19:18:12  aa
+# bug fix for Alarm Clock issues?
+#
 # Revision 1.71  2006/06/07 22:53:05  aa
 # Moved to <Transport> documents for everyone connecting, except for Caltech
 #
