@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.72 2006/06/08 19:18:12 aa Exp $
+$Id: event_broker.pl,v 1.73 2006/06/08 20:04:16 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.72 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.73 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -1217,7 +1217,8 @@ my $iamalive = sub {
       eval {
         local $SIG{ALRM} = sub { die "socket connection timed out\n" };
         alarm $config->get_option( "connection.timeout" );
-        $bytes_read = sysread( $c, $length, 4 );  
+        $bytes_read = sysread( $c, $length, 4 ); 
+	alarm 0; 
       };
       alarm 0;
 
@@ -1379,6 +1380,7 @@ my $broker_callback = sub {
        local $SIG{ALRM} = sub { die "socket connection timed out\n" };
        alarm $config->get_option( "connection.timeout" );
        $bytes_read = sysread( $c, $length, 4 );  
+       alarm 0
      };
      alarm 0;
      
@@ -1699,6 +1701,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.73  2006/06/08 20:04:16  aa
+# Bug Fix, more Alarm Clock issues??
+#
 # Revision 1.72  2006/06/08 19:18:12  aa
 # bug fix for Alarm Clock issues?
 #
