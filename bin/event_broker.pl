@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.75 2006/06/08 21:24:02 aa Exp $
+$Id: event_broker.pl,v 1.76 2006/06/08 21:44:20 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.75 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.76 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -1034,12 +1034,6 @@ my $incoming_connection = sub {
            $bytes_read = read( $sock, $response, $length); 
       
            $log->debug( "Read $bytes_read characters from socket" );
-      
-           # callback to handle incoming Events     
-           $log->print("Detaching callback thread..." );
-           my $callback_thread = 
-               threads->create ( $incoming_callback, $server, $name, $response );
-           $callback_thread->detach(); 
 	   
            # send ACK message if we're on same port
            if( $config->get_option( "$server.ack") == $port ) {    
@@ -1067,6 +1061,13 @@ my $incoming_connection = sub {
 	                  Date        => eSTAR::Broker::Util::time_iso(),
 		        } );	  
                   }
+		  
+                  # callback to handle incoming Events     
+                  $log->print("Detaching callback thread..." );
+                  my $callback_thread = threads->create ( 
+		      $incoming_callback, $server, $name, $response );
+                  $callback_thread->detach(); 
+		  
                }
 
 	       my $bytes = pack( "N", length($message) ); 
@@ -1088,12 +1089,12 @@ my $incoming_connection = sub {
         }
                       
      } elsif ( $bytes_read == 0 && $! != EWOULDBLOCK ) {
-        $log->warn( "Error: $!" );
+        $log->error( "Error: $!" );
         $log->warn( "Recieved an empty packet on $port from $host" );
         $log->warn( "Closing socket connection to $host..." );      
         $flag = undef;
      } elsif ($bytes_read == 0 ) {
-        $log->warn( "Recieved a zero length on $port from $host" );   
+        $log->warn( "Recieved a zero length packet on $port from $host" );   
         $log->warn( "Closing socket connection to $host..." );      
         $flag = undef;     
      }
@@ -1703,6 +1704,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.76  2006/06/08 21:44:20  aa
+# bug fix
+#
 # Revision 1.75  2006/06/08 21:24:02  aa
 # bug fix
 #
