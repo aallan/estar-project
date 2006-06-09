@@ -663,7 +663,7 @@ sub handle_voevent {
 
     $log->debug( "Building role='ack' message..." );
     my $ack_response;
-#    unless ( $name eq "Caltech" ) {
+    unless ( $name eq "Caltech" ) {
       my $object = new XML::Document::Transport();
       $ack_response = $object->build(
          Role      => 'ack',
@@ -671,17 +671,17 @@ sub handle_voevent {
 	 TimeStamp => eSTAR::Broker::Util::time_iso(),
 	 Meta => [{ Name => 'stored',UCD => 'meta.ref.url', Value => $file },]
 	 );
-#    } else {
-#      my $object = new Astro::VO::VOEvent();
-#      $ack_response = $object->build( 
-#         Role => 'ack',
-#	 ID   => 'ivo://uk.org.estar/estar.broker#ack',
-#	 Who  => { AuthorIVORN => 'ivo://uk.org.estar/estar.broker#',
-#	           Date        => eSTAR::Broker::Util::time_iso(),
-#		 },
-#	 What => [{ Name => 'stored',UCD => 'meta.ref.url', Value => $file }]
-#	 );	   
-#   }
+    } else {
+      my $object = new Astro::VO::VOEvent();
+      $ack_response = $object->build( 
+         Role => 'ack',
+	 ID   => 'ivo://uk.org.estar/estar.broker#ack',
+	 Who  => { AuthorIVORN => 'ivo://uk.org.estar/estar.broker#',
+	           Date        => eSTAR::Broker::Util::time_iso(),
+		 },
+	 What => [{ Name => 'stored',UCD => 'meta.ref.url', Value => $file }]
+	 );	   
+   }
    
    $log->debug( "Returning 'ACK' message" );
    return SOAP::Data->name('return', $ack_response )->type('base64');
