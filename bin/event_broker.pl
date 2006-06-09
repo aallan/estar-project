@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.76 2006/06/08 21:44:20 aa Exp $
+$Id: event_broker.pl,v 1.77 2006/06/09 00:15:08 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.76 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.77 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -468,7 +468,7 @@ my $other_ack_port_callback = sub {
     # return an ack message
     $log->thread($thread_name, "Sending ACK message to $host:$port...");
     $log->debug( "Building ACK message..." );
-    unless ( $name eq "Caltech" ) {
+#    unless ( $name eq "Caltech" ) {
       my $object = new XML::Document::Transport();
       $response = $object->build(
          Role      => 'ack',
@@ -476,17 +476,17 @@ my $other_ack_port_callback = sub {
 	 TimeStamp => eSTAR::Broker::Util::time_iso(),
 	 Meta => [{ Name => 'stored',UCD => 'meta.ref.url', Value => $file },]
 	 );
-    } else {
-      my $object = new Astro::VO::VOEvent();
-      $response = $object->build( 
-         Role => 'ack',
-	 ID   => 'ivo://uk.org.estar/estar.broker#ack',
-	 Who  => { AuthorIVORN => 'ivo://uk.org.estar/estar.broker#',
-	           Date        => eSTAR::Broker::Util::time_iso(),
-		 },
-	 What => [{ Name => 'stored',UCD => 'meta.ref.url', Value => $file }]
-	 );
-    }
+#    } else {
+#      my $object = new Astro::VO::VOEvent();
+#      $response = $object->build( 
+#         Role => 'ack',
+#	 ID   => 'ivo://uk.org.estar/estar.broker#ack',
+#	 Who  => { AuthorIVORN => 'ivo://uk.org.estar/estar.broker#',
+#	           Date        => eSTAR::Broker::Util::time_iso(),
+#		 },
+#	 What => [{ Name => 'stored',UCD => 'meta.ref.url', Value => $file }]
+#	 );
+#    }
   }
   
   # work out message length
@@ -1045,22 +1045,22 @@ my $incoming_connection = sub {
 	       } else {
  	          # return an ack message
  	          $log->debug( "Building ACK message..." );
-                  unless ( $name eq "Caltech" ) {
+#                  unless ( $name eq "Caltech" ) {
                      my $object = new XML::Document::Transport();
                      $message = $object->build(
                         Role      => 'ack',
 	                Origin    => 'ivo://uk.org.estar/estar.broker#',
 	                TimeStamp => eSTAR::Broker::Util::time_iso() );
-                  } else {
-                     my $object = new Astro::VO::VOEvent();
-                     $message = $object->build( 
-                        Role => 'ack',
-	                ID   => 'ivo://uk.org.estar/estar.broker#ack',
-	                Who  => { 
-			  AuthorIVORN => 'ivo://uk.org.estar/estar.broker#',
-	                  Date        => eSTAR::Broker::Util::time_iso(),
-		        } );	  
-                  }
+#                  } else {
+#                     my $object = new Astro::VO::VOEvent();
+#                     $message = $object->build( 
+#                        Role => 'ack',
+#	                ID   => 'ivo://uk.org.estar/estar.broker#ack',
+#	                Who  => { 
+#			  AuthorIVORN => 'ivo://uk.org.estar/estar.broker#',
+#	                  Date        => eSTAR::Broker::Util::time_iso(),
+#		        } );	  
+#                  }
 		  
                   # callback to handle incoming Events     
                   $log->print("Detaching callback thread..." );
@@ -1182,21 +1182,21 @@ my $iamalive = sub {
       my $status = $PING->save( $ping_file );           
       # build the IAMALIVE message
       my $alive;
-      unless ( $server =~ "131.215"  ) {  # VOEvents for Caltech
+#      unless ( $server =~ "131.215"  ) {  # VOEvents for Caltech
          my $object = new XML::Document::Transport();
          $alive = $object->build(
          Role      => 'iamalive',
 	 Origin    => 'ivo://uk.org.estar/estar.broker#',
 	 TimeStamp => $timestamp );
-      } else {
-        my $object = new Astro::VO::VOEvent();
-        $alive = $object->build( 
-           Role => 'iamalive',
-	   ID   => 'ivo://uk.org.estar/estar.broker#' . $id ,
-	   Who  => { AuthorIVORN => 'ivo://uk.org.estar/estar.broker#',
-	             Date        => $timestamp,
-	  	   } );	
-      }
+#      } else {
+#        my $object = new Astro::VO::VOEvent();
+#        $alive = $object->build( 
+#           Role => 'iamalive',
+#	   ID   => 'ivo://uk.org.estar/estar.broker#' . $id ,
+#	   Who  => { AuthorIVORN => 'ivo://uk.org.estar/estar.broker#',
+#	             Date        => $timestamp,
+#	  	   } );	
+#      }
       
       # work out message length
       #my $header = pack( "N", 7 );
@@ -1704,6 +1704,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.77  2006/06/09 00:15:08  aa
+# Turned off VOEvent response for Caltech, turned on Transport
+#
 # Revision 1.76  2006/06/08 21:44:20  aa
 # bug fix
 #
