@@ -1,6 +1,12 @@
-2006-06-07 Aladair Allan <aa@astro.ex.ac.uk>
+2006-06-12 Alasdair Allan <aa@astro.ex.ac.uk>
 
-        * bin/event_broker.pm & eSTAR/Broker/Handler.pm: Moved to using
+	* bin/ogle_client.pl: Added an event client which listens for OGLE
+	  event messages and then submits 3x30s observations onto Robonet-1.0
+	  for an initial "first look".
+	  
+2006-06-07 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * bin/event_broker.pl & eSTAR/Broker/Handler.pm: Moved to using
 	  <Transport> rather than <VOEvent> XML for acks and iamalives,
 	  still echo iamalives from upstream. Also moved to using VOEvent
 	  module to build these messages for none RAPTOR or eSTAR hosts,
