@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.13 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.14 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -414,14 +414,14 @@ sub incoming_callback {
       $log->thread( "Client", "Done." );
       return ESTAR__FAULT;
    }
-   $log->print( "Following up $name at $ra, $dec");
-   
-   my $coords = new Astro::Coords( ra => $ra, dec => $dec, units => 'degrees' );
-   
+  
+   $log->debug("Converting co-ordinates...");
+   $log->debug("RA, Dec = $ra, $dec");
+   my $coords = new Astro::Coords( ra => $ra, dec => $dec );
    print Dumper( $coords );
-   
    my $ra_sex = $coords->ra->in_format( 'sexagesimal' );
    my $dec_sex = $coords->dec->in_format( 'sexagesimal' );                  
+   $log->print( "Following up $name at $ra_sex, $dec_sex");
    
    if( $event->role() eq "test" ) {
       $log->print("Recieved an OGLE 'test' message...");
