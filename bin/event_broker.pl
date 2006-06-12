@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.79 2006/06/09 23:13:27 aa Exp $
+$Id: event_broker.pl,v 1.80 2006/06/12 20:46:55 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.79 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.80 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -586,6 +586,7 @@ my $incoming_callback = sub {
         my $error = "$@";
         chomp( $error );
         $log->error( "Error: $error" );
+        $log->error( "$message" );
         $log->error( "Warning: Returning ESTAR__FAULT" );
         return ESTAR__FAULT;
      }   
@@ -1704,6 +1705,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.80  2006/06/12 20:46:55  aa
+# more debugging
+#
 # Revision 1.79  2006/06/09 23:13:27  aa
 # Removed Caltech special case (again)
 #
