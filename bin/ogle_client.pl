@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.14 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.15 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -417,7 +417,11 @@ sub incoming_callback {
   
    $log->debug("Converting co-ordinates...");
    $log->debug("RA, Dec = $ra, $dec");
-   my $coords = new Astro::Coords( ra => $ra, dec => $dec );
+   my $coords = new Astro::Coords( name  => $id,
+                                   ra    => $ra, 
+				   dec   => $dec,
+				   type  => 'J2000',
+				   units => 'degrees' );
    print Dumper( $coords );
    my $ra_sex = $coords->ra->in_format( 'sexagesimal' );
    my $dec_sex = $coords->dec->in_format( 'sexagesimal' );                  
