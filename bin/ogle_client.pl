@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -442,7 +442,7 @@ sub incoming_callback {
       # create SOAP connection
       $log->debug("Marshalling SOAP connection...");
       my $soap = new SOAP::Lite();
-      $soap->uri($urn); 
+      $soap->uri('urn:/user_agent'); 
       
       $log->debug("Putting cookies in the cookie jar...");
       $soap->proxy($endpoint, cookie_jar => $cookie_jar);
@@ -580,7 +580,7 @@ sub event_process {
                            Origin    => $transport->id(),
 		   	   Response  => 'ivo:/uk.org.estar/estar.exo#ack',
                            TimeStamp => eSTAR::Broker::Util::time_iso() );
-		 } elsif ( $transport->role() eq "ack" {
+		 } elsif ( $transport->role() eq "ack" ) {
 	            $log->debug("Responding with an 'ack' packet...");
                     $response = $object->build(
                            Role      => 'ack',
@@ -601,7 +601,7 @@ sub event_process {
               # callback to handle incoming Events     
               $log->print("Detaching callback thread..." );
               my $callback_thread = threads->create ( 
-	                              $incoming_callback, $message );
+	                              &$incoming_callback, $message );
               $callback_thread->detach(); 			  
 	      $log->print("Done.");
            } 
