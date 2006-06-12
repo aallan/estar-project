@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -347,7 +347,7 @@ sub incoming_callback {
       $log->warn("Warning: Event ID is $id");
       $log->warn("Warning: Not an OGLE EWS event?");
       $log->warn( $message );
-      my $log->thread( "Client", "Done." );
+      $log->thread( "Client", "Done." );
       return ESTAR__OK;
    }
    
@@ -355,13 +355,13 @@ sub incoming_callback {
    unless ( open ( ALERT, "+>>$alert" )) {
       my $error = "Error: Can not open $alert in read/append access mode"; 
       $log->error( $error );
-      my $log->thread( "Client", "Done." );
+      $log->thread( "Client", "Done." );
       return ESTAR__FATAL;   
    } else {
       unless ( flock( ALERT, LOCK_EX ) ) {
    	my $error = "Warning: unable to acquire exclusive lock: $!";
    	$log->error( $error );
-        my $log->thread( "Client", "Done." );
+        $log->thread( "Client", "Done." );
         return ESTAR__FATAL; 
       } else {
    	$log->debug("Acquiring exclusive lock...");
@@ -379,7 +379,7 @@ sub incoming_callback {
          if( $ids[$i] eq $id ) {
 	    $log->warn( "Warning: Found duplicate ID in $alert");
 	    $log->warn( "Warning: Not submitting observations...");
-            my $log->thread( "Client", "Done." );
+            $log->thread( "Client", "Done." );
             return ESTAR__FAULT; 
 	 }
       }
@@ -402,7 +402,7 @@ sub incoming_callback {
       chomp( $error );
       $log->error( "Error: $error" );
       $log->error( "Warning: Returning ESTAR__FAULT" );
-      my $log->thread( "Client", "Done." );
+      $log->thread( "Client", "Done." );
       return ESTAR__FAULT;
    }   
    eval { $dec = $event->dec(); };
@@ -411,10 +411,10 @@ sub incoming_callback {
       chomp( $error );
       $log->error( "Error: $error" );
       $log->error( "Warning: Returning ESTAR__FAULT" );
-      my $log->thread( "Client", "Done." );
+      $log->thread( "Client", "Done." );
       return ESTAR__FAULT;
    }
-   my $log->print( "Following up $name at $ra, $dec");
+   $log->print( "Following up $name at $ra, $dec");
    
    my $coords = new Astro::Coords( ra => $ra, dec => $dec, units => 'degrees' );
    my $ra_sex = $coords->ra->in_format( 'sexagesimal' );
@@ -423,7 +423,7 @@ sub incoming_callback {
    if( $event->role() eq "test" ) {
       $log->print("Recieved an OGLE 'test' message...");
       $log->debug( $message );
-      my $log->thread( "Client", "Done." );
+      $log->thread( "Client", "Done." );
       return ESTAR__FAULT;       
    } elsif ( $event->role() eq "observation" ) {
    
@@ -487,7 +487,7 @@ sub incoming_callback {
          chomp( $error );
          $log->error( "Error: $error" );
          $log->error( "Warning: Returning ESTAR__FAULT" );
-         my $log->thread( "Client", "Done." );
+         $log->thread( "Client", "Done." );
          return ESTAR__FAULT;
       }
   
@@ -501,7 +501,7 @@ sub incoming_callback {
        chomp( $error );
        $log->error( "Error( ". $result->faultcode() ."): $error" );
        $log->error( "Warning: Returning ESTAR__FAULT" );
-       my $log->thread( "Client", "Done." );
+       $log->thread( "Client", "Done." );
        return ESTAR__FAULT;     
      }     
    } else {
@@ -509,7 +509,7 @@ sub incoming_callback {
       $log->debug( $message );
    }
    
-   my $log->thread( "Client", "Done." );
+   $log->thread( "Client", "Done." );
    return ESTAR__OK;
 }
 
