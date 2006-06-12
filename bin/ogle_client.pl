@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.22 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.23 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -608,7 +608,7 @@ sub event_process {
 		 # callback to handle incoming Events     
                  $log->print("Detaching callback thread..." );
                  my $callback_thread = threads->create ( 
-	                                 &incoming_callback, $message );
+	                                 incoming_callback( $message)  );
                  $callback_thread->detach();	   
 	      }	  	
 	      
