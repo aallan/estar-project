@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -316,7 +316,12 @@ sub incoming_callback {
       } else {  
          $log->debug( "This looks like a VOEvent document..." );
       }
-   }   	 
+   } else {
+      $log->warn("Warning: This does not appear to be a VOEvent document?");
+      $log->warn( $message );
+      my $log->thread( "Client", "Done." );
+      return ESTAR__FAULT;  
+   }  	 
    
    # Check the ID of current message
    
@@ -597,12 +602,15 @@ sub event_process {
               print $sock $response;
 	      #print "$response\n";
               $sock->flush(); 
+
+	      if( $message =~ "VOEvent" && $message =~ "WhereWhen" ) {
 	      
-              # callback to handle incoming Events     
-              $log->print("Detaching callback thread..." );
-              my $callback_thread = threads->create ( 
-	                              &incoming_callback, $message );
-              $callback_thread->detach(); 			  
+                 # callback to handle incoming Events     
+                 $log->print("Detaching callback thread..." );
+                 my $callback_thread = threads->create ( 
+	                                 &incoming_callback, $message );
+                 $callback_thread->detach();
+	      }	  			  
 	      $log->print("Done.");
            } 
                       
