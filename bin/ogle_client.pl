@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -333,7 +333,7 @@ sub incoming_callback {
    unless( $id =~ "pl.edu.ogle" ) {
       $log->debug("Event ID is $id");
       $log->print("Discarding event...");
-      $log->thread($name, "Done.");  
+      $log->thread("Client", "Done.");  
       return ESTAR_OK;
    }   
    my ($ivorn, $name ) = split "#", $id;
@@ -420,7 +420,7 @@ sub incoming_callback {
       $log->debug( $message );
       my $log->thread( "Client", "Done." );
       return ESTAR__FAULT;       
-   } else ( $event->role() eq "observation" ) {
+   } elsif ( $event->role() eq "observation" ) {
    
       # Submit observations
       # -------------------
@@ -447,11 +447,11 @@ sub incoming_callback {
       $log->debug("Putting cookies in the cookie jar...");
       $soap->proxy($endpoint, cookie_jar => $cookie_jar);
 
-      $log->warn("Warning: Fixing object name to $ob_name" );
       my @split_name = split "-", $name;
       my $year = $split_name[1];
       $year =~ s/20//;
       my $ob_name = "OB". $year. sprintf("%03d", $split_name[3]);
+      $log->debug("Fixing object name from $name to $ob_name" );
     
       $log->debug( "Generating start and end times...");
       my ( $start_time, $end_time ) = get_times();
