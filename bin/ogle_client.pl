@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.26 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.27 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -599,7 +599,7 @@ sub event_process {
 	      }   
 
               # Message is a VOEvent?
-	      if( $message =~ "VOEvent" && $message =~ "WhereWhen" ) {
+	      if( $message =~ "VOEvent" ) {
 	      
 		 $log->debug("Responding with an 'ack' packet...");
                  $response = $object->build(
