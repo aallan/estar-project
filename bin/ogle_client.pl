@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.19 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.20 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -279,10 +279,16 @@ unless( defined $opt{"pass"} ) {
    }
 }
 
+# M A I N  L O O P ########################################################
 
-# E V E N T   C L I E N T ###################################################
+event_process();
 
-my $incoming_callback = sub {
+exit;
+
+# E V E N T   C L I E N T #################################################
+# S U B - R O U T I N E S #################################################
+
+sub incoming_callback {
    my $message = shift;
    
    $log->thread("Client", "Callback from TCP client at " . ctime() . "...");
@@ -508,16 +514,6 @@ my $incoming_callback = sub {
    return ESTAR__OK;
 };
 
-
-# M A I N  L O O P ########################################################
-
-event_process();
-#while(1) { };
-
-exit;
-
-# S U B - R O U T I N E S ################################################
-
 sub event_process {
 
    my $sock;
@@ -600,22 +596,33 @@ sub event_process {
 	         }
 	      
 	      }   
+
+              # Message is a VOEvent?
+	      if( $message =~ "VOEvent" && $message =~ "WhereWhen" ) {
+	      
+		 $log->debug("Responding with an 'ack' packet...");
+                 $response = $object->build(
+                           Role      => 'ack',
+                           Origin    => $transport->origin(),
+		   	   Response  => 'ivo:/uk.org.estar/estar.exo#ack',
+                           TimeStamp => eSTAR::Broker::Util::time_iso() );
+			   
+		 # callback to handle incoming Events     
+                 $log->print("Detaching callback thread..." );
+                 my $callback_thread = threads->create ( 
+	                                 &incoming_callback, $message );
+                 $callback_thread->detach();	   
+	      }	  	
+	      
+	      
+	      # Send response to socket
 	      my $bytes = pack( "N", length($response) ); 
               $log->debug("Sending " . length($response) . " bytes to socket");
               print $sock $bytes;
               $sock->flush();
               print $sock $response;
-	      #print "$response\n";
-              $sock->flush(); 
-
-	      if( $message =~ "VOEvent" && $message =~ "WhereWhen" ) {
-	      
-                 # callback to handle incoming Events     
-                 $log->print("Detaching callback thread..." );
-                 my $callback_thread = threads->create ( 
-	                                 &$incoming_callback, $message );
-                 $callback_thread->detach();
-	      }	  			  
+	      print Dumper ($response);
+              $sock->flush(); 	      		  
 	      $log->print("Done.");
            } 
                       
