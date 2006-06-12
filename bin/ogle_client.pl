@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -569,7 +569,7 @@ sub event_process {
 		    $log->warn( "Warning: Send 'error' packet...");
 		    $response = $object->build(
                            Role      => 'error',
-		   	   Response  => 'ivo:/uk.org.estar/estar.exo#ack',
+		   	   Origin    => 'ivo:/uk.org.estar/estar.exo#',
                            TimeStamp => eSTAR::Broker::Util::time_iso(),
 			   Meta => [{ Name => 'error',UCD => 'meta.error', 
 			              Value => "$@" },] );
@@ -577,14 +577,14 @@ sub event_process {
 	            $log->debug("Echoing 'iamalive' packet..");
                     $response = $object->build(
                            Role      => 'iamalive',
-                           Origin    => $transport->id(),
+                           Origin    => $transport->origin(),
 		   	   Response  => 'ivo:/uk.org.estar/estar.exo#ack',
                            TimeStamp => eSTAR::Broker::Util::time_iso() );
 		 } elsif ( $transport->role() eq "ack" ) {
 	            $log->debug("Responding with an 'ack' packet...");
                     $response = $object->build(
                            Role      => 'ack',
-                           Origin    => $transport->id(),
+                           Origin    => $transport->origin(),
 		   	   Response  => 'ivo:/uk.org.estar/estar.exo#ack',
                            TimeStamp => eSTAR::Broker::Util::time_iso() );
 	         }
