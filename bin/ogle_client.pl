@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.23 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.24 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -305,8 +305,7 @@ sub incoming_callback {
          my $error = "$@";
          chomp( $error );
          $log->error( "Error: $error" );
-         $log->error( "Warning: Returning ESTAR__FAULT" );
-         return ESTAR__FAULT;
+	 exit;
       } else {  
          $log->debug( "This looks like a VOEvent document..." );
       }
@@ -314,7 +313,7 @@ sub incoming_callback {
       $log->warn("Warning: This does not appear to be a VOEvent document?");
       $log->warn( $message );
       $log->thread( "Client", "Done." );
-      return ESTAR__FAULT;  
+      exit;
    }  	 
    
    # Check the ID of current message
@@ -325,15 +324,15 @@ sub incoming_callback {
       my $error = "$@";
       chomp( $error );
       $log->error( "Error: $error" );
-      $log->error( "Warning: Returning ESTAR__FAULT" );
-      return ESTAR__FAULT;
+      $log->thread("Client", "Done.");  
+      exit;
    } 
 
    unless( $id =~ "pl.edu.ogle" ) {
       $log->debug("Event ID is $id");
       $log->print("Discarding event...");
       $log->thread("Client", "Done.");  
-      return ESTAR__OK;
+      exit;
    }   
    my ($ivorn, $name ) = split "#", $id;
  
@@ -342,7 +341,7 @@ sub incoming_callback {
       $log->warn("Warning: Not an OGLE EWS event?");
       $log->warn( $message );
       $log->thread( "Client", "Done." );
-      return ESTAR__OK;
+      exit;
    }
    
    # Check we haven't seen that message before?
@@ -350,13 +349,13 @@ sub incoming_callback {
       my $error = "Error: Can not open $alert in read/append access mode"; 
       $log->error( $error );
       $log->thread( "Client", "Done." );
-      return ESTAR__FATAL;   
+      exit;   
    } else {
       unless ( flock( ALERT, LOCK_EX ) ) {
    	my $error = "Warning: unable to acquire exclusive lock: $!";
    	$log->error( $error );
         $log->thread( "Client", "Done." );
-        return ESTAR__FATAL; 
+        exit; 
       } else {
    	$log->debug("Acquiring exclusive lock...");
       }
@@ -374,7 +373,7 @@ sub incoming_callback {
 	    $log->warn( "Warning: Found duplicate ID in $alert");
 	    $log->warn( "Warning: Not submitting observations...");
             $log->thread( "Client", "Done." );
-            return ESTAR__FAULT; 
+            exit; 
 	 }
       }
       
@@ -395,18 +394,16 @@ sub incoming_callback {
       my $error = "$@";
       chomp( $error );
       $log->error( "Error: $error" );
-      $log->error( "Warning: Returning ESTAR__FAULT" );
       $log->thread( "Client", "Done." );
-      return ESTAR__FAULT;
+      exit;
    }   
    eval { $dec = $event->dec(); };
    if ( $@ ) {
       my $error = "$@";
       chomp( $error );
       $log->error( "Error: $error" );
-      $log->error( "Warning: Returning ESTAR__FAULT" );
       $log->thread( "Client", "Done." );
-      return ESTAR__FAULT;
+      exit;
    }
   
    $log->debug("Converting co-ordinates...");
@@ -425,7 +422,7 @@ sub incoming_callback {
       $log->print("Recieved an OGLE 'test' message...");
       $log->debug( $message );
       $log->thread( "Client", "Done." );
-      return ESTAR__FAULT;       
+      exit;      
    } elsif ( $event->role() eq "observation" ) {
    
       # Submit observations
@@ -487,23 +484,22 @@ sub incoming_callback {
          my $error = "$@";
          chomp( $error );
          $log->error( "Error: $error" );
-         $log->error( "Warning: Returning ESTAR__FAULT" );
          $log->thread( "Client", "Done." );
-         return ESTAR__FAULT;
+         exit;
       }
   
      # Check for errors
-     $log->print("Transport Status: " . $soap->transport()->status() );
+     $log->print("Transport Status (" . $soap->transport()->status() .")" );
   
      unless ($result->fault() ) {
         $log->($result->result());
      } else {
        my $error = $result->faultstring();
        chomp( $error );
-       $log->error( "Error( ". $result->faultcode() ."): $error" );
-       $log->error( "Warning: Returning ESTAR__FAULT" );
+       $log->error( "Error: Problem with SOAP connection to User Agent" );
+       $log->error( "Error( ". $result->faultcode() ." ): $error" );
        $log->thread( "Client", "Done." );
-       return ESTAR__FAULT;     
+       exit;    
      }     
    } else {
       $log->print("Recieved an unknown OGLE message...");
@@ -511,7 +507,7 @@ sub incoming_callback {
    }
    
    $log->thread( "Client", "Done." );
-   return ESTAR__OK;
+   exit;
 };
 
 sub event_process {
