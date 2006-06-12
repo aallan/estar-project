@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.10 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -319,7 +319,7 @@ sub incoming_callback {
    } else {
       $log->warn("Warning: This does not appear to be a VOEvent document?");
       $log->warn( $message );
-      my $log->thread( "Client", "Done." );
+      $log->thread( "Client", "Done." );
       return ESTAR__FAULT;  
    }  	 
    
@@ -608,7 +608,7 @@ sub event_process {
                  # callback to handle incoming Events     
                  $log->print("Detaching callback thread..." );
                  my $callback_thread = threads->create ( 
-	                                 &incoming_callback, $message );
+	                                 &incoming_callback($message) );
                  $callback_thread->detach();
 	      }	  			  
 	      $log->print("Done.");
