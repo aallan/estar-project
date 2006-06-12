@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.24 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.25 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -281,14 +281,7 @@ unless( defined $opt{"pass"} ) {
 
 # M A I N  L O O P ########################################################
 
-event_process();
-
-exit;
-
-# E V E N T   C L I E N T #################################################
-# S U B - R O U T I N E S #################################################
-
-sub incoming_callback {
+my $incoming_callback = sub {
    my $message = shift;
    
    $log->thread("Client", "Callback from TCP client at " . ctime() . "...");
@@ -305,7 +298,8 @@ sub incoming_callback {
          my $error = "$@";
          chomp( $error );
          $log->error( "Error: $error" );
-	 exit;
+         $log->error( "Warning: Returning ESTAR__FAULT" );
+         return ESTAR__FAULT;
       } else {  
          $log->debug( "This looks like a VOEvent document..." );
       }
@@ -313,7 +307,7 @@ sub incoming_callback {
       $log->warn("Warning: This does not appear to be a VOEvent document?");
       $log->warn( $message );
       $log->thread( "Client", "Done." );
-      exit;
+      return ESTAR__FAULT;  
    }  	 
    
    # Check the ID of current message
@@ -324,15 +318,15 @@ sub incoming_callback {
       my $error = "$@";
       chomp( $error );
       $log->error( "Error: $error" );
-      $log->thread("Client", "Done.");  
-      exit;
+      $log->error( "Warning: Returning ESTAR__FAULT" );
+      return ESTAR__FAULT;
    } 
 
    unless( $id =~ "pl.edu.ogle" ) {
       $log->debug("Event ID is $id");
       $log->print("Discarding event...");
       $log->thread("Client", "Done.");  
-      exit;
+      return ESTAR__OK;
    }   
    my ($ivorn, $name ) = split "#", $id;
  
@@ -341,7 +335,7 @@ sub incoming_callback {
       $log->warn("Warning: Not an OGLE EWS event?");
       $log->warn( $message );
       $log->thread( "Client", "Done." );
-      exit;
+      return ESTAR__OK;
    }
    
    # Check we haven't seen that message before?
@@ -349,13 +343,13 @@ sub incoming_callback {
       my $error = "Error: Can not open $alert in read/append access mode"; 
       $log->error( $error );
       $log->thread( "Client", "Done." );
-      exit;   
+      return ESTAR__FATAL;   
    } else {
       unless ( flock( ALERT, LOCK_EX ) ) {
    	my $error = "Warning: unable to acquire exclusive lock: $!";
    	$log->error( $error );
         $log->thread( "Client", "Done." );
-        exit; 
+        return ESTAR__FATAL; 
       } else {
    	$log->debug("Acquiring exclusive lock...");
       }
@@ -373,7 +367,7 @@ sub incoming_callback {
 	    $log->warn( "Warning: Found duplicate ID in $alert");
 	    $log->warn( "Warning: Not submitting observations...");
             $log->thread( "Client", "Done." );
-            exit; 
+            return ESTAR__FAULT; 
 	 }
       }
       
@@ -394,16 +388,18 @@ sub incoming_callback {
       my $error = "$@";
       chomp( $error );
       $log->error( "Error: $error" );
+      $log->error( "Warning: Returning ESTAR__FAULT" );
       $log->thread( "Client", "Done." );
-      exit;
+      return ESTAR__FAULT;
    }   
    eval { $dec = $event->dec(); };
    if ( $@ ) {
       my $error = "$@";
       chomp( $error );
       $log->error( "Error: $error" );
+      $log->error( "Warning: Returning ESTAR__FAULT" );
       $log->thread( "Client", "Done." );
-      exit;
+      return ESTAR__FAULT;
    }
   
    $log->debug("Converting co-ordinates...");
@@ -422,7 +418,7 @@ sub incoming_callback {
       $log->print("Recieved an OGLE 'test' message...");
       $log->debug( $message );
       $log->thread( "Client", "Done." );
-      exit;      
+      return ESTAR__FAULT;       
    } elsif ( $event->role() eq "observation" ) {
    
       # Submit observations
@@ -484,22 +480,23 @@ sub incoming_callback {
          my $error = "$@";
          chomp( $error );
          $log->error( "Error: $error" );
+         $log->error( "Warning: Returning ESTAR__FAULT" );
          $log->thread( "Client", "Done." );
-         exit;
+         return ESTAR__FAULT;
       }
   
      # Check for errors
-     $log->print("Transport Status (" . $soap->transport()->status() .")" );
+     $log->print("Transport Status: " . $soap->transport()->status() );
   
      unless ($result->fault() ) {
         $log->($result->result());
      } else {
        my $error = $result->faultstring();
        chomp( $error );
-       $log->error( "Error: Problem with SOAP connection to User Agent" );
-       $log->error( "Error( ". $result->faultcode() ." ): $error" );
+       $log->error( "Error( ". $result->faultcode() ."): $error" );
+       $log->error( "Warning: Returning ESTAR__FAULT" );
        $log->thread( "Client", "Done." );
-       exit;    
+       return ESTAR__FAULT;     
      }     
    } else {
       $log->print("Recieved an unknown OGLE message...");
@@ -507,8 +504,16 @@ sub incoming_callback {
    }
    
    $log->thread( "Client", "Done." );
-   exit;
+   return ESTAR__OK;
 };
+
+
+event_process();
+
+exit;
+
+# E V E N T   C L I E N T #################################################
+# S U B - R O U T I N E S #################################################
 
 sub event_process {
 
@@ -600,14 +605,7 @@ sub event_process {
                  $response = $object->build(
                            Role      => 'ack',
                            TimeStamp => eSTAR::Broker::Util::time_iso() );
-			   
-		 # callback to handle incoming Events     
-                 $log->print("Detaching callback thread..." );
-                 my $callback_thread = threads->create ( 
-	                                 incoming_callback( $message)  );
-                 $callback_thread->detach();	   
-	      }	  	
-	      
+              }
 	      
 	      # Send response to socket
 	      my $bytes = pack( "N", length($response) ); 
@@ -618,6 +616,17 @@ sub event_process {
 	      #print Dumper ($response);
               $sock->flush(); 	      		  
 	      $log->print("Done.");
+	      
+	      # We need to call back		   
+	      if( $message =~ "VOEvent" && $message =~ "WhereWhen" ) {
+		 # callback to handle incoming Events     
+                 $log->print("Detaching callback thread..." );
+                 my $callback_thread = threads->create ( 
+	                                 $incoming_callback, $message)  );
+                 $callback_thread->detach();	   
+	      }	  	
+	      
+	      
            } 
                       
         } elsif ( $bytes_read == 0 && $! != EWOULDBLOCK ) {
