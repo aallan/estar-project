@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.20 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.21 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -562,10 +562,10 @@ sub event_process {
               $log->debug("Read $bytes_read characters from socket");
       
               # callback to handle incoming Events     
-	      my $response;
+	      my $object = new XML::Document::Transport();
+	      my ($transport, $response);
 	      if( $message =~ "Transport" && !( $message =~ "WhereWhen" ) ) {
-		 my $object = new XML::Document::Transport();
-	         my $transport;
+
 		 eval{$transport = new XML::Document::Transport(XML => $message);};
 		 if ( $@ ) {
                     my $error = "$@";
