@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -300,13 +300,12 @@ sub incoming_callback {
    $log->thread("Client", "Callback from TCP client at " . ctime() . "...");
    $log->thread("Client", "Handling broadcast message from $opt{host}:$opt{port}");
    my $state_dir = File::Spec->catdir( $config->get_state_dir() );  
-   my $alert = File::Spec->catfile( $state_dir, $name, "alert.log" );
+   my $alert = File::Spec->catfile( $state_dir, "alert.log" );
      
    # It really, really should be a VOEvent message
    $log->debug( "Testing to see whether we have a VOEvent document..." );
-   my $voevent;
+   my $event;
    if ( $message =~ /VOEvent/ ) {
-      my $event;
       eval { $event = new Astro::VO::VOEvent( XML => $message ); };
       if ( $@ ) {
          my $error = "$@";
@@ -322,7 +321,7 @@ sub incoming_callback {
    # Check the ID of current message
    
    my $id;
-   eval { $id = $event->id(); )}
+   eval { $id = $event->id(); )};
    if ( $@ ) {
       my $error = "$@";
       chomp( $error );
