@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.18 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.19 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -280,18 +280,6 @@ unless( defined $opt{"pass"} ) {
 }
 
 
-# E V E N T   C L I E N T --------------------------------------------------
-
-#my $event_client = threads->new( \&event_process );
-#$event_client->detach;
-
-# M A I N  L O O P ---------------------------------------------------------
-
-event_process();
-#while(1) { };
-
-exit;
-
 # E V E N T   C L I E N T ###################################################
 
 my $incoming_callback = sub {
@@ -519,6 +507,16 @@ my $incoming_callback = sub {
    $log->thread( "Client", "Done." );
    return ESTAR__OK;
 };
+
+
+# M A I N  L O O P ########################################################
+
+event_process();
+#while(1) { };
+
+exit;
+
+# S U B - R O U T I N E S ################################################
 
 sub event_process {
 
