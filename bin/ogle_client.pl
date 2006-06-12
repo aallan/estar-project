@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -334,7 +334,7 @@ sub incoming_callback {
       $log->debug("Event ID is $id");
       $log->print("Discarding event...");
       $log->thread("Client", "Done.");  
-      return ESTAR_OK;
+      return ESTAR__OK;
    }   
    my ($ivorn, $name ) = split "#", $id;
  
@@ -343,7 +343,7 @@ sub incoming_callback {
       $log->warn("Warning: Not an OGLE EWS event?");
       $log->warn( $message );
       my $log->thread( "Client", "Done." );
-      return ESTAR_OK;
+      return ESTAR__OK;
    }
    
    # Check we haven't seen that message before?
@@ -505,7 +505,7 @@ sub incoming_callback {
    }
    
    my $log->thread( "Client", "Done." );
-   return ESTAR_OK;
+   return ESTAR__OK;
 }
 
 sub event_process {
@@ -601,7 +601,7 @@ sub event_process {
               # callback to handle incoming Events     
               $log->print("Detaching callback thread..." );
               my $callback_thread = threads->create ( 
-	                              &$incoming_callback, $message );
+	                              &incoming_callback, $message );
               $callback_thread->detach(); 			  
 	      $log->print("Done.");
            } 
@@ -639,7 +639,7 @@ sub get_times{
 
    my $hour = localtime->hour();
    my $min = localtime->min();
-   $sec = localtime->sec();
+   my $sec = localtime->sec();
 
    # could be last day of the month
    if ( $day >= 28 && $day <= 31 ) {
