@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.15 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.16 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -294,7 +294,7 @@ exit;
 
 # E V E N T   C L I E N T ###################################################
 
-sub incoming_callback {
+my $incoming_callback = sub {
    my $message = shift;
    
    $log->thread("Client", "Callback from TCP client at " . ctime() . "...");
@@ -422,7 +422,7 @@ sub incoming_callback {
 				   dec   => $dec,
 				   type  => 'J2000',
 				   units => 'degrees' );
-   print Dumper( $coords );
+#   print Dumper( $coords );
    my $ra_sex = $coords->ra->in_format( 'sexagesimal' );
    my $dec_sex = $coords->dec->in_format( 'sexagesimal' );                  
    $log->print( "Following up $name at $ra_sex, $dec_sex");
@@ -615,7 +615,7 @@ sub event_process {
                  # callback to handle incoming Events     
                  $log->print("Detaching callback thread..." );
                  my $callback_thread = threads->create ( 
-	                                 &incoming_callback($message) );
+	                                 $incoming_callback, $message );
                  $callback_thread->detach();
 	      }	  			  
 	      $log->print("Done.");
