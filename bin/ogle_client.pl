@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.10 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -396,7 +396,7 @@ sub incoming_callback {
         
    # Parse the message
    my ( $ra, $dec );
-   eval { $ra = event->ra(); };
+   eval { $ra = $event->ra(); };
    if ( $@ ) {
       my $error = "$@";
       chomp( $error );
@@ -405,7 +405,7 @@ sub incoming_callback {
       my $log->thread( "Client", "Done." );
       return ESTAR__FAULT;
    }   
-   eval { $dec = event->dec(); };
+   eval { $dec = $event->dec(); };
    if ( $@ ) {
       my $error = "$@";
       chomp( $error );
