@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.85 2006/06/13 00:40:45 aa Exp $
+$Id: event_broker.pl,v 1.86 2006/06/13 00:44:08 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.85 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.86 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -197,6 +197,10 @@ $SIG{INT} = sub {
               $log->error( "Recieved Interrupt" ); 
               $server_flag = 1;
               exit(1); };
+
+$SIG{ALRM} = sub { 
+             my $error = "socket connection timed out";
+             throw eSTAR::Error::FatalError($error, ESTAR__FATAL); };
 
 # A G E N T  C O N F I G U R A T I O N ----------------------------------------
 
@@ -1219,9 +1223,6 @@ my $iamalive = sub {
       my $length;
       my $bytes_read;
 
-      $SIG{ALRM} = sub { 
-        my $error = "socket connection timed out";
-        throw eSTAR::Error::FatalError($error, ESTAR__FATAL); };
       eval {
       
         try {
@@ -1395,9 +1396,6 @@ my $broker_callback = sub {
      my $length;
      my $bytes_read;
 
-     $SIG{ALRM} = sub { 
-       my $error = "socket connection timed out";
-       throw eSTAR::Error::FatalError($error, ESTAR__FATAL); };
      eval {
      
        try {
@@ -1743,6 +1741,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.86  2006/06/13 00:44:08  aa
+# Fixed alarm clock error this time?
+#
 # Revision 1.85  2006/06/13 00:40:45  aa
 # Fixed alarm clock error this time?
 #
