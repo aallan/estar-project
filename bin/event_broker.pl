@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.84 2006/06/13 00:31:18 aa Exp $
+$Id: event_broker.pl,v 1.85 2006/06/13 00:40:45 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.84 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.85 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -96,6 +96,7 @@ use eSTAR::Process;
 use eSTAR::Config;
 use eSTAR::UserAgent;
 use eSTAR::RTML;
+use eSTAR::Error qw /:try/;
 
 #
 # Config modules
@@ -1218,11 +1219,24 @@ my $iamalive = sub {
       my $length;
       my $bytes_read;
 
-      $SIG{ALRM} = sub { die "socket connetion timed out" };
+      $SIG{ALRM} = sub { 
+        my $error = "socket connection timed out";
+        throw eSTAR::Error::FatalError($error, ESTAR__FATAL); };
       eval {
-        alarm $config->get_option( "connection.timeout" );
-        $bytes_read = sysread( $c, $length, 4 ); 
-	alarm 0; 
+      
+        try {
+           alarm $config->get_option( "connection.timeout" );
+           $bytes_read = sysread( $c, $length, 4 ); 
+	  alarm 0;
+	} otherwise {
+	   my $error = shift;
+	   chomp $error;
+	   $log->error( "Error: $error" );	   
+           $log->warn( "Dropping connection to $server" );
+           $log->warn( "Closing socket to $server (IAMALIVE)" );
+	   close( $c );
+          return ESTAR__FAULT;	
+	};   
       };
       alarm 0;
 
@@ -1381,13 +1395,36 @@ my $broker_callback = sub {
      my $length;
      my $bytes_read;
 
-     $SIG{ALRM} = sub { die "socket connetion timed out" };
+     $SIG{ALRM} = sub { 
+       my $error = "socket connection timed out";
+       throw eSTAR::Error::FatalError($error, ESTAR__FATAL); };
      eval {
-       alarm $config->get_option( "connection.timeout" );
-       $bytes_read = sysread( $c, $length, 4 );  
-       alarm 0
+     
+       try {
+     	  alarm $config->get_option( "connection.timeout" );
+     	  $bytes_read = sysread( $c, $length, 4 ); 
+         alarm 0;
+       } otherwise {
+          my $error = shift;
+          chomp $error;
+          $log->error( "Error: $error" );	  
+     	  $log->warn( "Dropping connection to $server" );
+     	  $log->warn( "Closing socket to $server (IAMALIVE)" );
+          close( $c );
+     	 return ESTAR__FAULT;  
+       };   
      };
      alarm 0;
+
+#     $SIG{ALRM} = sub { 
+#        my $error = "socket connection timed out";
+#        throw eSTAR::Error::FatalError($error, ESTAR__FATAL); };
+#     eval {
+#       alarm $config->get_option( "connection.timeout" );
+#       $bytes_read = sysread( $c, $length, 4 );  
+#       alarm 0
+#     };
+#     alarm 0;
      
      if ($@) {
        my $error = "$@";
@@ -1706,6 +1743,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.85  2006/06/13 00:40:45  aa
+# Fixed alarm clock error this time?
+#
 # Revision 1.84  2006/06/13 00:31:18  aa
 # Fixed alarm clock error this time?
 #
