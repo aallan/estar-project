@@ -14,7 +14,7 @@ use strict;
 #	       collection thread that the message has been picked up
 #  @tids     - list of currently active server threads (with live clients)
 
-use vars qw / $VERSION %OPT $log $config %messages %collect %tids/;
+use vars qw / $VERSION %OPT $log $config %messages %collect %tids $tid_down /;
 
 # share the lookup hash across threads
 
@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.87 2006/06/13 00:48:10 aa Exp $
+$Id: event_broker.pl,v 1.88 2006/06/13 01:07:07 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.87 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.88 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -178,6 +178,10 @@ my $run = new eSTAR::Broker::Running( $process->get_process() );
 $run->swallow_messages( \%messages ); 
 $run->swallow_collected( \%collect ); 
 $run->swallow_tids( \%tids ); 
+
+my @closed_sockets;
+$tid_down = \@closed_sockets;
+share( $tid_down );
 
 # C A T C H   S I G N A L S -------------------------------------------------
 
@@ -1237,6 +1241,9 @@ my $iamalive = sub {
         $log->warn( "Dropping connection to $server" );
         $log->warn( "Closing socket to $server (IAMALIVE)" );
 	close( $c );
+	lock( @$tid_down );
+	$log->warn( "Sempahoring other threads via \@\$tid_down..");
+	push @$tid_down, $server 
         return ESTAR__FAULT;
         
       }        
@@ -1326,6 +1333,24 @@ my $broker_callback = sub {
 	close( $c );
 	last;
      }
+     
+     {
+        lock( @$tid_down );
+        foreach my $i ( 0 ... $#$tid_down ) {
+	   if ( $$tid_down[$i] eq $server ) {
+	      delete $$tid_down[$i];
+              my $error = "Socket closed from another thread";
+              chomp $error;
+              $log->error( "Error: $error" );
+              $log->warn( "Dropping connection to $server" );
+              $log->warn( "De-registering thread (tid = $tid)" );
+              $run->deregister_tid( $tid );
+              $log->warn( "Closing socket to $server (tid = $tid)" );
+              close( $c );
+              return ESTAR__FAULT;
+	   }    
+        }
+     }      
        
      # 1) Check to see if there are any event messages in %messages
      # 2) Check %collected to see whether we've picked this one up before
@@ -1719,6 +1744,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.88  2006/06/13 01:07:07  aa
+# Fixed alarm clock error this time?
+#
 # Revision 1.87  2006/06/13 00:48:10  aa
 # Fixed alarm clock error this time?
 #
