@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.83 2006/06/13 00:29:27 aa Exp $
+$Id: event_broker.pl,v 1.84 2006/06/13 00:31:18 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.83 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.84 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -1218,8 +1218,8 @@ my $iamalive = sub {
       my $length;
       my $bytes_read;
 
+      $SIG{ALRM} = sub { die "socket connetion timed out" };
       eval {
-        local $SIG{ALRM} = sub { die "socket connetion timed out" };
         alarm $config->get_option( "connection.timeout" );
         $bytes_read = sysread( $c, $length, 4 ); 
 	alarm 0; 
@@ -1381,8 +1381,8 @@ my $broker_callback = sub {
      my $length;
      my $bytes_read;
 
+     $SIG{ALRM} = sub { die "socket connetion timed out" };
      eval {
-       local $SIG{ALRM} = sub { die "socket connetion timed out" };
        alarm $config->get_option( "connection.timeout" );
        $bytes_read = sysread( $c, $length, 4 );  
        alarm 0
@@ -1706,6 +1706,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.84  2006/06/13 00:31:18  aa
+# Fixed alarm clock error this time?
+#
 # Revision 1.83  2006/06/13 00:29:27  aa
 # Fixed alarm clock error this time?
 #
