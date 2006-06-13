@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.80 2006/06/12 20:46:55 aa Exp $
+$Id: event_broker.pl,v 1.81 2006/06/13 00:17:36 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.80 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.81 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -1219,7 +1219,12 @@ my $iamalive = sub {
       my $bytes_read;
       
       eval {
-        local $SIG{ALRM} = sub { die "socket connection timed out\n" };
+        local $SIG{ALRM} = sub { 
+	    $log->error("socket connection timed out");
+	    $log->warn( "Dropping connection to $server" );
+            $log->warn( "Closing socket to $server (IAMALIVE)" );
+	    close( $c );
+            return ESTAR__FAULT; };
         alarm $config->get_option( "connection.timeout" );
         $bytes_read = sysread( $c, $length, 4 ); 
 	alarm 0; 
@@ -1381,7 +1386,12 @@ my $broker_callback = sub {
      my $length;
      my $bytes_read;
      eval {
-       local $SIG{ALRM} = sub { die "socket connection timed out\n" };
+       local $SIG{ALRM} = sub {      
+	    $log->error("socket connection timed out");
+	    $log->warn( "Dropping connection to $server" );
+            $log->warn( "Closing socket to $server (IAMALIVE)" );
+	    close( $c );
+            return ESTAR__FAULT; };
        alarm $config->get_option( "connection.timeout" );
        $bytes_read = sysread( $c, $length, 4 );  
        alarm 0
@@ -1705,6 +1715,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.81  2006/06/13 00:17:36  aa
+# Fixed alarm clock error this time?
+#
 # Revision 1.80  2006/06/12 20:46:55  aa
 # more debugging
 #
