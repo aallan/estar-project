@@ -4,6 +4,10 @@
 	  event messages and then submits 3x30s observations onto Robonet-1.0
 	  for an initial "first look".
 	  
+	* bin/event_broker.pl: Finally fixe alarm clock errors for good, and
+	  added semaphoring from the IAMALIVE thread to the event handling
+	  thread that the remote client is not responding to messages.  
+	  
 2006-06-07 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * bin/event_broker.pl & eSTAR/Broker/Handler.pm: Moved to using

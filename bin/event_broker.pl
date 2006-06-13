@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.88 2006/06/13 01:07:07 aa Exp $
+$Id: event_broker.pl,v 1.89 2006/06/13 01:10:01 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.88 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.89 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -1243,7 +1243,7 @@ my $iamalive = sub {
 	close( $c );
 	lock( @$tid_down );
 	$log->warn( "Sempahoring other threads via \@\$tid_down..");
-	push @$tid_down, $server 
+	push @$tid_down, $server; 
         return ESTAR__FAULT;
         
       }        
@@ -1744,6 +1744,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.89  2006/06/13 01:10:01  aa
+# Fixed alarm clock error this time?
+#
 # Revision 1.88  2006/06/13 01:07:07  aa
 # Fixed alarm clock error this time?
 #
