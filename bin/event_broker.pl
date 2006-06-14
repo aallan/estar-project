@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.97 2006/06/14 19:48:16 aa Exp $
+$Id: event_broker.pl,v 1.98 2006/06/14 19:54:25 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.97 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.98 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -1175,6 +1175,14 @@ my $iamalive = sub {
       unless( defined $connected_flag ) {	
          $log->error( "Error: $server has no corresponding event thread" );
 	 $log->error( "Error: Zombie IAMALIVE connection to $server" );
+	 {
+            lock( @$tid_down );
+            foreach my $i ( 0 ... $#$tid_down ) {
+	    $log->warn( "Cleaning up \@\$tid_down" );
+	    if ( $$tid_down[$i] eq $server ) {
+	      delete $$tid_down[$i];
+            }
+	 }
          $log->warn( "Closing socket to $server (IAMALIVE)" );
 	 close( $c );
 	 last;
@@ -1806,6 +1814,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.98  2006/06/14 19:54:25  aa
+# bug fix
+#
 # Revision 1.97  2006/06/14 19:48:16  aa
 # bug fix
 #
