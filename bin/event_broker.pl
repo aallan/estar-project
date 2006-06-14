@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.91 2006/06/14 00:22:56 aa Exp $
+$Id: event_broker.pl,v 1.92 2006/06/14 00:25:30 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.91 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.92 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -1296,14 +1296,15 @@ my $iamalive = sub {
 	 if ( defined $message ) {
 	    
             if( $message->role() eq "ack" ) {
-              $log->warn( "Warning: Recieved an ACK message from $server");
-              $log->warn( "Warning: This should have been an IAMALIVE message");
-              $log->debug( $response );
+              $log->print( "Recieved an ACK message from $server");
+              my $timestamp = eSTAR::Broker::Util::time_iso(); 
+              $log->debug( "Reply timestamp: $timestamp");
+	      $log->debug( $response );
               $log->debug( "Done." );
         
             } elsif ( $message->role() eq "iamalive" ) {
-              $log->print( "Recieved a IAMALIVE message from $server");
-        
+              $log->warn( "Warning: Recieved an IAMALIVE message from $server");
+              $log->warn( "Warning: This should have been an ACK message");        
               my $timestamp = eSTAR::Broker::Util::time_iso(); 
               $log->debug( "Reply timestamp: $timestamp");
               $log->debug( $response );
@@ -1777,6 +1778,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.92  2006/06/14 00:25:30  aa
+# bug fix
+#
 # Revision 1.91  2006/06/14 00:22:56  aa
 # bug fix
 #
