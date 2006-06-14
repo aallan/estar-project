@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.28 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.29 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -488,7 +488,17 @@ my $incoming_callback = sub {
      # Check for errors
      $log->print("Transport Status: " . $soap->transport()->status() );
   
-     unless ($result->fault() ) {
+     unless ( defined $result ) {
+       $log->error( "Error: \$result is undefined" );
+       $log->error( "Error: The User Agent on " . 
+                      $config->get_option("ua.host") . " may have crashed" );
+       $log->error( "Warning: Returning ESTAR__FAULT" );
+       $log->thread( "Client", "Done." );
+       return ESTAR__FAULT;         
+     
+     }
+     
+     unless ( $result->fault() ) {
         $log->debug($result->result());
      } else {
        my $error = $result->faultstring();
