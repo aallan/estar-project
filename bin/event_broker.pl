@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.93 2006/06/14 00:29:12 aa Exp $
+$Id: event_broker.pl,v 1.94 2006/06/14 00:38:50 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.93 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.94 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -1268,7 +1268,7 @@ my $iamalive = sub {
          my $response;               
          $bytes_read = sysread( $c, $response, $length); 
                   
-         # Do I get an ACK or a IAMALIVE message?
+         # Do I get an ACK or a IAMALIVE message? (Expecting IAMALIVE)
          # --------------------------------------
          my $message;
 	 if ( $response =~ /Transport/ ) {
@@ -1281,6 +1281,7 @@ my $iamalive = sub {
                $log->error( $message );
             }   
          } elsif ( $response =~ /VOEvent/ ) {
+            $log->error("Error: Message appears to be a <VOEvent>");
             eval { $message = new Astro::VO::VOEvent( XML => $response ); };	 
             if ( $@ ) {
                my $error = "$@";
@@ -1480,7 +1481,7 @@ my $broker_callback = sub {
        my $response;		 
        $bytes_read = sysread( $c, $response, $length);                  
 
-       # Do I get an ACK or a IAMALIVE message?
+       # Do I get an ACK or a IAMALIVE message? (Expecting ACK)
        # --------------------------------------
        my $message;
        if ( $response =~ /Transport/ ) {
@@ -1493,6 +1494,7 @@ my $broker_callback = sub {
              $log->error( $message );
           }   
        } elsif ( $response =~ /VOEvent/ ) {
+          $log->error("Error: Message appears to be a <VOEvent>");
           eval { $message = new Astro::VO::VOEvent( XML => $response ); };     
           if ( $@ ) {
              my $error = "$@";
@@ -1779,6 +1781,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.94  2006/06/14 00:38:50  aa
+# bug fix
+#
 # Revision 1.93  2006/06/14 00:29:12  aa
 # bug fix
 #
