@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.95 2006/06/14 07:13:08 aa Exp $
+$Id: event_broker.pl,v 1.96 2006/06/14 07:29:41 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.95 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.96 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -1248,6 +1248,11 @@ my $iamalive = sub {
       };
       alarm 0;
 
+      # The semaphore is a possible race condition if the other thread
+      # has dropped first, it'll go into the @$tid_down array and then
+      # when the client reconnects from that IP it'll immediately get
+      # disconnected. This may cause "zombie" IAMALIVE processes to
+      # hang around. Ouch!
       if ($@) {
         my $error = "$@";
 	chomp $error;
@@ -1795,6 +1800,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.96  2006/06/14 07:29:41  aa
+# Added some comments
+#
 # Revision 1.95  2006/06/14 07:13:08  aa
 # Added a chek in the IAMALIVE callback to check tha the thread sending event messages is actually still connected to the server. If it dies for whatever reason we kill the IAMALIVE socket
 #
