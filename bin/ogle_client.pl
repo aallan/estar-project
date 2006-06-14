@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.29 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.30 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -412,7 +412,10 @@ my $incoming_callback = sub {
 #   print Dumper( $coords );
    my $ra_sex = $coords->ra->in_format( 'sexagesimal' );
    my $dec_sex = $coords->dec->in_format( 'sexagesimal' );                  
+   $ra_sex =~ s/:/ /g;
+   $dec_sex =~ s/:/ /g;
    $log->print( "Following up $name at $ra_sex, $dec_sex");
+
    
    if( $event->role() eq "test" ) {
       $log->print("Recieved an OGLE 'test' message...");
