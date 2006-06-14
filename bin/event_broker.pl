@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.96 2006/06/14 07:29:41 aa Exp $
+$Id: event_broker.pl,v 1.97 2006/06/14 19:48:16 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.96 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.97 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -1165,8 +1165,12 @@ my $iamalive = sub {
       # check to see that the thread pushing event messages has died?
       my @connected = $run->list_connections( );
       my $connected_flag;
+      $log->debug( "Checking connectd servers (we are $server)...");
       foreach my $i ( 0 ... $#connected ) {
-        $connected_flag = 1 if $connceted[$i] eq $server;
+        $log->debug( "Found event thread for $connected[$i]");
+	if ( $connected[$i] eq $server ) {
+           $connected_flag = 1 
+	}   
       }
       unless( defined $connected_flag ) {	
          $log->error( "Error: $server has no corresponding event thread" );
@@ -1174,6 +1178,8 @@ my $iamalive = sub {
          $log->warn( "Closing socket to $server (IAMALIVE)" );
 	 close( $c );
 	 last;
+      } else {
+      	 $log->debug( "We are still connected...");
       }
       
       $log->print( "Pinging $server at ". ctime() . " from " .
@@ -1800,6 +1806,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.97  2006/06/14 19:48:16  aa
+# bug fix
+#
 # Revision 1.96  2006/06/14 07:29:41  aa
 # Added some comments
 #
