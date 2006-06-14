@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.94 2006/06/14 00:38:50 aa Exp $
+$Id: event_broker.pl,v 1.95 2006/06/14 07:13:08 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.94 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.95 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -1162,6 +1162,20 @@ my $iamalive = sub {
 	 last;
       }
       
+      # check to see that the thread pushing event messages has died?
+      my @connected = $run->list_connections( );
+      my $connected_flag;
+      foreach my $i ( 0 ... $#connected ) {
+        $connected_flag = 1 if $connceted[$i] eq $server;
+      }
+      unless( defined $connected_flag ) {	
+         $log->error( "Error: $server has no corresponding event thread" );
+	 $log->error( "Error: Zombie IAMALIVE connection to $server" );
+         $log->warn( "Closing socket to $server (IAMALIVE)" );
+	 close( $c );
+	 last;
+      }
+      
       $log->print( "Pinging $server at ". ctime() . " from " .
                    "(\$tid = " . threads->tid() . ")");
       $log->print ("Sending IAMALIVE message to $server...");
@@ -1781,6 +1795,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.95  2006/06/14 07:13:08  aa
+# Added a chek in the IAMALIVE callback to check tha the thread sending event messages is actually still connected to the server. If it dies for whatever reason we kill the IAMALIVE socket
+#
 # Revision 1.94  2006/06/14 00:38:50  aa
 # bug fix
 #
