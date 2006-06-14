@@ -1,3 +1,9 @@
+2006-06-13 Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* bin/event_broker.pl: Fixed message parsing for IAMALIVE and ACK
+	  responses. I've got deja vu, I thought I'd done that already!?
+
+
 2006-06-12 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* bin/ogle_client.pl: Added an event client which listens for OGLE
