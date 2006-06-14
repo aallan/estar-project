@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.89 2006/06/13 01:10:01 aa Exp $
+$Id: event_broker.pl,v 1.90 2006/06/14 00:19:47 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.89 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.90 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -1270,30 +1270,46 @@ my $iamalive = sub {
                   
          # Do I get an ACK or a IAMALIVE message?
          # --------------------------------------
-         my $event;
-         eval { $event = new Astro::VO::VOEvent( XML => $response ); };
-         if ( $@ ) {
-            my $error = "$@";
-	    chomp ( $error );
-	    $log->error( "Error: Cannot parse VOEvent message" );
-	    $log->error( "Error: $error" );
-	    $log->error( $response );
-	 
-         } elsif( $event->role() eq "ack" ) {
-           $log->warn( "Warning: Recieved an ACK message from $server");
-           $log->warn( "Warning: This should have been an IAMALIVE message");
-           $log->debug( $response );
-           $log->debug( "Done." );
+         my $message;
+	 if ( $response =~ /Transport/ ) {
+            $log->debug( "This looks like a Transport document..." );
+            eval {$message = new XML::Document::Transport(XML => $response);};
+            if ( $@ ) {
+               my $error = "$@";
+               chomp( $error );
+               $log->error( "Error: $error" );
+               $log->error( $message );
+            }   
+         } elsif ( $message =~ /VOEvent/ ) {
+            eval { $message = new Astro::VO::VOEvent( XML => $response ); };	 
+            if ( $@ ) {
+               my $error = "$@";
+	       chomp ( $error );
+	       $log->error( "Error: Cannot parse VOEvent message" );
+	       $log->error( "Error: $error" );
+	       $log->error( $response );
+	    }
+	 } else {
+	    $log->error( "Error: Cannot indentify message type" );
+	    $log->error( $response );	      
+	 }
+	 if ( defined $message ) {
+	    
+            if( $message->role() eq "ack" ) {
+              $log->warn( "Warning: Recieved an ACK message from $server");
+              $log->warn( "Warning: This should have been an IAMALIVE message");
+              $log->debug( $response );
+              $log->debug( "Done." );
         
-         } elsif ( $event->role() eq "iamalive" ) {
-           $log->print( "Recieved a IAMALIVE message from $server");
+            } elsif ( $message->role() eq "iamalive" ) {
+              $log->print( "Recieved a IAMALIVE message from $server");
         
-           my $timestamp = eSTAR::Broker::Util::time_iso(); 
-           $log->debug( "Reply timestamp: $timestamp");
-           $log->debug( $response );
-           $log->debug( "Done." );
-         }  
-      
+              my $timestamp = eSTAR::Broker::Util::time_iso(); 
+              $log->debug( "Reply timestamp: $timestamp");
+              $log->debug( $response );
+              $log->debug( "Done." );
+            }  
+         }
       }
             
       # finished ping, loop to while(1) { ]
@@ -1465,28 +1481,45 @@ my $broker_callback = sub {
 
        # Do I get an ACK or a IAMALIVE message?
        # --------------------------------------
-       my $event;
-       eval { $event = new Astro::VO::VOEvent( XML => $response ); };
-       if ( $@ ) {
-          my $error = "$@";
-          chomp ( $error );
-          $log->error( "Error: Cannot parse VOEvent message" );
-          $log->error( "Error: $error" );
-        
-       } elsif( $event->role() eq "ack" ) {
-         $log->debug( "Recieved an ACK message from $server");
-         my $timestamp = eSTAR::Broker::Util::time_iso(); 
-         $log->debug( "Reply timestamp: $timestamp");
-         $log->debug( $response );
-         $log->debug( "Done." );
+       my $message;
+       if ( $response =~ /Transport/ ) {
+          $log->debug( "This looks like a Transport document..." );
+          eval {$message = new XML::Document::Transport(XML => $response);};
+          if ( $@ ) {
+             my $error = "$@";
+             chomp( $error );
+             $log->error( "Error: $error" );
+             $log->error( $message );
+          }   
+       } elsif ( $message =~ /VOEvent/ ) {
+          eval { $message = new Astro::VO::VOEvent( XML => $response ); };     
+          if ( $@ ) {
+             my $error = "$@";
+             chomp ( $error );
+             $log->error( "Error: Cannot parse VOEvent message" );
+             $log->error( "Error: $error" );
+             $log->error( $response );
+          }
+       } else {
+          $log->error( "Error: Cannot indentify message type" );
+          $log->error( $response );	    
+       }
+       if ( defined $message ) {
+          
+          if( $message->role() eq "ack" ) {
+            $log->warn( "Warning: Recieved an ACK message from $server");
+            $log->warn( "Warning: This should have been an IAMALIVE message");
+            $log->debug( $response );
+            $log->debug( "Done." );
        
-       } elsif ( $event->role() eq "iamalive" ) {
-         $log->warn( "Warning: Recieved a IAMALIVE message from $server");       
-         my $timestamp = eSTAR::Broker::Util::time_iso(); 
-         $log->warn( "Warning: Reply timestamp: $timestamp");
-         $log->warn( "Warning: This should have been an ACK message");
-         $log->debug( $response );
-         $log->debug( "Done." );
+          } elsif ( $message->role() eq "iamalive" ) {
+            $log->print( "Recieved a IAMALIVE message from $server");
+       
+            my $timestamp = eSTAR::Broker::Util::time_iso(); 
+            $log->debug( "Reply timestamp: $timestamp");
+            $log->debug( $response );
+            $log->debug( "Done." );
+          }  
        }  
      }
      
@@ -1744,6 +1777,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.90  2006/06/14 00:19:47  aa
+# fixed bug in parsing ACK and IAMALIVE messages
+#
 # Revision 1.89  2006/06/13 01:10:01  aa
 # Fixed alarm clock error this time?
 #
