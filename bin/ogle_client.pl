@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.27 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.28 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -458,8 +458,8 @@ my $incoming_callback = sub {
       $log->print( "We have an single observation group of 3 exposures of 30s");
       %observation = ( user          => $config->get_option("ec.user"),
                        pass	     => $config->get_option("ec.passwd"),
-                       ra	     => $ra,
-                       dec	     => $dec,
+                       ra	     => $ra_sex,
+                       dec	     => $dec_sex,
                        target	     => $ob_name,
                        exposure      => 30,
                        passband      => "R",
@@ -489,7 +489,7 @@ my $incoming_callback = sub {
      $log->print("Transport Status: " . $soap->transport()->status() );
   
      unless ($result->fault() ) {
-        $log->($result->result());
+        $log->debug($result->result());
      } else {
        my $error = $result->faultstring();
        chomp( $error );
