@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.99 2006/06/14 19:57:42 aa Exp $
+$Id: event_broker.pl,v 1.100 2006/06/14 20:45:08 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.99 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.100 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -1040,7 +1040,16 @@ my $incoming_connection = sub {
           $log->error( "Error: Message claims to be $length long" );
           $log->warn( "Warning: Discarding bogus message" );
         } else {   
-         
+ 
+           # Whenever possible TCP sends data in the largest possible segments. 
+	   # The MSS (maximum segment size) is computed by deducting TCP/IP 
+	   # header sizes from the MTU (maximum transmission unit) of the 
+	   # network interfaces along the path. Today the typical TCP MSS is 
+	   # 1448 bytes, due to the 1500 Byte Ethernet MTU.
+	   # 
+	   # http://www-didc.lbl.gov/papers/net100.sc02.final.pdf
+	   #
+	   # So we do a continous read until we reach $length bytes
            $bytes_read = read( $sock, $response, $length); 
       
            $log->debug( "Read $bytes_read characters from socket" );
@@ -1813,6 +1822,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.100  2006/06/14 20:45:08  aa
+# bug fix
+#
 # Revision 1.99  2006/06/14 19:57:42  aa
 # bug fix
 #
