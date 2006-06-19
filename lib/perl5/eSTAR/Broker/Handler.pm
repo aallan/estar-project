@@ -537,8 +537,11 @@ sub handle_voevent {
   
       # grab <What>
       my %what = $object->what();
-      my $packet_type = $what{Param}->{PACKET_TYPE}->{value};
- 
+      my $packet_type;
+      if ( defined $what->{Param}->{PACKET_TYPE}->{value} ) {
+        $packet_type = $what{Param}->{PACKET_TYPE}->{value};
+      }
+      
       my $packet_timestamp = $object->time();
       my $packet_rfc822;
       eval { $packet_rfc822 = 
