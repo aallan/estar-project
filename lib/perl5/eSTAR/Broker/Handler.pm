@@ -542,6 +542,9 @@ sub handle_voevent {
         $packet_type = $what{Param}->{PACKET_TYPE}->{value};
       }
       
+      
+      print "\n\n\n GETS HERE\n\n\n";
+      
       my $packet_timestamp = $object->time();
       my $packet_rfc822;
       eval { $packet_rfc822 = 
