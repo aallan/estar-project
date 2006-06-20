@@ -608,6 +608,8 @@ sub handle_voevent {
    $log->debug( "Creating XML representation of feed..." );
    my $xml = $feed->as_string();
 
+   print "\n\n\n XML REPRESENTATION OF FEED\n\n\n";
+
    $log->debug( "Writing feed to $rss" );
    print RSS $xml;
      
