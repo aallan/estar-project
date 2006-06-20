@@ -275,6 +275,9 @@ sub handle_voevent {
    my $self = shift;
    my $name = shift;
    my $voevent = shift;
+   
+   print "\n\n\nNAME: $name\n\n\n";
+   print Dumper ( $voevent );
 
    #print Dumper( $rtml );
    $log->debug("Called handle_voevent() from \$tid = ".threads->tid());
