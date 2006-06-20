@@ -538,7 +538,7 @@ sub handle_voevent {
       # grab <What>
       my %what = $object->what();
       my $packet_type;
-      if ( defined $what->{Param}->{PACKET_TYPE}->{value} ) {
+      if ( defined $what{Param}->{PACKET_TYPE}->{value} ) {
         $packet_type = $what{Param}->{PACKET_TYPE}->{value};
       }
       
