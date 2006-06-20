@@ -539,9 +539,12 @@ sub handle_voevent {
       $log->debug( "ID: $id" );
   
       # grab <What>
-      my %what = $object->what();
+      my %what;
       my $packet_type;
-      if ( defined $what{Param}->{PACKET_TYPE}->{value} ) {
+      eval { %what = $object->what(); };
+      if ( $@ ) {
+         $log->warn( "Warning: Unable to parse <What> from packet...");
+      } elsif ( defined $what{Param}->{PACKET_TYPE}->{value} ) {
         $packet_type = $what{Param}->{PACKET_TYPE}->{value};
       }
       
