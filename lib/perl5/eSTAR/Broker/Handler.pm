@@ -275,9 +275,6 @@ sub handle_voevent {
    my $self = shift;
    my $name = shift;
    my $voevent = shift;
-   
-   print "\n\n\nNAME: $name\n\n\n";
-   print Dumper ( $voevent );
 
    #print Dumper( $rtml );
    $log->debug("Called handle_voevent() from \$tid = ".threads->tid());
@@ -547,10 +544,7 @@ sub handle_voevent {
       } elsif ( defined $what{Param}->{PACKET_TYPE}->{value} ) {
         $packet_type = $what{Param}->{PACKET_TYPE}->{value};
       }
-      
-      
-      print "\n\n\n GETS HERE\n\n\n";
-      
+
       my $packet_timestamp = $object->time();
       my $packet_rfc822;
       eval { $packet_rfc822 = 
@@ -610,14 +604,10 @@ sub handle_voevent {
    	   type   => "application/xml+voevent",
    	   length => length($data) } );
       }     
-      
-      print "\n\n\nGETS HERE 2\n\n\n";
-      
+            
    }
    $log->debug( "Creating XML representation of feed..." );
    my $xml = $feed->as_string();
-
-   print "\n\n\n XML REPRESENTATION OF FEED\n\n\n";
 
    $log->debug( "Writing feed to $rss" );
    print RSS $xml;
