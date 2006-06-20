@@ -604,6 +604,9 @@ sub handle_voevent {
    	   type   => "application/xml+voevent",
    	   length => length($data) } );
       }     
+      
+      print "\n\n\nGETS HERE 2\n\n\n";
+      
    }
    $log->debug( "Creating XML representation of feed..." );
    my $xml = $feed->as_string();
