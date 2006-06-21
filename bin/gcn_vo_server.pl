@@ -22,7 +22,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: gcn_vo_server.pl,v 1.4 2006/06/21 23:08:04 aa Exp $
+$Id: gcn_vo_server.pl,v 1.5 2006/06/21 23:26:40 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -34,7 +34,7 @@ All Rights Reserved.
 use vars qw / $VERSION %opt /;
 
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
 }
 
 # L O A D I N G -------------------------------------------------------------
@@ -155,7 +155,21 @@ my $tcp_callback = sub {
         What => [ { Name  => $what_name,
                     UCD   => $what_ucd,
                     Value => $what_value,
-                    Units => $what_units } ]  );   
+                    Units => $what_units },
+		  { Group => [ { Name => "Decode",
+		  		 UCD  => "meta.code;",
+				 Value => 
+	'<![CDATA[die "$!" unless open( FILE, "<$ARGV[0]" );'.
+        'while ( <FILE> ) {'.
+        '   my $val = $1 if m/.*"(\D?\d+)".*"INT_\d+".*/;'.
+        '   push @bytes, $val if defined $val;'.
+        '}'.
+        'close(FILE);'.
+        'die "$!" unless open( FILE, ">$ARGV[0].out");'.
+        'map { print FILE pack( "N", $_ ) } @bytes;'.
+        'close(FILE);]]>' }
+		  ]} 
+		]  );   
   
         print "------ VOEVENT DOCUMENT ------\n\n";
         print "$document";
