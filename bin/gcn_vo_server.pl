@@ -22,7 +22,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: gcn_vo_server.pl,v 1.3 2006/06/21 23:07:34 aa Exp $
+$Id: gcn_vo_server.pl,v 1.4 2006/06/21 23:08:04 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -34,7 +34,7 @@ All Rights Reserved.
 use vars qw / $VERSION %opt /;
 
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
 }
 
 # L O A D I N G -------------------------------------------------------------
@@ -127,7 +127,7 @@ my $tcp_callback = sub {
       my $id = "ivo:/uk.org.estar/gcn.gsfc#swift/trigger_" . 
                $message->trigger_num() . "/obs_" .
                $message->obs_num() . "/type_" .
-	       $message->type() "/" . $message->serial_number();
+	       $message->type() . "/" . $message->serial_number();
   
       my $what_name = "bat_ipeak";
       my $what_ucd = "phot.count";
