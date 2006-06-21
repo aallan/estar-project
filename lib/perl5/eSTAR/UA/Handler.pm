@@ -557,9 +557,7 @@ sub new_observation {
    # if we have no TargetType then assume 'normal'
    unless ( defined $observation{toop} ) {
       $observation{'toop'} = "normal";
-   } else {
-      $observation{'toop'} = "toop";
-   ]      
+   }      
 
    if ( defined $observation{'exposure'} ) {
       
