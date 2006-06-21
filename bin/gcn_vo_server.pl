@@ -22,7 +22,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: gcn_vo_server.pl,v 1.1 2006/06/21 19:37:11 aa Exp $
+$Id: gcn_vo_server.pl,v 1.2 2006/06/21 20:33:13 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -34,7 +34,7 @@ All Rights Reserved.
 use vars qw / $VERSION %opt /;
 
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
 }
 
 # L O A D I N G -------------------------------------------------------------
@@ -139,9 +139,9 @@ my $tcp_callback = sub {
         Type => $message->type(), 
         Role => 'alert',
         ID   => $id,
-        Curation => { Publisher => 'ivo://gcn.gsfc.nasa/',
-                      Date => ctime(),
-                      Contact => { Name => 'Scott Barthelmy',
+        Who  => { Publisher => 'ivo://gcn.gsfc.nasa/',
+                  Date => ctime(),
+                  Contact => { Name => 'Scott Barthelmy',
                                    Institution => 'GSFC/NASA',
                                    Email => 'scott.barthelmy@gsfc.nasa.gov' } },
         WhereWhen => { RA => $message->ra_degrees(), 
