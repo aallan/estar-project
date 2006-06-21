@@ -22,7 +22,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: gcn_vo_server.pl,v 1.2 2006/06/21 20:33:13 aa Exp $
+$Id: gcn_vo_server.pl,v 1.3 2006/06/21 23:07:34 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -34,7 +34,7 @@ All Rights Reserved.
 use vars qw / $VERSION %opt /;
 
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
 }
 
 # L O A D I N G -------------------------------------------------------------
@@ -124,9 +124,10 @@ my $tcp_callback = sub {
            return undef;
       }   
 
-      my $id = "ivo:/uk.org.estar/gcn.gsfc.nasa#swift/trigger_" . 
+      my $id = "ivo:/uk.org.estar/gcn.gsfc#swift/trigger_" . 
                $message->trigger_num() . "/obs_" .
-               $message->obs_num() . "/" . $message->serial_number();
+               $message->obs_num() . "/type_" .
+	       $message->type() "/" . $message->serial_number();
   
       my $what_name = "bat_ipeak";
       my $what_ucd = "phot.count";
@@ -137,9 +138,9 @@ my $tcp_callback = sub {
    
       my $document = $object->build( 
         Type => $message->type(), 
-        Role => 'alert',
+        Role => 'observation',
         ID   => $id,
-        Who  => { Publisher => 'ivo://gcn.gsfc.nasa/',
+        Who  => { Publisher => 'ivo://uk.org.estar/gcn.gsfc#',
                   Date => ctime(),
                   Contact => { Name => 'Scott Barthelmy',
                                    Institution => 'GSFC/NASA',
@@ -148,7 +149,9 @@ my $tcp_callback = sub {
                        Dec => $message->dec_degrees() , 
                        Error => $message->burst_error_degrees(),
                        Time => $message->tjd() },  
-        How => { Name => 'SWIFT' },
+        How => { Reference => { URL => 'http://gcn.gsfc.nasa.gov/',
+	                        Type => 'url', Name => 'GCN' }
+	                         },
         What => [ { Name  => $what_name,
                     UCD   => $what_ucd,
                     Value => $what_value,
