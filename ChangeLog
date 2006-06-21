@@ -1,5 +1,9 @@
 2006-06-21 Alasdiar Allan <aa@astro.ex.ac.uk>
 
+	* bin/gcn_vo_server.pl: Skeleton GCN -> VOEvent translator
+	
+2006-06-20 Alasdiar Allan <aa@astro.ex.ac.uk>
+
 	* bin/make_observation.pl: Added support for submission of 'toop'
 	  type observations.
 	  
