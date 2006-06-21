@@ -553,6 +553,13 @@ sub new_observation {
            $observation{"target"} = $observation{"ra"} . ";" . $observation{"dec"};
       }
    } 
+   
+   # if we have no TargetType then assume 'normal'
+   unless ( defined $observation{toop} ) {
+      $observation{'toop'} = "normal";
+   } else {
+      $observation{'toop'} = "toop";
+   ]      
 
    if ( defined $observation{'exposure'} ) {
       
@@ -562,6 +569,7 @@ sub new_observation {
           $score_message->score_observation(
               Target         => $observation{'target'},
               TargetIdent    => $observation{'type'},
+	      TargetType     => $observation{'toop'},
               RA             => $observation{'ra'},
               Dec            => $observation{'dec'},
               Exposure       => $observation{'exposure'},
@@ -581,6 +589,7 @@ sub new_observation {
         $score_message->score_observation(
               Target         => $observation{'target'},
               TargetIdent    => $observation{'type'},
+	      TargetType     => $observation{'toop'},
               RA             => $observation{'ra'},
               Dec            => $observation{'dec'},
               Exposure       => $observation{'exposure'},
@@ -595,6 +604,7 @@ sub new_observation {
           $score_message->score_observation(
               Target         => $observation{'target'},
               TargetIdent    => $observation{'type'},
+	      TargetType     => $observation{'toop'},
               RA             => $observation{'ra'},
               Dec            => $observation{'dec'},
               Exposure       => $observation{'exposure'},
@@ -609,6 +619,7 @@ sub new_observation {
           $score_message->score_observation(
               Target         => $observation{'target'},
               TargetIdent    => $observation{'type'},
+	      TargetType     => $observation{'toop'},
               RA             => $observation{'ra'},
               Dec            => $observation{'dec'},
               Exposure       => $observation{'exposure'},
@@ -626,6 +637,7 @@ sub new_observation {
         $score_message->score_observation(
               Target         => $observation{'target'},
               TargetIdent    => $observation{'type'},
+	      TargetType     => $observation{'toop'},
               RA             => $observation{'ra'},
               Dec            => $observation{'dec'},
               Exposure       => $observation{'exposure'},
@@ -639,6 +651,7 @@ sub new_observation {
           $score_message->score_observation(
               Target => $observation{'target'},
               TargetIdent => $observation{'type'},
+	      TargetType     => $observation{'toop'},
               RA       => $observation{'ra'},
               Dec      => $observation{'dec'},
               Exposure => $observation{'exposure'},
@@ -652,6 +665,7 @@ sub new_observation {
                 defined $observation{ 'seriescount' } ) {
           $score_message->score_observation(
               Target         => $observation{'target'},
+	      TargetType     => $observation{'toop'},
               TargetIdent    => $observation{'type'},
               RA             => $observation{'ra'},
               Dec            => $observation{'dec'},
@@ -673,6 +687,7 @@ sub new_observation {
         $score_message->score_observation(
               Target         => $observation{'target'},
               TargetIdent    => $observation{'type'},
+	      TargetType     => $observation{'toop'},
               RA             => $observation{'ra'},
               Dec            => $observation{'dec'},
               Snr    => $observation{'signaltonoise'},
@@ -687,6 +702,7 @@ sub new_observation {
           $score_message->score_observation(
               Target         => $observation{'target'},
               TargetIdent    => $observation{'type'},
+	      TargetType     => $observation{'toop'},
               RA             => $observation{'ra'},
               Dec            => $observation{'dec'},
               Snr    => $observation{'signaltonoise'},
@@ -703,6 +719,7 @@ sub new_observation {
           $score_message->score_observation(
               Target         => $observation{'target'},
               TargetIdent    => $observation{'type'},
+	      TargetType     => $observation{'toop'},
               RA             => $observation{'ra'},
               Dec            => $observation{'dec'},
               Snr    => $observation{'signaltonoise'},
@@ -721,6 +738,7 @@ sub new_observation {
         $score_message->score_observation(
               Target         => $observation{'target'},
               TargetIdent    => $observation{'type'},
+	      TargetType     => $observation{'toop'},
               RA             => $observation{'ra'},
               Dec            => $observation{'dec'},
               Snr    => $observation{'signaltonoise'},
@@ -735,6 +753,7 @@ sub new_observation {
           $score_message->score_observation(
               Target => $observation{'target'},
               TargetIdent => $observation{'type'},
+	      TargetType     => $observation{'toop'},
               RA     => $observation{'ra'},
               Dec    => $observation{'dec'},
               Snr    => $observation{'signaltonoise'},
@@ -936,6 +955,7 @@ sub new_observation {
           $observe_message->request_observation(
                 Target   => $score_request->target(),
                 TargetIdent => $observation{'type'},
+	        TargetType  => $observation{'toop'},
                 RA       => $score_request->ra(),
                 Dec      => $score_request->dec(),
                 Score    => $score_reply->score(),
@@ -957,6 +977,7 @@ sub new_observation {
           $observe_message->request_observation(
                 Target   => $score_request->target(),
                 TargetIdent => $observation{'type'},
+	        TargetType  => $observation{'toop'},
                 RA       => $score_request->ra(),
                 Dec      => $score_request->dec(),
                 Score    => $score_reply->score(),
@@ -973,6 +994,7 @@ sub new_observation {
           $observe_message->request_observation(
                 Target   => $score_request->target(),
                 TargetIdent => $observation{'type'},
+	        TargetType  => $observation{'toop'},
                 RA       => $score_request->ra(),
                 Dec      => $score_request->dec(),
                 Score    => $score_reply->score(),
@@ -988,6 +1010,7 @@ sub new_observation {
           $observe_message->request_observation(
                 Target   => $score_request->target(),
                 TargetIdent => $observation{'type'},
+	        TargetType  => $observation{'toop'},
                 RA       => $score_request->ra(),
                 Dec      => $score_request->dec(),
                 Score    => $score_reply->score(),
@@ -1007,6 +1030,7 @@ sub new_observation {
           $observe_message->request_observation(
                 Target   => $score_request->target(),
                 TargetIdent => $observation{'type'},
+	        TargetType  => $observation{'toop'},
                 RA       => $score_request->ra(),
                 Dec      => $score_request->dec(),
                 Score    => $score_reply->score(),
@@ -1020,6 +1044,7 @@ sub new_observation {
           $observe_message->request_observation(
                 Target   => $score_request->target(),
                 TargetIdent => $observation{'type'},
+	        TargetType  => $observation{'toop'},
                 RA       => $score_request->ra(),
                 Dec      => $score_request->dec(),
                 Score    => $score_reply->score(),
@@ -1038,6 +1063,7 @@ sub new_observation {
           $observe_message->request_observation(
                 Target   => $score_request->target(),
                 TargetIdent => $observation{'type'},
+	        TargetType  => $observation{'toop'},
                 RA       => $score_request->ra(),
                 Dec      => $score_request->dec(),
                 Score    => $score_reply->score(),
@@ -1060,6 +1086,7 @@ sub new_observation {
           $observe_message->request_observation(
                 Target   => $score_request->target(),
                 TargetIdent => $observation{'type'},
+	        TargetType  => $observation{'toop'},
                 RA       => $score_request->ra(),
                 Dec      => $score_request->dec(),
                 Score    => $score_reply->score(),
@@ -1077,6 +1104,7 @@ sub new_observation {
           $observe_message->request_observation(
                 Target   => $score_request->target(),
                 TargetIdent => $observation{'type'},
+	        TargetType  => $observation{'toop'},
                 RA       => $score_request->ra(),
                 Dec      => $score_request->dec(),
                 Score    => $score_reply->score(),
@@ -1093,6 +1121,7 @@ sub new_observation {
           $observe_message->request_observation(
                 Target   => $score_request->target(),
                 TargetIdent => $observation{'type'},
+	        TargetType  => $observation{'toop'},
                 RA       => $score_request->ra(),
                 Dec      => $score_request->dec(),
                 Score    => $score_reply->score(),
@@ -1113,6 +1142,7 @@ sub new_observation {
           $observe_message->request_observation(
                 Target   => $score_request->target(),
                 TargetIdent => $observation{'type'},
+	        TargetType  => $observation{'toop'},
                 RA       => $score_request->ra(),
                 Dec      => $score_request->dec(),
                 Score    => $score_reply->score(),
@@ -1127,6 +1157,7 @@ sub new_observation {
       $observe_message->request_observation(
                 Target   => $score_request->target(),
                 TargetIdent => $observation{'type'},
+	        TargetType  => $observation{'toop'},
                 RA       => $score_request->ra(),
                 Dec      => $score_request->dec(),
                 Score    => $score_reply->score(),

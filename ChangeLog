@@ -1,3 +1,12 @@
+2006-06-21 Alasdiar Allan <aa@astro.ex.ac.uk>
+
+	* bin/make_observation.pl: Added support for submission of 'toop'
+	  type observations.
+	  
+	* bin/user_agent.pl: Added support for submission of 'toop' type
+	  obsverations to support the PLANET Manual Override page, see
+	  http://vo.astro.ex.ac.uk/robonet-1.0/cgi-bin/index.cgi
+	    
 2006-06-13 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* bin/event_broker.pl: Fixed message parsing for IAMALIVE and ACK
