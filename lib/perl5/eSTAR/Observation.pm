@@ -20,7 +20,7 @@ package eSTAR::Observation;
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: Observation.pm,v 1.3 2006/06/24 04:04:14 aa Exp $
+#     $Id: Observation.pm,v 1.4 2006/06/24 04:20:34 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2001-2003 University of Exeter. All Rights Reserved.
@@ -60,13 +60,13 @@ use Net::Domain qw(hostname hostdomain);
 use File::Spec;
 use Carp;
 
-'$Revision: 1.3 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.4 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # C O N S T R U C T O R ----------------------------------------------------
 
 =head1 REVISION
 
-$Id: Observation.pm,v 1.3 2006/06/24 04:04:14 aa Exp $
+$Id: Observation.pm,v 1.4 2006/06/24 04:20:34 aa Exp $
 
 =head1 METHODS
 
@@ -431,6 +431,7 @@ sub update {
     push ( @{$self->{UPDATE}}, $update_message );
   }
 
+  return undef unless defined ${$self->{UPDATE}}[0]
   return wantarray ? @{$self->{UDPATE}} : ${$self->{UPDATE}}[0];
 
 } 
