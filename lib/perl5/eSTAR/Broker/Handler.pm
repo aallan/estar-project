@@ -272,11 +272,11 @@ sub kill {
 
 # handle an incoming VOEvent documents
 sub handle_voevent {
+   #use Data::Dumper; print Dumper( @_ );
    my $self = shift;
    my $name = shift;
    my $voevent = shift;
 
-   #print Dumper( $rtml );
    $log->debug("Called handle_voevent() from \$tid = ".threads->tid());
    $config->reread();
    
@@ -295,7 +295,7 @@ sub handle_voevent {
    
    if ( $@ ) {
        my $error = "$@";
-       
+       $log->error( "Error: $@" );       
        $log->error( "Error: Problem parsing the VOEvent document" );
        $log->error( "VOEvent Document:\n$voevent" );
        $log->error( "Returned SOAP FAULT message" );
