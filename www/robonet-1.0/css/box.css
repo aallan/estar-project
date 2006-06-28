@@ -1,0 +1,17 @@
+.popup_header {
+   width:400;
+   background:#D50000;
+   color:#FFFFFF;
+   border:1px solid #D50000;
+   font-weight:bold;
+   padding:5px;
+}
+         
+.popup_body {
+   width:400;
+   background:#FFFFFF;
+   border-left:1px solid #D50000;
+   border-right:1px solid #D50000;
+   border-bottom:1px solid #D50000;
+   padding:5px;
+}

@@ -1,3 +1,10 @@
+2006-06-27 Alasdiar Allan <aa@astro.ex.ac.uk>
+
+        * www/*: Added server side components from estar2 and estar3's
+          web servers. Located in /var/www/html on those servers, these
+          components do networks status and manual submission of events
+          and observations.
+
 2006-06-21 Alasdiar Allan <aa@astro.ex.ac.uk>
 
 	* bin/gcn_vo_server.pl: Skeleton GCN -> VOEvent translator

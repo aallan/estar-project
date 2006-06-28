@@ -1,0 +1,10 @@
+AuthUserFile /var/www/html/robonet-1.0/.htpasswd
+AuthGroupFile /dev/null
+AuthName "Robonet-1.0 Access"
+AuthType Basic
+Options Indexes FollowSymLinks Includes ExecCGI
+AddHandler cgi-script .cgi
+
+<Limit GET>
+require valid-user
+</Limit>

@@ -1,0 +1,107 @@
+
+#holder {
+	width:620px;
+	margin:10px auto;
+	text-align:left;
+}
+
+/* START OF CSS FOR MAP */
+dl.map.on {
+	position:relative;
+	width:550px;
+	height:275px;
+	background:url(../png/worldmap.png) no-repeat;
+	text-align:left;
+	margin:0px;
+	padding:0px;
+	border:#999 1px solid;
+}
+dl.map.on dt {
+	list-style:none;
+	display:inline;
+}
+dl.map.on dd {
+	position:absolute;
+	left:-9999px;
+	width:350px;
+	padding:4px;
+	border:#222 2px solid;
+	background:url(../png/tooltip-bg.png);
+
+	z-index:11;
+	font-size:0.8em;
+	color:#FFF;
+}
+dl.map.on dd img {
+	position:relative;
+	float:right;
+	border:#000 1px solid;
+	margin:2px;
+}
+dl.map.on a.location {
+	display:block;
+	position:absolute;
+	text-indent:-9999px;
+        background:url(http://www.estar.org.uk/wiki/skins/estar/external.png) center right no-repeat;
+	width:10px;
+	height:10px;
+	outline:none;
+	z-index:10;
+	text-decoration:none;
+}
+dl.map.on a.location:hover {
+        background:url(http://www.estar.org.uk/wiki/skins/estar/external.png) center right no-repeat;
+}
+dl.map.on dd a {
+	color:#FFF;
+}
+dl.map.on dd a:hover {
+	text-decoration:none;
+}
+dl.map.on dd a.close {
+	position:relative;
+	float:right;
+	color:#000;
+	background:url(../png/close.png) no-repeat;
+	text-indent:-9999px;
+	outline:none;
+	height:16px;
+	width:16px;
+	margin-left:4px;
+	margin-right:-6px;
+	text-decoration:none;
+}
+
+
+/* START OF CSS FOR MAP POINTS */
+
+dl.map a#location01 {
+  top: 55px;
+  left: 250px;
+} 
+  
+dl.map a#location02 {
+  top: 100px;
+  left: 20px;
+} 
+
+dl.map a#location03 {
+  top: 90px;
+  left: 230px;
+}
+
+dl.map a#location04 {
+  top: 180px;
+  left: 480px;
+}
+
+dl.map a#location05 {
+  top: 90px;
+  left: 10px;
+}
+
+dl.map a#location06 {
+  top: 80px;
+  left: 90px;
+}
+

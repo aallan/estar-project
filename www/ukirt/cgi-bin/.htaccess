@@ -1,0 +1,10 @@
+AuthUserFile /var/www/html/ukirt/.htpasswd
+AuthGroupFile /dev/null
+AuthName "UKIRT Access"
+AuthType Basic
+Options Indexes FollowSymLinks Includes ExecCGI
+AddHandler cgi-script .cgi
+
+<Limit GET>
+require valid-user
+</Limit>

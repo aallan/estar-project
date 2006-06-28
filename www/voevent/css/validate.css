@@ -1,0 +1,12 @@
+.hidden
+{ 
+   display: none;
+}
+
+.error
+{
+   display: block;
+   color: #ff0000;
+   font-size: smaller;
+   font-style: italic;
+}
