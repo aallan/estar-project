@@ -1,0 +1,100 @@
+<html>
+<head>
+  <link rel="stylesheet" HREF="Widget.css" TYPE="text/css" />
+<!--<link rel="stylesheet" HREF="Debug.css" TYPE="text/css" />-->
+  <link rel="stylesheet" HREF="Status.css" TYPE="text/css" />
+  <script language="javascript"  type='text/javascript' src='Apple.js' />
+<!--<script language="javascript"  type='text/javascript' src='Debug.js' />-->
+  <script language="javascript" type="text/javascript" src='Map.js' />
+  <script language="javascript" type="text/javascript" src='Update.js' />
+  <script language="javascript" type="text/javascript" >
+    function clicked(site)
+    {
+        if (widget)
+        {
+            widget.openURL(site);
+        }
+    }
+</script>
+</head>
+
+<body>
+<div id="front" onmousemove='mousemove(event);' onmouseout='mouseexit(event);'>	
+<dl class="map">
+
+  <dt onmouseover="updateStatus();"><a href="javascript:void(0);" onclick="clicked('http://www.astro.ex.ac.uk/');" class="location" id="location01">Exeter, U.K.</a></dt>
+  <dd><a href="javascript:void(0);" class="close"> </a>
+      <strong><font color="red">e</font>STAR</strong><br>
+      <em>Exeter, U.K.</em><br>
+      <img src="http://www.bbc.co.uk/england/webcams/live/exeter.jpg" width="120" alt="Exeter web camera" />
+      <a href="javascript:void(0);"  onclick="clicked('http://maps.google.com/maps?f=q&hl=en&q=EX4+4QL&ie=UTF8&om=1&ll=50.739008,-3.53631&spn=0.023194,0.084972&t=h')">Lat. 50.74, Long. -3.54</a><br>
+      <p class='popupstatus' id='exetermachines'></p> 
+   </dd>
+   
+   <dt onmouseover="updateStatus();"><a href="void();" onclick="clicked('http://www.jach.hawaii.edu/');" class="location" id="location02">Hilo, HI, U.S.A.</a></dt> 
+   <dd><a href="javascript:void(0);" class="close"> </a>
+       <em><strong>UKIRT</strong><br>Hilo, HI, U.S.A.</em><br>
+       <a href="void();" onclick="clicked('http://www.jach.hawaii.edu/weather/jac/')"><img width="120" src="http://www.jach.hawaii.edu/UKIRT/irtcam.jpg" alt="UKIRT web camera"></a>
+       <a href="javascript:void(0);"  onclick="clicked('http://maps.google.com/maps?f=q&hl=en&q=660+N.+A%27ohoku+Place,+Hilo,+Hawaii+96720&ie=UTF8&ll=19.707405,-155.089703&spn=0.069006,0.169945&t=h&om=1');">Lat. 19.71, Long. -155.09</a><br>
+	 <p class='popupstatus' id='jachmachines'></p> 
+    </dd>
+
+    <dt onmouseover="updateStatus();"><a href="void();" onclick="clicked('http://telescope.livjm.ac.uk/');" class="location" id="location03">La Palma, Spain</a></dt>
+    <dd><a href="javascript:void(0);" class="close"> </a>
+        <em><strong>Liverpool Telescope</strong><br>La Palma, Spain</em><br>
+	<a href="void();" onclick="clicked('http://telescope.livjm.ac.uk/Live/index.html')"><img src="http://telescope.livjm.ac.uk/pics/webcam_int_2.jpg" width="120" alt="LT web camera" /></a>
+        <a href="void();" onclick="clicked('http://maps.google.com/?ie=UTF8&ll=28.703763,-17.866087&spn=0.128584,0.227966&t=h&om=1');">Lat. 28.70, Long. -17.87</a><br>
+	Live <a href="void();" onclick="clicked('http://telescope.livjm.ac.uk/Live/index.html')">telescope status</a> and weather<br>
+	 <p class='popupstatus' id='ltmachines'></p> 
+    </dd>	
+
+
+    <dt onmouseover="updateStatus();"><a href="void();" onclick="clicked('http://www.faulkes-telescope.com/ft_webcams_weather/ftsweather.htm');" class="location" id="location04">Coonabarabran, Australia</a></dt>
+     <dd><a href="javascript:void(0);" class="close"> </a>
+         <em><strong>Faulkes South</strong><br>Coonabarabran, Australia</em><br>
+         <img src="png/testCard.png" width="120" alt="FTS web camera" />
+         <a href="void();" onclick="clicked('http://maps.google.com/maps?f=q&hl=en&q=coonabarabran,+Australia&ie=UTF8&ll=-31.268281,149.281883&spn=0.125305,0.33989&t=h&om=1');">Lat. -31.27, Long. 149.28</a><br>
+	 Google Earth <a href="void();" onclick="clicked('http://www.aao.gov.au/vr/telescopes.kmz');"><u>placemark file</u></a> for SSO<br>
+	 <p class='popupstatus' id='ftsmachines'></p> 
+     </dd> 
+
+     <dt onmouseover="updateStatus();"><a href="void();" onclick="clicked('http://www.faulkes-telescope.com/ft_webcams_weather/ftnweather.htm');" class="location" id="location05">Haleakala, HI, U.S.A.</a></dt>
+     <dd><a href="javascript:void(0);" class="close"> </a>
+         <em><strong>Faulkes North</strong><br>Haleakala, HI, U.S.A.</em><br>
+         <img width="120" src="png/testCard.png" alt="FTN web camera">
+         <a href="void();" onclick="clicked('http://maps.google.com/?ie=UTF8&t=h&om=1&ll=20.732997,-156.187134&spn=0.548416,0.911865');">Lat. 10.7, Long. -156.2</a><br>
+	 <p class='popupstatus' id='ftnmachines'></p> 
+
+     <dd>
+     
+    <dt onmouseover="updateStatus();"><a href="void();" onclick="clicked('http://www.thinkingtelescopes.lanl.gov/');" class="location" id="location06">Los Alamos, NM, U.S.A.</a></dt>
+    <dd><a href="javascript:void(0);" class="close"> </a>
+       <em><strong>RAPTOR/TALONS</strong><br>Los Alamos, NM, U.S.A.</em><br>
+       <img width="120" src="http://wwc.instacam.com/InstacamImg/lsalm/02032005/020320051200_l.jpg" alt="Los Alamos web camera">
+       <a href="void();" onclick="clicked('http://maps.google.com/maps?f=q&hl=en&q=Los+Alamos,+NM&ie=UTF8&ll=35.888077,-106.306458&spn=0.095405,0.177326&t=h&om=1');">Lat. 35.9, Long. -106.3</a><br>
+       <p class='popupstatus' id='raptormachines'></p> 
+     </dd>  
+ 
+
+
+</dl>
+<div class="timestamp" id='timestamp'></div>
+
+<div class='flip' id='fliprollie'></div>
+<div class='flip' id='flip' onclick='showPrefs(event);' onmouseover='enterflip(event);' onmouseout='exitflip(event);'></div>
+
+</div>  <!-- class="front" -->
+
+<div id="back">
+    <!--<div id='debugDiv'></div>-->
+    
+    <img class="estarlogo" id="estarlogo" src="png/estarLogo.png" />
+    <p class="title" id="title">Network Status Monitor Widget v1.3<br><em>Copyright &copy; 2006, Alasdair Allan &lt;<a href="void();" onclick='clicked("mailto:aa@astro.ex.ac.uk");'>aa@astro.ex.ac.uk</a>&gt;</em></p>
+    <p class="backbody" id="backbody">For more information about the <font color="red">e</font>STAR Network please see our <a href="void();" onclick="clicked('http://www.estar.org.uk/');">project website</a>.</p>
+    <img class="doneButton" src="png/Done.png" onclick='hidePrefs();' />
+</div>  <!-- class="back" -->
+	
+
+       
+</body>
+</html>

@@ -1,0 +1,12 @@
+#debugDiv {
+     border-style: dotted;
+     border-color: black;
+     background: gray;
+     position: absolute;
+     bottom: 0px;
+     left: 0px;
+     height: 200px;
+     width: 90%;
+     overflow: scroll;
+     display:none;
+}

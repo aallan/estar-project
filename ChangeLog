@@ -4,6 +4,9 @@
 
         * www/*: Moved modifications into CVS from the live site on estar3.
 	
+	* widgets/eSTAR Status.wdgt: Added the status Dashboard widget into
+	  the archive.
+	
 2006-06-27 Alasdiar Allan <aa@astro.ex.ac.uk>
 
         * www/*: Added server side components from estar2 and estar3's

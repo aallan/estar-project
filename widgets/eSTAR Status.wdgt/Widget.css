@@ -1,0 +1,88 @@
+body {
+    margin: 0;
+}
+
+#estarlogo {
+    position: absolute;
+    top: 20px;
+    left: 25px;
+}    
+
+#title {
+    position: absolute;
+    font: 16px "Lucida Grande";
+    font-weight: bold;
+    color: white;
+    top:42px;
+    left: 25px;
+}   
+
+#backbody {
+    position: absolute;
+    font: 12px "Lucida Grande";
+    color: white;
+    top:85px;
+    left: 25px;
+}
+
+#timestamp {
+    position: absolute;
+    font: 12px "Lucida Grande";
+    color: white;
+    bottom: 35px;
+    left: 20px;
+}   
+
+p.popupstatus td {
+    position: relative;
+    font: 12px "Lucida Grande";
+    color: white;
+    font-size:0.8em;
+} 
+
+#front {
+    background: url('Default.png') no-repeat;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 560px;
+    height: 340px;
+}
+
+.flip { 
+        position:absolute;
+        bottom: 22px;
+        right: 20px;
+        width:13px;
+        height:13px;
+}
+
+#flip {
+        opacity:0;
+        background: url(png/InformationButton.png) no-repeat top left;
+        z-index:8000;
+}
+
+#fliprollie {
+        display:none;
+        opacity:0.25;
+        background: url(png/InformationRollie.png) no-repeat top left;
+        z-index:7999;
+
+}
+
+.doneButton {
+        position: absolute;
+        bottom: 25px;
+        right: 15px;
+}
+
+#back {
+     background: url('Back.png') no-repeat;
+     position: absolute;
+     top: 0;
+     left: 0;
+     width: 560px;
+     height: 340px;
+     display: none;
+} 
