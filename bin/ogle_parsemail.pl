@@ -178,15 +178,24 @@ foreach my $i ( 0 ... $#message ) {
                 $event{"tmax epoch"} =  $event{"tmax epoch"} . "+0000"
            }                          
 	   
-	   my $finding_url = $message[$i+24];
-	   $event{"finding chart"} = $finding_url;
-           chomp ( $event{"finding chart"} );
+	   # event information page
+	   my $target_url = $message[$i+24];
+	   $event{"target information"} = $target_url;
+           chomp ( $event{"target information"} );
 	   
+	   # photometry data
 	   $event{"phot dat"} = 
 	     "ftp://ftp.astrouw.edu.pl/ogle/ogle3/ews/" .lc($event{name});
 	   $event{"phot dat"} =~ s/ogle//;
-	   $event{"phot dat"} =~ s/-/\//;
+	   $event{"phot dat"} =~ s/-/\//g;
 	   $event{"phot dat"} = $event{"phot_dat"} ."/phot.dat";
+	   
+	   # finding chart
+	   $event{"finding chart"} = 
+	    "http://www.astrouw.edu.pl/~ogle/ogle3/ews/data/" .lc($event{name});
+	   $event{"finding chart"} =~ s/ogle//;
+	   $event{"finding chart"} =~ s/-/\//g;
+	   $event{"finding chart"} = $event{"finding chart"} ."/fchart.jpg";
 	   
 	   my $voevent = new Astro::VO::VOEvent();
 	   my $xml = $voevent->build( 
@@ -228,12 +237,15 @@ foreach my $i ( 0 ... $#message ) {
                                       UCD => 'time.interval',
         		              Value => $event{'tau error'},
                                         Units => "days" } ], },
+        		 { Name  => 'Target Information',
+                           UCD   => 'meta.ref.url',
+        		   Value => $event{"target information"} },
+        		 { Name  => 'Photometry Data',
+                           UCD   => 'meta.ref.url',
+        		   Value => $event{"phot dat"},
         		 { Name  => 'Finding Chart',
                            UCD   => 'meta.ref.url',
         		   Value => $event{"finding chart"} },
-        		 { Name  => 'Photometry Data',
-                           UCD   => 'meta.ref.url',
-        		   Value => $event{"phot dat"} },
 		       ],
         Why  => [ { Inference => { Probability  => "1.0",
         			 Concept  => "Microlensing Event",
