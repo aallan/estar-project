@@ -11,6 +11,7 @@ use HTTP::Cookies;
 use Getopt::Long;
 use Net::Domain qw(hostname hostdomain);
 use Socket;
+use Time::localtime;
 
 use lib $ENV{"ESTAR_PERL5LIB"};     
 use eSTAR::Util;
@@ -168,6 +169,8 @@ foreach my $i ( 0 ... $#message ) {
            $hour = "0$hour" if $hour < 10;
            $min = "0$min" if $min < 10;
            $sec = "0$sec" if $sec < 10;
+	   
+	   $day = "0$day" if $day < 10;
                    
            $event{"tmax epoch"} = $time[0] ."-". $time[1] ."-". $day ."T". 
    		                  $hour .":". $min .":". $sec;
@@ -196,11 +199,12 @@ foreach my $i ( 0 ... $#message ) {
 	   Publisher => "ivo://uk.org.estar/pl.edu.ogle#",
 	   Contact => {  Name        => "Andrzej Udalski",
                          Institution => "OGLE III Project (via eSTAR Project)",
-                         Email       => 'udalski@astrouw.edu.pl'  },
+                         Email       => 'udalski@astrouw.edu.pl' },
+	   Date        => timestamp()
 	       },	
 	WhereWhen => { RA => $event{ra},
 	               Dec => $event{dec},
-	               Time => $event{"tmax epoch"} 
+	               Time => timestamp()
 		     },
         What	    => [ { Name  => 'Field',
                            UCD   => 'meta.dataset',
@@ -211,7 +215,7 @@ foreach my $i ( 0 ... $#message ) {
         	         { Group => [ { Name  => 'Tmax',
                                         UCD => 'time.epoch',
         		                Value => $event{tmax},
-                                        Units => "days" },
+                                        Units => "HJD" },
 		                    { Name  => 'Error',
                                       UCD => 'time.interval',
         		              Value => $event{'tmax error'},
@@ -289,4 +293,32 @@ foreach my $j ( 0 ... $#events ) {
 }
 
 exit;
+
+sub timestamp {
+   # ISO format 2006-01-05T08:00:00
+		   
+   my $year = 1900 + localtime->year();
+ 
+   my $month = localtime->mon() + 1;
+   $month = "0$month" if $month < 10;
+ 
+   my $day = localtime->mday();
+   $day = "0$day" if $day < 10;
+ 
+   my $hour = localtime->hour();
+   $hour = "0$hour" if $hour < 10;
+ 
+   my $min = localtime->min();
+   $min = "0$min" if $min < 10;
+ 
+   my $sec = localtime->sec();
+   $sec = "0$sec" if $sec < 10;
+ 
+   my $timestamp = $year ."-". $month ."-". $day ."T". 
+		   $hour .":". $min .":". $sec;
+
+   return $timestamp;
+} 
+  
+
   
