@@ -179,6 +179,12 @@ foreach my $i ( 0 ... $#message ) {
 	   $event{"finding chart"} = $finding_url;
            chomp ( $event{"finding chart"} );
 	   
+	   $event{"phot dat"} = 
+	     "ftp://ftp.astrouw.edu.pl/ogle/ogle3/ews/" .lc($event{name});
+	   $event{"phot dat"} =~ s/ogle//;
+	   $event{"phot dat"} =~ s/-/\//;
+	   $event{"phot dat"} = $event{"phot_dat"} ."/phot.dat";
+	   
 	   my $voevent = new Astro::VO::VOEvent();
 	   my $xml = $voevent->build( 
 	Role => 'observation',
@@ -221,6 +227,9 @@ foreach my $i ( 0 ... $#message ) {
         		 { Name  => 'Finding Chart',
                            UCD   => 'meta.ref.url',
         		   Value => $event{"finding chart"} },
+        		 { Name  => 'Photometry Data',
+                           UCD   => 'meta.ref.url',
+        		   Value => $event{"phot dat"} },
 		       ],
         Why  => [ { Inference => { Probability  => "1.0",
         			 Concept  => "Microlensing Event",

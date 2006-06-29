@@ -1,5 +1,9 @@
 2006-06-27 Alasdiar Allan <aa@astro.ex.ac.uk>
 
+	* bin/ogle_parsemail.pl: Added meta.ref.url to the photometry data
+	
+2006-06-27 Alasdiar Allan <aa@astro.ex.ac.uk>
+
         * www/*: Added server side components from estar2 and estar3's
           web servers. Located in /var/www/html on those servers, these
           components do networks status and manual submission of events
