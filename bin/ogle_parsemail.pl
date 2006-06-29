@@ -242,7 +242,7 @@ foreach my $i ( 0 ... $#message ) {
         		   Value => $event{"target information"} },
         		 { Name  => 'Photometry Data',
                            UCD   => 'meta.ref.url',
-        		   Value => $event{"phot dat"},
+        		   Value => $event{"phot dat"} },
         		 { Name  => 'Finding Chart',
                            UCD   => 'meta.ref.url',
         		   Value => $event{"finding chart"} },
