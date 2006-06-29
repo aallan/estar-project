@@ -250,7 +250,9 @@ print '</dd>'."\n";
 
 print '<dt><a href="http://www.faulkes-telescope.com/ft_webcams_weather/ftsweather.htm" class="location" id="location04">Coonabarabran, Australia</a></dt>'."\n";
 print '<dd><a href="javascript:void(0);" class="close"> </a>'."\n";
-print '<em><strong>Faulkes South</strong><br>Coonabarabran, Australia</em><br><img src="http://150.203.153.202:8272/axis-cgi/jpg/image.cgi?resolution=320x240" width="120" alt="FTS web camera" />'."\n";
+#print '<em><strong>Faulkes South</strong><br>Coonabarabran, Australia</em><br><img src="http://150.203.153.202:8272/axis-cgi/jpg/image.cgi?resolution=320x240" width="120" alt="FTS web camera" />'."\n";
+print '<em><strong>Faulkes South</strong><br>Coonabarabran, Australia</em><br><img src="../png/test_card.png" width="120" alt="FTS web camera" />'."\n";
+
 print '<a href="http://maps.google.com/maps?f=q&hl=en&q=coonabarabran,+Australia&ie=UTF8&ll=-31.268281,149.281883&spn=0.125305,0.33989&t=h&om=1">Lat. -31.27, Long. 149.28</a><br>'."\n";
 print 'Google Earth <a href="http://www.aao.gov.au/vr/telescopes.kmz"><u>placemark file</u></a> for SSO<br>'."\n";
 print '<table>'."\n"; 
@@ -288,7 +290,9 @@ print '</dd>'."\n";
 
 print '<dt><a href="http://www.faulkes-telescope.com/ft_webcams_weather/ftnweather.htm" class="location" id="location05">Haleakala, HI, U.S.A.</a></dt>'."\n";
 print '<dd><a href="javascript:void(0);" class="close"> </a>'."\n";
-print '<em><strong>Faulkes North</strong><br>Haleakala, HI, U.S.A.</em><br><img width="120" src="http://132.160.98.239:8272/axis-cgi/jpg/image.cgi?resolution=320x240" alt="FTN web camera">'."\n";
+#print '<em><strong>Faulkes North</strong><br>Haleakala, HI, U.S.A.</em><br><img width="120" src="http://132.160.98.239:8272/axis-cgi/jpg/image.cgi?resolution=320x240" alt="FTN web camera">'."\n";
+print '<em><strong>Faulkes North</strong><br>Haleakala, HI, U.S.A.</em><br><img width="120" src="../png/test_card.png" alt="FTN web camera">'."\n";
+
 print '<a href="http://maps.google.com/?ie=UTF8&t=h&om=1&ll=20.732997,-156.187134&spn=0.548416,0.911865">Lat. 10.7, Long. -156.2</a><br>'."\n";
 print '<table>'."\n"; 
 my $string = "";
@@ -339,14 +343,34 @@ print '</dd>'."\n";
 ############################################################################
 print '</dl>';
 
+print '<table border="0"><tr><td><img align="right" src="../png/default_dashboard_icon.png" /></td><td>Download the network status <a href="http://www.estar.org.uk/software/estar_status_widget.zip">Dashboard Widget</a> for Mac OS X Tiger.</td></tr></table>'."\n"; 
+
 print "</div>\n";
 print 'Latest status at information available at <a href="http://www.estar.org.uk/network.status">http://www.estar.org.uk/network.status</a><br>'."\n";
 
-print '<h3>Exo-planet Observing Programme<br><font size="-3"><em>PI: <a href="mailto:kdh1@astro.ex.ac.uk">Keith Horne</a>, University of St. Andrews</em></font></h3>'."\n";
-print 'Microlensing is currently the faster and cheapest way to search for cool planets It is this technique that is being utilised by eSTAR and <a href="http://www.astro.livjm.ac.uk/RoboNet/">RoboNet-1.0</a> to intensively monitor large numbers of Galactic Bulge microlensing events. The method is most sensitive to cool planets, 1-5 AU from the lens stars and is the only ground-based technique that is currently capable of discovering Earth-mass planets.'."\n";
+my $exo_icon_string;
+if( $exo_status eq "UP" ) {
+  $exo_icon_string = '<img src="../gif/icon_green.gif" />';
+} elsif ( $exo_status eq "FAULT" ) {
+  $exo_icon_string = '<img src="../gif/icon_yellow.gif" />';
+} else {
+  $exo_icon_string = '<img src="../gif/icon_red.gif" />';
+}
+
+print '<h3>Exo-planet Observing Programme&nbsp;'.$exo_icon_string.'<br><font size="-3"><em>PI: <a href="mailto:kdh1@astro.ex.ac.uk">Keith Horne</a>, University of St. Andrews</em></font></h3>'."\n";
+print 'Microlensing is currently the faster and cheapest way to search for cool planets. It is this technique that is being utilised by eSTAR and <a href="http://www.astro.livjm.ac.uk/RoboNet/">RoboNet-1.0</a> to intensively monitor large numbers of Galactic Bulge microlensing events. The method is most sensitive to cool planets, 1-5 AU from the lens stars and is the only ground-based technique that is currently capable of discovering Earth-mass planets.'."\n";
 print "<P>Real time status information on the <a href='http://vo.astro.ex.ac.uk/robonet-1.0/cgi-bin/status.cgi'>Robonet-1.0 Status Page</a></P>\n";
 
-print '<h3>GRB Observing Programme<br><font size="-3"><em>PI: <a href="mailto:nrt@star.herts.ac.uk">Nial Tanvir</a>, University of Leicester</em></font></h3>'."\n";
+my $grb_icon_string;
+if( $grb_status eq "UP" ) {
+  $grb_icon_string = '<img src="../gif/icon_green.gif" />';
+} elsif ( $grb_status eq "FAULT" ) {
+  $grb_icon_string = '<img src="../gif/icon_yellow.gif" />';
+} else {  
+  $grb_icon_string = '<img src="../gif/icon_red.gif" />';
+}
+
+print '<h3>GRB Observing Programme&nbsp;'.$grb_icon_string.'<br><font size="-3"><em>PI: <a href="mailto:nrt@star.herts.ac.uk">Nial Tanvir</a>, University of Leicester</em></font></h3>'."\n";
 print '<p>The eSTAR project provides a link between SWIFT and ground based telescopes by making use of the emerging field of intelligent agent technology to provide crucial autonomous decision making in software. Now deployed onto UKIRT for this purpose, it makes it the largest telescope in the world with an automatic response system for chasing GRBs.</p>'."\n";
 print "<P>Real time status information on the <a href='http://grb.astro.ex.ac.uk/ukirt/cgi-bin/status.cgi'>UKIRT Status Page</a></P>\n";
 

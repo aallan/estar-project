@@ -55,7 +55,7 @@ $footer =~ s/LAST_MODIFIED_DATE/ctime()/e;
 
 print "Content-type: text/html\n\n";
 print $header;
-
+print "<em>From eSTAR</em><br><br>";
 #print Dumper( %query);
 
 print '<form action="http://vo.astro.ex.ac.uk/voevent/cgi-bin/submit.cgi" method="PUT">'."\n";

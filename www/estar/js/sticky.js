@@ -60,27 +60,9 @@ var mapMaker = {
 		//Find DD to display - based on currently hovered anchor move to parent DT then next sibling DD
 		var objid = evt.parentNode.nextSibling;
 		mapMaker.element = objid;//set for the hideTooltip
-		//get width and height of background map
-		var mapWidth  = objid.parentNode.offsetWidth;
-		var mapHeight = objid.parentNode.offsetHeight;
-		//get width and height of the DD
-		var toopTipWidth = objid.offsetWidth;
-		var toopTipHeight = objid.offsetHeight;
-		//figure out where tooltip should be places based on point location
-		var newX = evt.offsetLeft + mapMaker.offsetX;
-		var newY = evt.offsetTop + mapMaker.offsetY;
-		//check if tooltip fits map width 
-		if ((newX + toopTipWidth) > mapWidth) {
-			objid.style.left = newX-toopTipWidth-24 + 'px';
-		} else {
-			objid.style.left = newX + 'px';
-		};
-		//check if tooltip fits map height 
-		if ((newY + toopTipHeight) > mapHeight) {
-			objid.style.top = newY-toopTipHeight-14 + 'px';
-		} else {
-			objid.style.top = newY + 'px';
-		};
+                objid.style.left = -10 + 'px';
+                objid.style.top = 120 + 'px';
+
 	},
 	/* HIDE TOOLTIP */
 	hideTooltip: function() {
