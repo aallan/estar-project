@@ -8,7 +8,13 @@
 	
 	* widgets/eSTAR Status.wdgt: Added the status Dashboard widget into
 	  the archive.
-	
+        
+        * www/voevent/cgi-bin/index.cgi: Updated to use Config::Simple
+
+        * www/voevent/cgi-bin/submit.cgi: Updated to use Config::Simple	
+
+        * www/voevent/db/user.dat: Added default user DB in INI format
+
 2006-06-27 Alasdiar Allan <aa@astro.ex.ac.uk>
 
         * www/*: Added server side components from estar2 and estar3's

@@ -8,9 +8,20 @@ use Digest::MD5 'md5_hex';
 use URI;
 use HTTP::Cookies;
 use LWP::UserAgent;
+use Config::Simple;
 
 my $host = "estar3.astro.ex.ac.uk";
 my $port = "9099";
+
+# G R A B   U S E R  I N F O R M A T I O N ------------------------------------
+
+my $user = $ENV{REMOTE_USER};
+my $db;
+eval { $db = new Config::Simple( "../db/user.dat" ); };
+if ( $@ ) {
+   error( "$@" );
+   exit;   
+}  
 
 # G R A B   K E Y W O R D S ---------------------------------------------------
 
@@ -60,7 +71,6 @@ $footer =~ s/LAST_MODIFIED_DATE/ctime()/e;
 
 # V A L I D A T E ------------------------------------------------------------
 
-my $user = $ENV{REMOTE_USER};
 my $valid = 1;
 my $error;
 
@@ -198,22 +208,17 @@ if ( $valid == 0 ) {
 
 # G E N E R A T E   V O E V E N T --------------------------------------------
 
-my $author_ivorn = "ivo://uk.org.estar";
-my $ivorn;
-if ( $user eq "aa" ) {
-   $ivorn = $author_ivorn . "/estar.ex#";
-} elsif ( $user eq "rrw" ) {
-   $ivorn = $author_ivorn . "/talons.lanl#";   
-}
+my $publisher_ivorn = "ivo://uk.org.estar";
+my $partial_author_ivorn = $db->param( "$user.author_ivorn" );
 
+my $ivorn = $publisher_ivorn . "/" . $partial_author_ivorn . "#" . "manual/";
 if( $query{facility} ne "" ) {
-   $ivorn = $ivorn . "manual/" .lc($query{facility}) ."/";
+   $ivorn = $ivorn . lc($query{facility}) ."/";
 }
 if( $query{instrument} ne "" ) {
-   $ivorn = $ivorn .lc($query{instrument}) . "/";
+   $ivorn = $ivorn . lc($query{instrument}) . "/";
 }      
 $ivorn = $ivorn . timestamp();
-
 
 my %observation;
 $observation{ID} = $ivorn;
@@ -233,8 +238,8 @@ if( $query{cite_type} ne "" && $query{previous_ivorn} ) {
                                  Cite => $query{cite_type} } ];
 }				 
 
-$observation{Who} = { Publisher => $author_ivorn . "#",
-                      Date      => $query{time},
+$observation{Who} = { Publisher => "ivo://" . $partial_author_ivorn,
+                      Date      => timestamp(),
                       Contact   => { Name        => $query{contact_name},
                                      Institution => $query{short_name},
                                      Address     => $query{title},

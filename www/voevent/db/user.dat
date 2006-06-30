@@ -1,0 +1,23 @@
+; VOEvent Manual Injection
+; User DB
+
+[aa]
+author_ivorn=estar.ex
+contact_name=Alasdair Allan
+contact_email=aa@astro.ex.ac.uk
+contact_phone=+44-1392-264160
+project=eSTAR
+institution=University of Exeter
+facility=Robonet-1.0
+facility_url=http://www.astro.livjm.ac.uk/RoboNet/
+
+[rrw]
+author_ivorn=talons.lanl
+contact_name=Robert R. White
+contact_email=rwhite@lanl.gov
+contact_phone=+1-505-665-3025
+short_name=RAPTOR
+title=Los Alamos National Laboratory
+facility=TALONS
+facility_url=http://www.thinkingtelescopes.lanl.gov/
+

@@ -2,7 +2,18 @@
 
 use Time::localtime;
 use Data::Dumper;
+use Config::Simple;
 
+# G R A B   U S E R  I N F O R M A T I O N ------------------------------------
+
+my $user = $ENV{REMOTE_USER};
+my $db;
+eval { $db = new Config::Simple( "../db/user.dat" ); };
+if ( $@ ) {
+   error( "$@" );
+   exit;
+}
+  
 # G R A B   K E Y W O R D S ---------------------------------------------------
 
 my $string = $ENV{QUERY_STRING};
@@ -28,7 +39,7 @@ foreach my $i ( 0 ... $#pairs ) {
 my $header;
 unless ( open ( FILE, "<../header.inc") ) {
    print "Content-type: text/html\n\n";       
-   print "<HTML><HEAD>Error</HEAD><BODY>Error: Can not open header.inc file</BODY></HTML>";
+   error( 'Can not open header.inc file' );
    exit;	
 }
 {
@@ -40,7 +51,7 @@ unless ( open ( FILE, "<../header.inc") ) {
 my $footer;
 unless ( open ( FILE, "<../footer.inc") ) {
    print "Content-type: text/html\n\n";       
-   print "<HTML><HEAD>Error</HEAD><BODY>Error: Can not open footer.inc file</BODY></HTML>";
+   error( 'Can not open footer.inc file' );
    exit;	
 }
 {
@@ -55,7 +66,7 @@ $footer =~ s/LAST_MODIFIED_DATE/ctime()/e;
 
 print "Content-type: text/html\n\n";
 print $header;
-print "<em>From eSTAR</em><br><br>";
+print "<em>From eSTAR (or via <a href='http://www.thinkingtelescopes.lanl.gov/voevent/cgi-bin/index.cgi'>TALONS</a>)</em><br><br>";
 #print Dumper( %query);
 
 print '<form action="http://vo.astro.ex.ac.uk/voevent/cgi-bin/submit.cgi" method="PUT">'."\n";
@@ -91,13 +102,7 @@ print '    </td>'."\n";
 print '    <td colspan="2">'."\n";
 
 
-my $user = $ENV{REMOTE_USER};
-my $ivorn = "ivo://uk.org.estar/";
-if ( $user eq "aa" ) {
-   $ivorn = $ivorn . "estar.ex#";
-} elsif ( $user eq "rrw" ) {
-   $ivorn = $ivorn . "talons.lanl#";   
-}
+my $ivorn = "ivo://uk.org.estar/" . $db->param( "$user.author_ivorn") . "#";
 
 print '	           <b>Current IVORN:</b> <code>'. $ivorn .'<i>unique_identifier</i></code>'."\n";
 print '           <br><i><small>The root portion of the IVORN</small></i>'."\n";
@@ -192,20 +197,12 @@ if ( defined $query{contact_name} && defined $query{contact_email} &&
    $short_name  = $query{short_name};
    $title = $query{title};     
      
-} elsif ( $user eq 'aa' ) {
-   $contact_name = "Alasdair Allan";
-   $contact_email = 'aa@astro.ex.ac.uk';
-   $contact_phone = "+44-1392-264160";
-   $short_name  = "eSTAR";
-   $title = "University of Exeter";
-   
-} elsif ( $user eq 'rrw' ) {
-   $contact_name = "Robert R. White";
-   $contact_email = 'rwhite@lanl.gov';
-   $contact_phone = "+1-505-665-3025";
-   $short_name = "RAPTOR";
-   $title = "Los Alamos National Laboratory";
-   
+} else {
+   $contact_name = $db->param( "$user.contact_name" );
+   $contact_email = $db->param( "$user.contact_email" );
+   $contact_phone = $db->param( "$user.contact_phone" );
+   $short_name  = $db->param( "$user.project" );
+   $title = $db->param( "$user.institution" );
 }   
 
 print '     <tr align="left" valign="top">'."\n";
@@ -261,14 +258,14 @@ if ( defined $query{facility} && defined $query{how_reference} ) {
    }   
    $how_reference = $query{how_reference};
    
-} elsif ( $user eq 'aa' ) {
-   $facility = "Robonet-1.0";
-   $instrument = "";
-   $how_reference = "http://www.estar.org.uk/";
-} elsif ( $user eq 'rrw' ) {
-   $facility = "TALONS";
-   $instrument = "";
-   $how_reference = "http://www.thinkingtelescopes.lanl.gov/";
+} else {
+   $facility = $db->param( "$user.facility" );
+   $how_reference = $db->param( "$user.facility_url" );
+   if( defined $db->param( "$user.instrument" ) ) {
+      $instrument = $db->param( "$user.instrument" );
+   } else {
+      $instrument = "";
+   }
 }   
 
 
@@ -577,4 +574,16 @@ sub timestamp {
    return $timestamp;
 }   
 
+sub error {
+  my $error = shift;
+  my $query = shift;
+  
+  print "Content-type: text/html\n\n";       
+  print "<HTML><HEAD>Error</HEAD><BODY><FONT COLOR='red'>".
+        "Error: $error</FONT><BR><BR>";
+  if ( defined $query ) {
+     print "<P><PRE>" . Dumper( $query ). "</PRE></P>";
+  }
+  print "</BODY></HTML>";
+}
 
