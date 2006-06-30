@@ -61,8 +61,8 @@
 </li><li> <a href="http://www.estar.org.uk/wiki/index.php/Project_News" title="Project News"> Project News </a>
 </li><li> <a href="http://www.estar.org.uk/wiki/index.php/Recent_Talks" title="Recent Talks"> Recent Talks </a>
 </li><li> <a href="http://vo.astro.ex.ac.uk/estar/cgi-bin/status.cgi" class='external text' title="Network Status" rel="nofollow">Network Status </a>
-<ul><li> <a href="http://vo.astro.ex.ac.uk/robonet-1.0/cgi-bin/status.cgi">Robonet-1.0</a>
-</li><li> <b>UKIRT</b></li></ul>
+<ul><li> <a href="http://vo.astro.ex.ac.uk/robonet-1.0/cgi-bin/status.cgi">Robonet-1.0</a> <img src='http://www.estar.org.uk/wiki/uploads/7/7a/Padlock_Icon.jpg' />
+</li><li> <b>UKIRT</b> <img src='http://www.estar.org.uk/wiki/uploads/7/7a/Padlock_Icon.jpg' /></li></ul>
 </li>
 <li> <a href="http://www.estar.org.uk/wiki/index.php/Current_Work" title="Current Work"> Current Work </a>
 <ul><li> <a href="http://www.estar.org.uk/wiki/index.php/Deployment" title="Deployment"> Deployment </a>

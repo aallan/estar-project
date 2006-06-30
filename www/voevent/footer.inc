@@ -60,9 +60,9 @@
         <ul><li> <a href="http://www.estar.org.uk/wiki/index.php/Main_Page" title="Main Page"> Main Page </a>
 </li><li> <a href="http://www.estar.org.uk/wiki/index.php/Project_News" title="Project News"> Project News </a>
 </li><li> <a href="http://www.estar.org.uk/wiki/index.php/Recent_Talks" title="Recent Talks"> Recent Talks </a>
-</li><li> <a href="http://vo.astro.ex.ac.uk/estar/cgi-bin/status.cgi" class='external text' title="Network Status" rel="nofollow">Network Status </a>
-<ul><li> <a href="http://exo.astro.ex.ac.uk/robonet-1.0/cgi-bin/status.cgi" class='external text' title="http://exo.astro.ex.ac.uk/robonet-1.0/cgi-bin/status.cgi" rel="nofollow">Robonet-1.0</a>
-</li><li> <a href="http://grb.astro.ex.ac.uk/ukirt/cgi-bin/status.cgi" class='external text' title="http://grb.astro.ex.ac.uk/ukirt/cgi-bin/status.cgi" rel="nofollow">UKIRT</a>
+</li><li> <b>Network Status </b>
+<ul><li> <a href="http://exo.astro.ex.ac.uk/robonet-1.0/cgi-bin/status.cgi" class='external text' title="http://exo.astro.ex.ac.uk/robonet-1.0/cgi-bin/status.cgi" rel="nofollow">Robonet-1.0</a> <img src='http://www.estar.org.uk/wiki/uploads/7/7a/Padlock_Icon.jpg' />
+</li><li> <a href="http://grb.astro.ex.ac.uk/ukirt/cgi-bin/status.cgi" class='external text' title="http://grb.astro.ex.ac.uk/ukirt/cgi-bin/status.cgi" rel="nofollow">UKIRT</a> <img src='http://www.estar.org.uk/wiki/uploads/7/7a/Padlock_Icon.jpg' />
 </li></ul>
 </li><li> <a href="http://www.estar.org.uk/wiki/index.php/Current_Work" title="Current Work"> Current Work </a>
 <ul><li> <a href="http://www.estar.org.uk/wiki/index.php/Deployment" title="Deployment"> Deployment </a>
@@ -74,7 +74,7 @@
 </li></ul>
 </li><li> <a href="http://www.estar.org.uk/wiki/index.php/Web_Services" title="Web Services"> Web Services </a>
 <ul><li> <a href="http://www.estar.org.uk/wiki/index.php/Catalogues" title="Catalogues"> Catalogues </a>
-</li><li> <b> Events </b>
+</li><li> <a href="http://www.estar.org.uk/wiki/index.php/Events" title="Events"> Events </a>
 </li></ul>
 </li><li> <a href="http://www.estar.org.uk/wiki/index.php/Standards_Work" title="Standards Work"> Standards Work </a>
 <ul><li> <a href="http://www.estar.org.uk/wiki/index.php/HTN" title="HTN"> HTN </a>
@@ -156,6 +156,9 @@ var sc_security="9dde236c";
 
     </li>
 
+    <li id="f-about">
+      ABOUT_THIS_PAGE
+    </li>
     
   </ul>
 

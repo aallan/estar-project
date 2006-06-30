@@ -61,8 +61,8 @@
 </li><li> <a href="http://www.estar.org.uk/wiki/index.php/Project_News" title="Project News"> Project News </a>
 </li><li> <a href="http://www.estar.org.uk/wiki/index.php/Recent_Talks" title="Recent Talks"> Recent Talks </a>
 </li><li> <b>Network Status </b>
-<ul><li> <a href="http://exo.astro.ex.ac.uk/robonet-1.0/cgi-bin/status.cgi" class='external text' title="http://exo.astro.ex.ac.uk/robonet-1.0/cgi-bin/status.cgi" rel="nofollow">Robonet-1.0</a>
-</li><li> <a href="http://grb.astro.ex.ac.uk/ukirt/cgi-bin/status.cgi" class='external text' title="http://grb.astro.ex.ac.uk/ukirt/cgi-bin/status.cgi" rel="nofollow">UKIRT</a>
+<ul><li> <a href="http://exo.astro.ex.ac.uk/robonet-1.0/cgi-bin/status.cgi" class='external text' title="http://exo.astro.ex.ac.uk/robonet-1.0/cgi-bin/status.cgi" rel="nofollow">Robonet-1.0</a> <img src='http://www.estar.org.uk/wiki/uploads/7/7a/Padlock_Icon.jpg' />
+</li><li> <a href="http://grb.astro.ex.ac.uk/ukirt/cgi-bin/status.cgi" class='external text' title="http://grb.astro.ex.ac.uk/ukirt/cgi-bin/status.cgi" rel="nofollow">UKIRT</a> <img src='http://www.estar.org.uk/wiki/uploads/7/7a/Padlock_Icon.jpg' />
 </li></ul>
 </li><li> <a href="http://www.estar.org.uk/wiki/index.php/Current_Work" title="Current Work"> Current Work </a>
 <ul><li> <a href="http://www.estar.org.uk/wiki/index.php/Deployment" title="Deployment"> Deployment </a>
