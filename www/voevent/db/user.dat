@@ -16,8 +16,8 @@ author_ivorn=talons.lanl
 contact_name=Robert R. White
 contact_email=rwhite@lanl.gov
 contact_phone=+1-505-665-3025
-short_name=RAPTOR
-title=Los Alamos National Laboratory
+project=RAPTOR
+institution=Los Alamos National Laboratory
 facility=TALONS
 facility_url=http://www.thinkingtelescopes.lanl.gov/
 

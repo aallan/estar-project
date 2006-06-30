@@ -120,21 +120,21 @@ if ( $query{contact_phone} ne "" ) {
 }
 
 if ( $query{short_name} ne "" ) {
-   unless ( $query{short_name} eq "RAPTOR" ||
-            $query{short_name} eq "eSTAR" ) {
-      $valid = 0;
-      push @validation_errors, 
-       "<span class='error'>Error: Invalid project name</span>";
-   }
+   #unless ( $query{short_name} eq "RAPTOR" ||
+   #         $query{short_name} eq "eSTAR" ) {
+   #   $valid = 0;
+   #   push @validation_errors, 
+   #    "<span class='error'>Error: Invalid project name</span>";
+   #}
 }
 
 if ( $query{facility} ne "" ) {
-   unless ( $query{facility} eq "Robonet-1.0" ||
-            $query{facility} eq "TALONS" ) {
-      $valid = 0;
-      push @validation_errors, 
-       "<span class='error'>Error: Invalid facility</span>";
-   }
+   #unless ( $query{facility} eq "Robonet-1.0" ||
+   #         $query{facility} eq "TALONS" ) {
+   #   $valid = 0;
+   #   push @validation_errors, 
+   #    "<span class='error'>Error: Invalid facility</span>";
+   #}
 
 }
 

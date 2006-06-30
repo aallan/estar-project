@@ -2,6 +2,7 @@
 
 use Time::localtime;
 use Data::Dumper;
+use Config::Simple;
 
 # G R A B   K E Y W O R D S ---------------------------------------------------
 
@@ -45,18 +46,20 @@ if ( $query{fieldID} eq "description" ) {
    $valid = 1 if $query{inputValue} eq "";
 
 } elsif ( $query{fieldID} eq "short_name" ) {
-   if ( $query{inputValue} eq "RAPTOR" ||
-        $query{inputValue} eq "eSTAR" ) {
-      $valid = 1;
-   }	
-   $valid = 1 if $query{inputValue} eq "";
+   #if ( $query{inputValue} eq "RAPTOR" ||
+   #     $query{inputValue} eq "eSTAR" ) {
+   #   $valid = 1;
+   #}	
+   #$valid = 1 if $query{inputValue} eq "";
+   $valid = 1;
 
 } elsif ( $query{fieldID} eq "facility" ) {
-   if ( $query{inputValue} eq "Robonet-1.0" ||
-        $query{inputValue} eq "TALONS" ) {
-      $valid = 1;
-   }
-   $valid = 1 if $query{inputValue} eq "";
+   #if ( $query{inputValue} eq "Robonet-1.0" ||
+   #     $query{inputValue} eq "TALONS" ) {
+   #   $valid = 1;
+   #}
+   #$valid = 1 if $query{inputValue} eq "";
+   $valid = 1;
 
 } elsif ( $query{fieldID} eq "how_reference" ) {
    $valid = 1 if $query{inputValue} =~ "http://";
