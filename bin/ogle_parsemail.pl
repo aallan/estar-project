@@ -185,17 +185,18 @@ foreach my $i ( 0 ... $#message ) {
 	   
 	   # photometry data
 	   $event{"phot dat"} = 
-	     "ftp://ftp.astrouw.edu.pl/ogle/ogle3/ews/" .lc($event{name});
-	   $event{"phot dat"} =~ s/ogle//;
+	     "ftp://ftp.astrouw.edu.pl/ogle/ogle3/ews/" .$event{name};
+	   $event{"phot dat"} =~ s/OGLE//;
 	   $event{"phot dat"} =~ s/-/\//g;
-	   $event{"phot dat"} = $event{"phot_dat"} ."/phot.dat";
+	   $event{"phot dat"} = lc ( $event{"phot dat"} ) ."/phot.dat";
 	   
 	   # finding chart
 	   $event{"finding chart"} = 
-	    "http://www.astrouw.edu.pl/~ogle/ogle3/ews/data/" .lc($event{name});
-	   $event{"finding chart"} =~ s/ogle//;
+	    "http://www.astrouw.edu.pl/~ogle/ogle3/ews/data/" . $event{name};
+	   $event{"finding chart"} =~ s/OGLE//;
 	   $event{"finding chart"} =~ s/-/\//g;
 	   $event{"finding chart"} = $event{"finding chart"} ."/fchart.jpg";
+	   $event{"finding chart"} = lc ( $event{"finding chart"} ) ."/fchart.jpg";
 	   
 	   my $voevent = new Astro::VO::VOEvent();
 	   my $xml = $voevent->build( 
