@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.101 2006/07/05 21:35:24 aa Exp $
+$Id: event_broker.pl,v 1.102 2006/07/05 21:37:13 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.101 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.102 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -1096,7 +1096,7 @@ my $incoming_connection = sub {
                         Role      => 'ack',
 	                Origin    => 'ivo://uk.org.estar/estar.broker#',
 	                TimeStamp => eSTAR::Broker::Util::time_iso(),
-	 Meta => [{ Name => 'stored',UCD => 'meta.ref.url', Value => $url } );
+	 Meta => [{ Name => 'stored',UCD => 'meta.ref.url', Value => $url } ] );
 
                   }
 		  
@@ -1841,6 +1841,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.102  2006/07/05 21:37:13  aa
+# bug fix
+#
 # Revision 1.101  2006/07/05 21:35:24  aa
 # Write param in ACK for location stored even if not using other port callback
 #
