@@ -10,6 +10,7 @@ project=eSTAR
 institution=University of Exeter
 facility=Robonet-1.0
 facility_url=http://www.astro.livjm.ac.uk/RoboNet/
+soap_name=eSTAR
 
 [rrw]
 author_ivorn=talons.lanl
@@ -20,4 +21,15 @@ project=RAPTOR
 institution=Los Alamos National Laboratory
 facility=TALONS
 facility_url=http://www.thinkingtelescopes.lanl.gov/
+soap_name=RAPTOR
 
+[seaman]
+author_ivorn=voevent.noao
+contact_name=Rob Seaman
+contact_email=seaman@noao.edu
+contact_phone=+1-520-318-8000
+project=NOAO Data Products Program
+institution=National Optical Astronomy Observatory
+facility=NOAO Science Archive
+facility_url=http://archive.noao.edu/nsa
+soap_name=NOAO
