@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.103 2006/07/05 21:40:32 aa Exp $
+$Id: event_broker.pl,v 1.104 2006/07/05 23:46:56 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.103 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.104 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -467,7 +467,6 @@ my $other_ack_port_callback = sub {
   
   } 
  
-
   my $response;
   if ( $response =~ 'role="iamalive"' ) {
     $log->thread($thread_name, "Sending IAMALIVE message to $host:$port...");
@@ -477,25 +476,23 @@ my $other_ack_port_callback = sub {
     # return an ack message
     $log->thread($thread_name, "Sending ACK message to $host:$port...");
     $log->debug( "Building ACK message..." );
-#    unless ( $name eq "Caltech" ) {
-      my $object = new XML::Document::Transport();
+    
+    my $object = new XML::Document::Transport();
+    if ( $file eq "null" ) {
+      $response = $object->build(
+         Role      => 'ack',
+	 Origin    => 'ivo://uk.org.estar/estar.broker#',
+	 TimeStamp => eSTAR::Broker::Util::time_iso() );
+	     
+    } else {
       $response = $object->build(
          Role      => 'ack',
 	 Origin    => 'ivo://uk.org.estar/estar.broker#',
 	 TimeStamp => eSTAR::Broker::Util::time_iso(),
 	 Meta => [{ Name => 'stored',UCD => 'meta.ref.url', Value => $file },]
 	 );
-#    } else {
-#      my $object = new Astro::VO::VOEvent();
-#      $response = $object->build( 
-#         Role => 'ack',
-#	 ID   => 'ivo://uk.org.estar/estar.broker#ack',
-#	 Who  => { AuthorIVORN => 'ivo://uk.org.estar/estar.broker#',
-#	           Date        => eSTAR::Broker::Util::time_iso(),
-#		 },
-#	 What => [{ Name => 'stored',UCD => 'meta.ref.url', Value => $file }]
-#	 );
-#    }
+    }
+	 
   }
   
   # work out message length
@@ -621,6 +618,26 @@ my $incoming_callback = sub {
      # HANDLE VOEVENT MESSAGE --------------------------------------------
      #
      # At this stage we have a valid alert message
+     
+     # DROP ROLE="UTILITY" MESSAGES
+     # ----------------------------
+     
+     if ( $event->role() eq "utility" ) {  
+        $log->print( "Ignoring <VOEvent> UTILITY message from $host");
+        unless( $config->get_option( "$server.ack") == $port ) {
+     
+           $log->print("Detaching ack thread..." );
+           my $file = "null";
+	   my $ack_thread =
+                threads->create( $other_ack_port_callback, 
+                                 $server, $name, $file, $id, $message );
+           $ack_thread->detach();   
+        } else {
+           $log->debug( "ACK message sent from main loop..." );
+        }
+        $log->debug( "Returning ESTAR__OK, exiting callback..." );
+        return ESTAR__OK;     
+     }
      
      # Push message onto running hash via the object we've set up for that
      # purpose...
@@ -1841,6 +1858,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.104  2006/07/05 23:46:56  aa
+# Now ignoes role='utility' messages
+#
 # Revision 1.103  2006/07/05 21:40:32  aa
 # bug fix
 #
