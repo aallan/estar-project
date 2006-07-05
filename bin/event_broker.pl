@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.100 2006/06/14 20:45:08 aa Exp $
+$Id: event_broker.pl,v 1.101 2006/07/05 21:35:24 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.100 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.101 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -1059,27 +1059,46 @@ my $incoming_connection = sub {
                       
                my $message;
                if ( $response =~ 'role="iamalive"' ) {
+	       
+	         # return an iamalive message
  	         $log->debug( "Echoing IAMALIVE message back to $name..." );
 		 $message = $response;
 	       } else {
- 	          # return an ack message
+	       
+	          # return an ack message
  	          $log->debug( "Building ACK message..." );
-#                  unless ( $name eq "Caltech" ) {
-                     my $object = new XML::Document::Transport();
+                  my $object = new XML::Document::Transport();
+		  my $event;
+                  eval { $event = new Astro::VO::VOEvent( XML => $message ); };
+                  if ( $@ ) {
                      $message = $object->build(
                         Role      => 'ack',
 	                Origin    => 'ivo://uk.org.estar/estar.broker#',
 	                TimeStamp => eSTAR::Broker::Util::time_iso() );
-#                  } else {
-#                     my $object = new Astro::VO::VOEvent();
-#                     $message = $object->build( 
-#                        Role => 'ack',
-#	                ID   => 'ivo://uk.org.estar/estar.broker#ack',
-#	                Who  => { 
-#			  AuthorIVORN => 'ivo://uk.org.estar/estar.broker#',
-#	                  Date        => eSTAR::Broker::Util::time_iso(),
-#		        } );	  
-#                  }
+
+                  } else {   
+                     my $id = $event->id();
+                     $id =~ s/#/\//;
+                     my @path = split( "/", $id );
+                     if ( $path[0] eq "ivo:" ) {
+                        splice @path, 0 , 1;
+                     }
+                     if ( $path[0] eq "" ) {
+                        splice @path, 0 , 1;
+                     }
+                     my $url = "http://www.estar.org.uk/voevent/$name";
+                     foreach my $i ( 0 ... $#path ) {
+                        $url = $url . "/$path[$i]"; 
+                     }
+                     $url = $url . ".xml";		     
+		     	       
+	             $message = $object->build(
+                        Role      => 'ack',
+	                Origin    => 'ivo://uk.org.estar/estar.broker#',
+	                TimeStamp => eSTAR::Broker::Util::time_iso(),
+	 Meta => [{ Name => 'stored',UCD => 'meta.ref.url', Value => $url } );
+
+                  }
 		  
                   # callback to handle incoming Events     
                   $log->print("Detaching callback thread..." );
@@ -1822,6 +1841,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.101  2006/07/05 21:35:24  aa
+# Write param in ACK for location stored even if not using other port callback
+#
 # Revision 1.100  2006/06/14 20:45:08  aa
 # bug fix
 #
