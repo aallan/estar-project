@@ -357,7 +357,7 @@ if( $exo_status eq "UP" ) {
   $exo_icon_string = '<img src="../gif/icon_red.gif" />';
 }
 
-print '<h3>Exo-planet Observing Programme&nbsp;'.$exo_icon_string.'<br><font size="-3"><em>PI: <a href="mailto:kdh1@astro.ex.ac.uk">Keith Horne</a>, University of St. Andrews</em></font></h3>'."\n";
+print '<h3>Exo-planet Observing Programme&nbsp;'.$exo_icon_string.'<br><font size="-3"><em>PI: <a href="mailto:kdh1@st-andrews.ac.uk">Keith Horne</a>, University of St. Andrews</em></font></h3>'."\n";
 print 'Microlensing is currently the faster and cheapest way to search for cool planets. It is this technique that is being utilised by eSTAR and <a href="http://www.astro.livjm.ac.uk/RoboNet/">RoboNet-1.0</a> to intensively monitor large numbers of Galactic Bulge microlensing events. The method is most sensitive to cool planets, 1-5 AU from the lens stars and is the only ground-based technique that is currently capable of discovering Earth-mass planets.'."\n";
 print "<P>Real time status information on the <a href='http://vo.astro.ex.ac.uk/robonet-1.0/cgi-bin/status.cgi'>Robonet-1.0 Status Page</a> <img src='http://www.estar.org.uk/wiki/uploads/7/7a/Padlock_Icon.jpg' /></P>\n";
 

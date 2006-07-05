@@ -213,10 +213,14 @@ my $partial_author_ivorn = $db->param( "$user.author_ivorn" );
 
 my $ivorn = $publisher_ivorn . "/" . $partial_author_ivorn . "#" . "manual/";
 if( $query{facility} ne "" ) {
-   $ivorn = $ivorn . lc($query{facility}) ."/";
+   my $facility = $query{facility};
+   $facility =~ s/ /_/g;
+   $ivorn = $ivorn . lc($facility) ."/";
 }
 if( $query{instrument} ne "" ) {
-   $ivorn = $ivorn . lc($query{instrument}) . "/";
+   my $instrument = $query{instrument};
+   $instrument =~ s/ /_/g;
+   $ivorn = $ivorn . lc($instrument) . "/";
 }      
 $ivorn = $ivorn . timestamp();
 
@@ -238,7 +242,7 @@ if( $query{cite_type} ne "" && $query{previous_ivorn} ) {
                                  Cite => $query{cite_type} } ];
 }				 
 
-$observation{Who} = { Publisher => "ivo://" . $partial_author_ivorn,
+$observation{Who} = { Publisher => "ivo://" . $partial_author_ivorn ."#",
                       Date      => timestamp(),
                       Contact   => { Name        => $query{contact_name},
                                      Institution => $query{short_name},
@@ -347,7 +351,7 @@ $soap->proxy($endpoint, cookie_jar => $cookie_jar);
   
 # grab result 
 my $result;
-eval { $result = $soap->handle_voevent( $query{facility}, $document ); };
+eval { $result = $soap->handle_voevent(  $db->param( "$user.soap_name" ), $document ); };
 if ( $@ ) {
    my $error = "$@";
    error( $error, \%observation, \%query, $document );
