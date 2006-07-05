@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<trn:Transport role="iamalive" version="0.1" 
+    xmlns:trn="http://www.telescope-networks.org/xml/Transport/v0.1" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.telescope-networks.org/xml/Transport/v0.1 file:///Users/alasdair/Desktop/v0.1.xsd">
+
+<Origin>ivo://uk.org.estar/estar.ex#</Origin>
+<TimeStamp>2005-04-15T23:59:59</TimeStamp>
+</trn:Transport>
