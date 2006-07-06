@@ -186,16 +186,15 @@ foreach my $i ( 0 ... $#message ) {
 	   # photometry data
 	   $event{"phot dat"} = 
 	     "ftp://ftp.astrouw.edu.pl/ogle/ogle3/ews/" .$event{name};
-	   $event{"phot dat"} =~ s/OGLE//;
-	   $event{"phot dat"} =~ s/-/\//g;
+	   $event{"phot dat"} =~ s/OGLE-//;
+	   $event{"phot dat"} =~ s/-/\//;  # only removes first - the 2nd is kept
 	   $event{"phot dat"} = lc ( $event{"phot dat"} ) ."/phot.dat";
 	   
 	   # finding chart
 	   $event{"finding chart"} = 
 	    "http://www.astrouw.edu.pl/~ogle/ogle3/ews/data/" . $event{name};
-	   $event{"finding chart"} =~ s/OGLE//;
-	   $event{"finding chart"} =~ s/-/\//g;
-	   $event{"finding chart"} = $event{"finding chart"} ."/fchart.jpg";
+	   $event{"finding chart"} =~ s/OGLE-//;
+	   $event{"finding chart"} =~ s/-/\//; # only removes first - the 2nd is kept
 	   $event{"finding chart"} = lc ( $event{"finding chart"} ) ."/fchart.jpg";
 	   
 	   my $voevent = new Astro::VO::VOEvent();
