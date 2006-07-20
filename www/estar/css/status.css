@@ -65,10 +65,10 @@ dl.map.on dd a.close {
 	background:url(../png/close.png) no-repeat;
 	text-indent:-9999px;
 	outline:none;
-	height:16px;
-	width:16px;
+	height:19px;
+	width:19px;
 	margin-left:4px;
-	margin-right:-6px;
+	margin-right:0px;
 	text-decoration:none;
 }
 
