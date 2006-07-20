@@ -340,7 +340,7 @@ function readResponse()
   var exo = array[16].split( " " );
   exString = exString + "<tr><td>Exo-planet Programme</td><td><font color='";
   if( exo[3].match( /^UP$/ ) ) {
-     exString = exString + "lightgreen'>OK</font></td></tr>";
+     exString = exString + "lightgreen'>UP</font></td></tr>";
   } else {
      if ( exo[3].match( /^DOWN$/ ) ) {
        exString = exString + "red'>DOWN</font></td></tr>";
@@ -353,8 +353,8 @@ function readResponse()
   // grb, array[17] 
   var grb = array[17].split( " " );
   exString = exString + "<tr><td>GRB Programme</td><td><font color='";
-  if( exo[3].match( /^UP$/ ) ) {
-     exString = exString + "lightgreen'>OK</font></td></tr>";
+  if( grb[3].match( /^UP$/ ) ) {
+     exString = exString + "lightgreen'>UP</font></td></tr>";
   } else {
      if ( grb[3].match( /^DOWN$/ ) ) {
        exString = exString + "red'>DOWN</font></td></tr>";
@@ -371,7 +371,7 @@ function readResponse()
   var estar = array[19].split( " " );
   exString = exString + "<tr><td>Event Broker</td><td><font color='";
   if( estar[3].match( /^UP$/ ) ) {
-     exString = exString + "lightgreen'>OK</font></td></tr>";
+     exString = exString + "lightgreen'>UP</font></td></tr>";
   } else {
      if ( estar[3].match( /^DOWN$/ ) ) {
        exString = exString + "red'>DOWN</font></td></tr>";
