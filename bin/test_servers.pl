@@ -176,6 +176,7 @@ unless ( defined $status ) {
   push @hosts, "www.estar.org.uk";
   push @hosts, "132.160.98.239"; # FTN proxy
   push @hosts, "161.72.57.3"; # LT proxy
+  push @hosts, "150.203.153.202"; # FTS proxy
   
   #use Data::Dumper;
   #print Dumper( @hosts);
