@@ -165,8 +165,7 @@ function readResponse()
   var exString = "<table>";
   var ftnString = "<table>";
   var ftsString = "<table>";
-  ftsString = ftsString + "<tr><td>ftsproxy.aao.gov.au</td>";
-  ftsString = ftsString + "<td><font color='red'>NO</font></td></tr>";
+  var ftsString = "<table>";
   var ltString = "<table>";
   var jachString = "<table>";
   var raptorString = "<table>";
@@ -179,8 +178,9 @@ function readResponse()
 // 06 www.estar.org.uk NACK
 // 07 132.160.98.239 NACK
 // 08 161.72.57.3 NACK
+// 09 150.203.153.202 NACK
   
-  for( var j = 2; j <= 8; j ++ ) {
+  for( var j = 2; j <= 9; j ++ ) {
     var line = array[j].split( " " );
 
     // Exeter
@@ -209,8 +209,19 @@ function readResponse()
     }    
     
     // FTS
-    // No machines to match as yet, bolier plate above...
-    
+    if( line[0].match( /150\.203/ ) ) {
+       if ( line[0].match( /150\.203\.153\.202/ ) ) {
+          line[0] = "ftsproxy.aao.gov.au";
+       }
+       ftsString = ftsString + "<tr><td>" +
+   	                         line[0] + "</td><td><font color='";
+       if( line[1].match( /^PING$/ ) ) {
+          ftsString = ftsString + "lightgreen'>OK</font></td></tr>";
+       } else {
+          ftsString = ftsString + "red'>NO</font></td></tr>";
+       }
+    } 
+        
     // LT
     if( line[0].match( /161\.72/ ) ) {
        if ( line[0].match( /161\.72\.57\.3/ ) ) {
@@ -242,16 +253,16 @@ function readResponse()
 
   }
 
-// 09 # NODE AGENTS
-// 10 FTN estar3.astro.ex.ac.uk 8077 UP
-// 11 FTS estar3.astro.ex.ac.uk 8079 DOWN
-// 12 LT estar3.astro.ex.ac.uk 8078 UP
-// 13 RAPTOR estar2.astro.ex.ac.uk 8080 UP
-// 14 UKIRT estar.ukirt.jach.hawaii.edu 8080 UP
+// 10 # NODE AGENTS
+// 11 FTN estar3.astro.ex.ac.uk 8077 UP
+// 12 FTS estar3.astro.ex.ac.uk 8079 DOWN
+// 13 LT estar3.astro.ex.ac.uk 8078 UP
+// 14 RAPTOR estar2.astro.ex.ac.uk 8080 UP
+// 15 UKIRT estar.ukirt.jach.hawaii.edu 8080 UP
 
 
-  // node agents, array[10] - [14]
-  for( var j = 10; j <= 14; j ++ ) {
+  // node agents, array[11] - [15]
+  for( var j = 11; j <= 15; j ++ ) {
     var line = array[j].split( " " );
 
     // FTN
@@ -332,12 +343,12 @@ function readResponse()
 
   }
   
-// 15 # USER AGENTS
-// 16 EXO-PLANET estar3.astro.ex.ac.uk 8000 UP
-// 17 GRB estar2.astro.ex.ac.uk 8000 UP
+// 16 # USER AGENTS
+// 17 EXO-PLANET estar3.astro.ex.ac.uk 8000 UP
+// 18 GRB estar2.astro.ex.ac.uk 8000 UP
 
-  // exo-planet, array[16] 
-  var exo = array[16].split( " " );
+  // exo-planet, array[17] 
+  var exo = array[17].split( " " );
   exString = exString + "<tr><td>Exo-planet Programme</td><td><font color='";
   if( exo[3].match( /^UP$/ ) ) {
      exString = exString + "lightgreen'>UP</font></td></tr>";
@@ -350,8 +361,8 @@ function readResponse()
      }       
   }	
 
-  // grb, array[17] 
-  var grb = array[17].split( " " );
+  // grb, array[18] 
+  var grb = array[18].split( " " );
   exString = exString + "<tr><td>GRB Programme</td><td><font color='";
   if( grb[3].match( /^UP$/ ) ) {
      exString = exString + "lightgreen'>UP</font></td></tr>";
@@ -364,11 +375,11 @@ function readResponse()
      }       
   }
 
-// 18 # EVENT BROKERS
-// 19 eSTAR estar3.astro.ex.ac.uk 9099 UP
+// 19 # EVENT BROKERS
+// 20 eSTAR estar3.astro.ex.ac.uk 9099 UP
 
-  // estar, array[19] 
-  var estar = array[19].split( " " );
+  // estar, array[20] 
+  var estar = array[20].split( " " );
   exString = exString + "<tr><td>Event Broker</td><td><font color='";
   if( estar[3].match( /^UP$/ ) ) {
      exString = exString + "lightgreen'>UP</font></td></tr>";
