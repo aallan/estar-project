@@ -1,3 +1,9 @@
+2006-08-10 Alasdiar Allan <aa@astro.ex.ac.uk>
+
+	* bin/test_servers.pl: Added FTS support.
+	
+	* widgets/eSTAR Status.wdgt/*: Added FTS support.
+
 2006-06-29 Alasdiar Allan <aa@astro.ex.ac.uk>
 
 	* bin/ogle_parsemail.pl: Added meta.ref.url to the photometry data.
