@@ -60,11 +60,11 @@
         <ul><li> <a href="http://www.estar.org.uk/wiki/index.php/Main_Page" title="Main Page"> Main Page </a>
 </li><li> <a href="http://www.estar.org.uk/wiki/index.php/Project_News" title="Project News"> Project News </a>
 </li><li> <a href="http://www.estar.org.uk/wiki/index.php/Recent_Talks" title="Recent Talks"> Recent Talks </a>
-</li><li> <b>Network Status </b>
-<ul><li> <a href="http://exo.astro.ex.ac.uk/robonet-1.0/cgi-bin/status.cgi" class='external text' title="http://exo.astro.ex.ac.uk/robonet-1.0/cgi-bin/status.cgi" rel="nofollow">Robonet-1.0</a> <img src='http://www.estar.org.uk/wiki/uploads/7/7a/Padlock_Icon.jpg' />
-</li><li> <a href="http://grb.astro.ex.ac.uk/ukirt/cgi-bin/status.cgi" class='external text' title="http://grb.astro.ex.ac.uk/ukirt/cgi-bin/status.cgi" rel="nofollow">UKIRT</a> <img src='http://www.estar.org.uk/wiki/uploads/7/7a/Padlock_Icon.jpg' />
-</li></ul>
-</li><li> <a href="http://www.estar.org.uk/wiki/index.php/Current_Work" title="Current Work"> Current Work </a>
+</li><li> <a href="http://vo.astro.ex.ac.uk/estar/cgi-bin/status.cgi" class='external text' title="Network Status" rel="nofollow">Network Status </a>
+<ul><li> <b>Robonet-1.0</b> <img src='http://www.estar.org.uk/wiki/uploads/7/7a/Padlock_Icon.jpg' />
+</li><li> <a href="http://estar2.astro.ex.ac.uk/ukirt/cgi-bin/status.cgi">UKIRT</a> <img src='http://www.estar.org.uk/wiki/uploads/7/7a/Padlock_Icon.jpg' /></li></ul>
+</li>
+<li> <a href="http://www.estar.org.uk/wiki/index.php/Current_Work" title="Current Work"> Current Work </a>
 <ul><li> <a href="http://www.estar.org.uk/wiki/index.php/Deployment" title="Deployment"> Deployment </a>
 </li><li> <a href="http://www.estar.org.uk/wiki/index.php/Interoperability" title="Interoperability"> Interoperability </a>
 </li><li> <a href="http://www.estar.org.uk/wiki/index.php/VOEvent" title="VOEvent"> VOEvent </a>
@@ -156,9 +156,6 @@ var sc_security="9dde236c";
 
     </li>
 
-    <li id="f-about">
-      ABOUT_THIS_PAGE
-    </li>
     
   </ul>
 

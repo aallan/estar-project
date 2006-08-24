@@ -47,6 +47,8 @@ unless ( open ( FILE, "<../header.inc") ) {
    $header = <FILE>;
    close FILE;
 }
+$header =~ s/PAGE_TITLE_STRING/VOEvent Manual Injection/g;
+$header =~ s/CALLING_JAVASCRIPT/onload="setFocus()"/;
 
 my $footer;
 unless ( open ( FILE, "<../footer.inc") ) {
@@ -60,6 +62,7 @@ unless ( open ( FILE, "<../footer.inc") ) {
    close FILE;
 }
 $footer =~ s/LAST_MODIFIED_DATE/ctime()/e;
+$footer =~ s/ABOUT_THIS_PAGE//;
 
 # G E N E R A T E   P A G E ------===--------------------------------------
 

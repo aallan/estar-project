@@ -145,6 +145,10 @@ if ( $user eq 'aa' ) {
    $contact_name = "Iain Steele";
    $contact_email = 'ias@astro.livjm.ac.uk';
    $contact_phone = '+44-151-2312912'; 
+} elsif ( $user eq 'yt' ) {
+   $contact_name = "Yiannis Tsapras";
+   $contant_email = 'yt@astro.livjm.ac.uk';
+   $contant_phone = '+44-151-231-2903';
 } elsif ( $user eq 'mfb' ) {
    $contact_name = "Mike Bode";
    $contact_email = 'mfb@astro.livjm.ac.uk';
@@ -198,7 +202,7 @@ if(  $user eq 'aa' ) {
    print '             <option VALUE="eSTAR">   eSTAR'."\n";
    print '             <option VALUE="PLANET">  PLANET'."\n";
    print '             <option VALUE="Robonet-1.0">     RoboNet-1.0'."\n";
-} elsif ( $user eq 'ias' || $user eq 'cjm' || $user eq 'mfb' || $user eq 'mjb' ) {
+} elsif ( $user eq 'ias' || $user eq 'cjm' || $user eq 'mfb' || $user eq 'mjb' || $user eq 'yt' ) {
    print '             <option VALUE="Robonet-1.0">     RoboNet-1.0'."\n";
    print '             <option VALUE="eSTAR">   eSTAR'."\n";
    print '             <option VALUE="PLANET">  PLANET'."\n";

@@ -257,21 +257,18 @@ print '<a href="http://maps.google.com/maps?f=q&hl=en&q=coonabarabran,+Australia
 print 'Google Earth <a href="http://www.aao.gov.au/vr/telescopes.kmz"><u>placemark file</u></a> for SSO<br>'."\n";
 print '<table>'."\n"; 
 my $string = "";
-#foreach my $key ( sort keys %machine ) {
-#   #$key = "ftsproxy.aao.gov.au" if $key eq "";
-#   if ( $key =~ "aao.gov.au" ) {
-#      $string = $string . "<tr><td>$key</td><td><font color='";
-#      if ( $machine{$key} eq "PING" ) {
-#         $string = $string . "lightgreen'>OK</font></td></tr>\n";
-#      } else {
-#         $string = $string . "red'>NO</font></td></tr>\n";
-#      }
-#   }
-#}
-
-# REMOVE BEFORE FLIGHT #######
-$string =  "<tr><td>ftsproxy.aao.gov.au</td><td><font color='red'>NO</font></td></tr>\n";
-##############################
+foreach my $key ( sort keys %machine ) {
+   $key = "ftsproxy.aao.gov.au" if $key eq "150.203.153.202";
+   if ( $key =~ "aao.gov.au" ) {
+      $string = $string . "<tr><td>$key</td><td><font color='";
+      if ( $machine{$key} eq "PING" ) {
+         $string = $string . "lightgreen'>OK</font></td></tr>\n";
+      } else {
+         $string = $string . "red'>NO</font></td></tr>\n";
+      }
+   }
+}
+$string =  "<tr><td>ftsproxy.aao.gov.au</td><td><font color='red'>NO</font></td></tr>\n" if $string eq "";
 
 print $string ."\n"; 
 my $fts_status = ${$node{FTS}}[2];

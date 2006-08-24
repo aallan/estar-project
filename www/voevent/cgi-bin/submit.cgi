@@ -55,6 +55,8 @@ unless ( open ( FILE, "<../header.inc") ) {
    $header = <FILE>;
    close FILE;
 }
+$header =~ s/PAGE_TITLE_STRING/VOEvent Manual Injection/g;
+$header =~ s/CALLING_JAVASCRIPT/onload="setFocus()"/;
 
 my $footer;
 unless ( open ( FILE, "<../footer.inc") ) {
@@ -67,7 +69,7 @@ unless ( open ( FILE, "<../footer.inc") ) {
    close FILE;
 }
 $footer =~ s/LAST_MODIFIED_DATE/ctime()/e;
-
+$footer =~ s/ABOUT_THIS_PAGE//;
 
 # V A L I D A T E ------------------------------------------------------------
 
@@ -351,7 +353,7 @@ $soap->proxy($endpoint, cookie_jar => $cookie_jar);
   
 # grab result 
 my $result;
-eval { $result = $soap->handle_voevent(  $db->param( "$user.soap_name" ), $document ); };
+eval { $result = $soap->handle_voevent( $db->param( "$user.soap_name" ), $document ); };
 if ( $@ ) {
    my $error = "$@";
    error( $error, \%observation, \%query, $document );
