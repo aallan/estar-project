@@ -251,7 +251,14 @@ sub handle_rtml {
       
       if ( $process->get_process() =~ "FTN" ) {
       
-         # KDH Live PATT
+         # KDH Live Robonet
+         $new_user = "Robonet/keith.horne";
+         $new_project = "Planetsearch1";        
+      }
+
+      if ( $process->get_process() =~ "FTS" ) {
+      
+         # KDH Live Robonet
          $new_user = "Robonet/keith.horne";
          $new_project = "Planetsearch1";        
       }

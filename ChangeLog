@@ -4,7 +4,9 @@
 	
 	* www/*: Updated the rest of the wesite in the archive to correspond 
 	  to the live version deployed onto estar3.astro.ex.ac.uk
-         
+        
+        * startup/*: Updated startup scripts to account for FTS
+ 
 2006-08-10 Alasdiar Allan <aa@astro.ex.ac.uk>
 
 	* bin/test_servers.pl: Added FTS support.
