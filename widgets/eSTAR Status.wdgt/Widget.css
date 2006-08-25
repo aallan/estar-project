@@ -71,37 +71,16 @@ p.popupstatus td {
 
 }
 
-.doneButton {
-        position: absolute;
-        bottom: 25px;
-        right: 18px;
+.donePrefsButton {
+	position: absolute;
+	bottom: 24px;
+	right: 30px;
+	display: none;
 }
 
-#doneText {
-    position: absolute;
-    font: 18px "Lucida Grande";
-    color: white;
-    bottom:15px;
-    right: 38px;
-}
-
-.done a {
-    position: absolute;
-    font: 18px "Lucida Grande";
-    color: white;
-    bottom:10px;
-    right: 0px;
-    height: 36px;
-    width: 90px;
-    padding:8px 10px 10px 20px;
-    background: url("png/Done.png") no-repeat;
-    text-decoration: none;
-}
-.done a:hover { 
-    background: url("png/DoneRollie.png") no-repeat;
-}
-.done a:active {
-    background: url("png/DonePress.png") no-repeat;
+#widgetButton {
+	font: 10px "Lucida Grande";
+	font-weight: bold;
 }
 
 #back {

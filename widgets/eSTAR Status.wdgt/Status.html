@@ -1,12 +1,15 @@
 <html>
 <head>
   <link rel="stylesheet" HREF="Widget.css" TYPE="text/css" />
-<!--<link rel="stylesheet" HREF="Debug.css" TYPE="text/css" />-->
   <link rel="stylesheet" HREF="Status.css" TYPE="text/css" />
+<!--<link rel="stylesheet" HREF="Debug.css" TYPE="text/css" />-->
+  
   <script language="javascript"  type='text/javascript' src='Apple.js' />
-<!--<script language="javascript"  type='text/javascript' src='Debug.js' />-->
+  <script language="javascript"  type='text/javascript' src='Button.js' />
   <script language="javascript" type="text/javascript" src='Map.js' />
   <script language="javascript" type="text/javascript" src='Update.js' />
+  <script language="javascript" type="text/javascript" src='Setup.js' />
+<!--<script language="javascript"  type='text/javascript' src='Debug.js' />-->
   <script language="javascript" type="text/javascript" >
     function clicked(site)
     {
@@ -15,8 +18,9 @@
             widget.openURL(site);
         }
     }
-</script>
+  </script>
 </head>
+
 
 <body>
 <div id="front" onmousemove='mousemove(event);' onmouseout='mouseexit(event);'>	
@@ -89,13 +93,15 @@
     <!--<div id='debugDiv'></div>-->
     
     <img class="estarlogo" id="estarlogo" src="png/estarLogo.png" />
-    <p class="title" id="title">Network Status Monitor Widget v1.5.0<br><em>Copyright &copy; 2006, Alasdair Allan &lt;<a href="void();" onclick='clicked("mailto:aa@astro.ex.ac.uk");'>aa@astro.ex.ac.uk</a>&gt;</em></p>
+    <p class="title" id="title">Network Status Monitor Widget v1.6<br><em>Copyright &copy; 2006, Alasdair Allan &lt;<a href="void();" onclick='clicked("mailto:aa@astro.ex.ac.uk");'>aa@astro.ex.ac.uk</a>&gt;</em></p>
     <p class="backbody" id="backbody">For more information about the <font color="red">e</font>STAR Network please see our <a href="void();" onclick="clicked('http://www.estar.org.uk/');">project website</a>.<br>
 This version of the widget includes support for the Faulkes Telescope South.</p>
-    <div class="done" id="done"><a href="javascript:void(0)" onclick='hidePrefs();'>Done</a>
+    <div class="widgetButton" id="donePrefsButton" style='position: absolute;bottom: 24px; right: 30px;'></div>
 </div>  <!-- class="back" -->
 	
 
+<!-- This doesn't seem to want to fire from <body onload=''> ? -->
+<script language="javascript" type="text/javascript">setup();</script>
        
 </body>
 </html>
