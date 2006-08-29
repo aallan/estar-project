@@ -1,0 +1,77 @@
+<html>
+<head>
+  <link rel="stylesheet" HREF="Widget.css" TYPE="text/css" />
+  <link rel="stylesheet" HREF="Status.css" TYPE="text/css" />
+  
+  <script language="javascript"  type='text/javascript' src='Prefs.js' />
+  <script language="javascript"  type='text/javascript' src='Button.js' />
+  <script language="javascript" type="text/javascript" src='Update.js' />
+  <script language="javascript" type="text/javascript" src='Setup.js' />
+  <script language="javascript" type="text/javascript" >
+    function clicked(site)
+    {
+        if (widget)
+        {
+            widget.openURL(site);
+        }
+    }
+  </script>
+</head>
+
+
+<body>
+<div id="front" onmousemove='mousemove(event);' onmouseout='mouseexit(event);'>	
+
+<form name="telSelect" id="telSelect">
+<b>Telescope:</b> 
+<select NAME="telescope" onchange="changeSite(this, document.telSelect.telescope);">
+  <option VALUE="http://132.160.98.239/teldata"> Faulkes Telescope North
+  <option VALUE="http://150.203.153.202/teldata"> Faulkes Telescope South
+  <option VALUE="http://161.72.57.3/teldata"> Liverpool Telescope
+</select><br>
+<i><small><div id='endpoint'></div></small></i>
+</form>
+
+<div id='nextUpdate'></div>
+
+<div id="mechanismTitle">Mechanisms</div>
+<div id="secondaryFocus"></div>
+<div id="enclosureImage"></div>
+<div id="mirrorCoverImage"></div>
+<div id="pointingImage"></div>
+<div id="rotatorImage"></div>
+<div id="altazcassStatus"></div>
+
+<div id="externalCamera"></div>
+<div id="internalCamera"></div>
+<div id="controlCamera"></div>
+
+<div class="timestamp" id='timestamp'></div>
+
+<div class='flip' id='fliprollie'></div>
+<div class='flip' id='flip' onclick='showPrefs(event);' onmouseover='enterflip(event);' onmouseout='exitflip(event);'></div>
+
+</div>  <!-- class="front" -->
+
+<div id="back">
+     <p class="backTitle" id="backTitle">Robonet-1.0 Status Widget v1.2</p>
+    
+    <p class="backCopyright" id="backCopyright">
+    <em>Dashboard widget code; copyright &copy; 2006, Alasdair Allan &lt;<a class="backbody" href="javascript:void(0);" onclick='clicked("mailto:aa@astro.ex.ac.uk");'>aa@astro.ex.ac.uk</a>&gt;<br>Real-time status data; copyright &copy; 2006, Iain Steele &lt;<a class="backbody" href="javascript:void(0);" onclick='clicked("mailto:ias@astro.livjm.ac.uk");'>ias@astro.livjm.ac.uk</a>&gt;<br>Telescope status icons; copyright &copy; 2003-2006, Astrophysics Research Institute, Liverpool JMU</em></p>
+    
+    <p class="backBody" id="backBody">This dashboard widget monitors the real time status of the three <a class="backbody" href="javascript:void(0);" onclick="clicked('http://www.astro.livjm.ac.uk/RoboNet/');">Robonet-1.0</a> telescopes and was built as part of my work on the <font color="red">e</font>STAR project. More information about the project, and additional dashboard widgets, can be found on the <a class="backbody" href="javascript:void(0);" onclick="clicked('http://www.estar.org.uk/');">project website</a>.</p>
+    
+    <div class="widgetButton" id="donePrefsButton" style='position: absolute;bottom: 24px; right: 30px;'></div> 
+    
+ 
+<div class="widgetButton" id="donePrefsButton" style='position: absolute;bottom: 24px; right: 30px;'></div>
+
+</div>  <!-- class="back" -->
+	
+<!-- This doesn't seem to want to fire from <body onload=''> ? -->
+<script language="javascript" type="text/javascript">
+   setup();
+</script>
+       
+</body>
+</html>

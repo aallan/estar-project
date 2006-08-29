@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AllowFullAccess</key>
+	<true/>
+	<key>CFBundleDisplayName</key>
+	<string>Robonet-1.0 Status</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.apple.widget.robonetStatus</string>
+	<key>CFBundleVersion</key>
+	<string>1.2</string>
+	<key>CloseBoxInsetX</key>
+	<integer>6</integer>
+	<key>CloseBoxInsetY</key>
+	<integer>14</integer>
+	<key>MainHTML</key>
+	<string>Status.html</string>
+</dict>
+</plist>

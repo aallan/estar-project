@@ -1,0 +1,116 @@
+
+body {
+    font: 12px "Lucida Grande";
+    color: #666;
+}
+
+#timestamp {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+}  
+
+#nextUpdate {
+    position: absolute;
+    top: 37px;
+    left: 225px;
+    z-index: 2;
+}
+    
+#telSelect {
+    position: absolute;
+    top: 15px;
+    left: 20px;
+}   
+
+#mechanismTitle {
+    position: absolute;
+    font-variant: small-caps;
+    font-weight: bold;
+    font-size: 150%;
+    top: 55px;
+    left: 20px;
+}
+
+#secondaryFocus {
+    position: absolute;
+    top: 75px;
+    left: 20px;
+    z-index: 2;
+}
+
+#enclosureImage {
+    position: absolute;
+    top: 80px;
+    left: 20px;
+}
+
+#mirrorCoverImage {
+    position: absolute;
+    top: 82px;
+    left: 110px;
+}
+
+#pointingImage {
+    position: absolute;
+    top: 135px;
+    left: 20px;
+}
+
+#rotatorImage {
+    position: absolute;
+    top: 145px;
+    left: 110px;
+}
+
+
+#altazcassStatus {
+    position: absolute;
+    top: 213px;
+    left: 20px;
+}
+
+#externalCamera {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+#internalCamera {
+    position: absolute;
+    top: 150px;
+    right: 20px;
+} 
+
+#backTitle {
+    position: absolute;
+    font: 16px "Lucida Grande";
+    font-weight: bold;
+    color: white;
+    top:10px;
+    left: 25px;
+}   
+
+#backCopyright {
+    position: absolute;
+    color: white;
+    width: 92%;
+    text-align: justify;
+    top:40px;
+    left: 25px;
+}
+
+#backBody {
+    position: absolute;
+    color: white;
+    width: 92%;
+    text-align: justify;
+    top:90px;
+    left: 25px;
+}
+
+a.backbody {
+  color: white;
+}
+
+
