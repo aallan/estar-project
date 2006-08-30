@@ -1,5 +1,10 @@
 2006-08-30 Alasdair Allan <aa@astro.ex.ac.uk>
 
+        * widgets/Telescope Status.wdgt/Update.js: Added random number to 
+	  the end of the webcam images, avoids caching problems.
+	  
+2006-08-30 Alasdair Allan <aa@astro.ex.ac.uk>
+
         * widgets/Telescope Status.wdgt/*: Added the skeleton of a working
           Apple Dashboard widget to monitor Robonet-1.0 status.
 

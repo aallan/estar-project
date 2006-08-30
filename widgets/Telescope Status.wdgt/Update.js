@@ -213,13 +213,13 @@ function readResponse()
   if ( /150\.203\.153\.202/.test(serverAddress) ) {
      // FTS, no camera access
   }  
-  if ( /estar3\.astro\.ex\.ac\.uk/.test(serverAddress) ) {
+  if ( /vo\.astro\.ex\.ac\.uk/.test(serverAddress) ) {
      // LT
      extCamDiv = document.getElementById( 'externalCamera' );
-     extCamDiv.innerHTML = "<img width='160' height='116' src='http://telescope.livjm.ac.uk/pics/webcam_ext_1_th.jpg' /><br><i><small>External camera</small></i>";
+     extCamDiv.innerHTML = "<img width='160' height='116' src='http://telescope.livjm.ac.uk/pics/webcam_ext_1_th.jpg" + randomNum() +"' /><br><i><small>External camera</small></i>";
      
      intCamDiv = document.getElementById( 'internalCamera' );
-     intCamDiv.innerHTML = "<img width='160' height='116' src='http://telescope.livjm.ac.uk/pics/webcam_int_2_th.jpg' /><br><i><small>Telescope camera</small></i>";   
+     intCamDiv.innerHTML = "<img width='160' height='116' src='http://telescope.livjm.ac.uk/pics/webcam_int_2_th.jpg" + randomNum() +"' /><br><i><small>Telescope camera</small></i>";   
   }  
   
   // PARSE REST OF MECHANISM STATUS INFORMATION
@@ -548,3 +548,9 @@ function countDown () {
    }   
 
 }
+
+function randomNum() {
+   var randomNumber = Math.floor( Math.random()*1000001 );
+   return "?random=" + randomNumber;
+}   
+
