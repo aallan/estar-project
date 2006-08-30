@@ -251,6 +251,7 @@ function readResponse()
         az = az.replace( /^\s*/, "" );
         az = az.replace( /\/\d{3}$/, "" );
         az = az.replace( /\s*$/, "" );
+        az = az.replace( /_/, "" );
 	azimuth = az;
      } 
      
@@ -270,6 +271,7 @@ function readResponse()
         alt = alt.replace( /^\s*/, "" );
         alt = alt.replace( /\/\d{3}$/, "" );
         alt = alt.replace( /\s*$/, "" );
+        alt = alt.replace( /_/, "" );
 	altitude = alt;
      } 
      
@@ -289,6 +291,7 @@ function readResponse()
         cass = cass.replace( /^\s*/, "" );
         cass = cass.replace( /\/\d{3}$/, "" );
         cass = cass.replace( /\s*$/, "" );
+        cass = cass.replace( /\_/, "" );
 	cassRotator = cass;
      }     
      
