@@ -92,7 +92,8 @@ function updateStatus( )
       {
  
         // make a server request to validate the extracted data
-        xmlHttp.open("GET", serverAddress, true);
+	var endpoint = serverAddress + randomNum();
+        xmlHttp.open("GET", endpoint, true);
         xmlHttp.onreadystatechange = handleRequestStateChange;
         xmlHttp.send(null);
       }
@@ -504,8 +505,6 @@ function webcams () {
   if ( /150\.203\.153\.202/.test(serverAddress) ) {
      // FTS, no camera access
   }  
-  //if ( /vo\.astro\.ex\.ac\.uk/.test(serverAddress) ) {
-  
   if ( /161\.72\.57\.3/.test(serverAddress) ) {
   
      // LT
