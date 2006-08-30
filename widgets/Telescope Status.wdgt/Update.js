@@ -198,29 +198,9 @@ function readResponse()
   
   timeDiv = document.getElementById( 'timestamp' );
   timeDiv.innerHTML = timestamp;
-
-  // WEBCAMERAS
   
-  extCamDiv = document.getElementById( 'externalCamera' );
-  extCamDiv.innerHTML = "<img width='160' height='116' src='png/testCard.png' /><br><i><small>External camera</small></i>";   
-  intCamDiv = document.getElementById( 'internalCamera' );
-  intCamDiv.innerHTML = "<img width='160' height='116' src='png/testCard.png' /><br><i><small>Telescope camera</small></i>";      
-
-
-  if ( /132\.160\.98\.239/.test(serverAddress) ) {
-     // FTN, no camera access
-  }   
-  if ( /150\.203\.153\.202/.test(serverAddress) ) {
-     // FTS, no camera access
-  }  
-  if ( /vo\.astro\.ex\.ac\.uk/.test(serverAddress) ) {
-     // LT
-     extCamDiv = document.getElementById( 'externalCamera' );
-     extCamDiv.innerHTML = "<img width='160' height='116' src='http://telescope.livjm.ac.uk/pics/webcam_ext_1_th.jpg" + randomNum() +"' /><br><i><small>External camera</small></i>";
-     
-     intCamDiv = document.getElementById( 'internalCamera' );
-     intCamDiv.innerHTML = "<img width='160' height='116' src='http://telescope.livjm.ac.uk/pics/webcam_int_2_th.jpg" + randomNum() +"' /><br><i><small>Telescope camera</small></i>";   
-  }  
+  // webcameras
+  webcams();
   
   // PARSE REST OF MECHANISM STATUS INFORMATION
   var enclosure1 = "UNKNOWN";
@@ -470,17 +450,14 @@ function unknownStatus( $message ) {
   
   var error = $message;
   if ( $message == "OK" || $message == "undefined" ) {
-     error = "<font color='red'>Problem accessing " + serverAddress + "</font>";
+     error = "<font color='red'>Error: Can not open " + serverAddress + "</font>";
   }   
   timestamp = error;
   timeDiv = document.getElementById( 'timestamp' );
   timeDiv.innerHTML = timestamp;
 
   // WEBCAMERAS
-  extCamDiv = document.getElementById( 'externalCamera' );
-  extCamDiv.innerHTML = "<img src='png/testCard.png' /><br><i><small>External camera</small></i>";   
-  intCamDiv = document.getElementById( 'internalCamera' );
-  intCamDiv.innerHTML = "<img src='png/testCard.png' /><br><i><small>Telescope camera</small></i>";      
+  webcams();      
 
   // ENCLOSURE
   encDiv = document.getElementById( 'enclosureImage' );
@@ -511,6 +488,35 @@ function unknownStatus( $message ) {
   updateCounter = 30;
 }  
 
+function webcams () {
+
+  // WEBCAMERAS
+  
+  extCamDiv = document.getElementById( 'externalCamera' );
+  extCamDiv.innerHTML = "<img width='160' height='116' src='png/testCard.png' /><br><i><small>External camera</small></i>";   
+  intCamDiv = document.getElementById( 'internalCamera' );
+  intCamDiv.innerHTML = "<img width='160' height='116' src='png/testCard.png' /><br><i><small>Telescope camera</small></i>";      
+
+
+  if ( /132\.160\.98\.239/.test(serverAddress) ) {
+     // FTN, no camera access
+  }   
+  if ( /150\.203\.153\.202/.test(serverAddress) ) {
+     // FTS, no camera access
+  }  
+  //if ( /vo\.astro\.ex\.ac\.uk/.test(serverAddress) ) {
+  
+  if ( /161\.72\.57\.3/.test(serverAddress) ) {
+  
+     // LT
+     extCamDiv = document.getElementById( 'externalCamera' );
+     extCamDiv.innerHTML = "<img width='160' height='116' src='http://telescope.livjm.ac.uk/pics/webcam_ext_1_th.jpg" + randomNum() +"' /><br><i><small>External camera</small></i>";
+     
+     intCamDiv = document.getElementById( 'internalCamera' );
+     intCamDiv.innerHTML = "<img width='160' height='116' src='http://telescope.livjm.ac.uk/pics/webcam_int_2_th.jpg" + randomNum() +"' /><br><i><small>Telescope camera</small></i>";   
+  }  
+
+}
 
 // Startup and Shutdown the wdiget onshow() and onhide()
 
