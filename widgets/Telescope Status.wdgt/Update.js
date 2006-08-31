@@ -250,8 +250,9 @@ function readResponse()
 	az = az.replace( /Current Azimuth status:/, "" );
         az = az.replace( /^\s*/, "" );
         az = az.replace( /\/\d{3}$/, "" );
-        az = az.replace( /\s*$/, "" );
+        az = az.replace( /\s*/g, "" );
         az = az.replace( /_/, "" );
+        az = az.replace( /-/, "" );
 	azimuth = az;
      } 
      
@@ -270,8 +271,9 @@ function readResponse()
 	alt = alt.replace( /Current Altitude status:/, "" );
         alt = alt.replace( /^\s*/, "" );
         alt = alt.replace( /\/\d{3}$/, "" );
-        alt = alt.replace( /\s*$/, "" );
+        alt = alt.replace( /\s*/g, "" );
         alt = alt.replace( /_/, "" );
+        alt = alt.replace( /-/, "" );
 	altitude = alt;
      } 
      
@@ -290,8 +292,9 @@ function readResponse()
 	cass = cass.replace( /Rotator status:/, "" );
         cass = cass.replace( /^\s*/, "" );
         cass = cass.replace( /\/\d{3}$/, "" );
-        cass = cass.replace( /\s*$/, "" );
+        cass = cass.replace( /\s*/g, "" );
         cass = cass.replace( /\_/, "" );
+        cass = cass.replace( /\-/, "" );
 	cassRotator = cass;
      }     
      
