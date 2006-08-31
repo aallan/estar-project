@@ -505,29 +505,29 @@ function webcams () {
   if ( /132\.160\.98\.239/.test(serverAddress) ) {
      // FTN
      extCamDiv = document.getElementById( 'externalCamera' );
-     extCamDiv.innerHTML = "<a href='javascript:void(0)' onclick='clicked('http://132.160.98.239:8275/axis-cgi/jpg/image.cgi?resolution=640x480')'><img width='160' height='116' src='http://132.160.98.239:8275/axis-cgi/jpg/image.cgi?resolution=320x240' /></a><br><i><small>External camera</small></i>";
+     extCamDiv.innerHTML = "<a href='javascript:void(0);' onclick='clicked(" + '"' + "http://132.160.98.239:8275/axis-cgi/jpg/image.cgi?resolution=640x480" + '"' + ");'><img width='160' height='116' src='http://132.160.98.239:8275/axis-cgi/jpg/image.cgi?resolution=320x240' /></a><br><i><small>External camera</small></i>";
      
      intCamDiv = document.getElementById( 'internalCamera' );
-     intCamDiv.innerHTML = "<a href='javascript:void(0)' onclick='clicked('http://132.160.98.239:8273/axis-cgi/jpg/image.cgi?resolution=640x480')'><img width='160' height='116' src='http://132.160.98.239:8273/axis-cgi/jpg/image.cgi?resolution=320x240' /></a><br><i><small>Door camera</small></i>";        
+     intCamDiv.innerHTML = "<a href='javascript:void(0);' onclick='clicked(" + '"' + "http://132.160.98.239:8273/axis-cgi/jpg/image.cgi?resolution=640x480" + '"' + ");'><img width='160' height='116' src='http://132.160.98.239:8273/axis-cgi/jpg/image.cgi?resolution=320x240' /></a><br><i><small>Door camera</small></i>";        
      
   }   
   if ( /150\.203\.153\.202/.test(serverAddress) ) {
      // FTS
      extCamDiv = document.getElementById( 'externalCamera' );
-     extCamDiv.innerHTML = "<a href='javascript:void(0)' onclick='clicked('http://150.203.153.202:8275/axis-cgi/jpg/image.cgi?resolution=640x480')'><img width='160' height='116' src='http://150.203.153.202:8275/axis-cgi/jpg/image.cgi?resolution=320x240' /></a><br><i><small>External camera</small></i>";
+     extCamDiv.innerHTML = "<a href='javascript:void(0);' onclick='clicked(" + '"' + "http://150.203.153.202:8275/axis-cgi/jpg/image.cgi?resolution=640x480" + '"' + ");'><img width='160' height='116' src='http://150.203.153.202:8275/axis-cgi/jpg/image.cgi?resolution=320x240' /></a><br><i><small>External camera</small></i>";
      
      intCamDiv = document.getElementById( 'internalCamera' );
-     intCamDiv.innerHTML = "<a href='javascript:void(0)' onclick='clicked('http://150.203.153.202:8273/axis-cgi/jpg/image.cgi?resolution=640x480')'><img width='160' height='116' src='http://150.203.153.202:8273/axis-cgi/jpg/image.cgi?resolution=320x240' /></a><br><i><small>Door camera</small></i>";       
+     intCamDiv.innerHTML = "<a href='javascript:void(0);' onclick='clicked(" + '"' + "http://150.203.153.202:8273/axis-cgi/jpg/image.cgi?resolution=640x480" + '"' + ");'><img width='160' height='116' src='http://150.203.153.202:8273/axis-cgi/jpg/image.cgi?resolution=320x240' /></a><br><i><small>Door camera</small></i>";       
 
   }  
   if ( /161\.72\.57\.3/.test(serverAddress) ) {
   
      // LT
      extCamDiv = document.getElementById( 'externalCamera' );
-     extCamDiv.innerHTML = "<a href='javascript:void(0)' onclick='clicked('http://telescope.livjm.ac.uk/Live/webcam_ext1.html')'><img width='160' height='116' src='http://telescope.livjm.ac.uk/pics/webcam_ext_1_th.jpg" + randomNum() +"' /></a><br><i><small>External camera</small></i>";
+     extCamDiv.innerHTML = "<a href='javascript:void(0);' onclick='clicked(" + '"' + "http://telescope.livjm.ac.uk/Live/webcam_ext1.html" + '"' + ");'><img width='160' height='116' src='http://telescope.livjm.ac.uk/pics/webcam_ext_1_th.jpg" + randomNum() +"' /></a><br><i><small>External camera</small></i>";
      
      intCamDiv = document.getElementById( 'internalCamera' );
-     intCamDiv.innerHTML = "<a href='javascript:void(0)' onclick='clicked('http://telescope.livjm.ac.uk/Live/webcam_int2.html')'><img width='160' height='116' src='http://telescope.livjm.ac.uk/pics/webcam_int_2_th.jpg" + randomNum() +"' /></a><br><i><small>Telescope camera</small></i>";   
+     intCamDiv.innerHTML = "<a href='javascript:void(0);' onclick='clicked(" + '"' + "http://telescope.livjm.ac.uk/Live/webcam_int2.html" + '"' + ");'><img width='160' height='116' src='http://telescope.livjm.ac.uk/pics/webcam_int_2_th.jpg" + randomNum() +"' /></a><br><i><small>Telescope camera</small></i>";   
   }  
 
 }
