@@ -357,31 +357,45 @@ function readResponse()
   
   // POINTING
   var pointingStatus = "_Blank";
-  if ( azimuthPos >= 0 && azimuthPos <= 45 ) {
+  if ( azimuthPos > -180 && azimuthPos <= -135 ) {
      pointingStatus = "_0";
-  }   
-  if ( azimuthPos > 45 && azimuthPos <= 90 ) {
+  }
+  if ( azimuthPos > -135 && azimuthPos <= -90 ) {
      pointingStatus = "_1";
   }
-  if ( azimuthPos > 90 && azimuthPos <= 135 ) {
+  if ( azimuthPos > -90 && azimuthPos <= -45 ) {
      pointingStatus = "_2";
   }
-  if ( azimuthPos > 135 && azimuthPos <= 180 ) {
+  if ( azimuthPos > -45 && azimuthPos < 0 ) {
      pointingStatus = "_3";
-  }
-  if ( azimuthPos > 180 && azimuthPos <= 225 ) {
+  }  
+  if ( azimuthPos >= 0 && azimuthPos <= 45 ) {
      pointingStatus = "_4";
-  }
-  if ( azimuthPos > 225 && azimuthPos <= 270 ) {
+  }   
+  if ( azimuthPos > 45 && azimuthPos <= 90 ) {
      pointingStatus = "_5";
   }
-  if ( azimuthPos > 270 && azimuthPos <= 315 ) {
+  if ( azimuthPos > 90 && azimuthPos <= 135 ) {
      pointingStatus = "_6";
   }
-  if ( azimuthPos > 315 && azimuthPos <= 360 ) {
+  if ( azimuthPos > 135 && azimuthPos <= 180 ) {
      pointingStatus = "_7";
   }
-                
+  
+  
+//  if ( azimuthPos > 180 && azimuthPos <= 225 ) {
+//     pointingStatus = "_4";
+//  }
+//  if ( azimuthPos > 225 && azimuthPos <= 270 ) {
+//     pointingStatus = "_5";
+//  }
+//  if ( azimuthPos > 270 && azimuthPos <= 315 ) {
+//     pointingStatus = "_6";
+//  }
+//  if ( azimuthPos > 315 && azimuthPos <= 360 ) {
+//     pointingStatus = "_7";
+//  }
+		
   if ( altitudePos >= 0 && altitudePos <= 30 ) {
      pointingStatus = "_Outer" + pointingStatus;
   }   
