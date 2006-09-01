@@ -1,3 +1,11 @@
+2006-09-01 Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* demo/ivoa_victoria06/*: Added the IVOA Victoria PLASTIC demo into
+	  the CVS. Included a JAR of the PLASTIC Hub it worked with at the
+	  time to protect against changes in the standard.
+
+	* www/estar/cgi-bin/status.cgi: Fixed FTS/FTN webcams
+	
 2006-08-30 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * widgets/Telescope Status.wdgt/Update.js: Added random number to 
