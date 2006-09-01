@@ -248,10 +248,9 @@ print '</dd>'."\n";
 
 # FTS ###################################################################
 
-print '<dt><a href="http://www.faulkes-telescope.com/ft_webcams_weather/ftsweather.htm" class="location" id="location04">Coonabarabran, Australia</a></dt>'."\n";
+print '<dt><a href="http://www.faulkes-telescope.com/" class="location" id="location04">Coonabarabran, Australia</a></dt>'."\n";
 print '<dd><a href="javascript:void(0);" class="close"> </a>'."\n";
-#print '<em><strong>Faulkes South</strong><br>Coonabarabran, Australia</em><br><img src="http://150.203.153.202:8272/axis-cgi/jpg/image.cgi?resolution=320x240" width="120" alt="FTS web camera" />'."\n";
-print '<em><strong>Faulkes South</strong><br>Coonabarabran, Australia</em><br><img src="../png/test_card.png" width="120" alt="FTS web camera" />'."\n";
+print '<em><strong>Faulkes South</strong><br>Coonabarabran, Australia</em><br><img src="http://150.203.153.202:8274/axis-cgi/jpg/image.cgi?resolution=320x240" width="120" alt="FTS web camera" />'."\n";
 
 print '<a href="http://maps.google.com/maps?f=q&hl=en&q=coonabarabran,+Australia&ie=UTF8&ll=-31.268281,149.281883&spn=0.125305,0.33989&t=h&om=1">Lat. -31.27, Long. 149.28</a><br>'."\n";
 print 'Google Earth <a href="http://www.aao.gov.au/vr/telescopes.kmz"><u>placemark file</u></a> for SSO<br>'."\n";
@@ -285,10 +284,9 @@ print '</dd>'."\n";
 
 # FTN ###################################################################
 
-print '<dt><a href="http://www.faulkes-telescope.com/ft_webcams_weather/ftnweather.htm" class="location" id="location05">Haleakala, HI, U.S.A.</a></dt>'."\n";
+print '<dt><a href="http://www.faulkes-telescope.com/" class="location" id="location05">Haleakala, HI, U.S.A.</a></dt>'."\n";
 print '<dd><a href="javascript:void(0);" class="close"> </a>'."\n";
-#print '<em><strong>Faulkes North</strong><br>Haleakala, HI, U.S.A.</em><br><img width="120" src="http://132.160.98.239:8272/axis-cgi/jpg/image.cgi?resolution=320x240" alt="FTN web camera">'."\n";
-print '<em><strong>Faulkes North</strong><br>Haleakala, HI, U.S.A.</em><br><img width="120" src="../png/test_card.png" alt="FTN web camera">'."\n";
+print '<em><strong>Faulkes North</strong><br>Haleakala, HI, U.S.A.</em><br><img width="120" src="http://132.160.98.239:8275/axis-cgi/jpg/image.cgi?resolution=320x240" alt="FTN web camera">'."\n";
 
 print '<a href="http://maps.google.com/?ie=UTF8&t=h&om=1&ll=20.732997,-156.187134&spn=0.548416,0.911865">Lat. 10.7, Long. -156.2</a><br>'."\n";
 print '<table>'."\n"; 
@@ -340,7 +338,7 @@ print '</dd>'."\n";
 ############################################################################
 print '</dl>';
 
-print '<table border="0"><tr><td><img align="right" src="../png/default_dashboard_icon.png" /></td><td>Download the network status <a href="http://www.estar.org.uk/software/estar_status_widget.zip">Dashboard Widget</a> for Mac OS X Tiger.</td></tr></table>'."\n"; 
+print '<table border="0"><tr><td><img align="right" src="../gif/download_widget.gif" /></td><td>Download the network status <a href="http://www.estar.org.uk/software/estar_status_widget.zip">Dashboard Widget</a> for Mac OS X Tiger.</td></tr></table>'."\n"; 
 
 print "</div>\n";
 print 'Latest status at information available at <a href="http://www.estar.org.uk/network.status">http://www.estar.org.uk/network.status</a><br>'."\n";
