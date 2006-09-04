@@ -1,3 +1,12 @@
+2006-09-04 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * www/ogle/cron/ogle_parse.pl: Added an XML event output for use
+          by the new OGLE timeline OSX widget.
+
+        * widgets/OGLE Timline.wdgt/*: New OGLE Timeline widget which
+          displays a timeline by fetching, doesn't yet automatically 
+          update.
+
 2006-09-01 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* demo/ivoa_victoria06/*: Added the IVOA Victoria PLASTIC demo into

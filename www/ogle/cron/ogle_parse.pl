@@ -28,6 +28,7 @@
   } 
 
   my $xml = '<data>'."\n";
+  my $widget = $xml;
   my $html = "<font size='-2'><table border='0' width='95%'><tr>\n";
   $html = $html . "<th align='left'>Message ID</th>";
   $html = $html . "<th align='left'>Time</th>";
@@ -89,7 +90,8 @@
      next if $document->id() =~ "test";
      
      my $event = '<event start="' . $timestamp . '" title="' . $id[1] . '" >';
-     
+     my $widget_event = $event;
+ 
      # start of content
      
      my $ra = $document->ra();
@@ -145,13 +147,27 @@
      # end of content
      
      $event = $event . $content . '</event>' . "\n";
+
+     # widget version
+     my $widget_content = $content;
+     $widget_content =~ s/href='/href='javascript:void\(0\)' onclick='clicked\("/g;
+     $widget_content =~ s/.jpg'/.jpg");'/g;
+     $widget_content =~ s/.dat'/.dat");'/g;
+     $widget_content =~ s/.html'/.html");'/g;
+     $widget_content =~ s/.xml'/.xml");'/g;
+
+     $widget_event = $widget_event . $widget_content . '</event>' . "\n";
+     
+     
+     $widget = $widget . $widget_event;
      $html = $html . $line . "\n";
      $xml = $xml . $event;
                   
   }
   $xml = $xml . '</data>';
+  $widget = $widget . '</data>';
   $html = $html . '</table></font>';
-  #print "$xml";
+  print "$widget";
   
   # output xml
   my $output = File::Spec->catfile(  File::Spec->rootdir(), "var", "www",
@@ -163,7 +179,17 @@
   }
   
   print FILE $xml;
-  close ($xml );
+  close ($output );
+
+  # output widget xml
+  my $output3 = File::Spec->catfile(  File::Spec->rootdir(), "var", "www",                                     "html", "ogle", "events", "ogleWidget.xml" );  
+
+  unless ( open FILE, "+>$output3" ) {     
+     print "Error: Can not open $output3 for updating\n";
+     exit;
+  }
+  print FILE $widget;
+  close ( $output3 );
   
   # output html 
   my $output2 = File::Spec->catfile(  File::Spec->rootdir(), "var", "www",
@@ -175,6 +201,6 @@
   }
   
   print FILE $html;
-  close ($html );
+  close ( $output2 );
   
   exit;
