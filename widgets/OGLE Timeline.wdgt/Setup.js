@@ -35,17 +35,9 @@ function setup() {
   bandInfos[1].highlight = true;
   var tl = Timeline.create(document.getElementById("event_timeline"),bandInfos);
 
-  update();
+  reloadData();
   
 }
-
-
-function update() {		    
-  Timeline.loadXML( "http://vo.astro.ex.ac.uk/ogle/events/ogleWidget.xml",
-                    function(xml, url) { eventSource.loadXML(xml, url); });
-  Timeline.paint();		    
-		    
-}  
 
 // Startup and Shutdown the wdiget onshow() and onhide()
 
@@ -57,6 +49,7 @@ if (window.widget) {
 function onshow () {
    if (updateTimer == null) {
       updateTimer = setInterval("countDown();", 1000 );
+      update();
    }
 }
 
@@ -74,14 +67,26 @@ function countDown () {
    counterDiv.innerHTML = "Refresh widget in " + updateCounter + " seconds";
          
    if ( updateCounter == 0 ) {
-      counterDiv.innerHTML = "Updating from http://vo.astro.ex.ac.uk/ogle/events/ogleWidget.xml";  
-      updateCounter = 600;
-      Timeline.loadXML( "http://vo.astro.ex.ac.uk/ogle/events/empty.xml",
-                    function(xml, url) { eventSource.loadXML(xml, url); });
-      Timeline.paint();      
       update();
-      counterDiv.innerHTML = "Done";
-      
    }   
 
 }
+
+function update() {
+   counterDiv.innerHTML = 
+      "Updating from http://vo.astro.ex.ac.uk/ogle/events/ogleWidget.xml";  
+   updateCounter = 600;
+   Timeline.loadXML( "http://vo.astro.ex.ac.uk/ogle/events/empty.xml",
+   		 function(xml, url) { eventSource.loadXML(xml, url); });
+   Timeline.paint();	  
+   reloadData();
+   counterDiv.innerHTML = "Done";
+}
+
+
+function reloadData() {		    
+  Timeline.loadXML( "http://vo.astro.ex.ac.uk/ogle/events/ogleWidget.xml",
+                    function(xml, url) { eventSource.loadXML(xml, url); });
+  Timeline.paint();		    
+		    
+}  
