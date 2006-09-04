@@ -28,15 +28,6 @@ body {
     left: 25px;
 }
 
-#backBody {
-    position: absolute;
-    color: white;
-    width: 89%;
-    text-align: justify;
-    top:90px;
-    left: 25px;
-}
-
 a.backbody {
   color: white;
 }

@@ -9,7 +9,7 @@
 	<key>CFBundleIdentifier</key>
 	<string>com.apple.widget.ogleTimeline</string>
 	<key>CFBundleVersion</key>
-	<string>1.0.2</string>
+	<string>1.0.3</string>
 	<key>CloseBoxInsetX</key>
 	<integer>6</integer>
 	<key>CloseBoxInsetY</key>
