@@ -6,7 +6,13 @@ body {
 
 #timestamp {
     position: absolute;
-    bottom: 20px;
+    bottom: 30px;
+    left: 20px;
+}  
+
+#countDown {
+    position: absolute;
+    bottom: 15px;
     left: 20px;
 }  
  
