@@ -1,0 +1,60 @@
+body {
+    margin: 0;
+}
+
+#front {
+    background: url('Default.png') no-repeat;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 670px;
+    height: 180px;
+}
+
+.flip { 
+        position:absolute;
+        bottom: 22px;
+        right: 20px;
+        width:13px;
+        height:13px;
+}
+
+#flip {
+        opacity:0;
+        background: url(png/infoButton.png) no-repeat top left;
+        z-index:8000;
+}
+
+#fliprollie {
+        display:none;
+        opacity:0.25;
+        background: url(png/infoRollie.png) no-repeat top left;
+        z-index:7999;
+
+}
+
+.donePrefsButton {
+	position: absolute;
+	bottom: 24px;
+	right: 30px;
+	display: none;
+}
+
+#widgetButton {
+	font: 10px "Lucida Grande";
+	font-weight: bold;
+}
+
+#back {
+     background: url('Back.png') no-repeat;
+     position: absolute;
+     top: 0;
+     left: 0;
+     width: 680px;
+     height: 170px;
+     display: none;
+} 
+
+.controlRegion {
+     -apple-dashboard-region: dashboard-region(control rectangle)
+}     

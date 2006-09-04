@@ -1,0 +1,44 @@
+
+body {
+    font: 12px "Lucida Grande";
+    color: #666;
+}
+
+#timestamp {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+}  
+ 
+#backTitle {
+    position: absolute;
+    font: 16px "Lucida Grande";
+    font-weight: bold;
+    color: white;
+    top:10px;
+    left: 25px;
+}   
+
+#backCopyright {
+    position: absolute;
+    color: white;
+    width: 92%;
+    text-align: justify;
+    top:40px;
+    left: 25px;
+}
+
+#backBody {
+    position: absolute;
+    color: white;
+    width: 89%;
+    text-align: justify;
+    top:90px;
+    left: 25px;
+}
+
+a.backbody {
+  color: white;
+}
+
+
