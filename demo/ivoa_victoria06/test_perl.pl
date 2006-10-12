@@ -95,13 +95,13 @@ sleep(5);
 my @list;
 $list[0] = 'ivo://votech.org/test/echo';
 $list[1] = 'ivo://votech.org/info/getName';
-$list[1] = 'ivo://votech.org/info/getIVORN';
-$list[2] = 'ivo://votech.org/info/getVersion';
-$list[3] = 'ivo://votech.org/info/getIconURL';
-$list[4] = 'ivo://votech.org/hub/event/ApplicationRegistered';
-$list[5] = 'ivo://votech.org/hub/event/ApplicationUnregistered';
-$list[6] = 'ivo://votech.org/hub/event/HubStopping';
-$list[7] = 'ivo://votech.org/hub/Exception';
+$list[2] = 'ivo://votech.org/info/getIVORN';
+$list[3] = 'ivo://votech.org/info/getVersion';
+$list[4] = 'ivo://votech.org/info/getIconURL';
+$list[5] = 'ivo://votech.org/hub/event/ApplicationRegistered';
+$list[6] = 'ivo://votech.org/hub/event/ApplicationUnregistered';
+$list[7] = 'ivo://votech.org/hub/event/HubStopping';
+$list[8] = 'ivo://votech.org/hub/Exception';
 
 #my @list = ();
 
