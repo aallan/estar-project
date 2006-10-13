@@ -1,3 +1,7 @@
+2006-10-13 Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* widgets/Plastic Monitor.wdgt/*: Added new widget.
+	
 2006-09-04 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * www/ogle/cron/ogle_parse.pl: Added an XML event output for use

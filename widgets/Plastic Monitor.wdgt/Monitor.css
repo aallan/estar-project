@@ -1,0 +1,118 @@
+
+/* START OF CSS FOR WIDGET CONFIGURATION */
+
+body {
+    font: 12px "Lucida Grande";
+}
+
+
+/* FRONT **************************************************************/
+
+    
+#form {
+    position: absolute;
+    font: 12px "Lucida Grande";
+    color: white;    
+    top: 15px;
+    left: 20px;
+}  
+
+#selectedIcon {
+    position: absolute;
+    font: 12px "Lucida Grande";
+    color: white;    
+    top: 60px;
+    left: 20px;
+}  
+
+#selectedName{
+    position: absolute;
+    font: 12px "Lucida Grande";
+    color: white;    
+    top: 58px;
+    left: 70px;
+} 
+
+#selectedPlid{
+    position: absolute;
+    font: 12px "Lucida Grande";
+    color: white;    
+    top: 72px;
+    left: 70px;
+}  
+
+
+#selectedVersion{
+    position: absolute;
+    font: 12px "Lucida Grande";
+    color: white;    
+    top: 72px;
+    left: 250px;
+}  
+
+#selectedIvorn{
+    position: absolute;
+    font: 12px "Lucida Grande";
+    color: white;    
+    top: 85px;
+    left: 70px;
+}   
+ 
+#selectedDescription{
+    position: absolute;
+    font: 12px "Lucida Grande";
+    color: white;    
+    top: 105px;
+    left: 20px;
+}   
+
+#selectedMessages{
+    position: absolute;
+    font: 12px "Lucida Grande";
+    color: white;    
+    top: 125px;
+    left: 20px;   
+} 
+ 
+ 
+#widgetStatus {
+    position: absolute;
+    font: 12px "Lucida Grande";
+    color: white;
+    bottom:25px;
+    left: 20px;
+} 
+  
+/* BACK **************************************************************/
+
+#plasticlogo {
+    position: absolute;
+    top: 20px;
+    left: 25px;
+}     
+
+#backTitle {
+    position: absolute;
+    font: 16px "Lucida Grande";
+    font-weight: bold;
+    color: white;
+    top:25px;
+    left: 85px;
+}   
+
+#backCopyright {
+    position: absolute;
+    font: 12px "Lucida Grande";
+    color: white;
+    top:85px;
+    left: 25px;
+}
+
+
+#backBody {
+    position: absolute;
+    font: 12px "Lucida Grande";
+    color: white;
+    top:100px;
+    left: 25px;
+}

@@ -1,0 +1,93 @@
+<html>
+<head>
+  <link rel="stylesheet" HREF="Monitor.css" TYPE="text/css" />  
+  <link rel="stylesheet" HREF="Widget.css" TYPE="text/css" />
+  
+  <!-- Boiler plate -->
+  <script language="javascript"  type='text/javascript' src='js/Prefs.js' />
+  <script language="javascript"  type='text/javascript' src='js/Button.js' />
+  
+  <!-- Load XmlRpc code -->
+  <script language="javascript"  type='text/javascript' src='js/XmlRpc.js' />
+  
+  <!-- Load HttpRequest and the Plastic code -->
+  <script language="javascript" type="text/javascript" src='js/Plastic/Plastic.js' />
+  
+  <!-- Don't change the order these files are loaded, dependency problems -->
+  
+  <script language="javascript" type="text/javascript" src='js/Plastic/XmlRpc/GetNameSync.js' /> 
+  <script language="javascript" type="text/javascript" src='js/Plastic/XmlRpc/GetNameAsync.js' /> 
+  <script language="javascript" type="text/javascript" src='js/Plastic/XmlRpc/GetIcon.js' /> 
+  <script language="javascript" type="text/javascript" src='js/Plastic/XmlRpc/GetIvorn.js' /> 
+  <script language="javascript" type="text/javascript" src='js/Plastic/XmlRpc/GetDescription.js' /> 
+  <script language="javascript" type="text/javascript" src='js/Plastic/XmlRpc/GetMessages.js' /> 
+  <script language="javascript" type="text/javascript" src='js/Plastic/XmlRpc/GetVersion.js' /> 
+
+  <script language="javascript" type="text/javascript" src='js/Plastic/HttpGet/GetRegistered.js' /> 
+    
+  <!-- Turn the handle -->
+  <script language="javascript" type="text/javascript" src='js/Setup.js' />
+  <script language="javascript" type="text/javascript" src='js/Monitor.js' />
+  
+  <!-- Ick! -->
+  <script language="javascript" type="text/javascript" >
+    function clicked(site)
+    {
+        if (widget)
+        {
+            widget.openURL(site);
+        }
+    }
+  </script>
+</head>
+
+
+<body>
+<div id="front" onmousemove='mousemove(event);' onmouseout='mouseexit(event);'>	
+
+<form name="form" id="form">
+<b>Registered Applications:</b>
+<select width="20" name="dropdown" id="dropdown" onchange="changeInspected(this,document.form.dropdown);">
+</select></br>
+<i><small><div id="xmlrpcEndpoint"></div></small></i>
+</form>
+
+<div class="selectedIcon" id="selectedIcon"></div>
+<div class="selectedName" id="selectedName"></div>
+<div class="selectedPlid" id="selectedPlid"></div>
+<div class="selectedVersion" id="selectedVersion"></div>
+<div class="selectedIvorn" id="selectedIvorn"></div>
+<div class="selectedIvorn" id="selectedDescription"></div>
+<div class="selectedIvorn" id="selectedMessages"></div>
+
+<div class="widgetStatus" id='widgetStatus'></div>
+
+<div class='flip' id='fliprollie'></div>
+<div class='flip' id='flip' onclick='showPrefs(event);' onmouseover='enterflip(event);' onmouseout='exitflip(event);'></div>
+
+</div>  <!-- class="front" -->
+
+<div id="back">
+    
+    <img class="plasticlogo" id="plasticlogo" src="png/plasticLogo.png" />
+    
+    <p class="backTitle" id="backTitle">Plastic Monitor Widget v0.1</p>
+
+    <p class="backCopyright" id="backCopyright">
+    <em>Dashboard widget code; copyright &copy; 2006, Alasdair Allan</em>
+    </p>
+    
+    <p class="backBody" id="backBody">
+    
+    </p>
+
+
+    <div class="widgetButton" id="donePrefsButton" style='position: absolute;bottom: 24px; right: 30px;'></div>
+</div>  <!-- class="back" -->
+	
+
+<!-- This doesn't seem to want to fire from <body onload=''> ? -->
+<script language="javascript" type="text/javascript">setup();</script>
+       
+</body>
+</html>
