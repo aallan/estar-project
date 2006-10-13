@@ -42,7 +42,7 @@
 </head>
 
 
-<body>
+<body onload="setup();">
 <div id="front" onmousemove='mousemove(event);' onmouseout='mouseexit(event);'>	
 
 <form name="form" id="form">
@@ -53,7 +53,7 @@
 </form>
 
 <form name="form2" id="form2">
-<input type="submit" name="refresh" id="refresh" value="Refresh" onclick="updateDropdown();">
+<input type="button" name="refresh" id="refresh" value="Refresh" onclick="updateDropdown();">
 </form>
 
 <div class="selectedIcon" id="selectedIcon"></div>
@@ -91,7 +91,7 @@
 	
 
 <!-- This doesn't seem to want to fire from <body onload=''> ? -->
-<script language="javascript" type="text/javascript">setup();</script>
+<!-- <script language="javascript" type="text/javascript">setup();</script> -->
        
 </body>
 </html>
