@@ -44,3 +44,36 @@ function changeInspected( $elem, $target ) {
   }
 }
 
+function updateDropdown() {
+
+   var plasticStatus = "Updating applications list...";
+   
+   statusDiv = document.getElementById( 'widgetStatus' );
+   statusDiv.innerHTML = plasticStatus;
+   
+   if( window.widget ) {   
+      if ( plastic.isHubRunning() == 1 ) {
+         var endpoint = plastic.xmlrpcEndpoint();
+         var version = plastic.plasticVersion();
+         endpointDiv = document.getElementById( 'xmlrpcEndpoint' );
+         endpointDiv.innerHTML = endpoint + "  (version " + version + ")"; 
+	 
+	 plasticStatus ="Found PLASTIC Hub";
+         getRegistered.makeRequest();
+	 
+      } else {
+	 plasticStatus = "There is no PLASTIC Hub running";
+	 
+      }   
+	 
+   } else {
+      plasticStatus = "Not running as a widget";
+      
+   }
+   
+   statusDiv = document.getElementById( 'widgetStatus' );
+   statusDiv.innerHTML = plasticStatus;
+
+
+}
+

@@ -17,6 +17,14 @@ body {
     left: 20px;
 }  
 
+#form2 {
+    position: absolute;
+    font: 12px "Lucida Grande";
+    color: white;    
+    top: 15px;
+    right: 20px;
+}  
+
 #selectedIcon {
     position: absolute;
     font: 12px "Lucida Grande";
