@@ -1,8 +1,14 @@
+var setupDone = 0;
 
 // create an array for global xmlHttpRequest objects
 var xmlHttp = new Array();
 
 function setup() {
+
+   // horrible hack, I don't know why I'm doing this?
+   if ( setupDone == 1 ) {
+      return;
+   }   
 
    var plasticStatus = "Building widget...";
    
@@ -29,7 +35,8 @@ function setup() {
       }   
 	 
    } else {
-      plasticStatus = "Not running as a widget";
+      plasticStatus = "Not running as a widget (from setup)";
+      document.form2.refresh.disabled=true;
       
    }
    
@@ -40,5 +47,5 @@ function setup() {
    //statusDiv = document.getElementById( 'widgetStatus' );
    //statusDiv.innerHTML = "Current ID is " option.value;   
     	       
-     
+   setupDone = 1;  
 }

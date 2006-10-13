@@ -67,13 +67,12 @@ function updateDropdown() {
       }   
 	 
    } else {
-      plasticStatus = "Not running as a widget";
+      plasticStatus = "Not running as a widget (from setup)";
+      document.form2.refresh.disabled=true;
       
    }
-   
    statusDiv = document.getElementById( 'widgetStatus' );
    statusDiv.innerHTML = plasticStatus;
-
 
 }
 
