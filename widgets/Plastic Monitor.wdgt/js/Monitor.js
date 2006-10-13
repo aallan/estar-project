@@ -13,7 +13,7 @@ function changeInspected( $elem, $target ) {
     plidDiv = document.getElementById( 'selectedPlid' );
     plidDiv.innerHTML = " ";  
     verDiv = document.getElementById( 'selectedVersion' );
-    verdDiv.innerHTML = " ";        
+    verDiv.innerHTML = " ";        
     iconDiv = document.getElementById( 'selectedIcon' );
     iconDiv.innerHTML = " ";   
     ivornDiv = document.getElementById( 'selectedIvorn' );
