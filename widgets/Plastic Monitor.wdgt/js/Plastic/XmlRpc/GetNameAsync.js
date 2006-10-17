@@ -156,6 +156,8 @@ var getNameAsync = {
     nameDiv = document.getElementById( 'selectedName' );
     nameDiv.innerHTML = "<b>" + plasticName + "</b>";  
 	  
+    scrollArea.refresh();
+    scrollBar.refresh();		  
 	  
    }      
     

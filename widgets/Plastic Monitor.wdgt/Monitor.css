@@ -25,61 +25,51 @@ body {
     right: 20px;
 }  
 
-#selectedIcon {
+#selectedPanel {
     position: absolute;
     font: 12px "Lucida Grande";
     color: white;    
     top: 60px;
     left: 20px;
+    right: 50px;
+    bottom: 45px;
+}    
+
+#selectedIcon {
+    position: absolute;
+    top:5px;
+    left:0px;
 }  
 
 #selectedName{
-    position: absolute;
-    font: 12px "Lucida Grande";
-    color: white;    
-    top: 58px;
-    left: 70px;
+    position: relative;
+    left: 50px;
 } 
 
 #selectedPlid{
-    position: absolute;
-    font: 12px "Lucida Grande";
-    color: white;    
-    top: 72px;
-    left: 70px;
+    position: relative;
+    left: 50px;
 }  
 
 
 #selectedVersion{
-    position: absolute;
-    font: 12px "Lucida Grande";
-    color: white;    
-    top: 72px;
-    left: 250px;
+    position: relative;
+    top: -12px;
+    left: 230px;
 }  
 
 #selectedIvorn{
-    position: absolute;
-    font: 12px "Lucida Grande";
-    color: white;    
-    top: 85px;
-    left: 70px;
+    position: relative;
+    top: -12px;
+    left: 50px;
 }   
  
 #selectedDescription{
-    position: absolute;
-    font: 12px "Lucida Grande";
-    color: white;    
-    top: 105px;
-    left: 20px;
+    position: relative;
 }   
 
 #selectedMessages{
-    position: absolute;
-    font: 12px "Lucida Grande";
-    color: white;    
-    top: 125px;
-    left: 20px;   
+    position: relative; 
 } 
  
  

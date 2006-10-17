@@ -6,6 +6,8 @@
   <!-- Boiler plate -->
   <script language="javascript"  type='text/javascript' src='js/Prefs.js' />
   <script language="javascript"  type='text/javascript' src='js/Button.js' />
+  <script language="javascript"  type='text/javascript' src='js/ScrollArea.js' />
+  <script language="javascript"  type='text/javascript' src='js/ScrollBar.js' />
   
   <!-- Load XmlRpc code -->
   <script language="javascript"  type='text/javascript' src='js/XmlRpc.js' />
@@ -56,13 +58,17 @@
 <input type="button" name="refresh" id="refresh" value="Refresh" onclick="updateDropdown();">
 </form>
 
-<div class="selectedIcon" id="selectedIcon"></div>
-<div class="selectedName" id="selectedName"></div>
-<div class="selectedPlid" id="selectedPlid"></div>
-<div class="selectedVersion" id="selectedVersion"></div>
-<div class="selectedIvorn" id="selectedIvorn"></div>
-<div class="selectedIvorn" id="selectedDescription"></div>
-<div class="selectedIvorn" id="selectedMessages"></div>
+<div id="selectedPanel">
+  <div class="selectedIcon" id="selectedIcon"></div>
+  <div class="selectedName" id="selectedName"></div>
+  <div class="selectedPlid" id="selectedPlid"></div>
+  <div class="selectedVersion" id="selectedVersion"></div>
+  <div class="selectedIvorn" id="selectedIvorn"></div>
+  <div class="selectedDescription" id="selectedDescription"></div>
+  <div class="selectedMessages" id="selectedMessages"></div>
+</div>
+
+<div class="controlRegion" id="scrollBar"></div>
 
 <div class="widgetStatus" id='widgetStatus'></div>
 
@@ -75,7 +81,7 @@
     
     <img class="plasticlogo" id="plasticlogo" src="png/plasticLogo.png" />
     
-    <p class="backTitle" id="backTitle">Plastic Monitor Widget v1.0.1</p>
+    <p class="backTitle" id="backTitle">Plastic Monitor Widget v2.0</p>
 
     <p class="backCopyright" id="backCopyright">
     <em>Dashboard widget code; copyright &copy; 2006, Alasdair Allan</em>

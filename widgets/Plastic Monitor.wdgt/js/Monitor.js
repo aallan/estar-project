@@ -22,7 +22,9 @@ function changeInspected( $elem, $target ) {
     descDiv.innerHTML = " "; 
     messDiv = document.getElementById( 'selectedMessages' );
     messDiv.innerHTML = " "; 
-                     
+    
+    scrollBar.hide();
+                 
   } else {   
  
     getNameAsync.makeRequest( plasticID );
@@ -33,6 +35,8 @@ function changeInspected( $elem, $target ) {
     getIvorn.makeRequest( plasticID );
     getDescription.makeRequest( plasticID );
     getMessages.makeRequest( plasticID );
+
+    scrollBar.show();
   
   }
   

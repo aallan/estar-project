@@ -157,6 +157,8 @@ var getDescription = {
     descriptionDiv = document.getElementById( 'selectedDescription' );
     descriptionDiv.innerHTML = plasticDescription;  
 	  
+    scrollArea.refresh();
+    scrollBar.refresh();		  
 	  
    }      
     

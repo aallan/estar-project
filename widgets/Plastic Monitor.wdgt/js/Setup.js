@@ -1,5 +1,8 @@
 var setupDone = 0;
 
+var scrollBar;
+var scrollArea;
+
 // create an array for global xmlHttpRequest objects
 var xmlHttp = new Array();
 
@@ -18,7 +21,15 @@ function setup() {
    createGenericButton(
 	document.getElementById("donePrefsButton"),"Done",hidePrefs,60);
    document.getElementById("donePrefsButton").display = "none";
+           
+   scrollBar = 
+       new AppleVerticalScrollbar(document.getElementById("scrollBar"));
 
+   scrollArea = 
+       new AppleScrollArea(document.getElementById("selectedPanel") );
+   
+   scrollArea.addScrollbar(scrollBar);
+ 
    if( window.widget ) {   
       if ( plastic.isHubRunning() == 1 ) {
          var endpoint = plastic.xmlrpcEndpoint();
@@ -40,6 +51,7 @@ function setup() {
       
    }
    
+   scrollArea.refresh();
    statusDiv = document.getElementById( 'widgetStatus' );
    statusDiv.innerHTML = plasticStatus;
 

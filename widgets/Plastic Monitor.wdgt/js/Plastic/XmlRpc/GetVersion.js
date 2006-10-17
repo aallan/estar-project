@@ -157,7 +157,8 @@ var getVersion = {
     verDiv = document.getElementById( 'selectedVersion' );
     verDiv.innerHTML = "<small><i>(version " + plasticVersion + ")</i></small>";
 	  
-	  
+    scrollArea.refresh();
+    scrollBar.refresh();	  
    }      
     
 }

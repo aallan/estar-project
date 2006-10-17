@@ -157,6 +157,8 @@ var getIcon = {
     iconDiv = document.getElementById( 'selectedIcon' );
     iconDiv.innerHTML = "<img width='45' src='" + plasticIcon + "' />";  
 	  
+    scrollArea.refresh();
+    scrollBar.refresh();		  
 	  
    }      
     

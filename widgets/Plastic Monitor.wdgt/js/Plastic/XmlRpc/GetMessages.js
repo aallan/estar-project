@@ -157,6 +157,8 @@ var getMessages = {
     messDiv = document.getElementById( 'selectedMessages' );
     messDiv.innerHTML = html;  
 	  
+    scrollArea.refresh();
+    scrollBar.refresh();		  
 	  
    }      
     

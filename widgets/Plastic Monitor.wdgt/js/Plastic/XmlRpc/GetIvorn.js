@@ -157,6 +157,8 @@ var getIvorn = {
     ivornDiv = document.getElementById( 'selectedIvorn' );
     ivornDiv.innerHTML = plasticIvorn;  
 	  
+    scrollArea.refresh();
+    scrollBar.refresh();		  
 	  
    }      
     

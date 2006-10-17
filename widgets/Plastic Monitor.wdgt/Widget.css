@@ -11,7 +11,7 @@ body {
     top: 0;
     left: 0;
     width: 470px;
-    height: 470px;
+    height: 320px;
 }
 
 
@@ -21,7 +21,7 @@ body {
      top: 0;
      left: 0;
      width: 470px;
-     height: 470px;
+     height: 320px;
      display: none;
 } 
  
@@ -61,3 +61,16 @@ body {
 	font: 10px "Lucida Grande";
 	font-weight: bold;
 }
+
+#scrollBar {
+        position: absolute;
+        top: 50px;
+        bottom: 50px;   
+        right: 20px;
+	width: 19px;
+}
+
+
+.controlRegion {
+     -apple-dashboard-region: dashboard-region(control rectangle)
+}   
