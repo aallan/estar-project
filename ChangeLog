@@ -1,3 +1,8 @@
+2006-11-01 Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* www/sdss/*: Added skeleton of a SDSS timeline web page and
+	  the backend generator to support a future SDSS widget.
+	  
 2006-10-18 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* widgets/Plastic Monitor.wdgt/*: Fixed display problems.
