@@ -60,6 +60,12 @@
      
      my $name = $document->id();
      my @id = split "#", $name;
+          
+     # event page
+      my $message =
+         "http://www.estar.org.uk/voevent/Caltech/nvo.caltech/VOEvent/" .
+         $id[1] . ".xml";
+
      
      my $event = '<event start="' . $timestamp . '" title="' . $id[1] . '" >';
      my $widget_event = $event;
