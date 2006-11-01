@@ -98,10 +98,11 @@ $list[1] = 'ivo://votech.org/info/getName';
 $list[2] = 'ivo://votech.org/info/getIVORN';
 $list[3] = 'ivo://votech.org/info/getVersion';
 $list[4] = 'ivo://votech.org/info/getIconURL';
-$list[5] = 'ivo://votech.org/hub/event/ApplicationRegistered';
-$list[6] = 'ivo://votech.org/hub/event/ApplicationUnregistered';
-$list[7] = 'ivo://votech.org/hub/event/HubStopping';
-$list[8] = 'ivo://votech.org/hub/Exception';
+$list[5] = 'ivo://votech.org/info/getDescription';
+$list[6] = 'ivo://votech.org/hub/event/ApplicationRegistered';
+$list[7] = 'ivo://votech.org/hub/event/ApplicationUnregistered';
+$list[8] = 'ivo://votech.org/hub/event/HubStopping';
+$list[9] = 'ivo://votech.org/hub/Exception';
 
 #my @list = ();
 
@@ -157,7 +158,10 @@ sub perform {
   }
   if ($args[2] eq 'ivo://votech.org/info/getIconURL' ) {
      return "http://www.oreillynet.com/images/perl/sm_perl_id_313_wt.gif";
-  }   
+  }
+  if ($args[2] eq 'ivo://votech.org/info/getDescription' ) {
+     return "<P>A simple test client written in Perl and talking to the PLASTIC Hub via XML-RPC. More information on using Perl with PLASTIC is available on the <a href='javascript:void(0);' clicked='http://www.estar.org.uk/wiki/index.php/Plastic'>eSTAR website</a>.</P>";
+  }      
   if ($args[2] eq 'ivo://votech.org/hub/event/ApplicationRegistered' ) {
      return 1;
   }   
