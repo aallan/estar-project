@@ -315,7 +315,8 @@ sub new_observation {
    # check that RA and Dec are defined, either has been resolved using
    # Sesame, or was passed as part of the %observation hash object
    
-   unless ( defined $observation{'ra'} && defined $observation{'dec'} ) {
+   unless ( ( defined $observation{'ra'} && defined $observation{'dec'} ) &&
+            ( $observation{'ra'} ne "" && $observation{'dec'} ne "" ) ) {
     if ( defined $observation{'target'}  && $observation{'target'} ne '' ) {
    
      # resolve using Sesame
