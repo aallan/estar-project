@@ -42,8 +42,9 @@ use eSTAR::Constants qw/:all/;
 use eSTAR::Util;
 use eSTAR::Mail;
 use eSTAR::Config;
-use eSTAR::RTML;
-use eSTAR::RTML::Parse;
+#use eSTAR::RTML;
+#use eSTAR::RTML::Parse;
+use XML::Document::RTML;
 
 my ($log, $process, $ua, $config);
 
@@ -225,8 +226,7 @@ sub handle_rtml {
    # --------------------
    
    my $parsed;
-   eval { my $object = new eSTAR::RTML( Source => $rtml );
-          $parsed = new eSTAR::RTML::Parse( RTML => $object ) };
+   eval { $parsed = new XML::Document::RTML( XML => $rtml ) };
    if ( $@ ) {
       my $error = "Error: Unable to parse RTML file...";
       $log->error( "$@" );
@@ -283,12 +283,12 @@ sub handle_rtml {
    $rtml = eSTAR::Util::fudge_user( $rtml, $new_user );  
    $rtml = eSTAR::Util::fudge_project( $rtml, $new_project );  
    
-   # SEND TO ERS
+   # SEND TO TEA
    # -----------
    
-   # pass modified RTML onto the ERS server
+   # pass modified RTML onto the TEA server
    
-   $log->print("Passing modified RTML to ERS server..." ) ;
+   $log->print("Passing modified RTML to TEA server..." ) ;
   
    my $sock = new IO::Socket::INET( 
                            PeerAddr => $config->get_option( "ers.host" ),
@@ -307,7 +307,7 @@ sub handle_rtml {
    
    } else { 
  
-      $log->print("Sending RTML to ERS\n$rtml");
+      $log->print("Sending RTML to TEA\n$rtml");
  
       # work out message length
       my $bytes = pack( "N", length($rtml) );
@@ -321,7 +321,7 @@ sub handle_rtml {
       $sock->flush();  
           
       # grab response
-      $log->debug( "Waiting for response from ERS... " );
+      $log->debug( "Waiting for response from TEA... " );
       
       my ( $reply_bytes, $reply_length );
       read $sock, $reply_bytes, 4;

@@ -1,3 +1,7 @@
+2006-12-06 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * eSTAR/NA/Handler.pm: Moved to using the new RTML parser.
+        
 2006-11-01 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* www/sdss/*: Added skeleton of a SDSS timeline web page and
