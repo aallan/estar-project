@@ -35,9 +35,10 @@ use Fcntl qw(:DEFAULT :flock);
 use eSTAR::SOAP::User;
 use eSTAR::Logging;
 use eSTAR::Observation;
-use eSTAR::RTML;
-use eSTAR::RTML::Build;
-use eSTAR::RTML::Parse;
+#use eSTAR::RTML;
+#use eSTAR::RTML::Build;
+#use eSTAR::RTML::Parse;
+use XML::Document::RTML;
 use eSTAR::Constants qw/:all/;
 use eSTAR::Util;
 use eSTAR::Mail;
@@ -535,14 +536,7 @@ sub new_observation {
    
    
    # build a score request
-   my $score_message = new eSTAR::RTML::Build( 
-             Port        => $config->get_option( "server.port"),
-             Host        => $config->get_option( "server.host"),
-             ID          => $id,
-             User        => $config->get_option("user.user_name"),
-             Name        => $config->get_option("user.real_name"),
-             Institution => $config->get_option("user.institution"),
-             Email       => $config->get_option("user.email_address") );
+   my $score_message = new XML::Document::RTML( );
    
    # if we have no target name, make one up from the RA and Dec    
    unless ( defined $observation{"target"} ) {
@@ -561,207 +555,66 @@ sub new_observation {
    }      
 
    if ( defined $observation{'exposure'} ) {
+
+        # build a score request
+        $score_message->build(
+             Type  => "score",
+             Port        => $config->get_option( "server.port"),
+             Host        => $config->get_option( "server.host"),
+             ID          => $id,
+             User        => $config->get_option("user.user_name"),
+             Name        => $config->get_option("user.real_name"),
+             Institution => $config->get_option("user.institution"),
+             Email       => $config->get_option("user.email_address"),
+             Project         => $observation{'project'},
+             Target         => $observation{'target'},
+             TargetIdent    => $observation{'type'},
+	     TargetType     => $observation{'toop'},
+             RA             => $observation{'ra'},
+             Dec            => $observation{'dec'},
+             Exposure       => $observation{'exposure'},
+             Filter         => $observation{'passband'},
+             GroupCount     => $observation{'groupcount'},
+             TimeConstraint => [ $observation{'starttime'},
+                                 $observation{'endtime'} ],
+             SeriesCount    => $observation{'seriescount'},
+             Interval       => $observation{'interval'},
+             Tolerance      => $observation{'tolerance'} );  
       
-      if ( defined $observation{ 'groupcount' } &&
-                defined $observation{ 'seriescount' } ) {
-                
-          $score_message->score_observation(
-              Target         => $observation{'target'},
-              TargetIdent    => $observation{'type'},
-	      TargetType     => $observation{'toop'},
-              RA             => $observation{'ra'},
-              Dec            => $observation{'dec'},
-              Exposure       => $observation{'exposure'},
-              Filter         => $observation{'passband'},
-              GroupCount     => $observation{'groupcount'},
-              TimeConstraint => [ $observation{'starttime'},
-                                  $observation{'endtime'} ],
-              SeriesCount    => $observation{'seriescount'},
-              Interval       => $observation{'interval'},
-              Tolerance      => $observation{'tolerance'} );  
-
-      } elsif ( defined $observation{ 'groupcount' } &&
-                defined $observation{ 'starttime' } &&
-                defined $observation{ 'endtime' } ) {
-                
-         # we have a monitoring group with a time contraint       
-        $score_message->score_observation(
-              Target         => $observation{'target'},
-              TargetIdent    => $observation{'type'},
-	      TargetType     => $observation{'toop'},
-              RA             => $observation{'ra'},
-              Dec            => $observation{'dec'},
-              Exposure       => $observation{'exposure'},
-              Filter         => $observation{'passband'},
-              GroupCount     => $observation{'groupcount'},
-              TimeConstraint => [ $observation{'starttime'},
-                                  $observation{'endtime'} ] );
-                                                          
-      } elsif ( defined $observation{'groupcount'} ) {
-
+   } else { 
+      
           # build a score request
-          $score_message->score_observation(
-              Target         => $observation{'target'},
-              TargetIdent    => $observation{'type'},
-	      TargetType     => $observation{'toop'},
-              RA             => $observation{'ra'},
-              Dec            => $observation{'dec'},
-              Exposure       => $observation{'exposure'},
-              Filter         => $observation{'passband'},
-              GroupCount     => $observation{'groupcount'} );      
+          $score_message->build(
+             Type  => "score",
+             Port        => $config->get_option( "server.port"),
+             Host        => $config->get_option( "server.host"),
+             ID          => $id,
+             User        => $config->get_option("user.user_name"),
+             Name        => $config->get_option("user.real_name"),
+             Institution => $config->get_option("user.institution"),
+             Email       => $config->get_option("user.email_address"),
+             Project         => $observation{'project'},
+             Target         => $observation{'target'},
+             TargetIdent    => $observation{'type'},
+	     TargetType     => $observation{'toop'},
+             RA             => $observation{'ra'},
+             Dec            => $observation{'dec'},
+             Snr       => $observation{'signaltonoise'},
+             Flux   => $observation{'magnitude'},
+             Filter         => $observation{'passband'},
+             GroupCount     => $observation{'groupcount'},
+             TimeConstraint => [ $observation{'starttime'},
+                                 $observation{'endtime'} ],
+             SeriesCount    => $observation{'seriescount'},
+             Interval       => $observation{'interval'},
+             Tolerance      => $observation{'tolerance'} );  
      
-              
-      } elsif ( defined $observation{ 'seriescount' } ) {
-      
-         # we can assume that there is a timeconstraint => [ x, y ] and
-         # an interval and tolerance because we'll create default ones
-          $score_message->score_observation(
-              Target         => $observation{'target'},
-              TargetIdent    => $observation{'type'},
-	      TargetType     => $observation{'toop'},
-              RA             => $observation{'ra'},
-              Dec            => $observation{'dec'},
-              Exposure       => $observation{'exposure'},
-              Filter         => $observation{'passband'},
-              TimeConstraint => [ $observation{'starttime'},
-                                  $observation{'endtime'} ],
-              SeriesCount    => $observation{'seriescount'},
-              Interval       => $observation{'interval'},
-              Tolerance      => $observation{'tolerance'} );            
-
-      } elsif ( defined $observation{ 'starttime' } &&
-                defined $observation{ 'endtime' } ) {
-                
-         # we have a monitoring group with a time contraint       
-        $score_message->score_observation(
-              Target         => $observation{'target'},
-              TargetIdent    => $observation{'type'},
-	      TargetType     => $observation{'toop'},
-              RA             => $observation{'ra'},
-              Dec            => $observation{'dec'},
-              Exposure       => $observation{'exposure'},
-              Filter         => $observation{'passband'},
-              TimeConstraint => [ $observation{'starttime'},
-                                  $observation{'endtime'} ] );
-                               
-      } else {         
-      
-          # build a score request
-          $score_message->score_observation(
-              Target => $observation{'target'},
-              TargetIdent => $observation{'type'},
-	      TargetType     => $observation{'toop'},
-              RA       => $observation{'ra'},
-              Dec      => $observation{'dec'},
-              Exposure => $observation{'exposure'},
-              Filter   => $observation{'passband'}  );
-      }
-             
-   } elsif ( defined $observation{'signaltonoise'} && 
-             defined $observation{'magnitude'} ) {
-
-      if ( defined $observation{ 'groupcount' } &&
-                defined $observation{ 'seriescount' } ) {
-          $score_message->score_observation(
-              Target         => $observation{'target'},
-	      TargetType     => $observation{'toop'},
-              TargetIdent    => $observation{'type'},
-              RA             => $observation{'ra'},
-              Dec            => $observation{'dec'},
-              Snr    => $observation{'signaltonoise'},
-              Flux   => $observation{'magnitude'},
-              Filter         => $observation{'passband'},
-              GroupCount     => $observation{'groupcount'},
-              TimeConstraint => [ $observation{'starttime'},
-                                  $observation{'endtime'} ],
-              SeriesCount    => $observation{'seriescount'},
-              Interval       => $observation{'interval'},
-              Tolerance      => $observation{'tolerance'} );
- 
-      } elsif ( defined $observation{ 'groupcount' } &&
-                defined $observation{ 'starttime' } &&
-                defined $observation{ 'endtime' } ) {
-                
-         # we have a monitoring group with a time contraint       
-        $score_message->score_observation(
-              Target         => $observation{'target'},
-              TargetIdent    => $observation{'type'},
-	      TargetType     => $observation{'toop'},
-              RA             => $observation{'ra'},
-              Dec            => $observation{'dec'},
-              Snr    => $observation{'signaltonoise'},
-              Flux   => $observation{'magnitude'},
-              Filter         => $observation{'passband'},
-              TimeConstraint => [ $observation{'starttime'},
-                                  $observation{'endtime'} ] ); 
-                                                              
-      } elsif ( defined $observation{'groupcount'} ) {
-
-          # build a score request
-          $score_message->score_observation(
-              Target         => $observation{'target'},
-              TargetIdent    => $observation{'type'},
-	      TargetType     => $observation{'toop'},
-              RA             => $observation{'ra'},
-              Dec            => $observation{'dec'},
-              Snr    => $observation{'signaltonoise'},
-              Flux   => $observation{'magnitude'},
-              Filter         => $observation{'passband'},
-              GroupCount     => $observation{'groupcount'} );      
-      
-
-              
-      } elsif ( defined $observation{ 'seriescount' } ) {
-      
-         # we can assume that there is a timeconstraint => [ x, y ] and
-         # an interval and tolerance because we'll create default ones
-          $score_message->score_observation(
-              Target         => $observation{'target'},
-              TargetIdent    => $observation{'type'},
-	      TargetType     => $observation{'toop'},
-              RA             => $observation{'ra'},
-              Dec            => $observation{'dec'},
-              Snr    => $observation{'signaltonoise'},
-              Flux   => $observation{'magnitude'},
-              Filter         => $observation{'passband'},
-              TimeConstraint => [ $observation{'starttime'},
-                                  $observation{'endtime'} ],
-              SeriesCount    => $observation{'seriescount'},
-              Interval       => $observation{'interval'},
-              Tolerance      => $observation{'tolerance'} );                            
-
-      } elsif ( defined $observation{ 'starttime' } &&
-                defined $observation{ 'endtime' } ) {
-                
-         # we have a monitoring group with a time contraint       
-        $score_message->score_observation(
-              Target         => $observation{'target'},
-              TargetIdent    => $observation{'type'},
-	      TargetType     => $observation{'toop'},
-              RA             => $observation{'ra'},
-              Dec            => $observation{'dec'},
-              Snr    => $observation{'signaltonoise'},
-              Flux   => $observation{'magnitude'},
-              Filter         => $observation{'passband'},
-              TimeConstraint => [ $observation{'starttime'},
-                                  $observation{'endtime'} ] );
-                                
-      } else { 
-      
-          # build a score request
-          $score_message->score_observation(
-              Target => $observation{'target'},
-              TargetIdent => $observation{'type'},
-	      TargetType     => $observation{'toop'},
-              RA     => $observation{'ra'},
-              Dec    => $observation{'dec'},
-              Snr    => $observation{'signaltonoise'},
-              Flux   => $observation{'magnitude'},
-              Filter   => $observation{'passband'} );        
-      }
    }
-   
-   $observation_object->score_request( $score_message );      
+
+
+   $observation_object->score_request( $score_message ); 
+   $log->print( $score_message->dump_rtml() );
+      
    
    # SCORE REQUEST
    # -------------
@@ -835,7 +688,7 @@ sub new_observation {
       my $reply = $result->result();
       
       my $ers_reply;
-      eval { $ers_reply = new eSTAR::RTML( Source => $reply ); };
+      eval { $ers_reply = new XML::Document::RTML( XML => $reply ); };
       if ( $@ ) {
          $log->error("Error: $@");
          $log->error("Error: Unable to parse ERS reply, not XML?" );
@@ -850,8 +703,7 @@ sub new_observation {
 
          my $type = $ers_reply->determine_type();       
          $log->debug( "Got a '" . $type . "' message from $dn_host:$dn_port");  
-         my $score_reply = new eSTAR::RTML::Parse( RTML => $ers_reply );
-         $observation_object->score_reply( "$dn_host:$dn_port", $score_reply );
+         $observation_object->score_reply( "$dn_host:$dn_port", $ers_reply );
       
       }   
         
@@ -937,244 +789,72 @@ sub new_observation {
    $log->debug("Building an observation request");
   
    # build a observation request
-   my $observe_message = new eSTAR::RTML::Build( 
-             Port        => $config->get_option( "server.port"),
-             Host        => $config->get_option( "server.host"),
-             ID          => $observation_object->id(),
-             User        => $score_request->user(),
-             Name        => $score_request->name(),
-             Institution => $score_request->institution(),
-             Email       => $score_request->email() );
+   my $observe_message = new XML::Document::RTML( );
 
    if ( defined $observation{'exposure'} ) {
 
-      if ( defined $observation{ 'groupcount' } &&
-                defined $observation{ 'seriescount' } ) {
-                
-          $observe_message->request_observation(
-                Target   => $score_request->target(),
-                TargetIdent => $observation{'type'},
-	        TargetType  => $observation{'toop'},
-                RA       => $score_request->ra(),
-                Dec      => $score_request->dec(),
-                Score    => $score_reply->score(),
-                Time     => $score_reply->time(),
-                Exposure => $score_request->exposure(),
-                Filter   => $score_request->filter(),
-                GroupCount     => $score_reply->group_count(),
-                TimeConstraint => [ $score_reply->start_time(),
-                                  $score_reply->end_time() ],
-                SeriesCount    => $score_reply->series_count(),
-                Interval       => $score_reply->interval(),
-                Tolerance      => $score_reply->tolerance() );   
+      $observe_message->build( 
+             Type =>     "request",
+             Port        => $config->get_option( "server.port"),
+             Host        => $config->get_option( "server.host"),
+             ID          => $observation_object->id(),
+             User        => $score_reply->user(),
+             Name        => $score_reply->name(),
+             Institution => $score_reply->institution(),
+             Email       => $score_reply->email(),              
+             Target   => $score_reply->target(),
+             Project => $score_reply->project(),
+             TargetIdent => $observation{'type'},
+	     TargetType  => $observation{'toop'},
+             RA       => $score_request->ra(),
+             Dec      => $score_request->dec(),
+             Score    => $score_reply->score(),
+             Time     => $score_reply->time(),
+             Exposure => $score_request->exposure(),
+             Filter   => $score_request->filter(),
+             GroupCount     => $score_reply->group_count(),
+             TimeConstraint => [ $score_reply->start_time(),
+                               $score_reply->end_time() ],
+             SeriesCount    => $score_reply->series_count(),
+             Interval       => $score_reply->interval(),
+             Tolerance      => $score_reply->tolerance() );   
    
-    } elsif ( defined $observation{ 'groupcount' } &&
-                defined $observation{ 'starttime' } &&
-                defined $observation{ 'endtime' } ) {
-                
-         # we have a monitoring group with a time contraint       
-          $observe_message->request_observation(
-                Target   => $score_request->target(),
-                TargetIdent => $observation{'type'},
-	        TargetType  => $observation{'toop'},
-                RA       => $score_request->ra(),
-                Dec      => $score_request->dec(),
-                Score    => $score_reply->score(),
-                Time     => $score_reply->time(),
-                Exposure => $score_request->exposure(),
-                Filter   => $score_request->filter(),
-                GroupCount     => $score_reply->group_count(),
-                TimeConstraint => [ $score_reply->start_time(),
-                                  $score_reply->end_time() ]  ); 
-                                                            
-      } elsif ( defined $observation{'groupcount'} ) {
+    } else {  
 
-          # build a score request
-          $observe_message->request_observation(
-                Target   => $score_request->target(),
-                TargetIdent => $observation{'type'},
-	        TargetType  => $observation{'toop'},
-                RA       => $score_request->ra(),
-                Dec      => $score_request->dec(),
-                Score    => $score_reply->score(),
-                Time     => $score_reply->time(),
-                Exposure => $score_request->exposure(),
-                Filter   => $score_request->filter(),
-                GroupCount     => $score_reply->group_count() );       
-              
-      } elsif ( defined $observation{ 'seriescount' } ) {
-      
-         # we can assume that there is a timeconstraint => [ x, y ] and
-         # an interval and tolerance because we'll create default ones
-          $observe_message->request_observation(
-                Target   => $score_request->target(),
-                TargetIdent => $observation{'type'},
-	        TargetType  => $observation{'toop'},
-                RA       => $score_request->ra(),
-                Dec      => $score_request->dec(),
-                Score    => $score_reply->score(),
-                Time     => $score_reply->time(),
-                Exposure => $score_request->exposure(),
-                Filter   => $score_request->filter(),
-                TimeConstraint => [ $score_reply->start_time(),
-                                  $score_reply->end_time() ],
-                SeriesCount    => $score_reply->series_count(),
-                Interval       => $score_reply->interval(),
-                Tolerance      => $score_reply->tolerance() );                    
- 
-    } elsif ( defined $observation{ 'starttime' } &&
-                defined $observation{ 'endtime' } ) {
-                
-         # we have a monitoring group with a time contraint       
-          $observe_message->request_observation(
-                Target   => $score_request->target(),
-                TargetIdent => $observation{'type'},
-	        TargetType  => $observation{'toop'},
-                RA       => $score_request->ra(),
-                Dec      => $score_request->dec(),
-                Score    => $score_reply->score(),
-                Time     => $score_reply->time(),
-                Exposure => $score_request->exposure(),
-                Filter   => $score_request->filter(),
-                TimeConstraint => [ $score_reply->start_time(),
-                                  $score_reply->end_time() ]  );                 
-      } else {  
-
-          $observe_message->request_observation(
-                Target   => $score_request->target(),
-                TargetIdent => $observation{'type'},
-	        TargetType  => $observation{'toop'},
-                RA       => $score_request->ra(),
-                Dec      => $score_request->dec(),
-                Score    => $score_reply->score(),
-                Time     => $score_reply->time(),
-                Exposure => $score_request->exposure(),
-                Filter   => $score_request->filter()  );
-     
-     }
-                  
-   } elsif ( defined $observation{'signaltonoise'} && 
-             defined $observation{'magnitude'} ) {
-
-      if ( defined $observation{ 'groupcount' } &&
-                defined $observation{ 'seriescount' } ) {
-                
-          $observe_message->request_observation(
-                Target   => $score_request->target(),
-                TargetIdent => $observation{'type'},
-	        TargetType  => $observation{'toop'},
-                RA       => $score_request->ra(),
-                Dec      => $score_request->dec(),
-                Score    => $score_reply->score(),
-                Time     => $score_reply->time(),
-                Snr      => $score_request->snr(),
-                Flux     => $score_request->flux(),
-                Filter   => $score_request->filter(),
-                GroupCount     => $score_reply->group_count(),
-                TimeConstraint => [ $score_reply->start_time(),
-                                  $score_reply->end_time() ],
-                SeriesCount    => $score_reply->series_count(),
-                Interval       => $score_reply->interval(),
-                Tolerance      => $score_reply->tolerance() );   
+          $observe_message->build(
+            Type =>     "request",
+            Port        => $config->get_option( "server.port"),
+            Host        => $config->get_option( "server.host"),
+            ID          => $observation_object->id(),
+            User        => $score_request->user(),
+            Name        => $score_request->name(),
+            Institution => $score_request->institution(),
+            Email       => $score_request->email(),                        
+            Target   => $score_request->target(),
+            TargetIdent => $observation{'type'},
+	    TargetType  => $observation{'toop'},
+            RA       => $score_request->ra(),
+            Dec      => $score_request->dec(),
+            Score    => $score_reply->score(),
+            Time     => $score_reply->time(),
+            Snr      => $score_request->snr(),
+            Flux     => $score_request->flux(),
+            Filter   => $score_request->filter(),
+            GroupCount     => $score_reply->group_count(),
+            TimeConstraint => [ $score_reply->start_time(),
+                              $score_reply->end_time() ],
+            SeriesCount    => $score_reply->series_count(),
+            Interval       => $score_reply->interval(),
+            Tolerance      => $score_reply->tolerance() );   
    
-    } elsif ( defined $observation{ 'groupcount' } &&
-                defined $observation{ 'starttime' } &&
-                defined $observation{ 'endtime' } ) {
-                
-         # we have a monitoring group with a time contraint       
-          $observe_message->request_observation(
-                Target   => $score_request->target(),
-                TargetIdent => $observation{'type'},
-	        TargetType  => $observation{'toop'},
-                RA       => $score_request->ra(),
-                Dec      => $score_request->dec(),
-                Score    => $score_reply->score(),
-                Time     => $score_reply->time(),
-                Snr      => $score_request->snr(),
-                Flux     => $score_request->flux(),
-                Filter   => $score_request->filter(),
-                GroupCount     => $score_reply->group_count(),
-                TimeConstraint => [ $score_reply->start_time(),
-                                  $score_reply->end_time() ]  ); 
-                                                            
-      } elsif ( defined $observation{'groupcount'} ) {
+   } 
 
-          # build a score request
-          $observe_message->request_observation(
-                Target   => $score_request->target(),
-                TargetIdent => $observation{'type'},
-	        TargetType  => $observation{'toop'},
-                RA       => $score_request->ra(),
-                Dec      => $score_request->dec(),
-                Score    => $score_reply->score(),
-                Time     => $score_reply->time(),
-                Snr      => $score_request->snr(),
-                Flux     => $score_request->flux(),
-                Filter   => $score_request->filter(),
-                GroupCount     => $score_reply->group_count() );       
-              
-      } elsif ( defined $observation{ 'seriescount' } ) {
-      
-         # we can assume that there is a timeconstraint => [ x, y ] and
-         # an interval and tolerance because we'll create default ones
-          $observe_message->request_observation(
-                Target   => $score_request->target(),
-                TargetIdent => $observation{'type'},
-	        TargetType  => $observation{'toop'},
-                RA       => $score_request->ra(),
-                Dec      => $score_request->dec(),
-                Score    => $score_reply->score(),
-                Time     => $score_reply->time(),
-                Snr      => $score_request->snr(),
-                Flux     => $score_request->flux(),
-                Filter   => $score_request->filter(),
-                TimeConstraint => [ $score_reply->start_time(),
-                                  $score_reply->end_time() ],
-                SeriesCount    => $score_reply->series_count(),
-                Interval       => $score_reply->interval(),
-                Tolerance      => $score_reply->tolerance() ); 
-                                   
-    } elsif ( defined $observation{ 'starttime' } &&
-                defined $observation{ 'endtime' } ) {
-                
-         # we have a monitoring group with a time contraint       
-          $observe_message->request_observation(
-                Target   => $score_request->target(),
-                TargetIdent => $observation{'type'},
-	        TargetType  => $observation{'toop'},
-                RA       => $score_request->ra(),
-                Dec      => $score_request->dec(),
-                Score    => $score_reply->score(),
-                Time     => $score_reply->time(),
-                Snr      => $score_request->snr(),
-                Flux     => $score_request->flux(),
-                Filter   => $score_request->filter(),
-                TimeConstraint => [ $score_reply->start_time(),
-                                  $score_reply->end_time() ]  );                  
-      } else {  
-
-      $observe_message->request_observation(
-                Target   => $score_request->target(),
-                TargetIdent => $observation{'type'},
-	        TargetType  => $observation{'toop'},
-                RA       => $score_request->ra(),
-                Dec      => $score_request->dec(),
-                Score    => $score_reply->score(),
-                Time     => $score_reply->time(),
-                Snr      => $score_request->snr(),
-                Flux     => $score_request->flux(),
-                Filter   => $score_request->filter()    );    
-     
-      }
-
-                
-   }
-   
    # PUSH IT INTO THE OBSERVATION OBJECT
    # -----------------------------------
 
    # stuff the observation request into the observation object          
    $observation_object->obs_request( $observe_message );     
+   $log->print( $observe_message->dump_rtml() );
                                   
    # QUEUE REQUEST
    # -------------
@@ -1253,7 +933,7 @@ sub new_observation {
    my $reply = $result->result();
       
    my $ers_reply;
-   eval { $ers_reply = new eSTAR::RTML( Source => $reply ); };
+   eval { $ers_reply = new XML::Document::RTML( XML => $reply ); };
    if ( $@ ) {
       my $error = "Error: Unable to parse ERS reply, not XML?";
       
@@ -1320,8 +1000,7 @@ sub new_observation {
       
       my $type = $ers_reply->determine_type();    
       $log->debug( "Got a '" . $type . "' message from $best_node");  
-      my $obs_reply = new eSTAR::RTML::Parse( RTML => $ers_reply );
-      $observation_object->obs_reply( $obs_reply );
+      $observation_object->obs_reply( $ers_reply );
     
       if ( $type eq 'confirmation' ) {
          $log->debug( $best_node . " confirmed start of observation" );
@@ -1439,8 +1118,8 @@ sub handle_rtml {
    # ------------------
    
    # validate the incoming message
-   my $rtml_message;
-   eval { $rtml_message = new eSTAR::RTML( Source => $rtml ); };
+   my $message;
+   eval { $message = new XML::Document::RTML( XML => $rtml ); };
    
    if ( $@ ) {
        my $error = "$@";
@@ -1454,18 +1133,17 @@ sub handle_rtml {
    }      
    
    
-   my $type = $rtml_message->determine_type();
+   # Parse Message 
+   # -------------
+      
+   my $type = $message->determine_type();
    if ( defined $type ) {
      $log->debug( "Got a '" . $type . "' message");  
    } else {
      $log->warn( "Warning: Invalid RTML, attempting to parse it anyway.");
    }
-   
-   # Parse Message 
-   # -------------
-   
+
    # parse the incoming message
-   my $message = new eSTAR::RTML::Parse( RTML => $rtml_message );
    my $id = $message->id();
    unless ( defined $id ) {
       $log->error( "Error: Unable to parse the RTML" );
@@ -1595,88 +1273,88 @@ sub handle_rtml {
          
       # Parse FITS header block
       # -----------------------
-      $log->debug("Reading FITS Header Cards...");
+      #$log->debug("Reading FITS Header Cards...");
       
       # grab FITS header
-      my $hdu = $message->fitsheaders();
+      #my $hdu = $message->fitsheaders();
       
       # split into separate 80 character FITS cards
-      my @cards = split( /\n/, $hdu );
-      chomp(@cards);
-      $log->debug("Header is " . scalar(@cards) . " lines long");
+      #my @cards = split( /\n/, $hdu );
+      #chomp(@cards);
+      #$log->debug("Header is " . scalar(@cards) . " lines long");
    
       # FITS File
       # ---------
    
       # grab a filename for the associated FITS image
-      my $image_url = $message->dataimage();
-      $image_url =~ m/(\w+\W\w+)$/;
+      #my $image_url = $message->dataimage();
+      #$image_url =~ m/(\w+\W\w+)$/;
       
-      $log->debug( "Image URL is $image_url" );
+      #$log->debug( "Image URL is $image_url" );
      
-      my $data = $1;
+      #my $data = $1;
       
-      my $data_path = $config->get_data_dir();
-      $log->debug( "Path is $data_path");
+      #my $data_path = $config->get_data_dir();
+      #$log->debug( "Path is $data_path");
       
-      my $fits = File::Spec->catfile( $data_path, $data );
-      $log->debug( "Saving file to $fits" );
+      #my $fits = File::Spec->catfile( $data_path, $data );
+      #$log->debug( "Saving file to $fits" );
                         
       # FITS Headers
       # ------------
       
       # parse cards into Header object
-      $log->debug("Parsing FITS Headers...");
-      my $header = new Astro::FITS::Header( Cards => \@cards );      
+      #$log->debug("Parsing FITS Headers...");
+      #my $header = new Astro::FITS::Header( Cards => \@cards );      
       
       # serialise the FITS Header block only if we think it might be valid
-      if ( defined $header ) {
-         $log->debug(
-             "Attaching Astro::FITS::Header object to \$observation_object");  
-         $observation_object->fits_header( $header );
+      #if ( defined $header ) {
+      #   $log->debug(
+      #       "Attaching Astro::FITS::Header object to \$observation_object");  
+      #   $observation_object->fits_header( $header );
       
          # grab date and time of observation from FITS Header
-         my $date = $header->itembyname('DATE-OBS');
-         unless ( defined $date ) {
-            $log->warn("Warning: DATE-OBS FITS header keyword undefined");
-         } else {   
-            $log->debug("Observation taken at " . $date->value());      
-         }
-      } else {
-         $log->warn("Warning: FITS Headers may be corrupted");
-      }
+      #   my $date = $header->itembyname('DATE-OBS');
+      #   unless ( defined $date ) {
+      #      $log->warn("Warning: DATE-OBS FITS header keyword undefined");
+      #   } else {   
+      #      $log->debug("Observation taken at " . $date->value());      
+      #   }
+      #} else {
+      #   $log->warn("Warning: FITS Headers may be corrupted");
+      #}
                        
       # Grab Image Data
       # ---------------  
-      $log->debug("URL is " . $image_url );
-      $observation_object->fits_url( $image_url );
+      #$log->debug("URL is " . $image_url );
+      #$observation_object->fits_url( $image_url );
       
       # build request
-      $log->debug( "Contacting " . 
-                         $observation_object->node() ." host...");
-      my $request = new HTTP::Request('GET', $image_url);
-      my $reply = $ua->get_ua()->request($request);
+      #$log->debug( "Contacting " . 
+      #                   $observation_object->node() ." host...");
+      #my $request = new HTTP::Request('GET', $image_url);
+      #my $reply = $ua->get_ua()->request($request);
     
       # check for valid reply
-      if ( ${$reply}{"_rc"} eq 200 ) {
+      #if ( ${$reply}{"_rc"} eq 200 ) {
         #if ( ${${$reply}{"_headers"}}{"content-type"} 
         #     eq "application/octet-stream" ) {               
-           $log->debug("Recieved image file from " . 
-                         $observation_object->node() ." host");
+     #      $log->debug("Recieved image file from " . 
+     #                    $observation_object->node() ." host");
                                 
            # Open output file
-           $fits =~ s/\W\w+$/.fit/;
-           unless ( open ( IMAGE, ">$fits" )) {
-              $log->error("Error: Cannot open $fits for writing");
-           } else {  
+     #      $fits =~ s/\W\w+$/.fit/;
+     #      unless ( open ( IMAGE, ">$fits" )) {
+     #         $log->error("Error: Cannot open $fits for writing");
+     #      } else {  
 
               # Write to output file
-              $log->debug("Saving image to $fits");
-              $observation_object->fits_file( $fits );
-              my $length = length(${$reply}{"_content"});
-              syswrite( IMAGE, ${$reply}{"_content"}, $length );
-              close(IMAGE);
-           }
+     #         $log->debug("Saving image to $fits");
+     #         $observation_object->fits_file( $fits );
+     #         my $length = length(${$reply}{"_content"});
+     #         syswrite( IMAGE, ${$reply}{"_content"}, $length );
+     #         close(IMAGE);
+     #      }
            
         #} else {
         #
@@ -1689,44 +1367,44 @@ sub handle_rtml {
         #      
         #}
       
-      } else { 
+    #  } else { 
       
         # the network conenction failed      
-        $log->error(
-          "Error: (${$reply}{_rc}): Failed to establish network connection");
-        $log->error( "Error: " . ${$reply}{_msg} );
+    #    $log->error(
+    #      "Error: (${$reply}{_rc}): Failed to establish network connection");
+    #    $log->error( "Error: " . ${$reply}{_msg} );
 
-      }
+    #  }
       
       # Parse Cluster Catalog
       # ---------------------
-      $log->debug( "Reading Cluter Catalog from RTML..." );
-      my $catalog = $message->catalogue();
+   #   $log->debug( "Reading Cluter Catalog from RTML..." );
+   #   my $catalog = $message->catalogue();
  
       # read catalog file        
-      my $cluster;
-      eval { $cluster = new Astro::Catalog( Format => 'Cluster', Data => $catalog ); 
-             $log->debug("Parsed Cluster catalogue (" . 
-                         $cluster->sizeof() ." lines)");  };
-      if ( $@ ) {
-         my $error = "$@";
-         $log->error( "Error: $error" );
-      } else {                      
+    #  my $cluster;
+    #  eval { $cluster = new Astro::Catalog( Format => 'Cluster', Data => $catalog ); 
+    #         $log->debug("Parsed Cluster catalogue (" . 
+    #                     $cluster->sizeof() ." lines)");  };
+    #  if ( $@ ) {
+    #     my $error = "$@";
+    #     $log->error( "Error: $error" );
+    #  } else {                      
  
          # stuffing into observation object
-         $observation_object->catalog( $cluster ); 
-      }
+    #     $observation_object->catalog( $cluster ); 
+    #  }
       
       
       # re-serialise the object
-      my $status = eSTAR::Util::freeze( $id, $observation_object );
-      if ( $status == ESTAR__ERROR ) {
-            $log->warn( 
-            "Warning: Problem re-serialising the \$observation_object");
-      } else {
-         $log->debug(
-       "Inital processing complete, \$observation_object has been serialised.");
-      }  
+    #  my $status = eSTAR::Util::freeze( $id, $observation_object );
+    #  if ( $status == ESTAR__ERROR ) {
+    #        $log->warn( 
+    #        "Warning: Problem re-serialising the \$observation_object");
+    #  } else {
+    #     $log->debug(
+    #   "Inital processing complete, \$observation_object has been serialised.");
+    #  }  
       
       # FOLLOWUP OBSERVATIONS
       # =====================

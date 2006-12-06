@@ -2,6 +2,12 @@
 
         * eSTAR/NA/Handler.pm: Moved to using the new RTML parser.
         
+        * eSTAR/UA/Handler.pm: Moved to using the new RTML parser.
+       
+        * bin/noao_client.pl: ESSENCE client, doesn't check the magnitude
+          of the event before submitting 2 hours of obsevrations per event, 
+          so this needs fixing before we go live!
+          
 2006-11-01 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* www/sdss/*: Added skeleton of a SDSS timeline web page and

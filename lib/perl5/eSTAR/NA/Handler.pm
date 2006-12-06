@@ -161,7 +161,7 @@ sub handle_rtml {
       $log->warn("SOAP Request: The object is missing user data");
       return "The object is missing user data"
    }
-   
+     
    # LOOKUP STATE FILE
    # -----------------
    my $file = 
@@ -170,7 +170,7 @@ sub handle_rtml {
      
    my $LOOK = new Config::Simple( syntax   => 'ini',
                                   mode     => O_RDWR|O_CREAT );
-       
+
    unless ( defined $LOOK ) {
       # can't read/write to state file, scream and shout!
       my $error = "FatalError: " . $Config::Simple::errstr;
@@ -240,7 +240,7 @@ sub handle_rtml {
    $log->debug( "Original user: $original_user" );
    
    my ( $new_user, $new_project );
-   if ( $original_user eq "aa" ) {
+   if ( $original_user eq "kdh1" ) {
    
       if ( $process->get_process() =~ "LT" ) {
       
@@ -262,18 +262,22 @@ sub handle_rtml {
          $new_user = "Robonet/keith.horne";
          $new_project = "Planetsearch1";        
       }
-            
+      
+   } elsif( $original_user eq "aa" ) {
+   
       # Expired Test Project on LT
-      #$new_user = "TEST/estar";
-      #$new_project = "TEA01";
+      $new_user = "TEST/estar";
+      $new_project = "TEA01";
       
       # Live Test Project on FTN
       #$new_user = "TMC/estar";
-      #$new_project = "agent_test";
+      #$new_project = "agent_test";   
       
-      # KDH Live PATT
-      #$new_user = "PATT/keith.horne";
-      #$new_project = "PL04B17";
+      # NOAO ESSENCE Follow-up project
+      if ( $process->get_process() =~ "FTS" ) {
+         $new_user = "FTS_OPS/iain.steele";
+         $new_project = "Essence";
+      }
       
    } else {   
       $new_user = $original_user;
