@@ -8,6 +8,9 @@
           of the event before submitting 2 hours of obsevrations per event, 
           so this needs fixing before we go live!
           
+        * eSTAR/UA/Algorithim/EssenceFolllowup.pm: Algorithmic block for
+          ESSENCE followup (default is nothing happens)  
+          
 2006-11-01 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* www/sdss/*: Added skeleton of a SDSS timeline web page and
