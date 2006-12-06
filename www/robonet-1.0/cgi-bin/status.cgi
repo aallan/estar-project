@@ -5,6 +5,7 @@
   use eSTAR::Observation;
   use eSTAR::RTML::Parse;
   use eSTAR::RTML::Build;
+  use XML::Document::RTML;
   
   #use Config::User;
   use File::Spec;
@@ -129,7 +130,7 @@
 	   exit;
 	}
 
-        my ($target, $group_count, $series_count, $exposure, @time, $type);
+        my ($target, $group_count, $series_count, $exposure, @time, $type, $project);
 	if( defined $obs ) {
            $target = $obs->target();
 	   $group_count = $obs->groupcount();
@@ -137,6 +138,8 @@
 	   $exposure = $obs->exposure();
 	   @time = $obs->timeconstraint();
 	   $type = $obs->targettype();
+	   $project = $obs->project() if $obs->isa("XML::Document::RTML");
+	   #print "\$obs->isa() = " . $obs->isa("XML::Document::RTML") . ", $project is" . $obs->project() . "<br>";
         }
 	
         # TARGET - 1 ---------------------------------------------------
@@ -168,7 +171,8 @@
 	 $event . ".xml";	
 	print "<td>";
 	
-        if ( $group_count == 3 && $exposure == 30 && $target =~ m/OB\d{5}/ ) {
+        if ( $group_count == 3 && $exposure == 30 && $target =~ m/OB\d{5}/ ||
+             !defined $series_count && !defined $group_count && $exposure == 90 && $target =~ m/OB\d{5}/ ) {
 	   print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Message IVORN] body=[ivo://uk.org.estar/pl.edu.ogle#".$event."]' >";
            print "<A HREF='$voevent'>event</A>";
            print "</DIV>";
@@ -215,7 +219,11 @@
 		
 	# STATUS - 6 ---------------------------------------------------
 	print "<td>";
-	print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Unique ID] body=[".$files[$i]."]' >";
+	if ( defined $project ) {
+	   print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Unique ID] body=[<table><tr><td>".$files[$i]."</td></tr><tr><td><b>Project:</b> ". $project ."</td></tr></table>]' >";
+	} else {
+	   print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Unique ID] body=[".$files[$i]."]' >";
+	}
 	if ( $status eq "running" ) {
 	   my $status = expired( @time );
 	   if ( $status == -1 || $status == 0 ) {
@@ -340,7 +348,12 @@
      #$current =~ s/.\d{4}$//;
    
      my $iso8601 = DateTime::Format::ISO8601->new;
-     my $end_dt = $iso8601->parse_datetime( $end );
+     my $end_dt;
+     eval { $end_dt = $iso8601->parse_datetime( $end ); };
+     if ( $@ ) {
+         print "<br><font color='red'><strong>ERROR: $@, dates are '$start' and '$end'</strong></font><br>";
+         return -1;
+     }	 
      $end_dt->add( days => 1 );
      
      my $current_dt = $iso8601->parse_datetime( $current );
