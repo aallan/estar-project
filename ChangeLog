@@ -1,3 +1,9 @@
+2006-12-11 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * eSTAR/JACH/Handler.pm: Bug fix on template lookup
+
+        * bin/test_templates.pl: Bug fix on template lookup
+
 2006-12-06 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * eSTAR/NA/Handler.pm: Moved to using the new RTML parser.

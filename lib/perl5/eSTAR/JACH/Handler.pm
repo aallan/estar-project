@@ -646,7 +646,11 @@ sub handle_rtml {
          for my $m ( $sp->msb() ) {
             $log->debug( "Found template " . $m->msbtitle() );
 
-            my $looking_for = $parsed->targetident();
+            my $curr_inst = eSTAR::JACH::Util::current_instrument( 
+                                    $config->get_option( "dn.telescope") );
+
+            my $looking_for = $curr_inst . 
+                              ": " . $parsed->targetident();
             if ( $m->msbtitle()  =~ /\b$looking_for/ ) {
             
                $log->debug( "Matched '" . $m->msbtitle() . "'" );
