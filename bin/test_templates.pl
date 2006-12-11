@@ -93,7 +93,7 @@
   
   # scan through MSBs
   $log->print("\nLooking for InitialBurstFollowup template...");
-  my $name = "InitialBurstFollowup";
+  my $name = $curr_inst . ": InitialBurstFollowup";
   my $initial = check_msbs( $sp, $name );
   unless ( defined $initial ) {
         
@@ -115,7 +115,7 @@
   }      
   
   $log->print("\nLooking for BurstFollowup template...");
-  my $name = "BurstFollowup";
+  my $name = $curr_inst . ": BurstFollowup";
   my $followup = check_msbs( $sp, $name );  
   unless ( defined $followup ) {
         
