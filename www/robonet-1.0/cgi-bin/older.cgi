@@ -46,7 +46,7 @@
      $header = <FILE>;
      close FILE;
   }
-  $header =~ s/PAGE_TITLE_STRING/Robonet-1.0 Observation Status/g;
+  $header =~ s/PAGE_TITLE_STRING/Robonet-1.0 $query{year} Observation Archive/g;
   $header =~ s/<title>/<link rel="stylesheet" HREF="..\/css\/box.css" TYPE="text\/css"><title>/;
 
   my $footer;
@@ -64,7 +64,7 @@
 # M A I N   L O O P  #########################################################
   
   my $dir = File::Spec->catdir( File::Spec->rootdir(), "home", "estar", 
-                                ".estar", "user_agent", "state" );
+                                ".estar", "user_agent", "state", $query{year} );
 				
   my ( @files );
   if ( opendir (DIR, $dir )) {
@@ -83,10 +83,7 @@
   print $header;
   print "<SCRIPT SRC='../js/boxover.js'></SCRIPT>\n";
   
-  print "<P>Observation status at <font color='red'>" . 
-        timestamp() . "</font><br>";
-	
-  print "Older observations have now been <a href='older.cgi?year=2006'>archived</a>.</p>";
+  print "<P>Real time <a href='status.cgi'>observation status</a> is also available.</P>";
   
   print "<font size='-2'><table border='0' width='95%'>\n"; 
   print "<tr><th align='left'>Target</th>".
@@ -100,9 +97,6 @@
 #  foreach my $i ( 2 ... $#files ) {
    for ( my $i = $#files; $i >= 2; $i = $i - 1 ) {
    
-     #print "'".$files[$i]."'\n";
-     next if $files[$i] =~ m/^\d{4}$/;
-     
      print "<tr>";
      #print "<td><font color='grey'>$files[$i]</font></td>";
      my $object;
@@ -167,9 +161,6 @@
         } elsif ( $target =~ m/ESSENCE/ ) {
            my $name = $target;
 	   $name =~ s/ESSENCE-//;
-           if ( $name =~ m/\p{IsAlpha}$/ ) {
-              chop $name;
-           }
 	   my $url = 'http://ctiokw.ctio.noao.edu/~sm/w/public/' . $name . '/';	
 	   print "<A HREF='$url'>$full_name</A>";
 	
@@ -211,7 +202,7 @@
 	   print "<font color='grey'>$type</font>"; 
 	   
 	}  
-	print "</td>\n";    
+	print "</td>\n";   
 	 
 	# TIMESTAMP - 3 ------------------------------------------------
 	
@@ -247,8 +238,7 @@
         print "<font color='grey'>$filter</font>";
         print "</DIV>";
         print "</td>\n";	
-	
-	
+		
 	# NODE - 6 ---------------------------------------------------------
 	
 	print "<td>";

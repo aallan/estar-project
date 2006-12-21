@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -405,7 +405,11 @@ my $incoming_callback = sub {
    my $ra_sex = $coords->ra->in_format( 'sexagesimal' );
    my $dec_sex = $coords->dec->in_format( 'sexagesimal' );                  
    $ra_sex =~ s/:/ /g;
+   $ra_sex =~ s/^\s+//;
+   $ra_sex =~ s/\s+$//;   
    $dec_sex =~ s/:/ /g;
+   $dec_sex =~ s/^\s+//;
+   $dec_sex =~ s/\s+$//;
    $log->print( "Following up ESSENCE-$name at $ra_sex, $dec_sex");
 
    
@@ -448,12 +452,13 @@ my $incoming_callback = sub {
       my ( $start_time, $end_time ) = get_times();
       
       my @filter;
-      #push @filter, "B";
-      #push @filter, "V";
+      push @filter, "B";
+      push @filter, "V";
       push @filter, "R";
-      #push @filter, "I";
+      push @filter, "I";
       
-      my $seriescount = 10;
+      my $seriescount = 5;
+      #my $seriescount = 10;
       #my $seriescount = 1;
       
       foreach my $i ( 0 ... $#filter ) {
@@ -467,8 +472,8 @@ my $incoming_callback = sub {
                           exposure      => 90,
                           groupcount    => 2,
                           seriescount   => $seriescount,
-                          tolerance     => "PT3600.0S",
-                          interval      => "PT122400.0S",
+                          tolerance     => "PT12H",
+                          interval      => "PT36H",
                           passband      => $filter[$i],
                           type	        => "EssenceFollowup",
                           followup      => 0,
