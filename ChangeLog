@@ -1,3 +1,17 @@
+2007-01-02 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * bin/test_servers.pl: Added debugging to FTP connection.
+        
+        * bin/gcn_server.pl: Switched to WFCAM mode, added some comments.
+          Need to move to dynamically switching based on phase zero query
+          to the JAC embedded agent.
+          
+        * startup/gcn_programme: Moved to direct connection to NASA server,
+          dropped use of gcn forwarder.
+          
+        * eSTAR/JACH/Handler.pm: Moved to XML::Document::RTML from the older
+          eSTAR::RTML::Parse and eSTAR::RTML::Build modules.
+
 2006-12-20 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * bin/noao_client.pl: Bug fixes
