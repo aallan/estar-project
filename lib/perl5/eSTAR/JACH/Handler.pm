@@ -52,6 +52,8 @@ use eSTAR::JACH::Project;
 use eSTAR::JACH::Util;
 use eSTAR::Config;
 
+use XML::Document::RTML;
+
 #
 # Astro modules
 #
@@ -293,20 +295,18 @@ sub handle_rtml {
    
    # Parse Incoming RTML
    # -------------------
-     
-   my $rtml;
-   eval { $rtml = new eSTAR::RTML( Source => $document ); };
+ 
+   my $parsed;
+   eval { $parsed = new XML::Document::RTML( XML => $rtml ) };
    if ( $@ ) {
-      print $@;
       my $error = "Error: Unable to parse RTML document";
+      $log->error( "$@" );
       $log->error( $error );
-      return $error;       
-   }
-
-   # determine type
-   my $type = $rtml->determine_type();
+      $log->error( "\nRTML File:\n$rtml" );
+      return $error . ", $@";    
+   }    
+   my $type = $parsed->determine_type();
    $log->debug( "Got a '" . $type . "' message");  
-   my $parsed = new eSTAR::RTML::Parse( RTML => $rtml );
    
    # OBSERVATION OBJECT
    # ------------------
@@ -408,40 +408,43 @@ sub handle_rtml {
       # -------------
       
       # build the score response document
-      my $score_message = new eSTAR::RTML::Build( 
+      my $score_message = new XML::Document::RTML( );
+      if ( defined $parsed->exposure() ) {
+         $score_message->build(
+             Type        => "score",
              Port        => $parsed->port(),
              Host        => $parsed->host(),
              ID          => $parsed->id(),
              User        => $parsed->user(),
              Name        => $parsed->name(),
              Institution => $parsed->institution(),
-             Email       => $parsed->email() );
-
-     if ( defined $parsed->exposure() ) {
-         
-         # build a score request
-         $score_message->score_response(
-             Target   => $parsed->target(),
+             Email       => $parsed->email(),
+             Target      => $parsed->target(),
              TargetIdent => $parsed->targetident(),
-             RA       => $parsed->ra(),
-             Dec      => $parsed->dec(),
-             Exposure => $parsed->exposure(),
-             Score    => $isobs,
-             Time     => $time_string  );
+             RA          => $parsed->ra(),
+             Dec         => $parsed->dec(),
+             Exposure    => $parsed->exposure(),
+             Score       => $isobs,
+             Time        => $time_string  );
              
-      } elsif ( defined $parsed->snr() && 
-                defined $parsed->flux() ) {
-
-         # build a score request
-         $score_message->score_response(
-             Target => $parsed->target(),
+      } else {
+         $score_message->build(
+             Type        => "score",
+             Port        => $parsed->port(),
+             Host        => $parsed->host(),
+             ID          => $parsed->id(),
+             User        => $parsed->user(),
+             Name        => $parsed->name(),
+             Institution => $parsed->institution(),
+             Email       => $parsed->email(),
+             Target      => $parsed->target(),
              TargetIdent => $parsed->targetident(),
-             RA     => $parsed->ra(),
-             Dec    => $parsed->dec(),
-             Snr    => $parsed->snr(),
-             Flux   => $parsed->flux(),
-             Score  => $isobs,
-             Time   => $time_string );        
+             RA          => $parsed->ra(),
+             Dec         => $parsed->dec(),
+             Snr         => $parsed->snr(),
+             Flux        => $parsed->flux(),
+             Score       => $isobs,
+             Time        => $time_string  );
       }
 
 
@@ -485,14 +488,16 @@ sub handle_rtml {
       my $username = $user->name();
 
       # build the reject response document in case we need it
-      my $reject_message = new eSTAR::RTML::Build( 
-          Port        => $parsed->port(),
-          Host        => $parsed->host(),
-          ID          => $parsed->id(),
-          User        => $parsed->user(),
-          Name        => $parsed->name(),
-          Institution => $parsed->institution(),
-          Email       => $parsed->email() );
+      my $reject_message = new XML::Document::RTML( );
+      $reject_message->build(
+             Type        => "reject",
+             Port        => $parsed->port(),
+             Host        => $parsed->host(),
+             ID          => $parsed->id(),
+             User        => $parsed->user(),
+             Name        => $parsed->name(),
+             Institution => $parsed->institution(),
+             Email       => $parsed->email() );
 
       # build a score request
       $reject_message->reject_response( );
@@ -531,15 +536,15 @@ sub handle_rtml {
       # ---------
       my $id = $parsed->id();
       
-      #$log->debug( "id          = " . $id );
+      $log->debug( "id          = " . $id );
 
       # IA information
       # --------------
       my $host = $parsed->host();
       my $port = $parsed->port();
 
-      #$log->debug( "host        = " . $host );
-      #$log->debug( "port        = " . $port );
+      $log->debug( "host        = " . $host );
+      $log->debug( "port        = " . $port );
        
       # target
       # ------
@@ -553,23 +558,23 @@ sub handle_rtml {
       my $flux = $parsed->flux();
       my $filter = $parsed->filter();
 
-      #$log->debug( "target      = " . $target );
-      #$log->debug( "target ident = " . $targetident );
-      #$log->debug( "ra          = " . $ra );
-      #$log->debug( "dec         = " . $dec );
-      #$log->debug( "equinox     = " . $equinox );
-      #$log->debug( "exposure    = $exposure " );
-      #$log->debug( "snr         = $snr" );
-      #$log->debug( "flux        = $flux" );
-      #$log->debug( "filter      = " . $filter );
+      $log->debug( "target      = " . $target );
+      $log->debug( "target ident = " . $targetident );
+      $log->debug( "ra          = " . $ra );
+      $log->debug( "dec         = " . $dec );
+      $log->debug( "equinox     = " . $equinox );
+      $log->debug( "exposure    = $exposure " );
+      $log->debug( "snr         = $snr" );
+      $log->debug( "flux        = $flux" );
+      $log->debug( "filter      = " . $filter );
        
       # scoring
       # -------
       my $score = $parsed->score();
       my $time = $parsed->time();
 
-      #$log->debug( "score       = " . $score );
-      #$log->debug( "time        = " . $time );
+      $log->debug( "score       = " . $score );
+      $log->debug( "time        = " . $time );
       
       # user info
       # ---------
@@ -578,10 +583,10 @@ sub handle_rtml {
       my $institution = $parsed->institution();
       my $email = $parsed->email();
       
-      #$log->debug( "name        = " . $name );
-      #$log->debug( "user        = " . $user );
-      #$log->debug( "institution = " . $institution );
-      #$log->debug( "email       = " . $email );
+      $log->debug( "name        = " . $name );
+      $log->debug( "user        = " . $user );
+      $log->debug( "institution = " . $institution );
+      $log->debug( "email       = " . $email );
 
       # SCIENCE PROGRAMME
       # -----------------
@@ -983,25 +988,24 @@ sub handle_rtml {
       eSTAR::Mail::send_mail( $parsed->email(), $parsed->name(),
                               'frossie@jach.hawaii.edu',
                               'eSTAR UKIRT queue submission',
-                              $mail_body, 'estar-status@estar.org.uk' );
+                              $mail_body, 
+                              'estar-status@estar.org.uk, uktarget@jach.hawaii.edu' );
  
       # BUILD MESSAGE
       # -------------
       
       # build the score response document
-      my $confirm_message = new eSTAR::RTML::Build( 
+      my $confirm_message = new XML::Document::RTML( );
+      if ( defined $parsed->exposure() ) {
+         $confirm_message->build(
+             Type        => "confirmation",
              Port        => $parsed->port(),
              Host        => $parsed->host(),
              ID          => $parsed->id(),
              User        => $parsed->user(),
              Name        => $parsed->name(),
              Institution => $parsed->institution(),
-             Email       => $parsed->email() );
-
-      if ( defined $parsed->exposure() ) {
-         
-         # build a score request
-         $confirm_message->confirm_response(
+             Email       => $parsed->email(),
              Target   => $parsed->target(),
              TargetIdent => $parsed->targetident(),
              RA       => $parsed->ra(),
@@ -1010,19 +1014,25 @@ sub handle_rtml {
              Score    => $parsed->score(),
              Time     => $parsed->time()  );
              
-      } elsif ( defined $parsed->snr() && 
-                defined $parsed->flux() ) {
+      } else {
 
-         # build a score request
-         $confirm_message->confirm_response(
-             Target => $parsed->target(),
+         $confirm_message->build(
+             Type        => "confirmation",
+             Port        => $parsed->port(),
+             Host        => $parsed->host(),
+             ID          => $parsed->id(),
+             User        => $parsed->user(),
+             Name        => $parsed->name(),
+             Institution => $parsed->institution(),
+             Email       => $parsed->email(),
+             Target   => $parsed->target(),
              TargetIdent => $parsed->targetident(),
-             RA     => $parsed->ra(),
-             Dec    => $parsed->dec(),
+             RA       => $parsed->ra(),
+             Dec      => $parsed->dec(),
              Snr    => $parsed->snr(),
              Flux   => $parsed->flux(),
-             Score  => $parsed->score(),
-             Time   => $parsed->time() );        
+             Score    => $parsed->score(),
+             Time     => $parsed->time()  );
       }
       
       # drop the reply into the observation object
@@ -1124,8 +1134,8 @@ sub handle_data {
    my $host = $obs_request->host();
    my $port = $obs_request->port();
 
-   #$log->debug( "host        = " . $host );
-   #$log->debug( "port        = " . $port );
+   $log->debug( "host        = " . $host );
+   $log->debug( "port        = " . $port );
     
    # target
    # ------
@@ -1139,23 +1149,23 @@ sub handle_data {
    my $flux = $obs_request->flux();
    my $filter = $obs_request->filter();
 
-   #$log->debug( "target      = " . $target );
-   #$log->debug( "target ident = " . $targetident );
-   #$log->debug( "ra          = " . $ra );
-   #$log->debug( "dec         = " . $dec );
-   #$log->debug( "equinox     = " . $equinox );
-   #$log->debug( "exposure    = $exposure " );
-   #$log->debug( "snr         = $snr" );
-   #$log->debug( "flux        = $flux" );
-   #$log->debug( "filter      = " . $filter );
+   $log->debug( "target      = " . $target );
+   $log->debug( "target ident = " . $targetident );
+   $log->debug( "ra          = " . $ra );
+   $log->debug( "dec         = " . $dec );
+   $log->debug( "equinox     = " . $equinox );
+   $log->debug( "exposure    = $exposure " );
+   $log->debug( "snr         = $snr" );
+   $log->debug( "flux        = $flux" );
+   $log->debug( "filter      = " . $filter );
     
    # scoring
    # -------
    my $score = $obs_request->score();
    my $time = $obs_request->time();
 
-   #$log->debug( "score       = " . $score );
-   #$log->debug( "time        = " . $time );
+   $log->debug( "score       = " . $score );
+   $log->debug( "time        = " . $time );
    
    # user info
    # ---------
@@ -1164,10 +1174,10 @@ sub handle_data {
    my $institution = $obs_request->institution();
    my $email = $obs_request->email();
    
-   #$log->debug( "name        = " . $name );
-   #$log->debug( "user        = " . $user );
-   #$log->debug( "institution = " . $institution );
-   #$log->debug( "email       = " . $email );
+   $log->debug( "name        = " . $name );
+   $log->debug( "user        = " . $user );
+   $log->debug( "institution = " . $institution );
+   $log->debug( "email       = " . $email );
    
    # PROCESS OBSERVATION
    # -------------------
@@ -1305,57 +1315,65 @@ sub handle_data {
    # -------------
  
    # practically identical for 'update' and 'observation' messages  
-   my $method;
+   my $type;
    if ( $data{AlertType} eq 'update' ) {
-      $method = "update_response";
+      $type = "update";
    } elsif ( $data{AlertType} eq 'observation' ) {
-      $method = "complete_response";
+      $type = "observation";
    } else {
-      $method = "failure_response";
-   }        
-
-   my $message = new eSTAR::RTML::Build( 
-             Port        => $port,
-             Host        => $host,
-             ID          => $data{ID},
-             User        => $user,
-             Name        => $name,
-             Institution => $institution,
-             Email       => $email);
-   
-   if ( defined $snr && defined $flux ) {       
-      $message->$method(
-                Target    => $target,
-                TargetIdent => $targetident,
-                RA        => $ra,
-                Dec       => $dec,
-                Score     => $score,
-                Time      => $time,
-                Snr       => $snr,
-                Flux      => $flux,
-                Filter    => $filter,
-                Catalogue => $catalog,
-                Headers   => $fits_headers,
-                ImageURI  => $image_url);
-                 
-   } elsif ( defined $exposure ) {                      
-      $message->$method(
-                Target   => $target,
-                TargetIdent => $targetident,
-                RA       => $ra,
-                Dec      => $dec,
-                Score    => $score,
-                Time     => $time,
-                Exposure => $exposure,
-                Filter   => $filter,
-                Catalogue => $catalog,
-                Headers   => $fits_headers,
-                ImageURI  => $image_url )   
-   }
+      $type = "failed";
+   }   
+        
+   my $message = new XML::Document::RTML( );
+   if ( defined $exposure ) {
+      $message->build(
+          Type        => $type,
+          Port        => $port,
+          Host        => $host,
+          ID          => $data{ID},
+          User        => $user,
+          Name        => $name,
+          Institution => $institution,
+          Email       => $email,
+          Target      => $target,
+          TargetIdent => $targetident,
+          RA          => $ra,
+          Dec         => $dec,
+          Score       => $score,
+          Time        => $time,
+          Exposure    => $exposure,
+          Filter      => $filter,
+          Catalogue   => $catalog,
+          Headers     => $fits_headers,
+          ImageURI    => $image_url );
+          
+   } elsif ( defined $snr && defined $flux ) {       
+      $message->build(
+          Type        => $type,
+          Port        => $port,
+          Host        => $host,
+          ID          => $data{ID},
+          User        => $user,
+          Name        => $name,
+          Institution => $institution,
+          Email       => $email,
+          Target      => $target,
+          TargetIdent => $targetident,
+          RA          => $ra,
+          Dec         => $dec,
+          Score       => $score,
+          Time        => $time,
+          Snr         => $snr,
+          Flux        => $flux,
+          Filter      => $filter,
+          Catalogue   => $catalog,
+          Headers     => $fits_headers,
+          ImageURI    => $image_url );
+   } 
    
    # Send Message to user_agent
    # --------------------------
-   $method = $data{AlertType};
+   my $method = $data{AlertType};
    $observation_object->$method( $message );
    my $reply_rtml = $message->dump_rtml();
    
