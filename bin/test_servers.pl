@@ -187,7 +187,8 @@ unless ( defined $status ) {
   foreach my $i ( 0 ... $#hosts ) {
     $log->header("\n$hosts[$i]");
     $log->debug( "Pinging $hosts[$i]...");
-    my $ping = Net::Ping->new();
+#    my $ping = Net::Ping->new( "icmp" );
+    my $ping = Net::Ping->new(  );
     if ( $ping->ping( $hosts[$i] ) ) {
         print SERIAL "$hosts[$i] PING\n";
         $content = $content . "$hosts[$i] PING\n";  
@@ -470,15 +471,23 @@ unless ( defined $status ) {
   
 # N O T I F Y   P E O P L  E ------------------------------------------------
 
+  eval { 
   $log->print("Opening FTP connection to lion.drogon.net...");  
-  my $ftp = Net::FTP->new( "lion.drogon.net", Debug => 0 );
+  my $ftp = Net::FTP->new( "lion.drogon.net", Debug => 1 );
+  $log->debug("Going into PASV mode...");
   $log->debug("Logging into estar account...");  
   $ftp->login( "estar", "tibileot" );
   $ftp->cwd( "www.estar.org.uk/docs" );
-  $log->debug("Transfering status file...");  
+  $log->debug("Transfering status file $file...");  
   $ftp->put( $file, "network.status" );
   $ftp->quit();
-  
+  };
+
+  if ( $@ ) {
+    my $error = "$@";
+    chomp $error;
+    $log->error( "Error: $error" );
+  }
   $log->print( "Sending notification email...");
   
   my $mail_body = $content;
