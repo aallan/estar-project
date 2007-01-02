@@ -22,7 +22,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: gcn_server.pl,v 1.22 2007/01/02 14:38:37 aa Exp $
+$Id: gcn_server.pl,v 1.23 2007/01/02 15:10:55 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -41,7 +41,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.22 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.23 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -655,9 +655,9 @@ my $tcp_callback = sub {
 #                                        'estar@astro.ex.ac.uk',
 #                                        'eSTAR User Agent Connection Problem (initial)',
 #                                        $mail_body, 'estar-status@estar.org.uk' );                 
-                  
-         } 
-         $log->print("Connection closed");  
+#                  
+#         } 
+#         $log->print("Connection closed");  
 
 
 	 # Submit an burst followup block
