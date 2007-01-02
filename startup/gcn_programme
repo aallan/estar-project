@@ -2,13 +2,15 @@
 
 source /work/estar/third_generation/etc/user_agent.csh >& ~estar/logs/gcn/user.`date -Iseconds` &
 
-setenv CLASSPATH .:/home/estar/gcn_release
-cd ~estar/gcn_release
-./gcnserver -port 5248 >& ~estar/logs/gcn/gcn_server_5248.nasa.`date -Iseconds` &
-./gcnserver -port 5284 >& ~estar/logs/gcn/gcn_server_5284.test.`date -Iseconds` &
-/work/estar/third_generation/bin/gcn_server.pl -user nt -pass GRBoverride -port 5286 >& ~estar/logs/gcn/gcn_server.`date -Iseconds` &
-sleep 5
-./gcnforwarder -forward_address 144.173.229.21 -forward_port 5286 >& ~estar/logs/gcn/gcn_forward.`date -Iseconds` &
+#setenv CLASSPATH .:/home/estar/gcn_release
+#cd ~estar/gcn_release
+#./gcnserver -port 5248 >& ~estar/logs/gcn/gcn_server_5248.nasa.`date -Iseconds` &
+#./gcnserver -port 5284 >& ~estar/logs/gcn/gcn_server_5284.test.`date -Iseconds` &
+#/work/estar/third_generation/bin/gcn_server.pl -user nt -pass GRBoverride -port 5286 >& ~estar/logs/gcn/gcn_server.`date -Iseconds` &
+#sleep 5
+#./gcnforwarder -forward_address 144.173.229.21 -forward_port 5286 >& ~estar/logs/gcn/gcn_forward.`date -Iseconds` &
+
+/work/estar/third_generation/bin/gcn_server.pl -user nt -pass GRBoverride -port 5248 >& ~estar/logs/gcn/gcn_server.nasa.`date -Iseconds` &
 
 
 
