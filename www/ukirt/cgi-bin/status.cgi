@@ -5,6 +5,7 @@
   use eSTAR::Observation;
   use eSTAR::RTML::Parse;
   use eSTAR::RTML::Build;
+  use XML::Document::RTML;
   
   #use Config::User;
   use File::Spec;
@@ -129,15 +130,30 @@
 	   error( "$@");
 	   exit;
 	}
-
+        
+        my $sco;
+	eval { $sco = $object->score_request(); };
+	if ( $@ ) {
+	   error( "$@");
+	   exit;
+	}
+        
         my ($target, $time, $type, $ident, $ra, $dec);
 	if( defined $obs ) {
            $target = $obs->target();
+           $target = $sco->target() unless defined $target;
 	   $time = $obs->time();
+	   $time = $sco->time() unless defined $time;
 	   $type = $obs->targettype();
+	   $type = $sco->targettype() unless defined $type;
            $ident = $obs->targetident();
+           $ident = $sco->targetident() unless defined $ident;
            $ra = $obs->ra();
+           $ra = $sco->ra() unless defined $ra;
            $dec = $obs->dec();
+           $dec = $sco->dec() unless defined $dec;
+	   $project = $obs->project() if $obs->isa("XML::Document::RTML");
+	   #print "\$obs->isa() = " . $obs->isa("XML::Document::RTML") . ", $project is" . $obs->project() . "<br>";
         }
 	
         # TARGET - 1 ---------------------------------------------------
