@@ -297,12 +297,12 @@ sub handle_rtml {
    # -------------------
  
    my $parsed;
-   eval { $parsed = new XML::Document::RTML( XML => $rtml ) };
+   eval { $parsed = new XML::Document::RTML( XML => $document ) };
    if ( $@ ) {
       my $error = "Error: Unable to parse RTML document";
       $log->error( "$@" );
       $log->error( $error );
-      $log->error( "\nRTML File:\n$rtml" );
+      $log->error( "\nRTML File:\n$document" );
       return $error . ", $@";    
    }    
    my $type = $parsed->determine_type();
