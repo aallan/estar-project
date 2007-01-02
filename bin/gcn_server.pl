@@ -22,7 +22,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: gcn_server.pl,v 1.21 2006/05/14 17:27:34 aa Exp $
+$Id: gcn_server.pl,v 1.22 2007/01/02 14:38:37 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -41,7 +41,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.21 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.22 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -415,8 +415,8 @@ my $tcp_callback = sub {
 
          if( $bits[1] == 1 && $image_signif >= 7 ) {
          
-#             # Send a notification
-#             # -------------------
+             # Send a notification
+             # -------------------
          
 #             $log->print( "Sending notification email...");
          
@@ -430,96 +430,99 @@ my $tcp_callback = sub {
 #               "NO OBSERVATIONS HAVE BEEN REQUESTED FROM UKIRT.\n".
 #               "\n".
 #               "Observations will only be requested on a followup XRT position.";
-#         
+         
 #             eSTAR::Mail::send_mail( $config->get_option("user.email_address"), 
 #                                     $config->get_option("user.real_name"),
 #                                     'estar@astro.ex.ac.uk',
 #                                     'eSTAR ACK SWIFT BAT postion',
 #                                     $mail_body, 'estar-status@estar.org.uk' );         
-#
-#             } # if image signif > 7         
+
+# commented out portion would start here        
          
-	     # Send a notification
-	     # -------------------
-	 
-	     $log->print( "Sending notification email...");
-	 
-	     my $mail_body = 
-	       "Recieved a TYPE_SWIFT_BAT_POSITION_SRC message\n" .
-	       "Position $ra, $dec +- $error acrmin\n" .
-	       "\n" .
-	       "This message indicates that the eSTAR system has recieved\n" . 
-	       "an initial BAT position alert and is currently attempting to\n" .
-	       "place initial followup observations into the UKIRT queue.\n" .
-	       "If you do not recieve notification that this has been successful\n".
-	       "you may wish to attempt manual followup.\n";
-	 
-	     eSTAR::Mail::send_mail( $config->get_option("user.email_address"), 
-				     $config->get_option("user.real_name"),
-				     'estar@astro.ex.ac.uk',
-				     'eSTAR ACK SWIFT BAT postion',
-				     $mail_body, 'estar-status@estar.org.uk' ); 
+            # Send a notification
+            # -------------------
+        
+            $log->print( "Sending notification email...");
+        
+            my $mail_body = 
+              "Recieved a TYPE_SWIFT_BAT_POSITION_SRC message\n" .
+              "Position $ra, $dec +- $error acrmin\n" .
+              "\n" .
+              "This message indicates that the eSTAR system has recieved\n" . 
+              "an initial BAT position alert and is currently attempting to\n" .
+              "place initial followup observations into the UKIRT queue.\n" .
+              "If you do not recieve notification that this has been successful\n".
+              "you may wish to attempt manual followup.\n";
+        
+            eSTAR::Mail::send_mail( $config->get_option("user.email_address"), 
+                                    $config->get_option("user.real_name"),
+                                    'estar@astro.ex.ac.uk',
+                                    'eSTAR ACK SWIFT BAT postion',
+                                    $mail_body, 'estar-status@estar.org.uk' ); 
 
-	     # Make SOAP calls
-	     # ---------------
+            # Make SOAP calls
+            # ---------------
 
 
-	     # build endpoint
-	     my $endpoint = "http://" . $config->get_option("ua.host") . 
-			    ":" . $config->get_option("ua.port");
-	     my $uri = new URI($endpoint);	   
-	 
-	     $log->debug("Connecting to server at $endpoint");
+            # build endpoint
+            my $endpoint = "http://" . $config->get_option("ua.host") . 
+                           ":" . $config->get_option("ua.port");
+            my $uri = new URI($endpoint);         
+        
+            $log->debug("Connecting to server at $endpoint");
 
-	     # create authentication cookie
-	     $log->debug("Creating authentication token");
-	     my $cookie =  eSTAR::Util::make_cookie( 
-	       $config->get_option("gcn.user"), $config->get_option("gcn.passwd") );
-	 
-		      
-	     $log->debug("Placing it in the cookie jar...");
-	     my $cookie_jar = HTTP::Cookies->new();
-	     $cookie_jar->set_cookie(0, 
-			     user => $cookie, '/', $uri->host(), $uri->port()); 
-				   
-	     $log->print("Building SOAP client...");
+            # create authentication cookie
+            $log->debug("Creating authentication token");
+            my $cookie =  eSTAR::Util::make_cookie( 
+              $config->get_option("gcn.user"), $config->get_option("gcn.passwd") );
+        
+                     
+            $log->debug("Placing it in the cookie jar...");
+            my $cookie_jar = HTTP::Cookies->new();
+            $cookie_jar->set_cookie(0, 
+                            user => $cookie, '/', $uri->host(), $uri->port()); 
+                                  
+            $log->print("Building SOAP client...");
  
-	     # create SOAP connection
-	     my $soap = new SOAP::Lite();
-	     $soap->uri('urn:/user_agent'); 
-	     $soap->proxy($endpoint, cookie_jar => $cookie_jar);
-	 
-	     # Submit an inital burst followup block
-	     # -------------------------------------
+            # create SOAP connection
+            my $soap = new SOAP::Lite();
+            $soap->uri('urn:/user_agent'); 
+            $soap->proxy($endpoint, cookie_jar => $cookie_jar);
+        
+            # Submit an inital burst followup block
+            # -------------------------------------
 
-	     $log->print("Making a SOAP conncetion for InitialBurstFollowup...");
-	     eval { $result = $soap->new_observation( 
-			      user     => $config->get_option("gcn.user"),
-			      pass     => $config->get_option("gcn.passwd"),
-			      type     => 'InitialBurstFollowup',
-			      ra       => $ra,
-			      dec      => $dec,
-			      followup => 0,
-			      exposure => 30,
-			      passband => "k98" ); };
-	     if ( $@ ) {
-		$log->warn("Warning: Problem connecting to user agent");
-		$log->error("Error: $@");
-		$log->error("Error: Aborting submission of observations");
-		
-		    my $mail_body = 
-		   "This email indicates that the eSTAR system has been unable to\n".
-		   "place an initial burst followup observation into the UKIRT queue.\n".
-		   "\n".
-		   "The error message was: $@\n";
-	 
-		   eSTAR::Mail::send_mail( $config->get_option("user.email_address"), 
-					   $config->get_option("user.real_name"),
-					   'estar@astro.ex.ac.uk',
-					   'eSTAR User Agent Connection Problem (initial)',
-					   $mail_body, 'estar-status@estar.org.uk' ); 
-	     } 
-	     $log->print("Connection closed");  
+            $log->print("Making a SOAP conncetion for InitialBurstFollowup...");
+            eval { $result = $soap->new_observation( 
+                             user     => $config->get_option("gcn.user"),
+                             pass     => $config->get_option("gcn.passwd"),
+                             type     => 'InitialBurstFollowup',
+                             ra       => $ra,
+                             dec      => $dec,
+                             followup => 0,
+                             exposure => 30,
+                             passband => "k98" ); };
+            if ( $@ ) {
+               $log->warn("Warning: Problem connecting to user agent");
+               $log->error("Error: $@");
+               $log->error("Error: Aborting submission of observations");
+               
+                   my $mail_body = 
+                  "This email indicates that the eSTAR system has been unable to\n".
+                  "place an initial burst followup observation into the UKIRT queue.\n".
+                  "\n".
+                  "The error message was: $@\n";
+        
+                  eSTAR::Mail::send_mail( $config->get_option("user.email_address"), 
+                                          $config->get_option("user.real_name"),
+                                          'estar@astro.ex.ac.uk',
+                                          'eSTAR User Agent Connection Problem (initial)',
+                                          $mail_body, 'estar-status@estar.org.uk' ); 
+            } 
+            $log->print("Connection closed");  
+
+# Commented out portion would stop here
+
 	  } else {
 	     $log->warn("Warning: Not making inital observations");
 	     if( $bits[1] != 1 ) {
@@ -537,6 +540,7 @@ my $tcp_callback = sub {
 	       "an initial BAT position alert however no observations have\n" .
 	       "been scheduled since the target was not identified as a GRB\n".
 	       "with an image significance value > 7 centi-sigma.\n";
+
 	 
 	     eSTAR::Mail::send_mail( $config->get_option("user.email_address"), 
 				     $config->get_option("user.real_name"),
@@ -622,9 +626,9 @@ my $tcp_callback = sub {
          $soap->uri('urn:/user_agent'); 
          $soap->proxy($endpoint, cookie_jar => $cookie_jar);
 
-#         # Submit an inital burst followup block
-#         # -------------------------------------
-#
+         # Submit an inital burst followup block
+         # -------------------------------------
+
 #         $log->print("Making a SOAP conncetion for InitialBurstFollowup...");
 #         eval { $result = $soap->new_observation( 
 #                              user     => $config->get_option("gcn.user"),
@@ -651,9 +655,9 @@ my $tcp_callback = sub {
 #                                        'estar@astro.ex.ac.uk',
 #                                        'eSTAR User Agent Connection Problem (initial)',
 #                                        $mail_body, 'estar-status@estar.org.uk' );                 
-#                  
-#         } 
-#         $log->print("Connection closed");  
+                  
+         } 
+         $log->print("Connection closed");  
 
 
 	 # Submit an burst followup block
