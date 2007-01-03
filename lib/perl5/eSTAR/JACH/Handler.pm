@@ -718,6 +718,7 @@ sub handle_rtml {
          # Offset the target MSB by -795 arcsec in both RA and Dec (S & W)
          my $instrument = eSTAR::JACH::Util::current_instrument( 
                                     $config->get_option( "dn.telescope") 
+         $log->debug( "The current instrument is $instrument" );
          if ( $instrument == "WFCAM" ) {                           
            $log->warn( "Warning: The current instrument is $instrument" );
            $log->warn( "Warning: Offseting by 795 arcsec south and west" );
