@@ -709,12 +709,43 @@ sub handle_rtml {
          
          # fill the duplicated MSB with the target information
            
-         my $position = new Astro::Coords( ra  => $parsed->ra(),
-                                           dec => $parsed->dec(),
-                                           type => $parsed->equinox(),
-                                           name => $parsed->target());
-      
-         $template->fill_template( coords => $position );
+         my $input_position = new Astro::Coords( ra   => $parsed->ra(),
+                                                 dec  => $parsed->dec(),
+                                                 type => $parsed->equinox(),
+                                                 name => $parsed->target());
+
+        
+         # Offset the target MSB by -795 arcsec in both RA and Dec (S & W)
+         my $instrument = eSTAR::JACH::Util::current_instrument( 
+                                    $config->get_option( "dn.telescope") 
+         if ( $instrument == "WFCAM" ) {                           
+           $log->warn( "Warning: The current instrument is $instrument" );
+           $log->warn( "Warning: Offseting by 795 arcsec south and west" );
+           my $ra = $input_position->ra( format => "arcsec" );
+           my $dec = $input_position->dec( format => "arcsec" );
+           $log->debug( "Input position is $input_position" );
+           my $offset = 795;
+           my $offset_ra = $offset/cos(abs($input_position->dec(format => "radians"))); 
+           $log->debug("An offset of $offset in Dec translates to $offset_ra in RA");
+           $ra = $ra - $offset_ra;
+           $dec = $dec - $offset;
+           my $ra_angle = new Astro::Coords::Angle(  $ra/15, units => "arcsec" );
+           my $dec_angle = new Astro::Coords::Angle(  $dec , units => "arcsec" );
+           my $ra_out = $ra_angle->string();
+           my $dec_out = $dec_angle->string();        
+           my $output_position = new Astro::Coords( ra => $ra_out, 
+                                                    dec => $dec_out,
+                                                    type => $parsed->equinox(),
+                                                    name => $parsed->target(),
+			                            format => "sexigesimal" );
+           $log->debug( "Ouput position is $output_position" );
+           
+           $log->debug( "Filling template MSB...");                                  
+           $template->fill_template( coords => $output_position );
+         } else {
+           $log->debug( "Filling template MSB...");                                  
+           $template->fill_template( coords => $input_position );
+         }
          $template->remaining( 1 ); # only do once
          
          # tag the msb in the science proposal with an expiry time, there
@@ -863,7 +894,8 @@ sub handle_rtml {
                                            dec => $parsed->dec(),
                                            type => $parsed->equinox(),
                                            name => $parsed->target());
-                                                                                
+         
+         # grab telescope name                                                                       
          my $scope =  $config->get_option("dn.telescope");
          $position->telescope( $scope );      
       
