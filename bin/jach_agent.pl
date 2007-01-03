@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: jach_agent.pl,v 1.22 2007/01/03 14:14:46 aa Exp $
+#     $Id: jach_agent.pl,v 1.23 2007/01/03 14:15:33 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -67,7 +67,7 @@ translation layer, which also handles external phase 0 discovery requests.
 
 =head1 REVISION
 
-$Id: jach_agent.pl,v 1.22 2007/01/03 14:14:46 aa Exp $
+$Id: jach_agent.pl,v 1.23 2007/01/03 14:15:33 aa Exp $
 
 =head1 AUTHORS
 
@@ -84,7 +84,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.22 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.23 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -589,7 +589,7 @@ my $soap_server = sub {
 # Spawn the SOAP server thread
 my $telescope = $config->get_option( "dn.telescope");
 my $instrument = eSTAR::JACH::Util::current_instrument( $telescope );
-                                    );
+
 $log->print("Current instrument on $telescope is $instrument" );
                                    
 $log->print("Spawning SOAP Server thread...");
@@ -829,6 +829,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: jach_agent.pl,v $
+# Revision 1.23  2007/01/03 14:15:33  aa
+# more debug
+#
 # Revision 1.22  2007/01/03 14:14:46  aa
 # more debug
 #
