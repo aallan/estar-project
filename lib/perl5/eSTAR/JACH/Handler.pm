@@ -708,7 +708,7 @@ sub handle_rtml {
          $template = $sp->dupMSB( $template );
          
          # fill the duplicated MSB with the target information
-           
+         my $position;  
          my $input_position = new Astro::Coords( ra   => $parsed->ra(),
                                                  dec  => $parsed->dec(),
                                                  type => $parsed->equinox(),
@@ -741,12 +741,15 @@ sub handle_rtml {
 			                            format => "sexigesimal" );
            $log->debug( "Ouput position is $output_position" );
            
-           $log->debug( "Filling template MSB...");                                  
-           $template->fill_template( coords => $output_position );
+           $log->debug( "Making \$position = $\output_positon");                                  
+           $position = $output_position;
          } else {
-           $log->debug( "Filling template MSB...");                                  
-           $template->fill_template( coords => $input_position );
+           $log->debug( "Making \$position = $\input_positon");                                  
+           $position = $input_position;
          }
+         
+         $log->debug( "Filling template MSB...");                                  
+         $template->fill_template( coords => $position );
          $template->remaining( 1 ); # only do once
          
          # tag the msb in the science proposal with an expiry time, there
