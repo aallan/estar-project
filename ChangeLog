@@ -1,3 +1,7 @@
+2007-01-03 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * eSTAR/JACH/Handler.pm: Added offset for WFCAM
+        
 2007-01-02 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * bin/test_servers.pl: Added debugging to FTP connection.
