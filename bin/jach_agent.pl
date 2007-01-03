@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: jach_agent.pl,v 1.21 2006/05/14 17:27:34 aa Exp $
+#     $Id: jach_agent.pl,v 1.22 2007/01/03 14:14:46 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -67,7 +67,7 @@ translation layer, which also handles external phase 0 discovery requests.
 
 =head1 REVISION
 
-$Id: jach_agent.pl,v 1.21 2006/05/14 17:27:34 aa Exp $
+$Id: jach_agent.pl,v 1.22 2007/01/03 14:14:46 aa Exp $
 
 =head1 AUTHORS
 
@@ -84,7 +84,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.21 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.22 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -587,6 +587,11 @@ my $soap_server = sub {
 # S T A R T   S O A P   S E R V E R -----------------------------------------
 
 # Spawn the SOAP server thread
+my $telescope = $config->get_option( "dn.telescope");
+my $instrument = eSTAR::JACH::Util::current_instrument( $telescope );
+                                    );
+$log->print("Current instrument on $telescope is $instrument" );
+                                   
 $log->print("Spawning SOAP Server thread...");
 $listener_thread = threads->create( $soap_server );
 
@@ -824,6 +829,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: jach_agent.pl,v $
+# Revision 1.22  2007/01/03 14:14:46  aa
+# more debug
+#
 # Revision 1.21  2006/05/14 17:27:34  aa
 # Modifications to work on OSX, removed killfam. Fixed gcn_server.pl so that it fires on BAT positions
 #
