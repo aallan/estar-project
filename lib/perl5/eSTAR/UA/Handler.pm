@@ -803,7 +803,7 @@ sub new_observation {
              Institution => $score_reply->institution(),
              Email       => $score_reply->email(),              
              Target   => $score_reply->target(),
-             Project => $score_reply->project(),
+             Project => $observation{'project'},
              TargetIdent => $observation{'type'},
 	     TargetType  => $observation{'toop'},
              RA       => $score_request->ra(),
@@ -831,6 +831,7 @@ sub new_observation {
             Institution => $score_request->institution(),
             Email       => $score_request->email(),                        
             Target   => $score_request->target(),
+            Project => $observation{'project'},
             TargetIdent => $observation{'type'},
 	    TargetType  => $observation{'toop'},
             RA       => $score_request->ra(),
@@ -1057,11 +1058,11 @@ sub new_observation {
               "was rejected with the error,\n" .
               "\n$error\n" .
               "This is a fatal error. You may want to try and followup up\n".
-              "manually. The RTML message that was sent to the node is\n".
+              "manually. The RTML message returned from the node is\n".
               "attached below\n".
               "\n\n".
-              $observation_object->obs_request()->dump_rtml();
-      
+              $reply;
+  
              eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
                               $config->get_option("user.real_name"),
                               'estar@astro.ex.ac.uk',
@@ -1069,6 +1070,7 @@ sub new_observation {
                               $mail_body, 'estar-status@estar.org.uk' ); 
          }               
          
+	 $log->error( $reply );
          $log->error( $error );
          return SOAP::Data->name('return', $error )->type('xsd:string'); 
       }

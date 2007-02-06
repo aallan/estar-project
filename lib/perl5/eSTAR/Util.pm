@@ -38,7 +38,7 @@ use eSTAR::Error qw /:try/;
       qw/ make_cookie make_id freeze thaw reheat melt query_simbad 
           fudge_message fudge_user fudge_project /;
 
-'$Revision: 1.18 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.19 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # This is the code that is used to generate cookies based on the user
 # name and password. It is NOT cryptographically sound, it is just a
@@ -454,7 +454,12 @@ sub fudge_project {
    foreach my $i ( 0 ... $#message ) {
      if ( $message[$i] =~ "<Project />" ) {  
         $message[$i] = "<Project>$project_id</Project>";
-     } 
+     } elsif ( $message[$i] =~ "<Project>" && $message[$i] =~ "</Project>" ) {
+        $message[$i] = "<Project>$project_id</Project>";
+     } else {
+        my $error = "Unable to parse <Project></Project> field from document";
+        throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
+     }
      $new_rtml = $new_rtml . $message[$i] . "\n";
    }
    
@@ -465,7 +470,7 @@ sub fudge_project {
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.18 2005/07/25 08:02:08 aa Exp $
+$Id: Util.pm,v 1.19 2007/02/06 17:00:16 aa Exp $
 
 =head1 AUTHORS
 

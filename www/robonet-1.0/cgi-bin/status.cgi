@@ -136,9 +136,11 @@
 	   exit;
 	}
 
-        my ($target, $group_count, $series_count, $exposure, @time, $type, $filter, $project);
+        my ($target, $ra, $dec, $group_count, $series_count, $exposure, @time, $type, $filter, $project);
 	if( defined $obs ) {
            $target = $obs->target();
+           $ra = $obs->ra();
+           $dec = $obs->dec();
 	   $group_count = $obs->groupcount();
 	   $series_count = $obs->seriescount();
 	   $exposure = $obs->exposure();
@@ -174,7 +176,9 @@
 	   print "<A HREF='$url'>$full_name</A>";
 	
 	} else {
-	   print "$full_name";
+           print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Co-ordinates] body=[<table><tr><td width=25px><b>RA:</b></td><td><center>$ra</center></td></tr><tr><td><b>Dec:</b></td><td><center>$dec</center></td></tr></table>]' >";
+           print "$full_name";
+           print "</DIV>";
         }	
 	print "</font></td>\n";
 

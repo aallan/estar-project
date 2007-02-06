@@ -1,3 +1,17 @@
+2007-02-06 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * eSTAR/Util.pm: Fixed fudge_project() to handle non-empty projects.
+        
+        * eSTAR/UA/Handler.pm: Added better error reporting on 'reject' messages
+        
+        * bin/user_agent.pl: Pointed User Agent at "native" LT proxy machine,
+          fixed passing of <Project> tag between messages.
+        
+        * bin/make_observation.pl: Added passing of <Project> tag.
+        
+        * www/robonet-1.0/cgi-bin/status.cgi: Added RA&Dec hover tip for non
+          Exo-planet or SNe observations.
+
 2007-01-03 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * eSTAR/JACH/Handler.pm: Added offset for WFCAM
