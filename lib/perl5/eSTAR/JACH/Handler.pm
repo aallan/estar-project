@@ -500,7 +500,6 @@ sub handle_rtml {
              Email       => $parsed->email() );
 
       # build a score request
-      $reject_message->reject_response( );
       my $reject = $reject_message->dump_rtml();
       
       # do a find and replace, munging the response
