@@ -109,18 +109,17 @@ print '<body>'."\n";
 
 print '<img src="http://www.estar.org.uk/pda/png/titlebar_logo.png" alt="eSTAR" border="0" height="39" width="148" /> Handheld'."\n";
 
-print '<h1>Live Status</h1>
+print '<h1>Live Status</h1>'."\n";
 
 
-print '<P>Network status last updated on <font color="red">'. $status_timestamp .'</font></P>'."\n";
+print '<font color="red">'. $status_timestamp .'</font><br><br>'."\n";
 
 # EXETER #################################################################
 
-print '<dt><a href="http://www.astro.ex.ac.uk/" class="location" id="location01">Exeter, U.K.</a></dt>'."\n";
-print '<dd><a href="javascript:void(0);" class="close"> </a>'."\n";
-print '<strong><font color="red">e</font>STAR</strong><br><em>Exeter, U.K.</em><br><img src="http://www.bbc.co.uk/england/webcams/live/exeter.jpg" width="120" alt="Exeter web camera" />'."\n";
-print '<a href="http://maps.google.com/maps?f=q&hl=en&q=EX4+4QL&ie=UTF8&om=1&ll=50.739008,-3.53631&spn=0.023194,0.084972&t=h">Lat. 50.74, Long. -3.54</a><br>'."\n";
-print '<table>'."\n"; 
+print '<table width="100%" border="0">'."\n"; 
+
+print '<tr><td colspan="2"><strong style="padding-top:8px;"><font color="red">e</font>STAR</strong>, <em>Exeter, U.K.<br><font size="-2">Lat. 50.74, Long. -3.54</font></em></td></tr>'."\n";
+print '<tr><td><img src="http://www.bbc.co.uk/england/webcams/live/exeter.jpg" width="120" alt="Exeter web camera" /></td><td>&nbsp</td></tr>'."\n";
 my $string = "";
 foreach my $key ( sort keys %machine ) {
    if ( $key =~ "ex.ac.uk" ) {
@@ -162,18 +161,13 @@ if( $event_status eq "UP" ) {
 }
 print "<tr><td>Exo-planet Programme&nbsp;&nbsp;</td><td>$exo_status_string</td></tr>";
 print "<tr><td>GRB Programme&nbsp;&nbsp;</td><td>$grb_status_string</td></tr>"; 
-print "<tr><td>Event Broker&nbsp;&nbsp;</td><td>$event_status_string</td></tr></table>"; 
-
-print '</dd>'."\n";
+print "<tr><td>Event Broker&nbsp;&nbsp;</td><td>$event_status_string</td></tr>"; 
 
 # UKIRT #################################################################
 
-print '<dt><a href="http://www.jach.hawaii.edu/" class="location" id="location02">Hilo, HI, U.S.A.</a></dt>'."\n";
-print '<dd><a href="javascript:void(0);" class="close"> </a>'."\n";
-#print '<img src="http://www.jach.hawaii.edu/UKIRT/irtcam.jpg" width="120" alt="UKIRT web camera" />';
-print '<em><strong>UKIRT</strong><br>Hilo, HI, U.S.A.</em><br><img width="120" src="http://www.jach.hawaii.edu/UKIRT/irtcam.jpg" alt="UKIRT web camera">'."\n";
-print '<a href="http://maps.google.com/maps?f=q&hl=en&q=660+N.+A%27ohoku+Place,+Hilo,+Hawaii+96720&ie=UTF8&ll=19.707405,-155.089703&spn=0.069006,0.169945&t=h&om=1">Lat. 19.71, Long. -155.09</a><br>'."\n";
-print '<table>'."\n"; 
+print '<tr><td colspan="2"><hr width="100%"></td></tr>'."\n";
+print '<tr><td colspan="2" style="padding-top:5px"><strong>UKIRT</strong>, <em>Hilo, HI, U.S.A.<br><font size="-2">Lat. 19.71, Long. -155.09</font></em></td></tr>'."\n";
+print '<tr><td><img width="120" src="http://www.jach.hawaii.edu/UKIRT/irtcam.jpg" alt="UKIRT web camera"></td><td>&nbsp;</td></tr>'."\n";
 my $string = "";
 foreach my $key ( sort keys %machine ) {
    if ( $key =~ "jach.hawaii.edu" ) {
@@ -195,16 +189,13 @@ if( $ukirt_status eq "UP" ) {
 } else {
    $ukirt_status_string = "<font color='orange'>$ukirt_status</font>";
 }
-print "<tr><td>Node Agent&nbsp;&nbsp;</td><td>$ukirt_status_string</td></tr></table>"; 
-print '</dd>'."\n";
+print "<tr><td>Node Agent&nbsp;&nbsp;</td><td>$ukirt_status_string</td></tr>"; 
 
 # LT ######################################################################
 
-print '<dt><a href="http://telescope.livjm.ac.uk/" class="location" id="location03">La Palma, Spain</a></dt>'."\n";
-print '<dd><a href="javascript:void(0);" class="close"> </a>'."\n";
-print '<em><strong>Liverpool Telescope</strong><br>La Palma, Spain</em><br><img src="http://telescope.livjm.ac.uk/pics/webcam_int_2.jpg" width="120" alt="LT web camera" />'."\n";
-print '<a href="http://maps.google.com/?ie=UTF8&ll=28.703763,-17.866087&spn=0.128584,0.227966&t=h&om=1">Lat. 28.70, Long. -17.87</a><br>'."\n";
-print '<table>'."\n"; 
+print '<tr><td colspan="2"><hr width="100%"></td></tr>'."\n";
+print '<tr><td colspan="2" style="padding-top:5px"><strong>LT</strong>, <em>La Palma, Spain<br><font size="-2">Lat. 28.70, Long. -17.87</font></em></td></tr>'."\n";
+print '<tr><td><img src="http://telescope.livjm.ac.uk/pics/webcam_int_2.jpg" width="120" alt="LT web camera" /></td><td>&nbsp;</td></tr>'."\n";
 my $string = "";
 foreach my $key ( sort keys %machine ) {
    $key = "ltproxy.ing.iac.es" if $key eq "161.72.57.3";
@@ -227,18 +218,13 @@ if( $lt_status eq "UP" ) {
 } else {
    $lt_status_string = "<font color='orange'>$lt_status</font>";
 }
-print "<tr><td>Node Agent&nbsp;&nbsp;</td><td>$lt_status_string</td></tr></table>"; 
-print '</dd>'."\n";
+print "<tr><td>Node Agent&nbsp;&nbsp;</td><td>$lt_status_string</td></tr>"; 
 
 # FTS ###################################################################
 
-print '<dt><a href="http://www.faulkes-telescope.com/" class="location" id="location04">Coonabarabran, Australia</a></dt>'."\n";
-print '<dd><a href="javascript:void(0);" class="close"> </a>'."\n";
-print '<em><strong>Faulkes South</strong><br>Coonabarabran, Australia</em><br><img src="http://150.203.153.202:8274/axis-cgi/jpg/image.cgi?resolution=320x240" width="120" alt="FTS web camera" />'."\n";
-
-print '<a href="http://maps.google.com/maps?f=q&hl=en&q=coonabarabran,+Australia&ie=UTF8&ll=-31.268281,149.281883&spn=0.125305,0.33989&t=h&om=1">Lat. -31.27, Long. 149.28</a><br>'."\n";
-print 'Google Earth <a href="http://www.aao.gov.au/vr/telescopes.kmz"><u>placemark file</u></a> for SSO<br>'."\n";
-print '<table>'."\n"; 
+print '<tr><td colspan="2"><hr width="100%"></td></tr>'."\n";
+print '<tr><td colspan="2" style="padding-top:5px"><strong>FTS</strong></strong>, <em>Coonabarabran, Australia<br><font size="-2">Lat. -31.27, Long. 149.28</font></em></td></tr>'."\n";
+print '<tr><td><img src="http://150.203.153.202:8274/axis-cgi/jpg/image.cgi?resolution=320x240" width="120" alt="FTS web camera" /></td><td>&nbsp;</td></tr>'."\n";
 my $string = "";
 foreach my $key ( sort keys %machine ) {
    $key = "ftsproxy.aao.gov.au" if $key eq "150.203.153.202";
@@ -263,17 +249,13 @@ if( $fts_status eq "UP" ) {
 } else {
    $fts_status_string = "<font color='orange'>$fts_status</font>";
 }
-print "<tr><td>Node Agent&nbsp;&nbsp;</td><td>$fts_status_string</td></tr></table>"; 
-print '</dd>'."\n";
+print "<tr><td>Node Agent&nbsp;&nbsp;</td><td>$fts_status_string</td></tr>"; 
 
 # FTN ###################################################################
 
-print '<dt><a href="http://www.faulkes-telescope.com/" class="location" id="location05">Haleakala, HI, U.S.A.</a></dt>'."\n";
-print '<dd><a href="javascript:void(0);" class="close"> </a>'."\n";
-print '<em><strong>Faulkes North</strong><br>Haleakala, HI, U.S.A.</em><br><img width="120" src="http://132.160.98.239:8275/axis-cgi/jpg/image.cgi?resolution=320x240" alt="FTN web camera">'."\n";
-
-print '<a href="http://maps.google.com/?ie=UTF8&t=h&om=1&ll=20.732997,-156.187134&spn=0.548416,0.911865">Lat. 10.7, Long. -156.2</a><br>'."\n";
-print '<table>'."\n"; 
+print '<tr><td colspan="2"><hr width="100%"></td></tr>'."\n";
+print '<tr><td colspan="2" style="padding-top:5px"><strong>Faulkes North</strong>, <em>Haleakala, HI, U.S.A.<br><font size="-2">Lat. 10.7, Long. -156.2</font></em></td></tr>'."\n";
+print '<tr><td><img width="120" src="http://132.160.98.239:8275/axis-cgi/jpg/image.cgi?resolution=320x240" alt="FTN web camera"></td><td>&nbsp;</td></tr>'."\n";
 my $string = "";
 foreach my $key ( sort keys %machine ) {
    $key = "ftnproxy.ifa.hawaii.edu" if $key eq "132.160.98.239";
@@ -296,16 +278,13 @@ if( $ftn_status eq "UP" ) {
 } else {
    $ftn_status_string = "<font color='orange'>$ftn_status</font>";
 }
-print "<tr><td>Node Agent&nbsp;&nbsp;</td><td>$ftn_status_string</td></tr></table>"; 
-print '</dd>'."\n";
+print "<tr><td>Node Agent&nbsp;&nbsp;</td><td>$ftn_status_string</td></tr>"; 
 
 # RAPTOR ###################################################################
 
-print '<dt><a href="http://www.thinkingtelescopes.lanl.gov/" class="location" id="location06">Los Alamos, NM, U.S.A.</a></dt>'."\n";
-print '<dd><a href="javascript:void(0);" class="close"> </a>'."\n";
-print '<em><strong>RAPTOR/TALONS</strong><br>Los Alamos, NM, U.S.A.</em><br><img width="120" src="http://wwc.instacam.com/InstacamImg/lsalm/02032005/020320051200_l.jpg" alt="Los Alamos web camera">'."\n";
-print '<a href="http://maps.google.com/maps?f=q&hl=en&q=Los+Alamos,+NM&ie=UTF8&ll=35.888077,-106.306458&spn=0.095405,0.177326&t=h&om=1">Lat. 35.9, Long. -106.3</a><br>'."\n";
-print '<table>'."\n";
+print '<tr><td colspan="2"><hr width="100%"></td></tr>'."\n";
+print '<tr><td colspan="2" style="padding-top:5px"><strong>RAPTOR</strong>, <em>Los Alamos, NM, U.S.A.<br><font size="-2">Lat. 35.9, Long. -106.3</font></em></td></tr>'."\n";
+print '<tr><td><img width="120" src="http://wwc.instacam.com/InstacamImg/lsalm/02032005/020320051200_l.jpg" alt="Los Alamos web camera"></td><td>&nbsp;</td></tr>'."\n";
 my $ftn_status = ${$node{RAPTOR}}[2];
 my $ftn_status_string = "";
 if( $ftn_status eq "UP" ) {
@@ -315,45 +294,12 @@ if( $ftn_status eq "UP" ) {
 } else {
    $ftn_status_string = "<font color='orange'>$ftn_status</font>";
 }
-print "<tr><td>Gateway&nbsp;&nbsp;</td><td>$ftn_status_string</td></tr></table>";
-print '</dd>'."\n";
+print "<tr><td>Gateway&nbsp;&nbsp;</td><td>$ftn_status_string</td></tr>";
+print '<tr><td colspan="2"><hr width="100%"></td></tr>'."\n";
 
+print '</table>'."\n";
 
-############################################################################
-print '</dl>';
-
-print '<table border="0"><tr><td><img align="right" src="../gif/download_widget.gif" /></td><td>Download the network status <a href="http://www.estar.org.uk/software/estar_status_widget.zip">Dashboard Widget</a> for Mac OS X Tiger.</td></tr></table>'."\n"; 
-
-print "</div>\n";
-print 'Latest status at information available at <a href="http://www.estar.org.uk/network.status">http://www.estar.org.uk/network.status</a><br>'."\n";
-
-my $exo_icon_string;
-if( $exo_status eq "UP" ) {
-  $exo_icon_string = '<img src="../gif/icon_green.gif" />';
-} elsif ( $exo_status eq "FAULT" ) {
-  $exo_icon_string = '<img src="../gif/icon_yellow.gif" />';
-} else {
-  $exo_icon_string = '<img src="../gif/icon_red.gif" />';
-}
-
-print '<h3>Exo-planet Observing Programme&nbsp;'.$exo_icon_string.'<br><font size="-3"><em>PI: <a href="mailto:kdh1@st-andrews.ac.uk">Keith Horne</a>, University of St. Andrews</em></font></h3>'."\n";
-print 'Microlensing is currently the faster and cheapest way to search for cool planets. It is this technique that is being utilised by eSTAR and <a href="http://www.astro.livjm.ac.uk/RoboNet/">RoboNet-1.0</a> to intensively monitor large numbers of Galactic Bulge microlensing events. The method is most sensitive to cool planets, 1-5 AU from the lens stars and is the only ground-based technique that is currently capable of discovering Earth-mass planets.'."\n";
-print "<P>Real time status information on the <a href='http://vo.astro.ex.ac.uk/robonet-1.0/cgi-bin/status.cgi'>Robonet-1.0 Status Page</a> <img src='http://www.estar.org.uk/wiki/uploads/7/7a/Padlock_Icon.jpg' /></P>\n";
-
-my $grb_icon_string;
-if( $grb_status eq "UP" ) {
-  $grb_icon_string = '<img src="../gif/icon_green.gif" />';
-} elsif ( $grb_status eq "FAULT" ) {
-  $grb_icon_string = '<img src="../gif/icon_yellow.gif" />';
-} else {  
-  $grb_icon_string = '<img src="../gif/icon_red.gif" />';
-}
-
-print '<h3>GRB Observing Programme&nbsp;'.$grb_icon_string.'<br><font size="-3"><em>PI: <a href="mailto:nrt@star.herts.ac.uk">Nial Tanvir</a>, University of Leicester</em></font></h3>'."\n";
-print '<p>The eSTAR project provides a link between SWIFT and ground based telescopes by making use of the emerging field of intelligent agent technology to provide crucial autonomous decision making in software. Now deployed onto UKIRT for this purpose, it makes it the largest telescope in the world with an automatic response system for chasing GRBs.</p>'."\n";
-print "<P>Real time status information on the <a href='http://grb.astro.ex.ac.uk/ukirt/cgi-bin/status.cgi'>UKIRT Status Page</a> <img src='http://www.estar.org.uk/wiki/uploads/7/7a/Padlock_Icon.jpg' /></P>\n";
-
-
+print '<font size="-3">This page was automatically generated.<br>'."Copyright &copy; 2007 Alasdair Allan</font>\n";
 print '</body>'."\n";
 print '</html>'."\n";
 
