@@ -279,13 +279,27 @@ sub handle_rtml {
          $new_project = "Essence";
       }
       
-   } else {   
-      $new_user = $original_user;
-      $new_project = "";
-   }   
+   } 
+   if ( defined $new_user && defined $new_project ) {
+ 
+     eval { $rtml = eSTAR::Util::fudge_user( $rtml, $new_user ); };
+     if ( $@ ) {
+        my $error = "Error: Trouble fudging user name";
+        $log->error( "$@" );
+        $log->error( $error );
+        $log->error( "\nRTML File:\n$rtml" );
+        throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
+     }    
    
-   $rtml = eSTAR::Util::fudge_user( $rtml, $new_user );  
-   $rtml = eSTAR::Util::fudge_project( $rtml, $new_project );  
+     eval { $rtml = eSTAR::Util::fudge_project( $rtml, $new_project ); };  
+     if ( $@ ) {
+        my $error = "Error: Trouble fudging project name";
+        $log->error( "$@" );
+        $log->error( $error );
+        $log->error( "\nRTML File:\n$rtml" );
+        throw eSTAR::Error::FatalError($error, ESTAR__FATAL);
+     }
+   }
    
    # SEND TO TEA
    # -----------

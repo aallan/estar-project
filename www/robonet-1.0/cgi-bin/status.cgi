@@ -91,10 +91,11 @@
   print "<font size='-2'><table border='0' width='95%'>\n"; 
   print "<tr><th align='left'>Target</th>".
 	"<th align='left'>Type</th>".
+        "<th align='left'>Priority</th>".
         "<th align='left'>Date</th>".
         "<th align='left'>Exposure</th>".
         "<th align='left'>Filter</th>".
-	"<th align='left'>Node</th>".
+        "<th align='left'>Node</th>".
 	"<th align='left'>Status?</th></tr>\n";
 	
 #  foreach my $i ( 2 ... $#files ) {
@@ -120,6 +121,7 @@
         my ($node_name, $score_reply) = $object->highest_score();
 	$node = "FTN" if $node eq "estar3.astro.ex.ac.uk:8077";
 	$node = "LT" if $node eq "estar3.astro.ex.ac.uk:8078";
+	$node = "LT Proxy" if $node eq "161.72.57.3:8080/axis/services/NodeAgent";
 	$node = "FTS" if $node eq "estar3.astro.ex.ac.uk:8079";  
         my $score;
         eval { $score = $score_reply->score() if defined $score_reply; };
@@ -136,7 +138,7 @@
 	   exit;
 	}
 
-        my ($target, $ra, $dec, $group_count, $series_count, $exposure, @time, $type, $filter, $project);
+        my ($target, $priority, $ra, $dec, $group_count, $series_count, $exposure, @time, $type, $filter, $project);
 	if( defined $obs ) {
            $target = $obs->target();
            $ra = $obs->ra();
@@ -147,6 +149,7 @@
 	   @time = $obs->timeconstraint();
 	   $type = $obs->targettype();
 	   $filter = $obs->filter();
+	   $priority = $obs->priority();
 	   $project = $obs->project() if $obs->isa("XML::Document::RTML");
 	   #print "\$obs->isa() = " . $obs->isa("XML::Document::RTML") . ", $project is" . $obs->project() . "<br>";
         }
@@ -216,8 +219,15 @@
 	   
 	}  
 	print "</td>\n";    
-	 
-	# TIMESTAMP - 3 ------------------------------------------------
+
+        # PRIORITY - 3 -----------------------------------------------------
+
+        print "<td>";
+        print "<font color='grey'>$priority</font>";
+        print "</DIV>";
+        print "</td>\n";	 
+
+	# TIMESTAMP - 4 ------------------------------------------------
 	
 	my $date = $time[0];
 	$date =~ s/T\d{2}:\d{2}:\d{2}.\d{4}$//;
@@ -227,7 +237,7 @@
         print "</DIV>";
         print "</td>\n";
 	  
-	# EXPOSURE - 4 -------------------------------------------------  
+	# EXPOSURE - 5 ----------------------------------------------  
 	print "<td><font color='grey'>";
 	if ( defined $series_count && defined $group_count ) {
 	   print "$series_count&times;($group_count&times;$exposure)";
@@ -244,7 +254,7 @@
 	print "</font></td>\n";
 	
 	
-	# FILTER - 5 -----------------------------------------------------
+	# FILTER - 6 -----------------------------------------------------
 	
 	
 	print "<td>";
@@ -252,8 +262,7 @@
         print "</DIV>";
         print "</td>\n";	
 	
-	
-	# NODE - 6 ---------------------------------------------------------
+	# NODE - 7 ---------------------------------------------------------
 	
 	print "<td>";
         print "<DIV TITLE='offsetx=[-75] cssbody=[popup_body] cssheader=[popup_header] header=[Best Score] body=[<table><tr><td><b>$node_name</b></td></tr><tr><td><b>Score:</b> $score</td></tr></table>]' >";
@@ -261,7 +270,7 @@
         print "</DIV>";
         print "</td>\n";
 		
-	# STATUS - 7 ---------------------------------------------------
+	# STATUS - 8 ---------------------------------------------------
 	print "<td>";
 	if ( defined $project ) {
 	   print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Unique ID] body=[<table><tr><td>".$files[$i]."</td></tr><tr><td><b>Project:</b> ". $project ."</td></tr></table>]' >";
