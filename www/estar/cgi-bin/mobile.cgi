@@ -119,7 +119,7 @@ print '<font color="red">'. $status_timestamp .'</font><br><br>'."\n";
 print '<table width="100%" border="0">'."\n"; 
 
 print '<tr><td colspan="2"><strong style="padding-top:8px;"><font color="red">e</font>STAR</strong>, <em>Exeter, U.K.<br><font size="-2">Lat. 50.74, Long. -3.54</font></em></td></tr>'."\n";
-print '<tr><td><img src="http://www.bbc.co.uk/england/webcams/live/exeter.jpg" width="120" alt="Exeter web camera" /></td><td>&nbsp</td></tr>'."\n";
+print '<tr><td><img src="http://www.bbc.co.uk/england/webcams/live/exeter.jpg" width="160" height="120" alt="Exeter web camera" /></td><td>&nbsp</td></tr>'."\n";
 my $string = "";
 foreach my $key ( sort keys %machine ) {
    if ( $key =~ "ex.ac.uk" ) {
@@ -167,7 +167,7 @@ print "<tr><td>Event Broker&nbsp;&nbsp;</td><td>$event_status_string</td></tr>";
 
 print '<tr><td colspan="2"><hr width="100%"></td></tr>'."\n";
 print '<tr><td colspan="2" style="padding-top:5px"><strong>UKIRT</strong>, <em>Hilo, HI, U.S.A.<br><font size="-2">Lat. 19.71, Long. -155.09</font></em></td></tr>'."\n";
-print '<tr><td><img width="120" src="http://www.jach.hawaii.edu/UKIRT/irtcam.jpg" alt="UKIRT web camera"></td><td>&nbsp;</td></tr>'."\n";
+print '<tr><td><img width="160" height="120" src="http://www.jach.hawaii.edu/UKIRT/irtcam.jpg" alt="UKIRT web camera"></td><td>&nbsp;</td></tr>'."\n";
 my $string = "";
 foreach my $key ( sort keys %machine ) {
    if ( $key =~ "jach.hawaii.edu" ) {
@@ -195,7 +195,7 @@ print "<tr><td>Node Agent&nbsp;&nbsp;</td><td>$ukirt_status_string</td></tr>";
 
 print '<tr><td colspan="2"><hr width="100%"></td></tr>'."\n";
 print '<tr><td colspan="2" style="padding-top:5px"><strong>LT</strong>, <em>La Palma, Spain<br><font size="-2">Lat. 28.70, Long. -17.87</font></em></td></tr>'."\n";
-print '<tr><td><img src="http://telescope.livjm.ac.uk/pics/webcam_int_2.jpg" width="120" alt="LT web camera" /></td><td>&nbsp;</td></tr>'."\n";
+print '<tr><td><img src="http://telescope.livjm.ac.uk/pics/webcam_int_2.jpg" width="160" height="120" alt="LT web camera" /></td><td>&nbsp;</td></tr>'."\n";
 my $string = "";
 foreach my $key ( sort keys %machine ) {
    $key = "ltproxy.ing.iac.es" if $key eq "161.72.57.3";
@@ -224,7 +224,7 @@ print "<tr><td>Node Agent&nbsp;&nbsp;</td><td>$lt_status_string</td></tr>";
 
 print '<tr><td colspan="2"><hr width="100%"></td></tr>'."\n";
 print '<tr><td colspan="2" style="padding-top:5px"><strong>FTS</strong></strong>, <em>Coonabarabran, Australia<br><font size="-2">Lat. -31.27, Long. 149.28</font></em></td></tr>'."\n";
-print '<tr><td><img src="http://150.203.153.202:8274/axis-cgi/jpg/image.cgi?resolution=320x240" width="120" alt="FTS web camera" /></td><td>&nbsp;</td></tr>'."\n";
+print '<tr><td><img src="http://150.203.153.202:8274/axis-cgi/jpg/image.cgi?resolution=320x240" width="160" height="120" alt="FTS web camera" /></td><td>&nbsp;</td></tr>'."\n";
 my $string = "";
 foreach my $key ( sort keys %machine ) {
    $key = "ftsproxy.aao.gov.au" if $key eq "150.203.153.202";
@@ -255,7 +255,7 @@ print "<tr><td>Node Agent&nbsp;&nbsp;</td><td>$fts_status_string</td></tr>";
 
 print '<tr><td colspan="2"><hr width="100%"></td></tr>'."\n";
 print '<tr><td colspan="2" style="padding-top:5px"><strong>Faulkes North</strong>, <em>Haleakala, HI, U.S.A.<br><font size="-2">Lat. 10.7, Long. -156.2</font></em></td></tr>'."\n";
-print '<tr><td><img width="120" src="http://132.160.98.239:8275/axis-cgi/jpg/image.cgi?resolution=320x240" alt="FTN web camera"></td><td>&nbsp;</td></tr>'."\n";
+print '<tr><td><img width="160" height="120" src="http://132.160.98.239:8275/axis-cgi/jpg/image.cgi?resolution=320x240" alt="FTN web camera"></td><td>&nbsp;</td></tr>'."\n";
 my $string = "";
 foreach my $key ( sort keys %machine ) {
    $key = "ftnproxy.ifa.hawaii.edu" if $key eq "132.160.98.239";
@@ -284,7 +284,7 @@ print "<tr><td>Node Agent&nbsp;&nbsp;</td><td>$ftn_status_string</td></tr>";
 
 print '<tr><td colspan="2"><hr width="100%"></td></tr>'."\n";
 print '<tr><td colspan="2" style="padding-top:5px"><strong>RAPTOR</strong>, <em>Los Alamos, NM, U.S.A.<br><font size="-2">Lat. 35.9, Long. -106.3</font></em></td></tr>'."\n";
-print '<tr><td><img width="120" src="http://wwc.instacam.com/InstacamImg/lsalm/02032005/020320051200_l.jpg" alt="Los Alamos web camera"></td><td>&nbsp;</td></tr>'."\n";
+print '<tr><td><img width="160" height="120" src="http://wwc.instacam.com/InstacamImg/lsalm/02032005/020320051200_l.jpg" alt="Los Alamos web camera"></td><td>&nbsp;</td></tr>'."\n";
 my $ftn_status = ${$node{RAPTOR}}[2];
 my $ftn_status_string = "";
 if( $ftn_status eq "UP" ) {
