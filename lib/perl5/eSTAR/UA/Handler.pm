@@ -692,6 +692,7 @@ sub new_observation {
       if ( $@ ) {
          $log->error("Error: $@");
          $log->error("Error: Unable to parse ERS reply, not XML?" );
+         $log->error( $reply );
          next;    
       }
             
@@ -961,6 +962,7 @@ sub new_observation {
       
       $log->error("Error: $@");
       $log->error( $error );
+      $log->error( $reply );
       return SOAP::Data->name('return', $error )->type('xsd:string');           
    }
             

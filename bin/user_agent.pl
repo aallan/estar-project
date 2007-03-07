@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: user_agent.pl,v 1.27 2007/02/06 17:00:16 aa Exp $
+#     $Id: user_agent.pl,v 1.28 2007/03/07 14:00:36 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -65,7 +65,7 @@ itself.
 
 =head1 REVISION
 
-$Id: user_agent.pl,v 1.27 2007/02/06 17:00:16 aa Exp $
+$Id: user_agent.pl,v 1.28 2007/03/07 14:00:36 aa Exp $
 
 =head1 AUTHORS
 
@@ -82,7 +82,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.27 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.28 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -422,8 +422,8 @@ $ua->set_ua( $lwp );
 #$config->set_option( "nodes.Exeter", "dn2.astro.ex.ac.uk:8080" );
 #$config->set_option( "nodes.LJM", "150.204.240.111:8080" );
 #$config->set_option( "nodes.UKIRT", "estar.ukirt.jach.hawaii.edu:8080" );
-#$config->set_option( "nodes.LTproxy", "estar3.astro.ex.ac.uk:8078" );
-$config->set_option( "nodes.LT", "161.72.57.3:8080/axis/services/NodeAgent" );
+$config->set_option( "nodes.LTproxy", "estar3.astro.ex.ac.uk:8078" );
+#$config->set_option( "nodes.LT", "161.72.57.3:8080/axis/services/NodeAgent" );
 $config->set_option( "nodes.FTNproxy", "estar3.astro.ex.ac.uk:8077" );
 $config->set_option( "nodes.FTSproxy", "estar3.astro.ex.ac.uk:8079" );
 #$config->set_option( "nodes.Test", "127.0.0.1:8080" );
@@ -605,6 +605,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: user_agent.pl,v $
+# Revision 1.28  2007/03/07 14:00:36  aa
+# updated for 2007 season
+#
 # Revision 1.27  2007/02/06 17:00:16  aa
 # See ChangeLog
 #

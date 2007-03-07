@@ -20,7 +20,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: ogle_fetch.pl,v 1.13 2006/05/14 17:31:13 aa Exp $
+$Id: ogle_fetch.pl,v 1.14 2007/03/07 14:00:36 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -37,7 +37,7 @@ use vars qw / $VERSION /;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.13 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.14 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -219,8 +219,10 @@ if ( $config->get_state("of.unique_process") == 1 ) {
    $config->set_option("of.passwd", "InterProcessCommunication" );
    
    # ogle page
-   $config->set_option("of.remote", "cgi.st-andrews.ac.uk");
-   $config->set_option("of.url", "cgi/~cdbs/optimise.pl");
+#   $config->set_option("of.remote", "cgi.st-andrews.ac.uk");
+#   $config->set_option("of.url", "cgi/~cdbs/optimise.pl");
+   $config->set_option("of.remote", "robonet.astro.livjm.ac.uk");
+   $config->set_option("of.url", "~robonet/webplopV2/cgi-bin/optimise.pl");
 
    # connection options defaults
    $config->set_option("connection.timeout", 20 );
@@ -514,8 +516,10 @@ foreach my $j ( 11 ... $#page ) {
 
    # grab the unique event name which we'll use as a key
    my $key = $columns[1];
-   $key =~ 
-    s/<a href=http:\/\/star-www.st-and.ac.uk\/~kdh1\/cool\/blg-\d+.html>//;
+#   $key =~ 
+#    s/<a href=http:\/\/star-www.st-and.ac.uk\/~kdh1\/cool\/blg-\d+.html>//;
+#   $key =~ 
+    s/<a href=http:\/\/robonet.astro.livjm.ac.uk\/~robonet\/current\/blg-\d+.html>//;
    $key =~ s/<\/a>//;
    
    # get URL
