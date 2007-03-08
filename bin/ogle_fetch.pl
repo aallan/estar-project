@@ -20,7 +20,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: ogle_fetch.pl,v 1.14 2007/03/07 14:00:36 aa Exp $
+$Id: ogle_fetch.pl,v 1.15 2007/03/08 16:32:47 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -37,7 +37,7 @@ use vars qw / $VERSION /;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.14 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.15 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -518,7 +518,7 @@ foreach my $j ( 11 ... $#page ) {
    my $key = $columns[1];
 #   $key =~ 
 #    s/<a href=http:\/\/star-www.st-and.ac.uk\/~kdh1\/cool\/blg-\d+.html>//;
-#   $key =~ 
+   $key =~ 
     s/<a href=http:\/\/robonet.astro.livjm.ac.uk\/~robonet\/current\/blg-\d+.html>//;
    $key =~ s/<\/a>//;
    

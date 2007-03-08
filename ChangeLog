@@ -1,5 +1,9 @@
 2007-03-07 Alasdair Allan <aa@astro.ex.ac.uk>
 
+        * www/robonet-1.0/cgi-bin/*: Updated for 2007 season.
+        
+2007-03-07 Alasdair Allan <aa@astro.ex.ac.uk>
+
         * bin/ogle_fetch.pl: Pointed at LJM rather than St. Andrews
         
         * bin/user_agent.pl: Pointed to LT proxy on estar3 rather than on

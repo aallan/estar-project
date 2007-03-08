@@ -166,7 +166,12 @@
 	if ( $target =~ m/OB\d{5}/ ) {
            my $name = $target;
 	   $name =~ s/OB\d{2}/blg-/;
-	   my $url = 'http://star-www.st-and.ac.uk/~kdh1/cool/' . $name . '.html';	
+	   my $url;
+	   if( $full_name =~ "2006" ) {
+	      $url = 'http://star-www.st-and.ac.uk/~kdh1/cool/' . $name . '.html';
+	   } else {
+	      $url = 'http://robonet.astro.livjm.ac.uk/~robonet/current/' . $name . '.html';	
+	   }
 	   print "<A HREF='$url'>$full_name</A>";
 	   
         } elsif ( $target =~ m/ESSENCE/ ) {

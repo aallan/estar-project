@@ -259,14 +259,40 @@ print '         </td>'."\n";
             
 print '         <td>'."\n";
 print '            <b>Exposure Time:</b> <input size="5" name="exposure"> '."\n";
-print '            <br><i><small>Exposure time (secs)</small></i>'."\n";
+print '            <br><i><small>Exposure time (secs) (<a target="_blank" href="http://telescope.livjm.ac.uk/Info/TelInst/Inst/calc/">Exposure Time Calculator</a>)</small></i>'."\n";
 print '         </td>'."\n";
          
 print '         <td valign="middle">'."\n";
-print '            <b>Group Count:</b> <input size="5" name="group_count"> '."\n";
-print '            <br><i><small>Number of exposures in the group</small></i>'."\n";
 
-print '         </td> '."\n";
+print '            <b>Group Count:</b> <input size="5" name="group_count"> '."\n";
+print '            <br><i><small>Exposures in the group</small></i>'."\n";
+                
+print '      </tr>'."\n";
+
+
+print '      <!-- ############################################################# -->'."\n";
+print '      <!-- # Series, Interval, Tolerance                               # -->'."\n";
+print '      <!-- ############################################################# -->'."\n";
+          
+print '      <tr align="left" valign="top">'."\n";
+      
+
+print '         <td valign="middle">'."\n";
+
+print '            <b>Series Count:</b> <input size="5" name="series_count"> '."\n";
+print '            <br><i><small>Exposures in the series</small></i>'."\n";
+           
+print '         <td>'."\n";
+print '            <b>Interval:</b> <input size="5" name="interval"> '."\n";
+print '            <br><i><small>Interval between exposure groups (secs)</small></i>'."\n";
+print '         </td>'."\n";
+            
+print '         <td>'."\n";
+print '            <b>Tolerance:</b> <input size="5" name="tolerance"> '."\n";
+print '            <br><i><small>Tolerance on the intervals (secs)</small></i>'."\n";
+print '         </td>'."\n";
+         
+
                 
 print '      </tr>'."\n";
      
@@ -284,19 +310,20 @@ print '         <tr>'."\n";
 
 print '         <td valign="top">'."\n";
 print '            <b>Start Time:</b>'."\n";
-print '             <input size="25" name="start_time" value="'. $start_time .'">'."\n";
+print '             <input size="23" name="start_time" value="'. $start_time .'">'."\n";
 print '            <br><i><small>Format: YYYY-MM-DDThh:mm:ss (in UTC)</small></i>     '."\n";     
 print '         </td>'."\n";
             
 print '         <td valign="top">'."\n";
 print '            <b>End Time:</b>'."\n";
-print '             <input size="25" name="end_time" value="'. $end_time .'"> '."\n";
+print '             <input size="23" name="end_time" value="'. $end_time .'"> '."\n";
 print '            <br><i><small>Format: YYYY-MM-DDThh:mm:ss (in UTC)</small></i>     '."\n";     
 print '         </td>'."\n";
               
 print '         </tr>'."\n";
 print '         </table> '."\n";
 print '      </td>'."\n";
+
 print '      </tr>'."\n";
 
 #print '      <!-- ############################################################# -->'."\n";
@@ -431,12 +458,12 @@ sub start_and_end_timestamp {
  
    # defaults of now till 12 hours later  
    # modify start time
-   my $start_time = "$year-$month-$day" . "T". $hour.":".$min.":".$sec . "UTC";
+   my $start_time = "$year-$month-$day" . "T". $hour.":".$min.":".$sec . "+0000";
 
 
    # modify end time
    my $end_time = "$year-$month-$dayplusone" . 
-               "T". $hourplustwelve.":".$min.":".$sec . "UTC"; 
+               "T". $hourplustwelve.":".$min.":".$sec . "+0000"; 
 
  
    return ( $start_time, $end_time );

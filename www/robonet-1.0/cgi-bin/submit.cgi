@@ -72,6 +72,8 @@ if ( $user eq "aa" ) {
    $ivorn = $author_ivorn . "/estar.ex#";
 } elsif ( $user eq "rrw" ) {
    $ivorn = $author_ivorn . "/talons.lanl#";   
+} else {
+   $ivorn = $author_ivorn;
 }
 $ivorn = $ivorn . "manual/" .lc($query{project}) ."/";
 if ( $query{object_name} ne "" ) {
@@ -81,7 +83,7 @@ $ivorn = $ivorn . timestamp();
 
 my %event;
 $event{ID} = $ivorn;
-$event{Role} = "test";
+$event{Role} = "observation";
 if ( $query{description} ne "" ) {
   $event{Description} = $query{description}
 }
@@ -113,8 +115,8 @@ my $voevent = $object->build( %event );
 # G E N E R A T E   O B S E R V A T I O N ------------------------------------
 
 my %observation;
-$observation{user} = "agent";
-$observation{pass} = "InterProcessCommunication";
+$observation{user} = "kdh1";
+$observation{pass} = "EXOfollowup";
 $observation{ra} = $query{ra};
 $observation{dec} = $query{dec};
 $observation{target} = $query{object_name};
@@ -125,6 +127,9 @@ $observation{groupcount} = $query{group_count};
 $observation{starttime} = $query{start_time};
 $observation{endtime} = $query{end_time};
 $observation{toop} = $query{type};
+$observation{seriescount} = $query{series_count};
+$observation{interval} = "PT" . $query{interval} . "S";
+$observation{tolerance} = "PT" . $query{tolerance} . "S";
 
 # S U B M I T   E V E N T   M E S S A G E ------------------------------------
 
