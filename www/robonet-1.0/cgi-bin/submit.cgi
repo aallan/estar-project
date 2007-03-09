@@ -73,11 +73,12 @@ if ( $user eq "aa" ) {
 } elsif ( $user eq "rrw" ) {
    $ivorn = $author_ivorn . "/talons.lanl#";   
 } else {
-   $ivorn = $author_ivorn . "/";
+   $ivorn = $author_ivorn . "#";
 }
 $ivorn = $ivorn . "manual/" .lc($query{project}) ."/";
 if ( $query{object_name} ne "" ) {
   $ivorn = $ivorn . $query{object_name} . "/";
+  $ivorn =~ s/\s+/-/g;
 }  
 $ivorn = $ivorn . timestamp();
 
