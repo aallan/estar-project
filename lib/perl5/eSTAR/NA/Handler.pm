@@ -275,7 +275,7 @@ sub handle_rtml {
       
       # NOAO ESSENCE Follow-up project
       if ( $process->get_process() =~ "FTS" ) {
-         $new_user = "FTS_OPS/iain.steele";
+         $new_user = "FTSOps/FTSTest";
          $new_project = "Essence";
       }
       
