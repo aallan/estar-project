@@ -128,9 +128,16 @@ $observation{groupcount} = $query{group_count};
 $observation{starttime} = $query{start_time};
 $observation{endtime} = $query{end_time};
 $observation{toop} = $query{type};
-$observation{seriescount} = $query{series_count};
-$observation{interval} = "PT" . $query{interval} . "S";
-$observation{tolerance} = "PT" . $query{tolerance} . "S";
+
+if( defined $observation{toop} && $observation{toop} ne "" ) {
+  $observation{seriescount} = undef;
+  $observation{interval} = undef;
+  $observation{tolerance} = undef;
+} else { 
+  $observation{seriescount} = $query{series_count};
+  $observation{interval} = "PT" . $query{interval} . "S";
+  $observation{tolerance} = "PT" . $query{tolerance} . "S";
+}
 
 # S U B M I T   E V E N T   M E S S A G E ------------------------------------
 
