@@ -129,7 +129,7 @@ $observation{starttime} = $query{start_time};
 $observation{endtime} = $query{end_time};
 $observation{toop} = $query{type};
 
-if( defined $observation{toop} && $observation{toop} ne "" ) {
+if( $observation{toop} eq "toop" ) {
   $observation{seriescount} = undef;
   $observation{interval} = undef;
   $observation{tolerance} = undef;
@@ -190,7 +190,11 @@ $agent_soap->proxy($agent_endpoint, cookie_jar => $agent_cookie_jar);
   
 # grab result 
 my $obs_result;
-eval { $obs_result = $agent_soap->new_observation( %observation ); };
+if ( $query{"all_telescopes"} == 1 ) {
+   eval { $obs_result = $agent_soap->all_telescopes( %observation ); };
+} else {
+   eval { $obs_result = $agent_soap->new_observation( %observation ); };
+}
 if ( $@ ) {
    my $error = "$@";
    error( $error, \%observation, \%query );
@@ -233,6 +237,8 @@ $obs_return =~ s/>/&gt;/g;
 $obs_return =~ s/</&lt;/g;
 if ( $obs_return eq "QUEUED OK" ) {
    print "Result: <font color='green'>$obs_return</font><br>\n";
+} elsif ( $obs_return eq "DONE OK" ) {
+   print "Result: <font color='green'>$obs_return</font> (attempted to queue on all telescopes)<br>\n";
 } else {
    print "Result: <font color='red'>$obs_return</font><br>\n";
 }

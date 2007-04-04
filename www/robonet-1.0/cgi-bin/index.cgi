@@ -165,6 +165,10 @@ if ( $user eq 'aa' ) {
    $contact_name = "Martin Dominik";
    $contact_email = 'md35@st-andrews.ac.uk';
    $contact_phone = '+44-1334-463068';
+} elsif ( $user eq 'nr' ) {
+   $contact_name = 'Nicholas Rattenbury';
+   $contact_email = 'nicholas.rattenbury@manchester.ac.uk';
+   $contact_phone = '+44-1477-572653';
 }
 
 print '     <tr align="left" valign="middle">'."\n";     
@@ -202,7 +206,7 @@ if(  $user eq 'aa' ) {
    print '             <option VALUE="eSTAR">   eSTAR'."\n";
    print '             <option VALUE="PLANET">  PLANET'."\n";
    print '             <option VALUE="Robonet-1.0">     RoboNet-1.0'."\n";
-} elsif ( $user eq 'ias' || $user eq 'cjm' || $user eq 'mfb' || $user eq 'mjb' || $user eq 'yt' ) {
+} elsif ( $user eq 'ias' || $user eq 'cjm' || $user eq 'mfb' || $user eq 'mjb' || $user eq 'yt' || $user eq 'nr' ) {
    print '             <option VALUE="Robonet-1.0">     RoboNet-1.0'."\n";
    print '             <option VALUE="eSTAR">   eSTAR'."\n";
    print '             <option VALUE="PLANET">  PLANET'."\n";
@@ -360,6 +364,18 @@ print '      </tr>'."\n";
 #print '        </td>'."\n";
         
 #print '     </tr>'."\n";
+
+
+print '     <!-- ################################################################ -->'."\n";
+print '     <!-- # ALL TELESCOPES                                               # -->'."\n";
+print '     <!-- ################################################################ -->'."\n";
+
+print '   <tr align="left" valign="middle">'."\n";
+print '        <td colspan="3">'."\n";
+
+print '          <b>Observe on all telescopes? <input type="checkbox" name="all_telescopes" value="1"> </b>'."\n";
+print '        </td>'."\n";
+print '     </tr>'."\n";
 
 print '     <!-- ################################################################ -->'."\n";
 print '     <!-- # BUTTONS                                                      # -->'."\n";

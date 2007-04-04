@@ -137,7 +137,17 @@
 	   error( "$@");
 	   exit;
 	}
-
+	
+	my $unknown = 0;
+	unless ( defined $obs ) {
+	   eval { $obs = $object->observation(); };
+	   $unknown = 1;
+	   if ( $@ ) {
+	      error( "$@");
+	      exit;
+	   }	
+        }
+	
         my ($target, $priority, $ra, $dec, $group_count, $series_count, $exposure, @time, $type, $filter, $project);
 	if( defined $obs ) {
            $target = $obs->target();
@@ -173,6 +183,7 @@
 	      $url = 'http://robonet.astro.livjm.ac.uk/~robonet/current/' . $name . '.html';	
 	   }
 	   print "<A HREF='$url'>$full_name</A>";
+	   
 	   
         } elsif ( $target =~ m/ESSENCE/ ) {
            my $name = $target;
@@ -270,9 +281,16 @@
 	# NODE - 7 ---------------------------------------------------------
 	
 	print "<td>";
-        print "<DIV TITLE='offsetx=[-75] cssbody=[popup_body] cssheader=[popup_header] header=[Best Score] body=[<table><tr><td><b>$node_name</b></td></tr><tr><td><b>Score:</b> $score</td></tr></table>]' >";
-        print "<font color='grey'>$node</font>";
-        print "</DIV>";
+
+        if( $unknown == 1 ) {
+	   print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Error] body=[Returned observation not in database.<br>Possible timeout at Node Agent?]' >";
+	   print " <b><font color='red'>ERROR</font></b>";
+	   print "</DIV>";
+	} else {
+           print "<DIV TITLE='offsetx=[-75] cssbody=[popup_body] cssheader=[popup_header] header=[Best Score] body=[<table><tr><td><b>$node_name</b></td></tr><tr><td><b>Score:</b> $score</td></tr></table>]' >";
+           print "<font color='grey'>$node</font>";
+           print "</DIV>";
+	}   
         print "</td>\n";
 		
 	# STATUS - 8 ---------------------------------------------------
@@ -317,7 +335,11 @@
 	} else {
            print "<font color='grey'>$status</font>";
 	}
-	print "</DIV></td>\n";
+	print "</DIV>";
+	
+ 
+
+	print "</td>\n";
 	
      }
      print "</tr>\n";

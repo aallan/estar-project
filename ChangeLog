@@ -6,6 +6,9 @@
           all_telescopes() method to drop observations onto all
           available nodes.
           
+        * www/robonet-1.0/cgi-bin/*: Updated to deal with all_telescopes()
+          method and the new timeout problems with the LT. 
+          
 2007-03-07 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * www/robonet-1.0/cgi-bin/*: Updated for 2007 season.
