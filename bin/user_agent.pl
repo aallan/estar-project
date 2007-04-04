@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: user_agent.pl,v 1.28 2007/03/07 14:00:36 aa Exp $
+#     $Id: user_agent.pl,v 1.29 2007/04/04 15:44:48 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -65,7 +65,7 @@ itself.
 
 =head1 REVISION
 
-$Id: user_agent.pl,v 1.28 2007/03/07 14:00:36 aa Exp $
+$Id: user_agent.pl,v 1.29 2007/04/04 15:44:48 aa Exp $
 
 =head1 AUTHORS
 
@@ -82,7 +82,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.28 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.29 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -288,7 +288,7 @@ use Net::Domain qw(hostname hostdomain);
 # Transport modules
 #
 use Socket;
-use SOAP::Lite;
+use SOAP::Lite; # +trace => 'debug';
 use HTTP::Cookies;
 use URI;
 use LWP::UserAgent;
@@ -363,13 +363,13 @@ if ( $config->get_state("ua.unique_process") == 1 ) {
    $config->set_option("simbad.url", "simbad.u-strasbg.fr" );
 
    # connection options defaults
-   $config->set_option("connection.timeout", 20 );
+   $config->set_option("connection.timeout", 60 );
    $config->set_option("connection.proxy", 'NONE'  );
   
    # mail server
    $config->set_option("mailhost.name", 'butch' );
    $config->set_option("mailhost.domain", 'astro.ex.ac.uk' );
-   $config->set_option("mailhost.timeout", 30 );
+   $config->set_option("mailhost.timeout", 60 );
    $config->set_option("mailhost.debug", 0 );   
         
    # C O M M I T T   O P T I O N S  T O   F I L E S
@@ -605,6 +605,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: user_agent.pl,v $
+# Revision 1.29  2007/04/04 15:44:48  aa
+# Added all_telescopes() method
+#
 # Revision 1.28  2007/03/07 14:00:36  aa
 # updated for 2007 season
 #

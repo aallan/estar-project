@@ -7,7 +7,7 @@ package eSTAR::UA::Handler;
 use lib $ENV{"ESTAR_PERL5LIB"};     
 
 use strict;
-use subs qw( new set_user ping echo new_observation handle_rtml get_option
+use subs qw( new set_user ping echo new_observation all_telescopes handle_rtml get_option
              set_option kill);
 
 #
@@ -242,7 +242,7 @@ sub echo {
    # user object stored within             
    unless ( my $user = $self->{_user}) {
       $log->warn("SOAP Request: The object is missing user data");
-      return "The object is missing user data"
+    #  return "The object is missing user data"
    }
      
    $log->debug("Returned ECHO message");
@@ -1102,6 +1102,842 @@ sub new_observation {
    return SOAP::Data->name('return', 'QUEUED OK')->type('xsd:string');
    
 }
+
+
+# make a new observation
+sub all_telescopes {
+   my $self = shift;
+   my %observation = @_;
+   
+   #use Data::Dumper;
+   #print "eSTAR::UA::SOAP::Handler\n";
+   #print "eSTAR::SOAP::User = " . Dumper($self->{_user}) . "\n";
+
+   $log->debug("Called all_telescopes() from \$tid = ".threads->tid());
+   $config->reread();
+   
+   # check we have a valid user object            
+   unless ( my $user = $self->{_user}) {
+      $log->warn("SOAP Request: The object is missing user data");
+      return "The object is missing user data"
+   }
+
+  
+   # NODE ARRAY
+   my @NODES;   
+
+   # we might not have any nodes! So check!
+   my $node_flag = 0;
+   @NODES = $config->get_nodes();   
+   $node_flag = 1 if defined $NODES[0];
+   
+   # if there are no nodes add a default menu entry
+   if ( $node_flag == 0 ) {
+      my $error = "Error: No known Discovery Nodes";
+      $log->error( "Error: No known Discovery Nodes" );
+      return SOAP::Data->name('return', $error )->type('xsd:string');
+   }    
+  
+               
+   # VALIDATE DATA
+   # -------------
+   
+   # check that RA and Dec are defined, either has been resolved using
+   # Sesame, or was passed as part of the %observation hash object
+   
+   unless ( ( defined $observation{'ra'} && defined $observation{'dec'} ) &&
+            ( $observation{'ra'} ne "" && $observation{'dec'} ne "" ) ) {
+    if ( defined $observation{'target'}  && $observation{'target'} ne '' ) {
+   
+     # resolve using Sesame
+     $log->debug("Contacting CDS Sesame...");
+     my $target;
+     eval { my $sesame = new Astro::Catalog::Query::Sesame( 
+                          Target => $observation{'target'} ); 
+         my $catalog = $sesame->querydb();
+         $target =  $catalog->popstar();  };
+     if ( $@ ) {
+        $log->warn(
+           "Warning: Cannot contact CDS Sesame to resolve target" );
+        $log->warn( "Warning: $@ " );   
+     }
+    
+     if ( defined $target ) {        
+        $observation{'ra'} =  $target->ra();                              
+        $observation{'dec'} =  $target->dec();      
+     }
+   
+     # fallback to SIMBAD      
+     unless ( defined $observation{'ra'} && defined $observation{'dec'} ) {
+   
+       # we don't have an RA or Dec, timed out perhaps?
+       $log->warn( 
+        "Warning: Target is still unresolved following call to CDS Sesame" );
+       $log->warn( "Warning: Falling back to SIMBAD..." );
+    
+       my @object;
+       my $simbad = eSTAR::Util::query_simbad( $observation{'target'} );
+       if ( defined $simbad ) {   
+          @object = $simbad->objects( );
+          if ( defined $object[0] ){
+             # print out all the returned object names
+             my $string = "";
+             foreach my $j ( 0 ... $#object ) {
+                $string = $string . " " . $object[$j]->name();
+                unless ( $j == $#object ) { print ","; }
+             }
+             $log->debug( "Returned: $string" );
+             $observation{'ra'} = $object[0]->ra();
+             $observation{'dec'} = $object[0]->dec();    
+          }
+       } else {
+          $log->warn( 
+             "Warning: Cannot contact CDS SIMBAD to resolve target..." );
+       };
+   
+     }
+   
+     # Must now have resolved the target, surely?                   
+     unless ( defined $observation{'ra'} && defined $observation{'dec'} ) {
+        $log->error('Error: RA and Dec undefined, target unresolved');
+        return SOAP::Data->name('return', 'BAD TARGET')->type('xsd:string');
+     }
+     $log->debug("Resolved $observation{'target'} to (" .
+                       $observation{'ra'} . ", " .  $observation{'dec'} . ")" );     
+     }
+   }
+   
+   # check we have valid RA & Dec
+   unless ( defined $observation{'ra'} && defined $observation{'dec'} ) {
+     $log->error('Error: RA and Dec undefined, target unresolved');
+     return SOAP::Data->name('return', 'BAD TARGET')->type('xsd:string');
+   }
+
+   # check we have either exposure time _or_ signal-to-noise
+   unless ( defined $observation{'exposure'} || 
+            defined $observation{'signaltonoise'} ) {
+     $log->error('Error: Exposure time or S/N is undefined');
+     return SOAP::Data->name('return', 'BAD EXPOSURE')->type('xsd:string');
+         
+   }
+   
+   # check we have an observation type, assume 'single' if undef'ed
+   $observation{'type'} = 'SingleExposure' unless defined $observation{'type'};
+   $observation{'followup'} = 0 unless defined $observation{'followup'};
+   
+   # check we have a passband, assume V-band if undefined
+   $observation{'passband'} = 'V' unless defined $observation{'passband'};
+   
+   # if series count is defined and we have no time constraint then we should
+   # generate some, if the interval or tolerance for the series isn't defined
+   # we should generate those as well
+   if ( defined $observation{'seriescount'} ) {
+   
+       unless ( defined $observation{'starttime'} && 
+               defined $observation{'endtime' } ) {
+   
+         my $year = 1900 + localtime->year();
+         my $month = localtime->mon() + 1;
+         my $day = localtime->mday();
+         my $dayplusone = $day + 1;
+         if ( $day >= 28 && $day <= 31 ) {
+            if ( $month == 2 ) {
+               $month = $month + 1;
+               $day = 1;
+            } elsif ( $month == 9 || $month == 4 || 
+                      $month == 6 || $month == 11 ) {
+               if( $day == 30 ) {
+                  $month = $month + 1;
+                  $day = 1;
+               }
+            } elsif ( $day == 31 ) {
+               $month = $month + 1;
+               $day = 1;
+            }  
+         }
+         $month = "0$month" if $month < 10;
+         $day = "0$day" if $day < 10;            
+         $dayplusone = "0$dayplusone" if $dayplusone < 10;   
+            
+         # mid-afternoon local till 24 hours later 
+         $observation{'starttime'} = "$year-$month-$day" . "T12:00:00";
+         $observation{'endtime'} = "$year-$month-$dayplusone" . "T12:00:00";
+            
+      }         
+   
+      unless ( defined $observation{'interval'} ) {
+   
+         # derived from the time available (around 6 hours a night)
+         $observation{'interval'} = 6.0/$observation{'seriescount'};
+      
+         # convert to seconds
+         $observation{'interval'} = $observation{'interval'}*60.0*60.0; 
+         $observation{'interval'} = $observation{'interval'} . "S";
+      }
+   
+      unless ( defined $observation{'tolerance'} ) {
+   
+          # derive from the interval, about half that!
+          $observation{'tolerance'} = $observation{'interval'}/2.0;
+          $observation{'tolerance'} = $observation{'tolerance'} . "S";
+   
+      }
+   }
+   
+   my $sucessful_submission = "";
+   foreach my $i ( 0 ... $#NODES ) {
+      my ($dn_host, $dn_port) = split ":", $NODES[$i];
+
+      $log->print("Making request to $NODES[$i]");
+
+      # OBSERVING STATE FILE
+      # --------------------
+      my $obs_file = 
+         File::Spec->catfile( Config::User->Home(), '.estar', 
+                              $process->get_process(), 'obs.dat' );
+   
+      $log->debug("Writing state to \$obs_file = $obs_file");
+      #my $OBS = eSTAR::Util::open_ini_file( $obs_file );
+     
+      my $OBS = new Config::Simple( syntax   => 'ini', 
+                                    mode     => O_RDWR|O_CREAT );
+                                    
+      if( open ( FILE, "<$obs_file" ) ) {
+         close ( FILE );
+         $log->debug("Reading configuration from $obs_file" );
+         $OBS->read( $obs_file );
+      } else {
+         $log->warn("Warning: $obs_file does not exist");
+      }                                  
+   
+      # UNIQUE ID
+      # ---------
+   
+      # generate a unique ID for the observation, increment every time 
+      # this routine is called and save immediately, therefore we should 
+      # never duplicate ID's, of course we'll eventually run out of int's, 
+      # I guess I'll have to modify the IA after that...  
+      my $number = $OBS->param( 'obs.unique_number' ); 
+ 
+      if ( $number eq '' ) {
+         # $number is not defined correctly (first ever observation?)
+         $OBS->param( 'obs.unique_number', 0 );
+         $number = 0; 
+      } 
+      $log->debug("Generating unqiue ID: $number");
+  
+      # build string portion of identity
+      my $version = $process->get_version();
+      $version =~ s/\./-/g;
+   
+      my $string = ':UA:v'    . $version . 
+                   ':run#'    . $config->get_state( 'ua.unique_process' ) .
+                   ':user#'   . $observation{'user'};   
+             
+      # increment ID number
+      $number = $number + 1;
+      $OBS->param( 'obs.unique_number', $number );
+   
+      $log->debug('Incrementing observation number to ' . $number);
+     
+      # commit ID stuff to STATE file
+      my $status = $OBS->save( $obs_file );
+   
+      unless ( defined $status ) {
+        # can't read/write to options file, bail out
+        my $error = "Error: Can not read/write to $obs_file";
+        $log->error(chomp($error));
+        next;
+      } else {    
+         $log->debug('Generated observation ID: updated ' . $obs_file );
+         undef $OBS;
+      }
+   
+      # Generate IDENTITY STRING
+      my $id;   
+  
+      # format $number
+      if ( length($number) == 1 ) {
+          $id = '00000' . $number;
+      } elsif ( length($number) == 2 ) {
+          $id = '0000' . $number;
+      } elsif ( length($number) == 3 ) {
+          $id = '000' . $number;
+      } elsif ( length($number) == 4 ) {
+          $id = '00' . $number;
+      } elsif ( length($number) == 5 ) {
+          $id = '0' . $number;
+      } else {
+          $id = $number;
+      }
+      $id = $id . $string;
+      $log->debug('ID = ' . $id);
+   
+      $number = undef;
+  
+      # OBSERVATION OBJECT
+      # ------------------
+   
+      # create an observation object
+      my $observation_object = new eSTAR::Observation( ID => $id );
+      $observation_object->id( $id );
+      $observation_object->type( $observation{'type'} );
+      $observation_object->passband( $observation{'passband'} );
+      $observation_object->status('pending');
+      $observation_object->followup($observation{"followup"});
+      $observation_object->username($observation{"user"});
+      $observation_object->password($observation{"pass"});
+   
+   
+      # build a score request
+      my $score_message = new XML::Document::RTML( );
+    
+      # if we have no target name, make one up from the RA and Dec    
+      unless ( defined $observation{"target"} ) {
+         if ( $observation{'type'} eq "InitialBurstFollowup" ||
+              $observation{'type'} eq "BurstFollowup" ) {
+	      $observation{"target"} = "GRB MSB (" .
+	                   $config->get_option("user.real_name") . ")";
+         } else {   
+              $observation{"target"} = $observation{"ra"} . ";" . $observation{"dec"};
+         }
+      } 
+   
+      # if we have no TargetType then assume 'normal'
+      unless ( defined $observation{toop} ) {
+         $observation{'toop'} = "normal";
+      }      
+
+      if ( defined $observation{'exposure'} ) {
+
+           # build a score request
+           $score_message->build(
+             Type  => "score",
+             Port        => $config->get_option( "server.port"),
+             Host        => $config->get_option( "server.host"),
+             ID          => $id,
+             User        => $config->get_option("user.user_name"),
+             Name        => $config->get_option("user.real_name"),
+             Institution => $config->get_option("user.institution"),
+             Email       => $config->get_option("user.email_address"),
+             Project         => $observation{'project'},
+             Target         => $observation{'target'},
+             TargetIdent    => $observation{'type'},
+	     TargetType     => $observation{'toop'},
+             RA             => $observation{'ra'},
+             Dec            => $observation{'dec'},
+             Exposure       => $observation{'exposure'},
+             Filter         => $observation{'passband'},
+             GroupCount     => $observation{'groupcount'},
+             TimeConstraint => [ $observation{'starttime'},
+                                 $observation{'endtime'} ],
+             SeriesCount    => $observation{'seriescount'},
+             Interval       => $observation{'interval'},
+             Tolerance      => $observation{'tolerance'} );  
+      
+      } else { 
+      
+            # build a score request
+            $score_message->build(
+             Type  => "score",
+             Port        => $config->get_option( "server.port"),
+             Host        => $config->get_option( "server.host"),
+             ID          => $id,
+             User        => $config->get_option("user.user_name"),
+             Name        => $config->get_option("user.real_name"),
+             Institution => $config->get_option("user.institution"),
+             Email       => $config->get_option("user.email_address"),
+             Project         => $observation{'project'},
+             Target         => $observation{'target'},
+             TargetIdent    => $observation{'type'},
+	     TargetType     => $observation{'toop'},
+             RA             => $observation{'ra'},
+             Dec            => $observation{'dec'},
+             Snr       => $observation{'signaltonoise'},
+             Flux   => $observation{'magnitude'},
+             Filter         => $observation{'passband'},
+             GroupCount     => $observation{'groupcount'},
+             TimeConstraint => [ $observation{'starttime'},
+                                 $observation{'endtime'} ],
+             SeriesCount    => $observation{'seriescount'},
+             Interval       => $observation{'interval'},
+             Tolerance      => $observation{'tolerance'} );  
+     
+       }
+
+      $observation_object->score_request( $score_message ); 
+      $log->print( $score_message->dump_rtml() );
+      
+      # SCORE REQUEST
+      # -------------
+   
+      my $score_request = $observation_object->score_request();
+      my $score_rtml = $score_request->dump_rtml();
+      
+      # end point
+      my $endpoint = "http://" . $dn_host . ":" . $dn_port;
+      my $uri = new URI($endpoint);
+   
+      # create a user/passwd cookie
+      my $cookie = eSTAR::Util::make_cookie( 
+                      $observation{"user"}, $observation{"pass"} );
+  
+      my $cookie_jar = HTTP::Cookies->new();
+      $cookie_jar->set_cookie( 0, user => $cookie, '/', 
+                              $uri->host(), $uri->port());
+
+      # create SOAP connection
+      my $soap = new SOAP::Lite();
+  
+      $soap->uri('urn:/node_agent'); 
+      $soap->proxy($endpoint, cookie_jar => $cookie_jar, timeout => 30);
+    
+      # report
+      $log->print("Connecting to $dn_host:$dn_port..." );
+    
+      # fudge RTML document?
+      $score_rtml =~ s/</&lt;/g;
+
+    
+      # grab result 
+      my $result;
+      eval { $result = $soap->handle_rtml( 
+               SOAP::Data->name('query', $score_rtml )->type('xsd:string')); };
+      if ( $@ ) {
+         $log->warn("Warning: Failed to connect to $dn_host:$dn_port" );
+         $log->warn("Warning: Skipping to next node..."  );
+         next;    
+      }
+   
+      # Check for errors
+      unless ($result->fault() ) {
+        $log->debug("Transport Status: " . $soap->transport()->status() );
+      } else {
+        $log->error("Fault Code   : " . $result->faultcode() );
+        $log->error("Fault String : " . $result->faultstring() );
+      }
+      
+      my $reply = $result->result();
+      
+      my $ers_reply;
+      eval { $ers_reply = new XML::Document::RTML( XML => $reply ); };
+      if ( $@ ) {
+         $log->error("Error: $@");
+         $log->error("Error: Unable to parse ERS reply, not XML?" );
+         if( $config->get_option("user.notify") == 1 ) {
+      
+          $log->print( "Sending notification email...");
+            
+          my $mail_body = 
+            "Your user agent attempted to score your observing request\n" .
+            "of type $observation{type} with $NODES[$i]. However\n".
+            "it could not parse the response from the node.\n".
+            "\n".
+            "The reason for this is not known so it may idicate an error\n".
+            "has occured, the RTML which was sent to the telescopes is\n".
+            "attaced below. If you feel an error has occured you should\n".
+            "try and place the observation manually.\n" .
+            "\n\n".
+            $observation_object->score_request()->dump_rtml();
+      
+          eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
+                              $config->get_option("user.real_name"),
+                              'estar@astro.ex.ac.uk',
+                              'eSTAR User Agent (Error)',
+                              $mail_body, 'estar-status@estar.org.uk' ); 
+         } 
+         next;          
+      }
+            
+      # check for errors, if none stuff the score reply into the
+      # observation object
+      unless ( defined $ers_reply->determine_type() )  {
+         $log->warn( "Warning: node $dn_host:$dn_port must be down.." );
+      } else {
+
+         my $type = $ers_reply->determine_type();       
+         $log->debug( "Got a '" . $type . "' message from $dn_host:$dn_port");  
+         $observation_object->score_reply( "$dn_host:$dn_port", $ers_reply );
+      
+      }   
+        
+      # GRAB BEST SCORE
+      # ---------------
+      my ( $best_node, $score_reply ) = $observation_object->highest_score();
+      my $score_request = $observation_object->score_request();
+   
+      # check we have any scores
+      unless ( defined $best_node && defined $score_reply ) {
+         my $error = "Error: No nodes able to carry out observation";
+         next;
+      }     
+ 
+      # grab best score and log it
+      my $score_replies = $observation_object->score_reply();
+      $score_reply = $$score_replies{$best_node};
+      my $best_score = $score_reply->score();
+      $log->print("Score of $best_score from $best_node");
+
+      # check the best score is not zero
+      if ( $best_score == 0.0 ) {
+         my $error = "Error: score is $best_score, possible problem?";
+      
+         if( $config->get_option("user.notify") == 1 ) {
+      
+          $log->print( "Sending notification email...");
+            
+          my $mail_body = 
+            "Your user agent attempted to score your observing request\n" .
+            "of type $observation{type} with $NODES[$i]. It returned a\n".
+            "score of zero indicating that the target was below the\n".
+            "horizon or otherwise unobservable.\n".
+            "\n".
+            "The RTML which was sent to the telescopes is attaced below. If\n".
+            "you feel an error has occured you should try and place the \n".
+            "observation manually.\n" .
+            "\n\n".
+            $observation_object->score_request()->dump_rtml();
+            
+          eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
+                              $config->get_option("user.real_name"),
+                              'estar@astro.ex.ac.uk',
+                              'eSTAR User Agent (Score 0)',
+                              $mail_body, 'estar-status@estar.org.uk'); 
+         }                                          
+      
+         $log->error( $error );
+         next;
+      }
+   
+      # BUILD OBSERVATION REQUEST
+      # -------------------------
+  
+      $log->debug("Building an observation request");
+  
+      # build a observation request
+      my $observe_message = new XML::Document::RTML( );
+
+      if ( defined $observation{'exposure'} ) {
+
+         $observe_message->build( 
+             Type =>     "request",
+             Port        => $config->get_option( "server.port"),
+             Host        => $config->get_option( "server.host"),
+             ID          => $observation_object->id(),
+             User        => $score_reply->user(),
+             Name        => $score_reply->name(),
+             Institution => $score_reply->institution(),
+             Email       => $score_reply->email(),              
+             Target   => $score_reply->target(),
+             Project => $score_reply->project(),
+             TargetIdent => $observation{'type'},
+	     TargetType  => $observation{'toop'},
+             RA       => $score_request->ra(),
+             Dec      => $score_request->dec(),
+             Score    => $score_reply->score(),
+             Time     => $score_reply->time(),
+             Exposure => $score_request->exposure(),
+             Filter   => $score_request->filter(),
+             GroupCount     => $score_reply->group_count(),
+             TimeConstraint => [ $score_reply->start_time(),
+                               $score_reply->end_time() ],
+             SeriesCount    => $score_reply->series_count(),
+             Interval       => $score_reply->interval(),
+             Tolerance      => $score_reply->tolerance() );   
+   
+       } else {  
+
+           $observe_message->build(
+            Type =>     "request",
+            Port        => $config->get_option( "server.port"),
+            Host        => $config->get_option( "server.host"),
+            ID          => $observation_object->id(),
+            User        => $score_request->user(),
+            Name        => $score_request->name(),
+            Institution => $score_request->institution(),
+            Email       => $score_request->email(),                        
+            Project => $score_reply->project(),
+            Target   => $score_request->target(),
+            TargetIdent => $observation{'type'},
+	    TargetType  => $observation{'toop'},
+            RA       => $score_request->ra(),
+            Dec      => $score_request->dec(),
+            Score    => $score_reply->score(),
+            Time     => $score_reply->time(),
+            Snr      => $score_request->snr(),
+            Flux     => $score_request->flux(),
+            Filter   => $score_request->filter(),
+            GroupCount     => $score_reply->group_count(),
+            TimeConstraint => [ $score_reply->start_time(),
+                              $score_reply->end_time() ],
+            SeriesCount    => $score_reply->series_count(),
+            Interval       => $score_reply->interval(),
+            Tolerance      => $score_reply->tolerance() );   
+   
+      } 
+
+      # PUSH IT INTO THE OBSERVATION OBJECT
+      # -----------------------------------
+
+      # stuff the observation request into the observation object          
+      $observation_object->obs_request( $observe_message );     
+      $log->print( $observe_message->dump_rtml() );
+                                  
+      # QUEUE REQUEST
+      # -------------
+  
+      my $obs_request = $observation_object->obs_request();
+      my $obs_rtml = $obs_request->dump_rtml();   
+ 
+     # end point
+     my $endpoint = "http://" . $best_node;
+     my $uri = new URI($endpoint); 
+   
+     # create a user/passwd cookie
+     my $cookie = eSTAR::Util::make_cookie( 
+                   $observation{"user"}, $observation{"pass"} );
+  
+     my $cookie_jar = HTTP::Cookies->new();
+     $cookie_jar->set_cookie( 0, user => $cookie, '/', 
+                              $uri->host(), $uri->port());
+
+     # create SOAP connection
+     my $soap = new SOAP::Lite();
+  
+     $soap->uri('urn:/node_agent'); 
+     $soap->proxy($endpoint, cookie_jar => $cookie_jar, timeout => 30);
+    
+     # report
+     $log->print("Connecting to " . $best_node . "..." );
+   
+     # fudge RTML document? 
+     $obs_rtml =~ s/</&lt;/g;
+    
+     # grab result 
+     my $result;
+     eval { $result = $soap->handle_rtml(  
+               SOAP::Data->name('query', $obs_rtml )->type('xsd:string') ); };
+     if ( $@ ) {
+        my $error = "Error: Failed to connect to " . $best_node;
+      
+        if( $config->get_option("user.notify") == 1 ) {
+      
+          $log->print( "Sending notification email...");
+            
+          my $mail_body = 
+            "Your user agent attempted to submit your observing request\n" .
+            "of type $observation{type} to $best_node but it but failed\n".
+            "to reconnect to $best_node after it had recieved a valid inital\n".
+            "score from that node. The RTML message that was sent to the\n".
+            "node is attached below.\n".
+            "\n" .
+            "This may indicate an error has occured. If you feel this is\n".
+            "the case you should try and followup the manually.\n".
+            "\n\n".
+            $observation_object->obs_request()->dump_rtml();
+      
+          eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
+                              $config->get_option("user.real_name"),
+                              'estar@astro.ex.ac.uk',
+                              'eSTAR User Agent (Node Down)',
+                              $mail_body, 'estar-status@estar.org.uk' ); 
+        }         
+      
+        $log->error( $error );
+        $log->error( "Error: Could not connect to best scoring node..." );
+        next;
+     }
+   
+     # Check for errors
+     unless ($result->fault() ) {
+       $log->debug("Transport Status: " . $soap->transport()->status() );
+     } else {
+       $log->error("Fault Code   : " . $result->faultcode() );
+       $log->error("Fault String : " . $result->faultstring() );
+     }   
+     
+     my $reply = $result->result();
+      
+     my $ers_reply;
+     eval { $ers_reply = new XML::Document::RTML( XML => $reply ); };
+     if ( $@ ) {
+        my $error = "Error: Unable to parse ERS reply, not XML?";
+        
+        if( $config->get_option("user.notify") == 1 ) {
+      
+          $log->print( "Sending notification email...");
+            
+          my $mail_body = 
+            "Your user agent attempted to submit your observing request\n" .
+            "of type $observation{type} to $best_node but failed to parse\n".
+            "the reply. The RTML message sent to the node is attached below.\n".
+            "\n" .
+            "This may indicate an error has occured. If you feel this is\n".
+            "the case you should try and followup the manually.\n".
+            "\n\n".
+            $observation_object->obs_request()->dump_rtml();
+      
+          eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
+                              $config->get_option("user.real_name"),
+                              'estar@astro.ex.ac.uk',
+                              'eSTAR User Agent (Bad Parse)',
+                              $mail_body, 'estar-status@estar.org.uk' ); 
+        }      
+      
+        $log->error("Error: $@");
+        $log->error( $error );
+        $log->error( $reply );
+        next;
+     }
+            
+     # check for errors, if none stuff the score reply into the
+     # observation object
+     unless ( defined $ers_reply->determine_type() )  {
+        my $error = "Error: node $best_node has gone down since scoring";
+        
+        if( $config->get_option("user.notify") == 1 ) {
+      
+          $log->print( "Sending notification email...");
+            
+          my $mail_body = 
+            "Your user agent attempted to submit your observing request\n" .
+            "of type $observation{type} to $best_node but it but failed\n".
+            "to reconnect to $best_node after it had recieved a valid inital\n".
+            "score from that node. The RTML message that was sent to the\n".
+            "node is attached below.\n".
+            "\n" .
+            "This may indicate an error has occured. If you feel this is\n".
+            "the case you should try and followup the manually.\n".
+            "\n\n".
+            $observation_object->obs_request()->dump_rtml(); 
+      
+          eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
+                              $config->get_option("user.real_name"),
+                              'estar@astro.ex.ac.uk',
+                              'eSTAR User Agent (Node Down)',
+                              $mail_body, 'estar-status@estar.org.uk'); 
+        
+         }            
+      
+         $log->warn("Warning: node $best_node has gone down since scoring");
+         $log->warn("Warning: discarding observation from queue");
+         $log->error( $error );
+         next;
+  
+     } else {
+      
+      my $type = $ers_reply->determine_type();    
+      $log->debug( "Got a '" . $type . "' message from $best_node");  
+      $observation_object->obs_reply( $ers_reply );
+    
+      if ( $type eq 'confirmation' ) {
+         $log->debug( $best_node . " confirmed start of observation" );
+         $observation_object->status( 'running' );
+         
+         # SERIALISE OBSERVATION TO STATE DIRECTORY 
+         # ========================================
+         $log->debug( "Serialising \$observation_object to " .
+                       $config->get_state_dir() );
+         my $file = File::Spec->catfile(
+                       $config->get_state_dir(), $id);
+        
+         # write the observation object to disk. Lets use a DBM backend next
+         # time shall we?
+         unless ( open ( SERIAL, "+>$file" )) {
+           # check for errors, theoretically if we can't temporarily write to
+           # the state directory this is no great loss as we'll create a fresh
+           # observation object in the handle_rtml() routine if the unique id
+           # of the object isn't known (i.e. it doesn't exist as a file in
+           # the state directory
+           $log->warn( "Warning: Unable to serialise observation_object");
+           $log->warn( "Warning: Can not write to "  .
+                            $config->get_state_dir());             
+         
+         } else {
+           unless ( flock( SERIAL, LOCK_EX ) ) {
+              $log->warn("Warning: unable to acquire exclusive lock: $!");
+              $log->warn("Warning: Possible data loss...");
+           } else {
+              $log->debug("Acquiring exclusive lock...");
+           } 
+      
+           # serialise the object
+           my $dumper = new Data::Dumper([$observation_object],
+                                         [qw($observation_object)]  );
+           print SERIAL $dumper->Dump( );
+           close(SERIAL);  
+           $log->debug("Freeing flock()...");
+        
+         }
+         
+      } else {
+         $log->debug( $best_node . " rejected the observation" );
+         my $error = "Error: Observation rejected";
+         
+      
+         if( $config->get_option("user.notify") == 1 ) {
+      
+             $log->print( "Sending notification email...");
+             
+             my $mail_body = 
+              "Your user agent attempted to submit your observing request\n" .
+              "of type $observation{type} to $best_node but the request\n".
+              "was rejected with the error,\n" .
+              "\n$error\n" .
+              "This is a fatal error. You may want to try and followup up\n".
+              "manually. The RTML message returned from the node is\n".
+              "attached below\n".
+              "\n\n".
+              $reply;
+  
+             eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
+                              $config->get_option("user.real_name"),
+                              'estar@astro.ex.ac.uk',
+                              'eSTAR User Agent (Reject)',
+                              $mail_body, 'estar-status@estar.org.uk' ); 
+         }               
+         
+	 $log->error( $reply );
+         $log->error( $error );
+         next;
+      }
+                
+     }    
+            
+     if( $config->get_option("user.notify") == 1 ) {
+      
+          $log->print( "Sending notification email...");
+            
+          my $mail_body = 
+            "Your user agent has submitted an observing request into the\n" .
+            "queue at $best_node of type $observation{type}. The RTML\n".
+            "message that was sent to the node is attached below\n".
+            "\n\n".
+            $observation_object->obs_request()->dump_rtml();
+      
+          eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
+                              $config->get_option("user.real_name"),
+                              'estar@astro.ex.ac.uk',
+                              'eSTAR User Agent (Success)',
+                              $mail_body, 'estar-status@estar.org.uk'); 
+     }      
+   
+      # return sucess code
+     $log->debug( "QUEUED OK at $NODES[$i]" );
+     $sucessful_submission = $sucessful_submission . " " . $NODES[$i];
+     next;
+
+   } # end of "foreach my $i ( 0 ... $#NODES )" 
+   $log->debug( "Returning DONE OK message" );
+   $sucessful_submission =~ s/^\s+//;
+   $sucessful_submission =~ s/\s+$//;
+   return SOAP::Data->name('return', 'DONE OK ['.$sucessful_submission.']')->type('xsd:string');
+ 
+}
+
+
+
+
 
 # handle an incoming RTML document
 sub handle_rtml {

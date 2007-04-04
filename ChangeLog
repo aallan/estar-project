@@ -1,3 +1,11 @@
+2007-04-04 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * bin/user_agent.pl: Increased time outs to 60s
+        
+        * eSTAR/UA/Handler.pm & eSTAR/UA/SOAP/Handler.pm: Added an
+          all_telescopes() method to drop observations onto all
+          available nodes.
+          
 2007-03-07 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * www/robonet-1.0/cgi-bin/*: Updated for 2007 season.
