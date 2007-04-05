@@ -193,7 +193,10 @@
            }
 	   my $url = 'http://ctiokw.ctio.noao.edu/~sm/w/public/' . $name . '/';	
 	   print "<A HREF='$url'>$full_name</A>";
-	
+        } elsif ( $target =~ m/OGLE/ ) {
+           print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Error] body=[OGLE target with incorrectly formated name<br>Target name will not trigger pipeline?<br>Use name in format: OB07xxx]' >";
+           print "$full_name <font color='red'><b>(ERROR)</b></font>";
+           print "</DIV>";
 	} else {
            print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Co-ordinates] body=[<table><tr><td width=25px><b>RA:</b></td><td><center>$ra</center></td></tr><tr><td><b>Dec:</b></td><td><center>$dec</center></td></tr></table>]' >";
            print "$full_name";
@@ -231,8 +234,11 @@
            print "</DIV>";	
 	
 	} else {
-	   print "<font color='grey'>$type</font>"; 
-	   
+           if ( $type eq 'toop' ) {
+	      print "<font color='red'><b>TOO<b></font>"; 
+	   } else {
+              print "<font color='grey'>$type</font>"; 
+	   }
 	}  
 	print "</td>\n";    
 

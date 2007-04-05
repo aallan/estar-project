@@ -5,6 +5,7 @@ use threads::shared;
 
 use strict;
 use vars qw(@ISA);
+use Data::Dumper;
 
 # Based on SOAP::Transport::HTTP::Daemon::ThreadOnAccept, which in
 # turn is a threaded implemetation of SOAP::Transport::HTTP::Daemon
@@ -30,6 +31,11 @@ sub request {
   if ( my $request = $_[0] ) {         
     
     #print "\$request = " . Dumper ( $request ) . "\n";
+    
+    
+    #print "Request = ";
+    #print Dumper($request);
+    #print Dumper($self);
     
     my @cookies = $request->headers()->header('cookie');
 

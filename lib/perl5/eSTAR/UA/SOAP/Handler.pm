@@ -4,8 +4,9 @@ package eSTAR::UA::SOAP::Handler;
 use strict;
 use vars qw( @ISA %COOKIES );
 
-use SOAP::Lite;
+use SOAP::Lite;  
 use eSTAR::UA::Handler;
+use Data::Dumper;
 
 @ISA = qw(eSTAR::UA::Handler);
 
@@ -61,16 +62,20 @@ sub new {
    
    my $log = shift;
    
+   #print Dumper( %COOKIES);
+   
    my $self;
    # if there are no arguements, but available cookies, 
    # then that is the signal to use the cookies
    if( (! @_) and (keys %COOKIES) ) {
-     
+         
      # start by getting the basic, bare object
      $self = $class->SUPER::new();
      
      # then call set_user. It will die with a SOAP::Fault on any error
      $self->set_user();
+
+     #print Dumper $self;
    
    } else {
    

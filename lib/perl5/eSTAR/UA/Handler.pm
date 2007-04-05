@@ -239,10 +239,13 @@ sub echo {
    $log->debug("Called echo() from \$tid = ".threads->tid());
    
    # not callable as a static method, so must have a value
-   # user object stored within             
+   # user object stored within    
+   
+   #print Dumper $self->{_user};
+            
    unless ( my $user = $self->{_user}) {
       $log->warn("SOAP Request: The object is missing user data");
-    #  return "The object is missing user data"
+      return "The object is missing user data"
    }
      
    $log->debug("Returned ECHO message");
