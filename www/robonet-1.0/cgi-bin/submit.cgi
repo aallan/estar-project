@@ -134,9 +134,9 @@ if( $observation{toop} eq "toop" ) {
   $observation{interval} = undef;
   $observation{tolerance} = undef;
 } else { 
-  $observation{seriescount} = $query{series_count};
-  $observation{interval} = "PT" . $query{interval} . "S";
-  $observation{tolerance} = "PT" . $query{tolerance} . "S";
+  $observation{seriescount} = $query{series_count} if $query{series_count} ne "";
+  $observation{interval} = "PT" . $query{interval} . "S" if $query{interval} ne "";
+  $observation{tolerance} = "PT" . $query{tolerance} . "S" if  $query{tolerance} ne "";
 }
 
 # S U B M I T   E V E N T   M E S S A G E ------------------------------------
