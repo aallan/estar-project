@@ -293,6 +293,7 @@
 	
 	print "<td>";
 
+        my $expire = expired( @time );
         if( $unknown == 1 ) {
 	   print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Error] body=[Returned observation not in database.<br>Possible timeout at Node Agent?]' >";
 	   print " <b><font color='red'>ERROR</font></b>";
@@ -300,6 +301,10 @@
 	} elsif ( $target =~ m/OGLE/ ) {
            print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Error] body=[<table><tr><td><b>$node_name</b> ($node)</td></tr><tr><td><b>Score:</b> $score</td></tr><tr><td>&nbsp;</td></tr><tr><td>OGLE target with incorrectly formated name</td></tr><tr><td>Target name will not trigger pipeline?</td></tr><tr><td>Use name in format: OB07xxx</td></tr></table>]' >";
            print "<font color='red'><b>ERROR</b></font>";
+           print "</DIV>";
+	} elsif ( !( $expire == -1 || $expire == 0 ) && $status eq "update" ) {
+	   print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Warning] body=[<table><tr><td><b>$node_name</b> ($node)</td></tr><tr><td><b>Score:</b> $score</td></tr><tr><td>&nbsp;</td></tr><tr><td>The observation has expired.</td></tr><tr><td>But no final return document was received.</td></tr></table>]' >";
+           print "<font color='orange'><b>WARN</b></font>";
            print "</DIV>";
 	} else {
            print "<DIV TITLE='offsetx=[-75] cssbody=[popup_body] cssheader=[popup_header] header=[Best Score] body=[<table><tr><td><b>$node_name</b></td></tr><tr><td><b>Score:</b> $score</td></tr></table>]' >";
@@ -316,8 +321,7 @@
 	   print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Unique ID] body=[".$files[$i]."]' >";
 	}
 	if ( $status eq "running" ) {
-	   my $status = expired( @time );
-	   if ( $status == -1 || $status == 0 ) {
+	   if ( $expire == -1 || $expire == 0 ) {
               print "<font color='grey'>Queued</font>";
 	   } else {   
               print "<font color='orange'>No response</font>";
@@ -329,13 +333,11 @@
 	} elsif ( $status eq "update" ) {
            my @updates = $object->update();
            my $num = scalar @updates;
-	   my $status = expired( @time );
-	   if( $status == -1 || $status == 0 ) {
-	      print "<font color='green'>In progress";
-                print " ($num)" if $num > 0;
+	   if( $expire == -1 || $expire == 0 ) {
+	       print "<font color='green'>In progress";
+               print " ($num)" if $num > 0;
                print "</font>";
 	   } else {
-	       print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Error] body=[The observation has expired.<br>No final return document was recieved.]' >";
                print "<font color='blue'>Expired";
                print " ($num)" if $num > 0;
                print "</font>";
