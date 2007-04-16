@@ -329,10 +329,18 @@
 	} elsif ( $status eq "update" ) {
            my @updates = $object->update();
            my $num = scalar @updates;
-           print "<font color='green'>In progress";
-           print " ($num)" if $num > 0;
-           print "</font>";
-
+	   my $status = expired( @time );
+	   if( $status == -1 || $status == 0 ) {
+	      print "<font color='green'>In progress";
+                print " ($num)" if $num > 0;
+               print "</font>";
+	   } else {
+	       print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Error] body=[The observation has expired.<br>No final return document was recieved.]' >";
+               print "<font color='blue'>Expired";
+               print " ($num)" if $num > 0;
+               print "</font>";
+           }
+	   
 	} elsif ( $status eq "incomplete" ) {
            my @updates = $object->update();
            my $num = scalar @updates;
