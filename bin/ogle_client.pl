@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.31 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.32 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -173,6 +173,7 @@ if ( $config->get_state("ec.unique_process") == 1 ) {
    # interprocess communication
    $config->set_option("ec.user", "agent" );
    $config->set_option("ec.passwd", "InterProcessCommunication" );
+   $config->set_option("ec.project", "exoplanet" );
         
    # user agent
    $config->set_option("ua.host", 'exo.astro.ex.ac.uk' );
@@ -228,7 +229,8 @@ my $status = GetOptions(
                          "port=s"     => \$opt{"port"},
                          
                          "user=s"     => \$opt{"user"},
-                         "pass=s"     => \$opt{"pass"},,
+                         "pass=s"     => \$opt{"pass"},
+                         "project=s"     => \$opt{"project"},
                          
                          "start=s"    => \$opt{"start"},
                          "end=s"      => \$opt{"end"}
@@ -276,6 +278,16 @@ unless( defined $opt{"pass"} ) {
    if ( defined $config->get_option("ec.passwd") ) {
       $log->warn("Warning: Resetting password...");
       $config->set_option("ec.passwd", $opt{"pass"} );
+   }
+}
+
+unless( defined $opt{"project"} ) {
+   $opt{"project"} = $config->get_option("ec.project");
+} else{       
+   if ( defined $config->get_option("ec.project") ) {
+      $log->warn("Warning: Resetting project from " .
+                $config->get_option("ec.project") . " to $opt{project}");
+      $config->set_option("ec.project", $opt{"project"} );
    }
 }
 
@@ -469,15 +481,18 @@ my $incoming_callback = sub {
                        type	     => "ExoPlanetMonitor",
                        followup      => 0,
                        starttime     => $start_time,
-                       endtime       => $end_time );	  
+                       endtime       => $end_time,
+                       project       => $config->get_option("ec.project") );	  
     
     
       # report
-      $log->thread("Client", "Calling new_observation( ) in User Agent");
+      #$log->thread("Client", "Calling new_observation( ) in User Agent");
+      $log->thread("Client", "Calling all_telescopes( ) in User Agent");
     
       # grab result 
       my $result;
-      eval { $result = $soap->new_observation( %observation ); };
+      #eval { $result = $soap->new_observation( %observation ); };
+      eval { $result = $soap->all_telescopes( %observation ); };
       if ( $@ ) {
          my $error = "$@";
          chomp( $error );

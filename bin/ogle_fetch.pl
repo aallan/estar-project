@@ -20,7 +20,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: ogle_fetch.pl,v 1.15 2007/03/08 16:32:47 aa Exp $
+$Id: ogle_fetch.pl,v 1.16 2007/04/20 16:15:53 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -37,7 +37,7 @@ use vars qw / $VERSION /;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.15 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.16 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -217,6 +217,7 @@ if ( $config->get_state("of.unique_process") == 1 ) {
    # interprocess communication
    $config->set_option("of.user", "agent" );
    $config->set_option("of.passwd", "InterProcessCommunication" );
+   $config->set_option("of.project", "exoplanet" );
    
    # ogle page
 #   $config->set_option("of.remote", "cgi.st-andrews.ac.uk");
@@ -294,6 +295,7 @@ my $status = GetOptions( "host=s"     => \$opt{"host"},
                          
                          "user=s"     => \$opt{"user"},
                          "pass=s"     => \$opt{"pass"},
+                         "project=s"  => \$opt{"project"},
                          
                          "long=s"     => \$opt{"long"},
                          "lat=s"      => \$opt{"lat"},
@@ -348,6 +350,17 @@ unless( defined $opt{"pass"} ) {
    if ( defined $config->get_option("of.passwd") ) {
       $log->warn("Warning: Resetting password...");
       $config->set_option("of.passwd", $opt{"pass"} );
+   }
+}
+
+# default projecct location
+unless( defined $opt{"project"} ) {
+   $opt{"project"} = $config->get_option("of.project");
+} else{       
+   if ( defined $config->get_option("of.project") ) {
+      $log->warn("Warning: Resetting project from " .
+                $config->get_option("of.project") . " to $opt{project}");
+      $config->set_option("of.project", $opt{"project"} );
    }
 }
 
@@ -770,7 +783,8 @@ foreach my $n ( 0 ... $#data ) {
                           groupcount    => ${$data[$n]}{GroupCount},
                           starttime     => $start_time,
                           endtime       => $end_time,
-                          seriescount   => ${$data[$n]}{SeriesCount} );
+                          seriescount   => ${$data[$n]}{SeriesCount},
+                          project       => $config->get_option("of.project") );
           
    } elsif ( defined ${$data[$n]}{GroupCount} &&
              ${$data[$n]}{SeriesCount} > 1 ) {
@@ -792,7 +806,8 @@ foreach my $n ( 0 ... $#data ) {
                           endtime       => $end_time,
                           seriescount   => ${$data[$n]}{SeriesCount},
                           interval      => $interval,
-                          tolerance     => $tolerance );
+                          tolerance     => $tolerance,
+                          project       => $config->get_option("of.project") );
                     
           
                           
@@ -810,7 +825,8 @@ foreach my $n ( 0 ... $#data ) {
                           type          => "ExoPlanetMonitor",
                           followup      => 0,
                           starttime     => $start_time,
-                          endtime       => $end_time );
+                          endtime       => $end_time,
+                          project       => $config->get_option("of.project") );
    } else {
    
       $log->print("We have a series of " . ${$data[$n]}{SeriesCount} . 
@@ -828,7 +844,8 @@ foreach my $n ( 0 ... $#data ) {
                           endtime       => $end_time,
                           seriescount   => ${$data[$n]}{SeriesCount},
                           interval      => $interval,
-                          tolerance     => $tolerance );   
+                          tolerance     => $tolerance,
+                          project       => $config->get_option("of.project") );   
    
    }
    

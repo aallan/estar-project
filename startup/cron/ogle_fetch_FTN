@@ -1,4 +1,4 @@
 #! /bin/tcsh
 
-/work/estar/third_generation/bin/ogle_fetch.pl -hours '4.0' -long '-156.24' -lat '20.70666' -elev '3054' -user aa -pass wibble >& ~estar/logs/ogle/ogle_FTN.`date -Iseconds` &
+/work/estar/third_generation/bin/ogle_fetch.pl -hours '2.0' -long '-156.24' -lat '20.70666' -elev '3054' -user kdh1 -pass EXOfollowup -project exoplanet >& ~estar/logs/ogle/ogle_FTN.`date -Iseconds` &
 

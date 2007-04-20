@@ -1,3 +1,7 @@
+207-04-18 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * Fixes for new Java native NodeAgents
+
 2007-04-04 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * bin/user_agent.pl: Increased time outs to 60s
