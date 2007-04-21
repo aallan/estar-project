@@ -624,10 +624,12 @@ sub new_observation {
   
    # NODE ARRAY
    my @NODES;   
+   my @NAMES;
 
    # we might not have any nodes! So check!
    my $node_flag = 0;
-   @NODES = $config->get_nodes();   
+   @NODES = $config->get_nodes();
+   @NAMES = $config->get_node_names();  
    $node_flag = 1 if defined $NODES[0];
    
    # if there are no nodes add a default menu entry
@@ -664,7 +666,7 @@ sub new_observation {
       $soap->proxy($endpoint, cookie_jar => $cookie_jar, timeout => 30);
     
       # report
-      $log->print("Connecting to $dn_host:$dn_port..." );
+      $log->print("Connecting to $dn_host:$dn_port ($NAMES[$i])..." );
     
       # fudge RTML document?
       $score_rtml =~ s/</&lt;/g;
@@ -675,7 +677,7 @@ sub new_observation {
       eval { $result = $soap->handle_rtml( 
                SOAP::Data->name('query', $score_rtml )->type('xsd:string')); };
       if ( $@ ) {
-         $log->warn("Warning: Failed to connect to $dn_host:$dn_port" );
+         $log->warn("Warning: Failed to connect to $dn_host:$dn_port ($NAMES[$i])" );
          $log->warn("Warning: Skipping to next node..."  );
          next;    
       }
@@ -706,7 +708,9 @@ sub new_observation {
       } else {
 
          my $type = $ers_reply->determine_type();       
-         $log->debug( "Got a '" . $type . "' message from $dn_host:$dn_port");  
+         $log->debug( "Got a '" . $type . "' message from $dn_host:$dn_port ($NAMES[$i])"); 
+         $log->debug( "Score from $NAMES[$i] was " . $ers_reply->score());
+         $log->debug( $ers_reply->build( Type => 'score' ) ); 
          $observation_object->score_reply( "$dn_host:$dn_port", $ers_reply );
       
       }   
