@@ -169,6 +169,10 @@ if ( $user eq 'aa' ) {
    $contact_name = 'Nicholas Rattenbury';
    $contact_email = 'nicholas.rattenbury@manchester.ac.uk';
    $contact_phone = '+44-1477-572653';
+} elsif ( $user eq 'ess' ) {
+   $contact_name = 'Eric Saunders';
+   $contact_email = 'saunders@astro.ex.ac.uk';
+   $contact_phone = '+44-1392-264124';
 }
 
 print '     <tr align="left" valign="middle">'."\n";     
@@ -213,6 +217,11 @@ if(  $user eq 'aa' ) {
 } elsif ( $user eq 'md' ) {
    print '             <option VALUE="PLANET">  PLANET'."\n";
    print '             <option VALUE="eSTAR">   eSTAR'."\n";
+   print '             <option VALUE="Robonet-1.0">     RoboNet-1.0'."\n";
+} elsif ( $user eq 'ess' ) {
+   print '             <option VALUE="LCO"> LCO GT'."\n";
+   print '             <option VALUE="eSTAR">   eSTAR'."\n";
+   print '             <option VALUE="PLANET">  PLANET'."\n";
    print '             <option VALUE="Robonet-1.0">     RoboNet-1.0'."\n";
 }
 
@@ -308,9 +317,9 @@ print '      <!-- ############################################################# 
 my ($start_time, $end_time) = start_and_end_timestamp();
           
 print '      <tr align="left" valign="top">'."\n";
-print '      <td colspan="3">'."\n";
-print '         <table border="0" width="100%">'."\n";
-print '         <tr>'."\n";
+#print '      <td colspan="3">'."\n";
+#print '         <table border="0" width="100%">'."\n";
+#print '         <tr>'."\n";
 
 print '         <td valign="top">'."\n";
 print '            <b>Start Time:</b>'."\n";
@@ -324,9 +333,20 @@ print '             <input size="23" name="end_time" value="'. $end_time .'"> '.
 print '            <br><i><small>Format: YYYY-MM-DDThh:mm:ss (in UTC)</small></i>     '."\n";     
 print '         </td>'."\n";
               
-print '         </tr>'."\n";
-print '         </table> '."\n";
-print '      </td>'."\n";
+#print '         </tr>'."\n";
+#print '         </table> '."\n";
+#print '      </td>'."\n";
+
+print '         <td>'."\n";
+print '             <b>Type :</b> <select NAME="filter">'."\n";
+print '  	       <option VALUE="R">	R '."\n";
+print '  	       <option VALUE="I">	I'."\n";
+print '  	       <option VALUE="V">	V'."\n";
+print '  	       <option VALUE="B">	B'."\n";
+print '	    </select>  '."\n";
+print '	     <br>'."\n";
+print '             <i><small>Filter requested</small></i>'."\n";
+print '         </td>'."\n";
 
 print '      </tr>'."\n";
 

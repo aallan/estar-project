@@ -1,3 +1,8 @@
+207-04-23 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * www/robonet-1.0/cgi-bin/*: Added support for different filters
+          from the override page.
+          
 207-04-18 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * Fixes for new Java native NodeAgents

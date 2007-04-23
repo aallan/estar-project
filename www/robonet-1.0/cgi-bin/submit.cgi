@@ -128,6 +128,7 @@ $observation{groupcount} = $query{group_count};
 $observation{starttime} = $query{start_time};
 $observation{endtime} = $query{end_time};
 $observation{toop} = $query{type};
+$observation{filter} = $query{filter};
 
 if( $observation{toop} eq "toop" ) {
   $observation{seriescount} = undef;
