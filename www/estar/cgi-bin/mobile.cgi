@@ -198,9 +198,9 @@ print '<tr><td colspan="2" style="padding-top:5px"><strong>LT</strong>, <em>La P
 print '<tr><td><img src="http://telescope.livjm.ac.uk/pics/webcam_int_2.jpg" width="160" height="120" alt="LT web camera" /></td><td>&nbsp;</td></tr>'."\n";
 my $string = "";
 foreach my $key ( sort keys %machine ) {
-   $key = "ltproxy.ing.iac.es" if $key eq "161.72.57.3";
-   if ( $key =~ "iac.es" ) {
-      $string = $string . "<tr><td>$key</td><td><font color='";
+   my $host = "ltproxy.ing.iac.es" if $key eq "161.72.57.3";
+   if ( $host =~ "iac.es" ) {
+      $string = $string . "<tr><td>$host</td><td><font color='";
       if ( $machine{$key} eq "PING" ) {
          $string = $string . "lightgreen'>OK</font></td></tr>\n";
       } else {
@@ -227,9 +227,9 @@ print '<tr><td colspan="2" style="padding-top:5px"><strong>FTS</strong></strong>
 print '<tr><td><img src="http://150.203.153.202:8274/axis-cgi/jpg/image.cgi?resolution=320x240" width="160" height="120" alt="FTS web camera" /></td><td>&nbsp;</td></tr>'."\n";
 my $string = "";
 foreach my $key ( sort keys %machine ) {
-   $key = "ftsproxy.aao.gov.au" if $key eq "150.203.153.202";
-   if ( $key =~ "aao.gov.au" ) {
-      $string = $string . "<tr><td>$key</td><td><font color='";
+   my $host = "ftsproxy.aao.gov.au" if $key eq "150.203.153.202";
+   if ( $host =~ "aao.gov.au" ) {
+      $string = $string . "<tr><td>$host</td><td><font color='";
       if ( $machine{$key} eq "PING" ) {
          $string = $string . "lightgreen'>OK</font></td></tr>\n";
       } else {
@@ -258,9 +258,9 @@ print '<tr><td colspan="2" style="padding-top:5px"><strong>Faulkes North</strong
 print '<tr><td><img width="160" height="120" src="http://132.160.98.239:8275/axis-cgi/jpg/image.cgi?resolution=320x240" alt="FTN web camera"></td><td>&nbsp;</td></tr>'."\n";
 my $string = "";
 foreach my $key ( sort keys %machine ) {
-   $key = "ftnproxy.ifa.hawaii.edu" if $key eq "132.160.98.239";
-   if ( $key =~ "ifa.hawaii.edu" ) {
-      $string = $string . "<tr><td>$key</td><td><font color='";
+   my $host = "ftnproxy.ifa.hawaii.edu" if $key eq "132.160.98.239";
+   if ( $host =~ "ifa.hawaii.edu" ) {
+      $string = $string . "<tr><td>$host</td><td><font color='";
       if ( $machine{$key} eq "PING" ) {
          $string = $string . "lightgreen'>OK</font></td></tr>\n";
       } else {

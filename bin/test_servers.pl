@@ -206,9 +206,12 @@ unless ( defined $status ) {
 
   # list of "default" known nodes  
   $config->set_option( "nodes.UKIRT", "estar.ukirt.jach.hawaii.edu:8080" );
-  $config->set_option( "nodes.LT", "estar3.astro.ex.ac.uk:8078" );
-  $config->set_option( "nodes.FTN", "estar3.astro.ex.ac.uk:8077" );
-  $config->set_option( "nodes.FTS", "estar3.astro.ex.ac.uk:8079" );
+#  $config->set_option( "nodes.LT", "estar3.astro.ex.ac.uk:8078" );
+#  $config->set_option( "nodes.FTN", "estar3.astro.ex.ac.uk:8077" );
+#  $config->set_option( "nodes.FTS", "estar3.astro.ex.ac.uk:8079" );
+$config->set_option( "nodes.LT", "161.72.57.3:8080/axis/services/NodeAgent" );
+$config->set_option( "nodes.FTN", "132.160.98.239:8080/axis/services/NodeAgent" );
+$config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent" );
   $config->set_option( "nodes.RAPTOR", "estar2.astro.ex.ac.uk:8080" );
   $status = $config->write_option( );
 

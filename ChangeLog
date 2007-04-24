@@ -1,9 +1,17 @@
-207-04-23 Alasdair Allan <aa@astro.ex.ac.uk>
+2007-04-24 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * bin/test_servers.pl: Changed over to new node agents
+
+        * www/estar/cgi-bin/status.pl: Changed over to new node agents
+
+        * www/estar/cgi-bin/mobile.pl: Changed over to new node agents
+        
+2007-04-23 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * www/robonet-1.0/cgi-bin/*: Added support for different filters
           from the override page.
           
-207-04-18 Alasdair Allan <aa@astro.ex.ac.uk>
+2007-04-18 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * Fixes for new Java native NodeAgents
 

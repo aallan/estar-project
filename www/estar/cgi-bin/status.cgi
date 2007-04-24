@@ -223,9 +223,9 @@ print '<a href="http://maps.google.com/?ie=UTF8&ll=28.703763,-17.866087&spn=0.12
 print '<table>'."\n"; 
 my $string = "";
 foreach my $key ( sort keys %machine ) {
-   $key = "ltproxy.ing.iac.es" if $key eq "161.72.57.3";
-   if ( $key =~ "iac.es" ) {
-      $string = $string . "<tr><td>$key</td><td><font color='";
+   my $host = "ltproxy.ing.iac.es" if $key eq "161.72.57.3";
+   if ( $host =~ "iac.es" ) {
+      $string = $string . "<tr><td>$host</td><td><font color='";
       if ( $machine{$key} eq "PING" ) {
          $string = $string . "lightgreen'>OK</font></td></tr>\n";
       } else {
@@ -257,9 +257,9 @@ print 'Google Earth <a href="http://www.aao.gov.au/vr/telescopes.kmz"><u>placema
 print '<table>'."\n"; 
 my $string = "";
 foreach my $key ( sort keys %machine ) {
-   $key = "ftsproxy.aao.gov.au" if $key eq "150.203.153.202";
-   if ( $key =~ "aao.gov.au" ) {
-      $string = $string . "<tr><td>$key</td><td><font color='";
+   my $host = "ftsproxy.aao.gov.au" if $key eq "150.203.153.202";
+   if ( $host =~ "aao.gov.au" ) {
+      $string = $string . "<tr><td>$host</td><td><font color='";
       if ( $machine{$key} eq "PING" ) {
          $string = $string . "lightgreen'>OK</font></td></tr>\n";
       } else {
@@ -292,9 +292,9 @@ print '<a href="http://maps.google.com/?ie=UTF8&t=h&om=1&ll=20.732997,-156.18713
 print '<table>'."\n"; 
 my $string = "";
 foreach my $key ( sort keys %machine ) {
-   $key = "ftnproxy.ifa.hawaii.edu" if $key eq "132.160.98.239";
-   if ( $key =~ "ifa.hawaii.edu" ) {
-      $string = $string . "<tr><td>$key</td><td><font color='";
+   my $host = "ftnproxy.ifa.hawaii.edu" if $key eq "132.160.98.239";
+   if ( $host =~ "ifa.hawaii.edu" ) {
+      $string = $string . "<tr><td>$host</td><td><font color='";
       if ( $machine{$key} eq "PING" ) {
          $string = $string . "lightgreen'>OK</font></td></tr>\n";
       } else {
