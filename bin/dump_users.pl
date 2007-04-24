@@ -9,10 +9,13 @@
   my $db = new eSTAR::SOAP::User();
   my %list = $db->list_users();
 
+
   foreach my $key ( keys %list ) {
      print "Username: " . $key . ", Password: " . $list{$key} . "\n";
      
   }
+
+  print "No users found in db.\n" unless %list;
  
   
   exit;

@@ -3,7 +3,7 @@ package eSTAR::UA::Algorithm::PhotometryFollowup;
 use strict;
 use vars qw/ $VERSION /;
 
-'$Revision: 1.5 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.6 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 use threads;
 use threads::shared;
@@ -45,10 +45,19 @@ sub new {
 # M E T H O D S -------------------------------------------------------------
 
 sub process_data {
-  my $self = shift;
-  my $id = shift;
+  my $self     = shift;
+  my $id       = shift;
+  my $obs_type = shift;
+      
 
   $log->debug("Called process_data() from \$tid = ".threads->tid());
+
+  # We're only interested in processing messages of type 'observation'...
+  unless ( $obs_type eq 'observation' ) {
+    $log->debug("Message not of type 'observation' - returning");
+    return ESTAR__OK;
+  }
+
 
   # START OF DATA PROCESSING ##############################################
   

@@ -38,7 +38,7 @@ use eSTAR::Util;
 @ISA = qw/Exporter/;
 @EXPORT_OK = qw/ send_mail /;
 
-'$Revision: 1.9 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.10 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 
 sub send_mail {
@@ -49,13 +49,14 @@ sub send_mail {
    my $body = shift;
    my $cc = shift;
 
+
    my $log = eSTAR::Logging::get_reference();
    my $process = eSTAR::Process::get_reference();
    my $config = eSTAR::Config::get_reference();
  
   
    $log->debug( "Sending mail to $to_name <$to>" ); 
-   
+
    my $smtp = new Net::SMTP( 
                      Host    => $config->get_option("mailhost.name"),
                      Hello   => $config->get_option("mailhost.domain"),
@@ -73,6 +74,7 @@ sub send_mail {
                     
      $smtp->mail( $from );
      $smtp->to( $to );
+     
      if ( defined $cc ) {
         $smtp->cc( $cc );
      }
@@ -86,7 +88,7 @@ sub send_mail {
 
      $smtp->quit;
   
-     $log->debug( "Conneciton closed..." );
+     $log->debug( "Connection closed..." );
    
    }   
    
@@ -99,7 +101,7 @@ sub send_mail {
 
 =head1 REVISION
 
-$Id: Mail.pm,v 1.9 2006/04/10 22:47:23 aa Exp $
+$Id: Mail.pm,v 1.10 2007/04/24 16:52:42 saunders Exp $
 
 =head1 AUTHORS
 

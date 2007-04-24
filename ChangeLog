@@ -1,3 +1,8 @@
+2007-04-24 Eric Saunders <saunders@astro.ex.ac.uk>
+
+	* *: Merged changes from the ADP variable star branch
+	  'saunders_vs_agent_branch2' back into trunk.
+
 2007-04-24 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* widgets/eSTAR Status.wdgt/*: Fixed bug on UKIRT status, updated 
@@ -17,10 +22,57 @@
 
         * www/robonet-1.0/cgi-bin/*: Added support for different filters
           from the override page.
+
+2007-04-23 Eric Saunders <saunders@astro.ex.ac.uk>
+
+	* bin/virtual_telescope.pl: Fixed several race conditions, and did
+	extensive final testing. Now reasonably confident the code is correct.
+
+2007-04-20 Eric Saunders <saunders@astro.ex.ac.uk>
+
+	* bin/virtual_telescope.pl: Minor modifications to allow a
+	multi-telescope network simulation to function. Added coords
+	for FTN and FTS; which telescope is determined by parsing the
+	process name. Changed telescope scoring to return 0 unless target
+	is observable at the indicated start time.
+
+2007-04-18 Eric Saunders <saunders@astro.ex.ac.uk>
+
+	* bin/adaptive_vs_scheduler.pl, UA/Algorithm/VariableMonitor.pm,
+	UA/Handler.pm: Generalised calls to algorithms. Now any message
+	type will trigger the algorithm block for that observation type. It is
+	up to the block to correctly handle each message type. Added code to
+	hopefully allow us to catch the situation where an update is
+	sent (with the timestamp), but no observation message ever arrives.
+
+	* bin/adaptive_vs_scheduler.pl: Added traps to handle the error
+	situation where the score succeeds, but the request fails.
+	Current behaviour is to immediately make a new scoring request,
+	under the assumption that this is a temporary glitch.
+
+	* bin/adaptive_vs_scheduler.pl: Added logic to put the agent to sleep
+	for a few minutes if all telescopes are presenting scoring errors, or
+	scores of 0. This should protect Robonet from melting under a scoring
+	denial-of-service attack!
           
 2007-04-18 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * Fixes for new Java native NodeAgents
+
+2007-04-13 Eric Saunders <saunders@astro.ex.ac.uk>
+
+	* bin/adaptive_vs_scheduler.pl: Another major rewrite to allow
+	multiple fields to be managed simultaneously by the same agent.
+	Also added lots more logging. This should be the version ready
+	to go live, with only minor further changes expected.
+
+2007-04-11 Eric Saunders <saunders@astro.ex.ac.uk>
+
+	* bin/adaptive_vs_scheduler.pl: Major rewrite now incorporates
+	the constructive ADP algorithm in preparation for live testing on
+	Robonet. Virtual tests appear to indicate success. Some dreadful
+	hacks are apparent. Still need to add code to allow multiple runs
+	to be managed by a single user agent before this can go live.
 
 2007-04-04 Alasdair Allan <aa@astro.ex.ac.uk>
 
@@ -32,6 +84,13 @@
           
         * www/robonet-1.0/cgi-bin/*: Updated to deal with all_telescopes()
           method and the new timeout problems with the LT. 
+
+2007-04-02 Eric Saunders <saunders@astro.ex.ac.uk>
+
+	* examples/adp_algorithm2.pl: Code for simulating adp
+	algorithms in a simplified theoretical time series space.
+
+	* lib/ADP.pm: Added routines for adp simulation.
           
 2007-03-07 Alasdair Allan <aa@astro.ex.ac.uk>
 
@@ -49,10 +108,72 @@
 	* www/estar/cgi-bin/mobile.cgi: Added a mobile version of the status
 	  page. Still needs a lot of work.
 
+2007-02-13 Eric Saunders <saunders@astro.ex.ac.uk>
+
+	* bin/adaptive_vs_scheduler.pl: Modified to allow batch submission,
+	in preparation for intelligent planning.
+
+2007-02-12 Eric Saunders <saunders@astro.ex.ac.uk>
+
+	* lib/VT/Handler.pl: Rewrote observation threading model to
+	launch a single master scheduling thread. Memory usage for the VT
+	has dropped from ~750MB for n=50 obs to ~80MB. So we are now
+	scaleable to hundreds of observations.
+
 2007-02-12 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * eSTAR/JACH/Handler.pm: Bug fix!
 	
+2007-02-08 Eric Saunders <saunders@astro.ex.ac.uk>
+
+	* bin/adaptive_vs_scheduler.pl: Finished shared memory. Full end to
+	end test with an n=50 logarithmic spacing. Ran into several race
+	conditions, all memory issues. Total code uses 1GB of memory! This
+	after introducing thread->detach()es everywhere.
+
+	* lib/ADP/Util.pm: Upgraded function get_network_time() to cache a 
+	local copy of the time, shared between threads. This stops the time
+	server from dying (seems to happen when around 20 socket accesses take
+	place simultaneously).
+
+
+2007-02-07 Eric Saunders <saunders@astro.ex.ac.uk>
+
+	* bin/adaptive_vs_scheduler.pl: Upgraded protocol between UA and this
+	code. Started coding shared memory and associated functions.
+
+	* examples/shared_hash.pl: Created a small proof-of-concept for the
+	shared data structure to be shared between the threads of 
+	adaptive_vs_scheduler.pl.
+
+	* examples/regex_tester.pl: Added a small pattern testing utility
+	program.
+
+2007-02-06 Eric Saunders <saunders@astro.ex.ac.uk>
+
+	* UA/Algorithm/VariableMonitor.pm: Added logic to check message type
+	and return corresponding information to driver code. End-to-end test
+	shows driver code is now aware of failed observations, as well as
+	successful ones.
+
+	* UA/Algorithm/IrFollowup.pm, UA/Algorithm/PhotometryFollowup.pm: 
+	Modified to return immediately unless message is of type
+	'observation'. This should preserve the existing functionality.
+
+	* UA/Handler.pm: Refactored algorithmic block code into new
+	subroutine. Added a call to this routine for messages of type
+	'failed'.
+
+	* bin/adaptive_vs_scheduler.pl: Enabled option to choose from multiple
+	run schedules. Code clean up. Last commit before modifications to 
+	UA/Handler to enable this code to receive the full range of messages.
+
+	* examples/telescope_sandbox.pl: Added some code to display ephemeris 
+	using obsplan for faster debugging.
+
+	* VT/Handler.pm: End-to-end test of final messages with single
+	observations, fixed coordinates and times. Fixed several nasty bugs.
+
 2007-02-06 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * eSTAR/Util.pm: Fixed fudge_project() to handle non-empty projects.
@@ -67,6 +188,87 @@
         * www/robonet-1.0/cgi-bin/status.cgi: Added RA&Dec hover tip for non
           Exo-planet or SNe observations.
 
+2007-02-05 Eric Saunders <saunders@astro.ex.ac.uk>
+
+	* VT/Handler.pm: Overhauled and refactored VT message logic.
+	Should now be sending correct updates, fail, incomplete and
+	observation messages.
+
+
+	* t/*.t: Split module tests into sub-files, as per eSTAR project 
+	convention.
+
+	* examples/*.pl: Created an examples directory to hold simple 
+	standalone pieces of code that use elements of the eSTAR code,
+	and were created during testing.
+
+2007-02-01 Eric Saunders <saunders@astro.ex.ac.uk>
+
+	* VT/Handler.pm: Implemented geographical location and
+	day/night for the virtual telescope, using the coordinates of the
+	Liverpool telescope.
+
+2007-01-31 Eric Saunders <saunders@astro.ex.ac.uk>
+
+	* bin/adaptive_vs_scheduler.pl: Extensive refactoring to allow
+	logarithmic schedule generation. Mapped logarithmic time series
+	to real times, tested.
+
+2007-01-29 Eric Saunders <saunders@astro.ex.ac.uk>
+
+	* t/adp.t, t/util_adp.t: Created basic unit tests for ADP and
+	ADP::Util. Thoroughly tested log base generation code.
+
+2007-01-25 Eric Saunders <saunders@astro.ex.ac.uk>
+
+	* bin/time_server.pl: Implemented accelerated time. 
+
+	* VT/Handler.pm: Altered the telescope scheduler to poll the
+	time server and wait until the specified start time before taking the
+	'observation'. Ran a successful end-to-end 10 observation linear run
+	in accelerated time.
+
+	* bin/time_server.pl: Implemented a network time server to abstract us
+	from localtime and allow the virtual telescope network to run in
+	accelerated time.
+
+	* eSTAR/ADP/Util.pm: Added a new Util class to handle common 
+	simulation helper routines.
+
+	* bin/adaptive_vs_scheduler.pl: Implemented thread-on-accept for 
+	listening server. Implemented linear observation planning to 
+	generate a chain of observations.
+
+	* VT/Handler.pm: Added FITS header to returned observation 
+	document, with modified timestamp aquired from network server. 
+	Added completion time tag to score response for compliance with the 
+	standard.
+
+	* UA/Algorithm/VariableMonitor: Extracted timestamp from FITS 
+	header and successfully returned to driver code for analysis.
+
+2007-01-24 Eric Saunders <saunders@astro.ex.ac.uk>
+
+	* eSTAR/ADP.pm: Added cleaned up version of module for use by VS 
+	agent.
+
+2007-01-15 Eric Saunders <saunders@astro.ex.ac.uk>
+
+	* bin/adaptive_vs_scheduler.pl: Created initial version of 
+	adaptive scheduler driver code. Implemented TCP/IP socket server 
+	on a seperate thread to allow information to be returned by
+	UA/Algorithm/VariableMonitor.pm.
+
+	* UA/Algorithm/VariableMonitor.pm: Added client code to return 
+	observation status information to driver.
+
+2007-01-05 Eric Saunders <saunders@astro.ex.ac.uk>
+
+	* eSTAR/VT/Handler.pm:   Implemented asynchronous update thread.
+
+	* eSTAR/UA/Algorithm.pm: Copied basic algorithmic block from 
+          SingleExposure.pm, and verified works against make_observation.pl.
+        
 2007-01-03 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * eSTAR/JACH/Handler.pm: Added offset for WFCAM
@@ -86,6 +288,11 @@
           eSTAR::RTML::Parse and eSTAR::RTML::Build modules.
           
         * www/ukirt/cgi-bin/status.cgi: Added some query fallback  
+
+2006-12-20 Eric Saunders <saunders@astro.ex.ac.uk>
+
+	* eSTAR/VT/*: Created virtual telescope based on existing node 
+	  agent.
 
 2006-12-20 Alasdair Allan <aa@astro.ex.ac.uk>
 

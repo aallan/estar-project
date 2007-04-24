@@ -2298,96 +2298,6 @@ sub handle_rtml {
       # module of that type and call process_data( \$observation_object )
       # on the newly created Algorithm object.
     
-      my $dir = File::Spec->catdir( $ENV{ESTAR_PERL5LIB}, 
-                                    "eSTAR", "UA", "Algorithm" );
-      my ( @files );
-      if ( opendir (DIR, $dir )) {
-         foreach ( readdir DIR ) {
-            push( @files, $_ ); 
-         }
-         closedir DIR;
-      } else {
-         $log->error(
-            "Error: Can not open algorithm directory ($dir) for reading" );      
-      } 
-
-      $log->debug(
-        "Scanning algorithm directory for matching types...");
-
-      my $found_flag = ESTAR__FALSE;
-
-      # NB: first 2 entries in a directory listing are '.' and '..'
-      foreach my $i ( 2 ... $#files ) {
-         
-         # grab current file name
-         my $algorithm = $files[$i];
-         
-         # ignore the CVS directory
-         next if $algorithm eq "CVS";
-         
-         # ignore if the file ends in ".bck"
-         next if $algorithm =~ ".bck";
- 
-         # remove .pm from end of files
-         $algorithm =~ s/\W\w+$//;
-         
-         # main check
-         if ( $observation_object->type() eq $algorithm ) {
-         
-            # toggle flag
-            $found_flag = ESTAR__TRUE;
-         
-            # full path
-            $algorithm = "eSTAR::UA::Algorithm::" . $algorithm;
-            
-            # use the algorithim object
-            $log->debug("Loading $algorithm");
-            eval " use $algorithm; ";
-            if ( $@ ) {
-               $log->error("Error: Unable to load $algorithm");
-               $log->error("Error: $@");
-               last;
-            }           
-            
-            # create new alogrithm object
-            $log->debug("Creating an $algorithm object");
-            my $object;
-            eval { $object = $algorithm->new(); };
-            if ( $@ ) {
-               $log->error("Error: Unable to create $algorithm object");
-               $log->error("Error: $@");
-               last;
-            }
-            
-            # pass control to that object
-            $log->print("Passing control to $algorithm object");
-            my $status;
-            eval {$status = $object->process_data($observation_object->id());};
-            if ( $@ ) {
-               $log->error("Error: $@");
-            } elsif ( $status != ESTAR__OK ) {
-               $log->warn(
-                      "Warning: process_data() routine returned bad status");
-            } 
-                      
-            # break out of foreach loop   
-            last;
-                         
-         } else {
-            $log->debug("Ignoring $algorithm object...");
-         }
-      }
-       
-      unless ( $found_flag == ESTAR__TRUE ) {
-         if ( $observation_object->type() =~ "Automatic" ) {
-            # ignore if we have an observation of type "Automatic"
-            $log->debug("Type is 'Automatic \$id' skipping...");
-         } else {
-           $log->warn( 
-             "Warning: No matching algorithims for observations of type " .
-             $observation_object->type() );      
-         }
-      }
 
    
    # INCOMPLETE MESSAGE
@@ -2406,11 +2316,119 @@ sub handle_rtml {
             
    }   # end of elsif ( $type eq "incomplete" )
    
+   # Look for an algorithmic block for this observation and run it... 
+   # This gives the user agent a chance to respond to any message type.
+   run_algorithmic_block($observation_object, $type);
+   
+   
    $log->debug( "Returning 'ACK' message" );
    return SOAP::Data->name('return', 'ACK')->type('xsd:string');
 }
 
-              
+
+
+sub run_algorithmic_block {
+   my $observation_object = shift;
+   my $msg_type = shift;
+
+   # Read in the set of algorithm modules in the algorithm directory...
+   my $dir = File::Spec->catdir( $ENV{ESTAR_PERL5LIB}, 
+                                 "eSTAR", "UA", "Algorithm" );
+   my ( @files );
+   if ( opendir (DIR, $dir )) {
+      foreach ( readdir DIR ) {
+         push( @files, $_ ); 
+      }
+      closedir DIR;
+   } else {
+      $log->error(
+         "Error: Can not open algorithm directory ($dir) for reading" );      
+   } 
+
+   $log->debug(
+     "Scanning algorithm directory for matching types...");
+
+   my $found_flag = ESTAR__FALSE;
+
+   # Cycle through the list looking for a matching algorithm name...
+   # NB: first 2 entries in a directory listing are '.' and '..'
+   foreach my $i ( 2 ... $#files ) {
+
+      # grab current file name
+      my $algorithm = $files[$i];
+
+      # ignore the CVS directory
+      next if $algorithm eq "CVS";
+
+      # ignore if the file ends in ".bck"
+      next if $algorithm =~ ".bck";
+
+      # remove .pm from end of files
+      $algorithm =~ s/\W\w+$//;
+
+      # main check
+      if ( $observation_object->type() eq $algorithm ) {
+
+         # toggle flag
+         $found_flag = ESTAR__TRUE;
+
+         # set full path
+         $algorithm = "eSTAR::UA::Algorithm::" . $algorithm;
+
+         # try to 'use' the algorithim object
+         $log->debug("Loading $algorithm");
+         eval " use $algorithm; ";
+         if ( $@ ) {
+            $log->error("Error: Unable to load $algorithm");
+            $log->error("Error: $@");
+            last;
+         }           
+
+         # create a new alogrithm object
+         $log->debug("Creating an $algorithm object");
+         my $object;
+         eval { $object = $algorithm->new(); };
+         if ( $@ ) {
+            $log->error("Error: Unable to create $algorithm object");
+            $log->error("Error: $@");
+            last;
+         }
+
+         # pass control to that object
+         $log->print("Passing control to $algorithm object");
+         my $status;
+         eval { $status = $object->process_data($observation_object->id(),
+                                                $msg_type); };
+
+                                                
+         if ( $@ ) {
+            $log->error("Error: $@");
+         } elsif ( $status != ESTAR__OK ) {
+            $log->warn(
+                   "Warning: process_data() routine returned bad status");
+         } 
+
+         # break out of foreach loop   
+         last;
+
+      } else {
+         $log->debug("Ignoring $algorithm object...");
+      }
+   }
+
+   unless ( $found_flag == ESTAR__TRUE ) {
+      if ( $observation_object->type() =~ "Automatic" ) {
+         # ignore if we have an observation of type "Automatic"
+         $log->debug("Type is 'Automatic \$id' skipping...");
+      } else {
+        $log->warn( 
+          "Warning: No matching algorithims for observations of type " .
+          $observation_object->type() );      
+      }
+   }
+
+   return;
+}            
 1;                                
                   
                   
