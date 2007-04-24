@@ -344,11 +344,26 @@ function readResponse()
   }
   
 // 16 # USER AGENTS
-// 17 EXO-PLANET estar3.astro.ex.ac.uk 8000 UP
-// 18 GRB estar2.astro.ex.ac.uk 8000 UP
+// 17 ADP
+// 18 EXO-PLANET estar3.astro.ex.ac.uk 8000 UP
+// 19 GRB estar2.astro.ex.ac.uk 8000 UP
 
-  // exo-planet, array[17] 
-  var exo = array[17].split( " " );
+  // adp, array[17] 
+  var adp = array[17].split( " " );
+  exString = exString + "<tr><td>ADP Programme</td><td><font color='";
+  if( adp[3].match( /^UP$/ ) ) {
+     exString = exString + "lightgreen'>UP</font></td></tr>";
+  } else {
+     if ( adp[3].match( /^DOWN$/ ) ) {
+       exString = exString + "red'>DOWN</font></td></tr>";
+     }
+     if ( adp[3].match( /^FAULT$/ ) ) {
+       exString = exString + "orange'>FAULT</font></td></tr>";
+     }       
+  }	
+
+  // exo-planet, array[18] 
+  var exo = array[18].split( " " );
   exString = exString + "<tr><td>Exo-planet Programme</td><td><font color='";
   if( exo[3].match( /^UP$/ ) ) {
      exString = exString + "lightgreen'>UP</font></td></tr>";
@@ -361,8 +376,8 @@ function readResponse()
      }       
   }	
 
-  // grb, array[18] 
-  var grb = array[18].split( " " );
+  // grb, array[19] 
+  var grb = array[19].split( " " );
   exString = exString + "<tr><td>GRB Programme</td><td><font color='";
   if( grb[3].match( /^UP$/ ) ) {
      exString = exString + "lightgreen'>UP</font></td></tr>";
@@ -375,11 +390,11 @@ function readResponse()
      }       
   }
 
-// 19 # EVENT BROKERS
-// 20 eSTAR estar3.astro.ex.ac.uk 9099 UP
+// 20 # EVENT BROKERS
+// 21 eSTAR estar3.astro.ex.ac.uk 9099 UP
 
-  // estar, array[20] 
-  var estar = array[20].split( " " );
+  // estar, array[21] 
+  var estar = array[21].split( " " );
   exString = exString + "<tr><td>Event Broker</td><td><font color='";
   if( estar[3].match( /^UP$/ ) ) {
      exString = exString + "lightgreen'>UP</font></td></tr>";

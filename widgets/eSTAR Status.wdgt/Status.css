@@ -32,7 +32,7 @@ dl.map.on dd {
 	z-index:11;
 	font-size:0.8em;
 	color:#FFF;
-	font: 12px "Lucida Grande";
+	font: 10px "Lucida Grande";
 }
 dl.map.on dd img {
 	position:relative;

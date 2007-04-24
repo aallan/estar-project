@@ -1,6 +1,7 @@
 2007-24-04 Alasdair Allan <aa@astro.ex.ac.uk>
 
-	* widgets/eSTAR Status.wdgt/Update.js: Fixed bug
+	* widgets/eSTAR Status.wdgt/*: Fixed bug on UKIRT status, updated 
+	  for new node agents and Eric's new ADP agent.
 	
         * bin/test_servers.pl: Changed over to new node agents
 
