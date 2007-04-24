@@ -2,9 +2,10 @@
   
   #use strict;
   
-  use vars qw /$VERSION/;
+  use vars qw /$VERSION $DEBUG/;
 
   $VERSION = '0.1';
+  $DEBUG = 1;
 
   #
   # General modules
