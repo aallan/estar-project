@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/software/perl-5.8.6/bin/perl
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ Eric Saunders (saunders@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: time_server.pl,v 1.2 2007/04/24 16:52:42 saunders Exp $
+$Id: time_server.pl,v 1.3 2007/04/24 17:32:30 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -37,7 +37,7 @@ use vars qw ( $VERSION $log );
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {

@@ -1,3 +1,7 @@
+2007-04-24 Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* startup/adp_programme: Script to start the ADP programme
+
 2007-04-24 Eric Saunders <saunders@astro.ex.ac.uk>
 
 	* *: Merged changes from the ADP variable star branch

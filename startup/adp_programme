@@ -1,0 +1,4 @@
+#! /bin/tcsh
+
+source /work/estar/third_generation/etc/user_agent.csh -user eric -mail 'saunders@astro.ex.ac.uk' >& ~estar/logs/adp/user.`date -Iseconds` &
+/software/perl-5.8.6/bin/perl /work/estar/third_generation/bin/time_server.pl >& ~estar/logs/adp/time_server.`date -Iseconds` & 
