@@ -297,6 +297,7 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
   # list of "default" known nodes  
   $config->set_option( "useragents.GRB", "estar2.astro.ex.ac.uk:8000" );
   $config->set_option( "useragents.EXO-PLANET", "estar3.astro.ex.ac.uk:8000" );
+  $config->set_option( "useragents.ADP", "estar.astro.ex.ac.uk:8000" );
   $status = $config->write_option( );
   
 # L O O P   T H R O U G H  A G E N T S  -------------------------------------

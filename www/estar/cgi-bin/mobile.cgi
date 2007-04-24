@@ -150,6 +150,15 @@ if( $grb_status eq "UP" ) {
 } else {
    $grb_status_string = "<font color='orange'>$grb_status</font>";
 }
+my $adp_status = ${$ua{ADP}}[2];
+my $adp_status_string = "";
+if( $adp_status eq "UP" ) {
+   $adp_status_string = "<font color='lightgreen'>UP</font>";
+} elsif ( $adp_status eq "DOWN" ) {
+   $adp_status_string = "<font color='red'>DOWN</font>";
+} else {
+   $adp_status_string = "<font color='orange'>$adp_status</font>";
+}
 my $event_status = ${$broker{eSTAR}}[2];
 my $event_status_string = "";
 if( $event_status eq "UP" ) {
@@ -161,6 +170,7 @@ if( $event_status eq "UP" ) {
 }
 print "<tr><td>Exo-planet Programme&nbsp;&nbsp;</td><td>$exo_status_string</td></tr>";
 print "<tr><td>GRB Programme&nbsp;&nbsp;</td><td>$grb_status_string</td></tr>"; 
+print "<tr><td>ADP Programme&nbsp;&nbsp;</td><td>$adp_status_string</td></tr>"; 
 print "<tr><td>Event Broker&nbsp;&nbsp;</td><td>$event_status_string</td></tr>"; 
 
 # UKIRT #################################################################
@@ -224,7 +234,8 @@ print "<tr><td>Node Agent&nbsp;&nbsp;</td><td>$lt_status_string</td></tr>";
 
 print '<tr><td colspan="2"><hr width="100%"></td></tr>'."\n";
 print '<tr><td colspan="2" style="padding-top:5px"><strong>FTS</strong></strong>, <em>Coonabarabran, Australia<br><font size="-2">Lat. -31.27, Long. 149.28</font></em></td></tr>'."\n";
-print '<tr><td><img src="http://150.203.153.202:8274/axis-cgi/jpg/image.cgi?resolution=320x240" width="160" height="120" alt="FTS web camera" /></td><td>&nbsp;</td></tr>'."\n";
+#print '<tr><td><img src="http://150.203.153.202:8274/axis-cgi/jpg/image.cgi?resolution=320x240" width="160" height="120" alt="FTS web camera" /></td><td>&nbsp;</td></tr>'."\n";
+print '<tr><td><img src="http://www.estar.org.uk/jpg/test_card.jpg" width="160" height="120" alt="FTS web camera" /></td><td>&nbsp;</td></tr>'."\n";
 my $string = "";
 foreach my $key ( sort keys %machine ) {
    my $host = "ftsproxy.aao.gov.au" if $key eq "150.203.153.202";

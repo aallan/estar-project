@@ -167,6 +167,15 @@ if( $grb_status eq "UP" ) {
 } else {
    $grb_status_string = "<font color='orange'>$grb_status</font>";
 }
+my $adp_status = ${$ua{ADP}}[2];
+my $adp_status_string = "";
+if( $adp_status eq "UP" ) {
+   $adp_status_string = "<font color='lightgreen'>UP</font>";
+} elsif ( $adp_status eq "DOWN" ) {
+   $adp_status_string = "<font color='red'>DOWN</font>";
+} else {
+   $adp_status_string = "<font color='orange'>$adp_status</font>";
+}
 my $event_status = ${$broker{eSTAR}}[2];
 my $event_status_string = "";
 if( $event_status eq "UP" ) {
@@ -178,6 +187,7 @@ if( $event_status eq "UP" ) {
 }
 print "<tr><td>Exo-planet Programme&nbsp;&nbsp;</td><td>$exo_status_string</td></tr>";
 print "<tr><td>GRB Programme&nbsp;&nbsp;</td><td>$grb_status_string</td></tr>"; 
+print "<tr><td>ADP Programme&nbsp;&nbsp;</td><td>$adp_status_string</td></tr>"; 
 print "<tr><td>Event Broker&nbsp;&nbsp;</td><td>$event_status_string</td></tr></table>"; 
 
 print '</dd>'."\n";
@@ -250,7 +260,8 @@ print '</dd>'."\n";
 
 print '<dt><a href="http://www.faulkes-telescope.com/" class="location" id="location04">Coonabarabran, Australia</a></dt>'."\n";
 print '<dd><a href="javascript:void(0);" class="close"> </a>'."\n";
-print '<em><strong>Faulkes South</strong><br>Coonabarabran, Australia</em><br><img src="http://150.203.153.202:8274/axis-cgi/jpg/image.cgi?resolution=320x240" width="120" alt="FTS web camera" />'."\n";
+#print '<em><strong>Faulkes South</strong><br>Coonabarabran, Australia</em><br><img src="http://150.203.153.202:8274/axis-cgi/jpg/image.cgi?resolution=320x240" width="120" alt="FTS web camera" />'."\n";
+print '<em><strong>Faulkes South</strong><br>Coonabarabran, Australia</em><br><img src="http://www.estar.org.uk/jpg/test_card.jpg" width="120" alt="FTS web camera" />'."\n";
 
 print '<a href="http://maps.google.com/maps?f=q&hl=en&q=coonabarabran,+Australia&ie=UTF8&ll=-31.268281,149.281883&spn=0.125305,0.33989&t=h&om=1">Lat. -31.27, Long. 149.28</a><br>'."\n";
 print 'Google Earth <a href="http://www.aao.gov.au/vr/telescopes.kmz"><u>placemark file</u></a> for SSO<br>'."\n";
