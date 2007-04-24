@@ -1,4 +1,4 @@
-2007-24-04 Alasdair Allan <aa@astro.ex.ac.uk>
+2007-04-24 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* widgets/eSTAR Status.wdgt/*: Fixed bug on UKIRT status, updated 
 	  for new node agents and Eric's new ADP agent.
@@ -8,7 +8,11 @@
         * www/estar/cgi-bin/status.pl: Changed over to new node agents
 
         * www/estar/cgi-bin/mobile.pl: Changed over to new node agents
-        
+     
+	* demo/votech_garching07/: Added PLASTIC forwarded scripts
+	
+	* demo/ag_edinburgh06: Added Workbench RPC scripts
+	        
 2007-04-23 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * www/robonet-1.0/cgi-bin/*: Added support for different filters
@@ -18,7 +22,6 @@
 
         * Fixes for new Java native NodeAgents
 
->>>>>>> 1.138
 2007-04-04 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * bin/user_agent.pl: Increased time outs to 60s
