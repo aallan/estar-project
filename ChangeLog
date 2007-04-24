@@ -1,5 +1,7 @@
-2007-04-24 Alasdair Allan <aa@astro.ex.ac.uk>
+2007-24-04 Alasdair Allan <aa@astro.ex.ac.uk>
 
+	* widgets/eSTAR Status.wdgt/Update.js: Fixed bug
+	
         * bin/test_servers.pl: Changed over to new node agents
 
         * www/estar/cgi-bin/status.pl: Changed over to new node agents
@@ -15,6 +17,7 @@
 
         * Fixes for new Java native NodeAgents
 
+>>>>>>> 1.138
 2007-04-04 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * bin/user_agent.pl: Increased time outs to 60s

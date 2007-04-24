@@ -327,7 +327,7 @@ function readResponse()
 
 
     // UKIRT
-    if( line[0].match( /RAPTOR/ ) ) {
+    if( line[0].match( /UKIRT/ ) ) {
        jachString = jachString + "<tr><td>Node Agent</td><td><font color='";
        if( line[3].match( /^UP$/ ) ) {
           jachString = jachString + "lightgreen'>UP</font></td></tr>";
