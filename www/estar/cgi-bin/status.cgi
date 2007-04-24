@@ -380,6 +380,20 @@ print '<h3>GRB Observing Programme&nbsp;'.$grb_icon_string.'<br><font size="-3">
 print '<p>The eSTAR project provides a link between SWIFT and ground based telescopes by making use of the emerging field of intelligent agent technology to provide crucial autonomous decision making in software. Now deployed onto UKIRT for this purpose, it makes it the largest telescope in the world with an automatic response system for chasing GRBs.</p>'."\n";
 print "<P>Real time status information on the <a href='http://grb.astro.ex.ac.uk/ukirt/cgi-bin/status.cgi'>UKIRT Status Page</a> <img src='http://www.estar.org.uk/wiki/uploads/7/7a/Padlock_Icon.jpg' /></P>\n";
 
+my $adp_icon_string;
+if( $adp_status eq "UP" ) {
+  $adp_icon_string = '<img src="../gif/icon_green.gif" />';
+} elsif ( $adp_status eq "FAULT" ) {
+  $adp_icon_string = '<img src="../gif/icon_yellow.gif" />';
+} else {  
+  $adp_icon_string = '<img src="../gif/icon_red.gif" />';
+}
+
+print '<h3>ADP Observing Programme&nbsp;'.$adp_icon_string.'<br><font size="-3"><em>PI: <a href="mailto:saunders@astro.ex.ac.uk">Eric Saunders</a>, University of Exeter</em></font></h3>'."\n";
+print '<p>A test bed observing programme for agents which implement the optimal sampling technique described in <a href="http://ukads.nottingham.ac.uk/cgi-bin/nph-bib_query?bibcode=2006astro.ph..5421S&db_key=PRE&data_type=HTML&format=&high=44c5c242b109142">Saunders et al. 2006</a>. This agent calculates the optimal gap spacing for a particular variable star observing project, based on the astronomer-defined maximum and minimum periods of interest. </p>'."\n";
+print "<P>Real time status information on the <a href='http://estar.astro.ex.ac.uk/ukirt/cgi-bin/status.cgi'>ADP Status Page</a> <img src='http://www.estar.org.uk/wiki/uploads/7/7a/Padlock_Icon.jpg' /></P>\n";
+
+
 print $footer;
 exit;
 
