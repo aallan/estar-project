@@ -23,7 +23,7 @@
 
 #  Revision:
 
-#     $Id: user_agent.pl,v 1.31 2007/04/24 16:52:42 saunders Exp $
+#     $Id: user_agent.pl,v 1.32 2007/04/24 17:31:49 aa Exp $
 
 
 #  Copyright:
@@ -67,7 +67,7 @@ itself.
 
 =head1 REVISION
 
-$Id: user_agent.pl,v 1.31 2007/04/24 16:52:42 saunders Exp $
+$Id: user_agent.pl,v 1.32 2007/04/24 17:31:49 aa Exp $
 
 =head1 AUTHORS
 
@@ -84,7 +84,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.31 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.32 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -421,25 +421,20 @@ $ua->set_ua( $lwp );
 # ===========================================================================
 
 # list of "default" known nodes
-#$config->set_option( "nodes.Exeter", "dn2.astro.ex.ac.uk:8080" );
-#$config->set_option( "nodes.LJM", "150.204.240.111:8080" );
 #$config->set_option( "nodes.UKIRT", "estar.ukirt.jach.hawaii.edu:8080" );
 #$config->set_option( "nodes.LTproxy", "estar3.astro.ex.ac.uk:8078" );
 #$config->set_option( "nodes.FTNproxy", "estar3.astro.ex.ac.uk:8077" );
 #$config->set_option( "nodes.FTSproxy", "estar3.astro.ex.ac.uk:8079" );
 
 # Current (24/04/07) nodes
-#$config->set_option( "nodes.LT", "161.72.57.3:8080/axis/services/NodeAgent" );
-#$config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent" );
-#$config->set_option( "nodes.FTN", "132.160.98.239:8080/axis/services/NodeAgent" );
-
-#$config->set_option( "nodes.Test", "127.0.0.1:8080" );
-
+$config->set_option( "nodes.LT", "161.72.57.3:8080/axis/services/NodeAgent" );
+$config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent" );
+$config->set_option( "nodes.FTN", "132.160.98.239:8080/axis/services/NodeAgent" );
 
 # Virtual nodes
-$config->set_option( "nodes.virtual_LT",  "127.0.0.1:8080" );
-$config->set_option( "nodes.virtual_FTN", "127.0.0.1:8081" );
-$config->set_option( "nodes.virtual_FTS", "127.0.0.1:8082" );
+#$config->set_option( "nodes.virtual_LT",  "127.0.0.1:8080" );
+#$config->set_option( "nodes.virtual_FTN", "127.0.0.1:8081" );
+#$config->set_option( "nodes.virtual_FTS", "127.0.0.1:8082" );
 
 $status = $config->write_option( );
 
@@ -619,6 +614,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: user_agent.pl,v $
+# Revision 1.32  2007/04/24 17:31:49  aa
+# Updated node list
+#
 # Revision 1.31  2007/04/24 16:52:42  saunders
 # Merged ADP agent branch back into main trunk.
 #
