@@ -1,7 +1,7 @@
 // holds an instance of XMLHttpRequest
 var xmlHttp = createXmlHttpRequestObject();
 // holds the remote server address 
-var serverAddress = "http://132.160.98.239/teldata";
+var serverAddress = "http://161.72.57.3/teldata";
 // when set to true, display detailed error messages
 var showErrors = false;
 // update tracker
