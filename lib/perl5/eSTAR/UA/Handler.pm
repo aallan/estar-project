@@ -682,6 +682,14 @@ sub new_observation {
          next;    
       }
    
+      unless ( defined $result ) {
+         $log->error( "Error: Failed to connect to $dn_host:$dn_port ($NAMES[$i])" );
+         $log->error( "Error: \$result is undefined..." );
+         $log->error( Dumper( $soap ) );
+         $log->warn(  "Warning: Skipping to next node..."  );
+         next;    
+      }
+   
       # Check for errors
       unless ($result->fault() ) {
         $log->debug("Transport Status: " . $soap->transport()->status() );
@@ -722,6 +730,12 @@ sub new_observation {
    # ---------------
    my ( $best_node, $score_reply ) = $observation_object->highest_score();
    my $score_request = $observation_object->score_request();
+   my $best_name;
+   eval { $best_name = $config->name_from_node( $best_node ); };
+   if ( $@ ) {
+      $log->error( "Error: $@" );
+      $best_name = "";
+   }   
    
    # check we have any scores
    unless ( defined $best_node && defined $score_reply ) {
@@ -732,21 +746,23 @@ sub new_observation {
           $log->print( "Sending notification email...");
             
           my $mail_body = 
-            "Your user agent attempted to score your observing request\n" .
-            "of type $observation{type} with all known telescopes. However\n".
+            "Your user agent attempted to score your observing request (ID = $id) " .
+            "of type $observation{type} with all known telescopes. However ".
             "there were no nodes capable of carying out the observation.\n".
             "\n".
-            "The reason for this is not known so it may idicate an error\n".
-            "has occured, the RTML which was sent to the telescopes is\n".
-            "attaced below. If you feel an error has occured you should\n".
-            "try and place the observation manually.\n" .
+            "The reason for this is not known, although it is possible that ".
+            "all nodes are down or timed out trying to service the scoring ".
+            "requests. This message probably indicates an error ".
+            "has occured, the RTML which was sent to the telescopes is ".
+            "attached below. If you feel an error has occured you should ".
+            "try and place the observation manually. " .
             "\n\n".
             $observation_object->score_request()->dump_rtml();
       
           eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
                               $config->get_option("user.real_name"),
                               'estar@astro.ex.ac.uk',
-                              'eSTAR User Agent (Failed)',
+                              'eSTAR User Agent (No Nodes Available)',
                               $mail_body, 'estar-status@estar.org.uk' ); 
       }           
       
@@ -769,14 +785,14 @@ sub new_observation {
           $log->print( "Sending notification email...");
             
           my $mail_body = 
-            "Your user agent attempted to score your observing request\n" .
-            "of type $observation{type} with all known telescopes. All\n".
-            "telescopes returned a score of zero indicating that the target\n".
+            "Your user agent attempted to score your observing request (ID = $id) " .
+            "of type $observation{type} with all known telescopes. All ".
+            "telescopes returned a score of zero indicating that the target ".
             "was below their horizon or otherwise unobservable.\n".
             "\n".
-            "The RTML which was sent to the telescopes is attaced below. If\n".
-            "you feel an error has occured you should try and place the \n".
-            "observation manually.\n" .
+            "The RTML which was sent to the telescopes is attaced below. If ".
+            "you feel an error has occured you should try and place the ".
+            "observation manually." .
             "\n\n".
             $observation_object->score_request()->dump_rtml();
             
@@ -905,16 +921,17 @@ sub new_observation {
       if( $config->get_option("user.notify") == 1 ) {
       
           $log->print( "Sending notification email...");
-            
+          
           my $mail_body = 
-            "Your user agent attempted to submit your observing request\n" .
-            "of type $observation{type} to $best_node but it but failed\n".
-            "to reconnect to $best_node after it had recieved a valid inital\n".
-            "score from that node. The RTML message that was sent to the\n".
-            "node is attached below.\n".
+            "Your user agent attempted to submit your observing request (ID = $id) " .
+            "of type $observation{type} to $best_node ($best_name) but it but failed ".
+            "to reconnect to this node after it had recieved a valid inital ".
+            "score. The RTML message that was sent to the node is attached below. ".
             "\n" .
-            "This may indicate an error has occured. If you feel this is\n".
-            "the case you should try and followup the manually.\n".
+            "This may indicate an error has occured. If you feel this is ".
+            "the case you should try and followup the manually, however it is ".
+            "possible that the observations have been queued and a timeout occured ".
+            "while returning the acknowledgement to the user agent.".
             "\n\n".
             $observation_object->obs_request()->dump_rtml();
       
@@ -951,14 +968,14 @@ sub new_observation {
           $log->print( "Sending notification email...");
             
           my $mail_body = 
-            "Your user agent attempted to submit your observing request\n" .
-            "of type $observation{type} to $best_node but failed to parse\n".
-            "the reply. The RTML message sent to the node is attached below.\n".
-            "\n" .
-            "This may indicate an error has occured. If you feel this is\n".
-            "the case you should try and followup the manually.\n".
+            "Your user agent attempted to submit your observing request (ID = $id) " .
+            "of type $observation{type} to $best_node ($best_name) but failed to parse ".
+            "the reply. The RTML message sent to the node is attached below, along ".
+            "with the reply returned by the node agent.\n".
             "\n\n".
-            $observation_object->obs_request()->dump_rtml();
+            $observation_object->obs_request()->dump_rtml() . 
+            "\n\n".
+            $reply;
       
           eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
                               $config->get_option("user.real_name"),
@@ -983,16 +1000,17 @@ sub new_observation {
           $log->print( "Sending notification email...");
             
           my $mail_body = 
-            "Your user agent attempted to submit your observing request\n" .
-            "of type $observation{type} to $best_node but it but failed\n".
-            "to reconnect to $best_node after it had recieved a valid inital\n".
-            "score from that node. The RTML message that was sent to the\n".
-            "node is attached below.\n".
+            "Your user agent attempted to submit your observing request (ID = $id) " .
+            "of type $observation{type} to $best_node ($best_name) but it but failed ".
+            "to reconnect to this node after it had recieved a valid inital ".
+            "score. The RTML message that was sent to the node is attached below. ".
             "\n" .
-            "This may indicate an error has occured. If you feel this is\n".
-            "the case you should try and followup the manually.\n".
+            "This may indicate an error has occured. If you feel this is ".
+            "the case you should try and followup the manually, however it is ".
+            "possible that the observations have been queued and a timeout occured ".
+            "while returning the acknowledgement to the user agent.".
             "\n\n".
-            $observation_object->obs_request()->dump_rtml(); 
+            $observation_object->obs_request()->dump_rtml();
       
           eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
                               $config->get_option("user.real_name"),
@@ -1062,13 +1080,12 @@ sub new_observation {
              $log->print( "Sending notification email...");
              
              my $mail_body = 
-              "Your user agent attempted to submit your observing request\n" .
-              "of type $observation{type} to $best_node but the request\n".
-              "was rejected with the error,\n" .
-              "\n$error\n" .
-              "This is a fatal error. You may want to try and followup up\n".
-              "manually. The RTML message returned from the node is\n".
-              "attached below\n".
+              "Your user agent attempted to submit your observing request (ID=$id) " .
+              "of type $observation{type} to $best_node ($best_name) but the request ".
+              "was rejected with the error '$error'.\n" .
+              "This is a fatal error. You may want to try and follow up ".
+              "manually. The RTML message returned from the node is ".
+              "attached below.".
               "\n\n".
               $reply;
   
@@ -1091,9 +1108,9 @@ sub new_observation {
           $log->print( "Sending notification email...");
             
           my $mail_body = 
-            "Your user agent has submitted an observing request into the\n" .
-            "queue at $best_node of type $observation{type}. The RTML\n".
-            "message that was sent to the node is attached below\n".
+            "Your user agent has submitted an observing request (ID=$id) into the " .
+            "queue at $best_node ($best_name) of type $observation{type}. The RTML ".
+            "message that was sent to the node is attached below.".
             "\n\n".
             $observation_object->obs_request()->dump_rtml();
       
@@ -1132,10 +1149,12 @@ sub all_telescopes {
   
    # NODE ARRAY
    my @NODES;   
+   my @NAMES;
 
    # we might not have any nodes! So check!
    my $node_flag = 0;
    @NODES = $config->get_nodes();   
+   @NAMES = $config->get_node_names(); 
    $node_flag = 1 if defined $NODES[0];
    
    # if there are no nodes add a default menu entry
@@ -1536,14 +1555,9 @@ sub all_telescopes {
           $log->print( "Sending notification email...");
             
           my $mail_body = 
-            "Your user agent attempted to score your observing request\n" .
-            "of type $observation{type} with $NODES[$i]. However\n".
-            "it could not parse the response from the node.\n".
-            "\n".
-            "The reason for this is not known so it may idicate an error\n".
-            "has occured, the RTML which was sent to the telescopes is\n".
-            "attaced below. If you feel an error has occured you should\n".
-            "try and place the observation manually.\n" .
+            "Your user agent attempted to score your observing request (ID=$id) " .
+            "of type $observation{type} with $NODES[$i] ($NAMES[$i]). However ".
+            "it could not parse the response from the node. ".
             "\n\n".
             $observation_object->score_request()->dump_rtml();
       
@@ -1594,14 +1608,12 @@ sub all_telescopes {
           $log->print( "Sending notification email...");
             
           my $mail_body = 
-            "Your user agent attempted to score your observing request\n" .
-            "of type $observation{type} with $NODES[$i]. It returned a\n".
-            "score of zero indicating that the target was below the\n".
-            "horizon or otherwise unobservable.\n".
+            "Your user agent attempted to score your observing request (ID=$id) " .
+            "of type $observation{type} with $NODES[$i] ($NAMES[$i]). It returned a ".
+            "score of zero indicating that the target was below the ".
+            "horizon or otherwise unobservable. ".
             "\n".
-            "The RTML which was sent to the telescopes is attaced below. If\n".
-            "you feel an error has occured you should try and place the \n".
-            "observation manually.\n" .
+            "The RTML which was sent to the telescopes is attached below.".
             "\n\n".
             $observation_object->score_request()->dump_rtml();
             
@@ -1732,14 +1744,14 @@ sub all_telescopes {
           $log->print( "Sending notification email...");
             
           my $mail_body = 
-            "Your user agent attempted to submit your observing request\n" .
-            "of type $observation{type} to $best_node but it but failed\n".
-            "to reconnect to $best_node after it had recieved a valid inital\n".
-            "score from that node. The RTML message that was sent to the\n".
+            "Your user agent attempted to submit your observing request (ID=$id)\n" .
+            "of type $observation{type} to $best_node ($NAMES[$i]) but it but failed ".
+            "to reconnect to the node after it had recieved a valid inital ".
+            "score from that node. The RTML message that was sent to the  ".
             "node is attached below.\n".
             "\n" .
-            "This may indicate an error has occured. If you feel this is\n".
-            "the case you should try and followup the manually.\n".
+            "This may indicate an error has occured. If you feel this is ".
+            "the case you should try and followup the manually.".
             "\n\n".
             $observation_object->obs_request()->dump_rtml();
       
@@ -1775,14 +1787,14 @@ sub all_telescopes {
           $log->print( "Sending notification email...");
             
           my $mail_body = 
-            "Your user agent attempted to submit your observing request\n" .
-            "of type $observation{type} to $best_node but failed to parse\n".
-            "the reply. The RTML message sent to the node is attached below.\n".
-            "\n" .
-            "This may indicate an error has occured. If you feel this is\n".
-            "the case you should try and followup the manually.\n".
+            "Your user agent attempted to submit your observing request (ID = $id) " .
+            "of type $observation{type} to $best_node ($NAMES[$i]) but failed to parse ".
+            "the reply. The RTML message sent to the node is attached below, along ".
+            "with the reply returned by the node agent.\n".
             "\n\n".
-            $observation_object->obs_request()->dump_rtml();
+            $observation_object->obs_request()->dump_rtml() . 
+            "\n\n".
+            $reply;
       
           eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
                               $config->get_option("user.real_name"),
@@ -1807,14 +1819,14 @@ sub all_telescopes {
           $log->print( "Sending notification email...");
             
           my $mail_body = 
-            "Your user agent attempted to submit your observing request\n" .
-            "of type $observation{type} to $best_node but it but failed\n".
-            "to reconnect to $best_node after it had recieved a valid inital\n".
-            "score from that node. The RTML message that was sent to the\n".
+            "Your user agent attempted to submit your observing request (ID = $id) " .
+            "of type $observation{type} to $best_node ($NAMES[$i]) but it but failed ".
+            "to reconnect to $best_node after it had recieved a valid inital ".
+            "score from that node. The RTML message that was sent to the ".
             "node is attached below.\n".
             "\n" .
-            "This may indicate an error has occured. If you feel this is\n".
-            "the case you should try and followup the manually.\n".
+            "This may indicate an error has occured. If you feel this is ".
+            "the case you should try and followup the manually.".
             "\n\n".
             $observation_object->obs_request()->dump_rtml(); 
       
@@ -1887,13 +1899,12 @@ sub all_telescopes {
              $log->print( "Sending notification email...");
              
              my $mail_body = 
-              "Your user agent attempted to submit your observing request\n" .
-              "of type $observation{type} to $best_node but the request\n".
-              "was rejected with the error,\n" .
-              "\n$error\n" .
-              "This is a fatal error. You may want to try and followup up\n".
-              "manually. The RTML message returned from the node is\n".
-              "attached below\n".
+              "Your user agent attempted to submit your observing request (ID=$id) " .
+              "of type $observation{type} to $best_node ($NAMES[$i]) but the request ".
+              "was rejected with the error '$error'.\n\n" .
+              "This is a fatal error. You may want to try and followup up ".
+              "manually. The RTML message returned from the node is ".
+              "attached below.".
               "\n\n".
               $reply;
   
@@ -1916,9 +1927,9 @@ sub all_telescopes {
           $log->print( "Sending notification email...");
             
           my $mail_body = 
-            "Your user agent has submitted an observing request into the\n" .
-            "queue at $best_node of type $observation{type}. The RTML\n".
-            "message that was sent to the node is attached below\n".
+            "Your user agent has submitted an observing request (ID=$id) into the " .
+            "queue at $best_node ($NAMES[$i]) of type $observation{type}. The RTML ".
+            "message that was sent to the node is attached below ".
             "\n\n".
             $observation_object->obs_request()->dump_rtml();
       
@@ -1931,7 +1942,7 @@ sub all_telescopes {
    
       # return sucess code
      $log->debug( "QUEUED OK at $NODES[$i]" );
-     $sucessful_submission = $sucessful_submission . " " . $NODES[$i];
+     $sucessful_submission = $sucessful_submission . " " . $config->name_from_node( $NODES[$i] );
      next;
 
    } # end of "foreach my $i ( 0 ... $#NODES )" 
