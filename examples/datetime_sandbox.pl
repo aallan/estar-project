@@ -70,8 +70,10 @@ print "Undersampling ratio: $undersampling_ratio\n";
 
 
 # Use the ratio to choose the correct line...
-my @ratio_files = qw( /home/saunders/optimal_base_data/2.0_nyquist_dataset.dat
-                      /home/saunders/optimal_base_data/5.0_nyquist_dataset.dat);
+my @ratio_files = ( 
+                    "$ENV{HOME}/optimal_base_data/2.0_nyquist_dataset.dat"
+                    "$ENV{HOME}/optimal_base_data/5.0_nyquist_dataset.dat"
+                   );
 
 my $opt_base = find_optimal_base($undersampling_ratio, $n_total, @ratio_files);
 

@@ -804,7 +804,7 @@ sub handle_rtml {
          
          # Start the observation management thread, if this is the first obs...
          my $proc_name = eSTAR::Process::get_reference->get_process();
-         my $schedule_lock_file = "/home/saunders/.estar/$proc_name/tmp/sch.dat";
+         my $schedule_lock_file = "$ENV{HOME}/.estar/$proc_name/tmp/sch.dat";
 
 
          unless ( -e $schedule_lock_file ) {

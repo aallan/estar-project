@@ -21,7 +21,7 @@ Alasdair Allan (aa@astro.ex.ac.uk), Eric Saunders (saunders@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: adaptive_vs_scheduler.pl,v 1.2 2007/04/24 16:52:42 saunders Exp $
+$Id: adaptive_vs_scheduler.pl,v 1.3 2007/04/26 10:21:15 saunders Exp $
 
 =head1 COPYRIGHT
 
@@ -39,7 +39,7 @@ use vars qw / $VERSION $log /;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -90,7 +90,13 @@ use List::Util qw( max );
 my $log_verbosity = ESTAR__DEBUG;
 $log = init_logging('Adaptive Variable Star Scheduler', $VERSION, $log_verbosity);
 
+# This is a temporary hack to provide some non-standard but important logs.
+# It should undoubtedly be moved into .estar.
+my $output_dir = "$ENV{HOME}/testing/estar";
 
+# This is a temporary hack to provide critical files for optimal base 
+# calculation.
+my $opt_base_dir = "$ENV{HOME}/optimal_base_data";
 
 # C O M M A N D   L I N E   A R G U E M E N T S -----------------------------
 
@@ -143,8 +149,15 @@ $log->debug("Connecting to server at $endpoint");
 $obs_request{type}     = 'VariableMonitor' unless defined $obs_request{type};
 $obs_request{followup} = 0                unless defined $obs_request{followup};
 unless ( defined $obs_request{user} && defined $obs_request{pass} ) {
-   $obs_request{user} = 'saunders';
-   $obs_request{pass} = 'vstar';
+
+   # Original credentials for testing virtual network...
+#   $obs_request{user} = 'saunders';
+#   $obs_request{pass} = 'vstar';
+
+   # Credentials for real submissions to RoboNet...
+   $obs_request{user} = 'eric';
+   $obs_request{pass} = 'ADPme';
+
 }
 
 
@@ -340,9 +353,8 @@ sub log_obs_request {
 
    my $target = $obs_request_ref->{target};
 
-   open my $req_fh, '>>', 
-   "/home/saunders/testing/estar/requests_$target.obs" 
-   or warn "Couldn't open file to write request fields log:$!";
+   open my $req_fh, '>>', "$output_dir/requests_$target.obs" 
+      or warn "Couldn't open file to write request fields log: $!";
 
 
    print $req_fh "\n";
@@ -392,8 +404,7 @@ sub evaluate_schedule_progress {
       
          print_summary($target);
       
-         open my $obs_fh, '>', 
-            "/home/saunders/testing/estar/submissions_$target.obs" 
+         open my $obs_fh, '>', "$output_dir/submissions_$target.obs" 
             or warn "Couldn't open file to write submissions:$!";
 
          print $obs_fh "$_ $obs_of_target{$target}->{$_}\n" 
@@ -768,9 +779,10 @@ sub build_logarithmic_schedule {
    print "Undersampling ratio: $undersampling_ratio\n";
 
    # Use the ratio to choose the correct line...
-   my @ratio_files = 
-                  qw( /home/saunders/optimal_base_data/2.0_nyquist_dataset.dat
-                      /home/saunders/optimal_base_data/5.0_nyquist_dataset.dat);
+   my @ratio_files = ( 
+                       "$opt_base_dir/2.0_nyquist_dataset.dat",
+                       "$opt_base_dir/5.0_nyquist_dataset.dat" 
+                      );
 
    my $opt_base = find_optimal_base($undersampling_ratio, $n_total, 
                                     @ratio_files);
@@ -1029,9 +1041,11 @@ sub find_sampling_base {
 
    # The ratios from saunders et al. 2006 needed for interpolation of the
    # undersampling value.
-   my @ratio_files = 
-   qw( /home/saunders/optimal_base_data/2.0_nyquist_dataset.dat
-       /home/saunders/optimal_base_data/5.0_nyquist_dataset.dat);
+
+   my @ratio_files = ( 
+                       "$opt_base_dir/2.0_nyquist_dataset.dat",
+                       "$opt_base_dir/5.0_nyquist_dataset.dat" 
+                      );
 
    my $opt_base = find_optimal_base($undersampling_ratio, $n_total,
                                     @ratio_files);
@@ -1047,13 +1061,13 @@ sub find_sampling_base {
 
    # This should write to the data dir, not hardcoded...
 
-   open my $obs_fh, '>', "/home/saunders/testing/estar/ideal_times.obs" 
+   open my $obs_fh, '>', "$output_dir/ideal_times.obs" 
       or warn "Couldn't open file to write ideal times:$!";
 
    print $obs_fh "$_\n" for @optimum_times;
    close $obs_fh;
    
-   open my $gaps_fh, '>', "/home/saunders/testing/estar/ideal_gaps.obs" 
+   open my $gaps_fh, '>', "$output_dir/ideal_gaps.obs" 
       or warn "Couldn't open file to write ideal gaps:$!";
 
    print $gaps_fh "$_\n" for @optimum_ints;

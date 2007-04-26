@@ -23,7 +23,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk), Eric Saunders (saunders@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: virtual_telescope.pl,v 1.2 2007/04/24 16:52:42 saunders Exp $
+#     $Id: virtual_telescope.pl,v 1.3 2007/04/26 10:21:15 saunders Exp $
 
 #  Copyright:
 #     Copyright (C) 2003,2006 University of Exeter. All Rights Reserved.
@@ -70,7 +70,7 @@ of the user database.
 
 =head1 REVISION
 
-$Id: virtual_telescope.pl,v 1.2 2007/04/24 16:52:42 saunders Exp $
+$Id: virtual_telescope.pl,v 1.3 2007/04/26 10:21:15 saunders Exp $
 
 =head1 AUTHORS
 
@@ -87,7 +87,7 @@ Copyright (C) 2003,2006 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -484,7 +484,7 @@ my $soap_server = sub {
 
 # Temporary hack until we move observation manager here.
 my $proc_name = eSTAR::Process::get_reference->get_process();
-unlink "/home/saunders/.estar/$proc_name/tmp/sch.dat";
+unlink "$ENV{HOME}/.estar/$proc_name/tmp/sch.dat";
 
 # Spawn the SOAP server thread
 $log->print("Spawning SOAP Server thread...");
@@ -563,6 +563,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: virtual_telescope.pl,v $
+# Revision 1.3  2007/04/26 10:21:15  saunders
+# Fixed hardcoded user directories
+#
 # Revision 1.2  2007/04/24 16:52:42  saunders
 # Merged ADP agent branch back into main trunk.
 #

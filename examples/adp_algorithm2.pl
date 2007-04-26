@@ -26,9 +26,10 @@ open my $log_fh, '>>', "log_step$timestep" . "_extra$n_extra"
 my $undersampling_ratio = 2;
 my $n_total = 100;
 
-my @ratio_files = 
-   qw( /home/saunders/optimal_base_data/2.0_nyquist_dataset.dat
-       /home/saunders/optimal_base_data/5.0_nyquist_dataset.dat);           
+my @ratio_files = (
+                    "$ENV{HOME}/optimal_base_data/2.0_nyquist_dataset.dat",
+                    "$ENV{HOME}/optimal_base_data/5.0_nyquist_dataset.dat"
+                   ); 
 
 
 my $opt_base = find_optimal_base($undersampling_ratio, $n_total, 

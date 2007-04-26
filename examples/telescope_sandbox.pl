@@ -120,14 +120,15 @@ display_obsplan($ra, $dec);
 sub display_obsplan {
    my $ra      = shift;
    my $dec     = shift;
-   my $arkdata = shift || '/home/saunders/obsplan';
+   my $arkdata = shift || "$ENV{HOME}/obsplan";
 
    # Set the location of the datafiles used by obsplan...
    $ENV{ARKDATA} = $arkdata;
    
    # Open an outgoing pipe to obsplan...
-   open my $obsplan, "|/home/saunders/obsplan/obsplan >& /dev/null"
+   open my $obsplan, "|$arkdata/obsplan >& /dev/null"
                       or die "Cannot open pipe to obsplan: $!";
+
 
    # Set magic buffer autoflush on for the pipe...
    select((select($obsplan), $| = 1)[0]);
