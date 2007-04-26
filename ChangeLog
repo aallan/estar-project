@@ -1,9 +1,16 @@
+2007-04-26 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * www/robone-1.0/cgi-bin/status.cgi: FIxed another status corner case.
+        
+        * www/robonet-1.0/cgi-bin/performance.cgi: Completion statistics script
+          which calculates how well we're doing.
+
 2007-04-26 Eric Saunders <saunders@astro.ex.ac.uk>
 
 	* bin/adaptive_vs_scheduler.pl, bin/virtual_telescope.pl, 
-	examples/adp_algorithm2.pl, examples/datetime_sandbox.pl, 
-	examples/telescope_sandbox.pl, eSTAR/VT/Handler.pm: Fixed hardcoded
-	user directories. 
+	  examples/adp_algorithm2.pl, examples/datetime_sandbox.pl, 
+	  examples/telescope_sandbox.pl, eSTAR/VT/Handler.pm: Fixed hardcoded
+	  user directories. 
 
 2007-04-25 Alasdair Allan <aa@astro.ex.ac.uk>
 

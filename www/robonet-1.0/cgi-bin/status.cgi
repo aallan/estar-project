@@ -13,7 +13,7 @@
   use Data::Dumper;
   use Fcntl qw(:DEFAULT :flock);
   use DateTime::Format::ISO8601;
- 
+   
 # G R A B   K E Y W O R D S ---------------------------------------------------
 
   my $string = $ENV{QUERY_STRING};
@@ -133,6 +133,9 @@
         }
         $score = "undef" unless defined $score;
 	
+	
+	# Look for an observation request
+	# case: normal operations
 	my $obs;
 	eval { $obs = $object->obs_request(); };
 	if ( $@ ) {
@@ -140,6 +143,8 @@
 	   exit;
 	}
 	
+	# If that's not there we might have a final response
+	# case: timeout error
 	my $unknown = 0;
 	unless ( defined $obs ) {
 	   eval { $obs = $object->observation(); };
@@ -150,6 +155,8 @@
 	   }	
         }
 	
+	# if that's not there we might have an obs reply
+	# case: expired
 	unless ( defined $obs ) {
 	   eval { $obs = $object->obs_reply(); };
 	   $unknown = 1;
@@ -159,6 +166,20 @@
 	   }	
         }
 	
+	# last chance
+	# case: expired & timeout error
+	unless ( defined $obs ) {
+	   eval { $obs = $object->update(); };
+	   $unknown = 1;
+	   if ( $@ ) {
+	      error( "$@");
+	      exit;
+	   }	
+        }
+	
+	# NB: If we have a timeout error and we get no response
+	# we'll never know about it, so ignore that case.
+		
         my ($target, $priority, $ra, $dec, $group_count, $series_count, $exposure, @time, $type, $filter, $project);
 	if( defined $obs ) {
            $target = $obs->target();
@@ -294,26 +315,37 @@
 	# NODE - 7 ---------------------------------------------------------
 	
 	print "<td>";
-
-        my $expire = expired( @time );
-        if( $unknown == 1 ) {
-	   print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Error] body=[Returned observation not in database.<br>Possible timeout at Node Agent?]' >";
-	   print " <b><font color='red'>ERROR</font></b>";
-	   print "</DIV>";
-	} elsif ( $target =~ m/OGLE/ ) {
-           print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Error] body=[<table><tr><td><b>$node_name</b> ($node)</td></tr><tr><td><b>Score:</b> $score</td></tr><tr><td>&nbsp;</td></tr><tr><td>OGLE target with incorrectly formated name</td></tr><tr><td>Target name will not trigger pipeline?</td></tr><tr><td>Use name in format: OB07xxx</td></tr></table>]' >";
-           print "<font color='red'><b>ERROR</b></font>";
+        my $expire;
+	my $parse_error = 0;
+	eval { $expire = expired( @time ); };
+	if( $@ ) {
+	   my $error = "$@";
+           print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Error] body=[$error]' >";
+           print " <b><font color='red'>ERROR</font></b>";
            print "</DIV>";
-	} elsif ( !( $expire == -1 || $expire == 0 ) && $status eq "update" ) {
-	   print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Warning] body=[<table><tr><td><b>$node_name</b> ($node)</td></tr><tr><td><b>Score:</b> $score</td></tr><tr><td>&nbsp;</td></tr><tr><td>The observation has expired.</td></tr><tr><td>But no final return document was received.</td></tr></table>]' >";
-           print "<font color='orange'><b>WARN</b></font>";
-           print "</DIV>";
+	   $parse_error = 1;	
 	} else {
-           print "<DIV TITLE='offsetx=[-75] cssbody=[popup_body] cssheader=[popup_header] header=[Best Score] body=[<table><tr><td><b>$node_name</b></td></tr><tr><td><b>Score:</b> $score</td></tr></table>]' >";
-           print "<font color='grey'>$node</font>";
-           print "</DIV>";
-	}   
+	   if( $unknown == 1 ) {
+              print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Error] body=[Returned observation not in database.<br>Possible timeout at Node Agent?]' >";
+              print " <b><font color='red'>ERROR</font></b>";
+              print "</DIV>";
+           } elsif ( $target =~ m/OGLE/ ) {
+              print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Error] body=[<table><tr><td><b>$node_name</b> ($node)</td></tr><tr><td><b>Score:</b> $score</td></tr><tr><td>&nbsp;</td></tr><tr><td>OGLE target with incorrectly formated name</td></tr><tr><td>Target name will not trigger pipeline?</td></tr><tr><td>Use name in format: OB07xxx</td></tr></table>]' >";
+              print "<font color='red'><b>ERROR</b></font>";
+              print "</DIV>";
+           } elsif ( !( $expire == -1 || $expire == 0 ) && $status eq "update" ) {
+              print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Warning] body=[<table><tr><td><b>$node_name</b> ($node)</td></tr><tr><td><b>Score:</b> $score</td></tr><tr><td>&nbsp;</td></tr><tr><td>The observation has expired.</td></tr><tr><td>But no final return document was received.</td></tr></table>]' >";
+              print "<font color='orange'><b>WARN</b></font>";
+              print "</DIV>";
+	   } else {
+              print "<DIV TITLE='offsetx=[-75] cssbody=[popup_body] cssheader=[popup_header] header=[Best Score] body=[<table><tr><td><b>$node_name</b></td></tr><tr><td><b>Score:</b> $score</td></tr></table>]' >";
+              print "<font color='grey'>$node</font>";
+              print "</DIV>";
+           } 
+	}  
         print "</td>\n";
+
+
 		
 	# STATUS - 8 ---------------------------------------------------
 	print "<td>";
@@ -328,6 +360,13 @@
 	   } else {   
               print "<font color='orange'>No response</font>";
            }
+
+        } elsif ( $parse_error == 1 ) {
+           my @updates = $object->update();
+           my $num = scalar @updates;
+           print "<font color='red'>Error";
+           print " ($num)" if $num > 0;
+           print "</font>";	
 	   
 	} elsif ( $status eq "failed" ) {
            print "<font color='red'>Failed</font>";
@@ -358,7 +397,7 @@
            print "<font color='green'>Returned";
            print " ($num)" if $num > 0;
            print "</font>";
-
+	   
 	} else {
            print "<font color='grey'>$status</font>";
 	}
@@ -456,11 +495,7 @@
    
      my $iso8601 = DateTime::Format::ISO8601->new;
      my $end_dt;
-     eval { $end_dt = $iso8601->parse_datetime( $end ); };
-     if ( $@ ) {
-         print "<br><font color='red'><strong>ERROR: $@, dates are '$start' and '$end'</strong></font><br>";
-         return -1;
-     }	 
+     $end_dt = $iso8601->parse_datetime( $end );
      $end_dt->add( days => 1 );
      
      my $current_dt = $iso8601->parse_datetime( $current );
