@@ -38,6 +38,7 @@ use vars qw( $VERSION @EXPORT_OK %EXPORT_TAGS @ISA );
                   get_first_datetime
                   datetime_strs2theorytimes
                   theorytime2datetime
+                  datetime2utc_str
                   init_logging
                   read_n_column_file
                   build_dummy_header
@@ -51,6 +52,7 @@ use vars qw( $VERSION @EXPORT_OK %EXPORT_TAGS @ISA );
                                  get_first_datetime
                                  datetime_strs2theorytimes
                                  theorytime2datetime
+                                 datetime2utc_str
                                  init_logging
                                  read_n_column_file
                                  build_dummy_header
@@ -121,11 +123,34 @@ correctly set to UTC.
 
 =cut
 sub str2datetime {
-   my $time_string = shift;
+   my $time_string = shift;   
+
+   # Grab the required time adjustments....   
+   my ($direction, $hrs, $mins) = $time_string =~ m/([+-])(\d{2})(\d{2})$/;
+
+   # Remove the non-supported '+0000' tail indicating UTC offset
+   $time_string =~ s/[+-]\d{4}$//;
+
 
    # Turn the stringified time back into a dateTime object...
    my $dt = DateTime::Format::ISO8601->parse_datetime( $time_string );
    
+
+   # Set defaults in case there is no time string...
+   $direction = '+'  unless defined $direction;
+   $hrs       = '00' unless defined $hrs;
+   $mins      = '00' unless defined $mins;
+
+   # Apply the offset to UTC. Let DateTime handle this...
+   my $offset = DateTime::Duration->new( hours => $hrs, minutes => $mins);
+   if ( $direction eq '-' ) {
+      $dt = $dt - $offset;
+   }
+   else {
+      $dt = $dt + $offset;
+   }
+
+
    # The parser sets the timezone to 'floating', not UTC. So we fix this...
    $dt->set_time_zone('UTC');
 
@@ -180,6 +205,7 @@ sub datetime_strs2theorytimes {
    return @tts;
 }
 
+
 sub theorytime2datetime {
    my $theorytime = shift;
    my $first = shift;
@@ -192,6 +218,22 @@ sub theorytime2datetime {
    return $datetime;
 }
 
+
+=item B<utc_datetime2str>
+
+Return a stringified version of the datetime object with +0000 appended to the
+end. This assumes that the datetime is actually in UTC...
+
+=cut
+sub datetime2utc_str {
+   my $datetime = shift;
+   my $str;
+
+   # Don't append anything if there's already something appended...
+   $str = $datetime =~ m/[+-]\d{4}$/ ? "$datetime" : "$datetime+0000";
+   
+   return $str; 
+}
 
 
 =item B<init_logging>

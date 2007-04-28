@@ -919,6 +919,9 @@ sub find_window_length {
    # Window is just large enough to hold every interval...
 #   my $w_length = sum(@{$optimum_intervals}[0..$max_idx]);
    
+   # Protect us from ridiculous numbers of observations...
+   return undef unless defined $optimum_intervals->[$max_idx];
+   
    # Window is the *relative* length required to hold the next interval...
    my $w_length = $optimum_intervals->[$max_idx];
 
@@ -936,9 +939,9 @@ sub find_n_extra {
 
 Pull the observation times from a hash of stored times. The hash has the form
 
-%obs_hash = 2007-04-12T21:53:36 => observation_[2007-04-12T21:53:36],
-            2007-04-12T23:16:20 => observation_[2007-04-12T23:20:16],
-            2007-04-13T00:39:04 => submitted,
+%obs_hash = 2007-04-12T21:53:36+0000 => observation_[2007-04-12T21:53:36+0000],
+            2007-04-12T23:16:20+0000 => observation_[2007-04-12T23:20:16+0000],
+            2007-04-13T00:39:04+0000 => submitted,
 
 For entries with successful observations, this routine pulls the actual
 timestamp from the value. For pending entries, the start time (key) is used.

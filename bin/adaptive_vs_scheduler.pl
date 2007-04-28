@@ -17,11 +17,11 @@ et al. (2006), A&A, for the efficient monitoring of periodic variable stars.
 
 =head1 AUTHORS
 
-Alasdair Allan (aa@astro.ex.ac.uk), Eric Saunders (saunders@astro.ex.ac.uk)
+Eric Saunders (saunders@astro.ex.ac.uk), Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: adaptive_vs_scheduler.pl,v 1.3 2007/04/26 10:21:15 saunders Exp $
+$Id: adaptive_vs_scheduler.pl,v 1.4 2007/04/28 18:54:15 saunders Exp $
 
 =head1 COPYRIGHT
 
@@ -39,7 +39,7 @@ use vars qw / $VERSION $log /;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -69,7 +69,7 @@ use eSTAR::ADP qw( generate_linear_series find_optimal_base
                    find_window_length find_optimality get_times );
 use eSTAR::ADP::Util qw( get_network_time str2datetime init_logging 
                          get_first_datetime datetime_strs2theorytimes
-                         theorytime2datetime);
+                         theorytime2datetime datetime2utc_str );
 
 # general modules
 #use SOAP::Lite +trace => all;  
@@ -168,10 +168,14 @@ my %obs_of_target:shared;
 
 $obs_times_for_bi_vir = &share({});
 $obs_times_for_bm_vir = &share({});
+#%obs_of_target = (
+#                      'BI Vir' => $obs_times_for_bi_vir,
+#                      'BM Vir' => $obs_times_for_bm_vir,
+#                     );
+
 %obs_of_target = (
                       'BI Vir' => $obs_times_for_bi_vir,
-                      'BM Vir' => $obs_times_for_bm_vir,
-                     );
+                  );
 
 # Status values are:
 #  unsent         - not sent at all
@@ -193,20 +197,31 @@ my $n_obs;
 my $undersampling = 3;
 my $n_initial = 2;
 my $n_total = 60;
-my $run_length_in_days = 10;
-my $p_min_in_hours     = 2.67;
+my $run_length_in_days = 5;
+
+#my $p_min_in_hours     = 2.67;
+#my $p_min_in_hours     = 8.0557152;   #0.3356548 days
+
+#my %coords_for = ( 
+#                   'BI Vir' => {
+#                                 ra  => '12:29:30.42',
+#                                 dec => '+00:13:27.78',
+#                                 exp => 5,
+#                                },
+#                   'BM Vir' => { 
+#                                 ra  => '12:31:55.64',
+#                                 dec => '+00:54:30.85',
+#                                 exp => 5,
+#                                }
+#                  );
 
 my %coords_for = ( 
                    'BI Vir' => {
-                                 ra  => '12:29:30.42',
-                                 dec => '+00:13:27.78',
-                                 exp => 5,
+                                 ra          => '12:29:30.42',
+                                 dec         => '+00:13:27.78',
+                                 exposure    => 5,
+                                 filter_type => 'R';
                                 },
-                   'BM Vir' => { 
-                                 ra  => '12:31:55.64',
-                                 dec => '+00:54:30.85',
-                                 exp => 5,
-                                }
                   );
 
 
@@ -260,19 +275,20 @@ sub obs_request_sender {
       my ($target, $start_time) = @{$req};
 
       # Add the target-specific fields...
-      $obs_request_ref->{target}   = $target;
-      $obs_request_ref->{ra}       = $coords_for->{$target}->{ra};
-      $obs_request_ref->{dec}      = $coords_for->{$target}->{dec};
-      $obs_request_ref->{exposure} = $coords_for->{$target}->{exp};
+      $obs_request_ref->{target}      = $target;
+      $obs_request_ref->{ra}          = $coords_for->{$target}->{ra};
+      $obs_request_ref->{dec}         = $coords_for->{$target}->{dec};
+      $obs_request_ref->{exposure}    = $coords_for->{$target}->{exposure};
+      $obs_request_ref->{filter_type} = $coords_for->{$target}->{filter_type};
 
       my $dt = str2datetime($start_time);
-      # Set the end time for the observing sequence to something arbitrary...
+      # Set the end time for the observing sequence to something reasonable...
       my $end_time  = $dt +  DateTime::Duration->new( minutes => 30 );
 
 
       # Stringify the observation time constraints...
-      $obs_request_ref->{starttime} = "$start_time";
-      $obs_request_ref->{endtime}   = "$end_time";
+      $obs_request_ref->{starttime} = datetime2utc_str($start_time);
+      $obs_request_ref->{endtime}   = datetime2utc_str($end_time);
 
       # Make the SOAP request...
       request_observation($obs_request_ref);
@@ -485,7 +501,8 @@ sub print_summary {
 
    my $now = get_network_time();
    my $first = get_first_datetime( keys %{$obs_of_target{$target}} );
-   my ($run_fraction) = datetime_strs2theorytimes($first, $runlength, "$now");
+   my ($run_fraction) = datetime_strs2theorytimes($first, $runlength, 
+                                                  datetime2utc_str($now) );
 
    print "********************SUMMARY FOR TARGET $target*********************\n";
    print "* The time is now $now\n";
@@ -562,7 +579,7 @@ sub queue_obs {
        }
    }  
    
-   # Redundancy stuff to go here...
+   # Redundancy stuff would go here, if there was any point to it...
    my $n_surplus = 0;
       
    # If we have any obs to place, it's time to calculate and place them...
@@ -603,12 +620,6 @@ sub queue_obs {
       # Or, this isn't the first observation...
       else {
       
-         # Add a small amount to the window length, to fix the boundary bug...
-         # WARNING: This is a hack with hardcoded values!
-         # 35 min = 0.583333hrs = 0.024305555 days
-         # In a 10 day run, that means fuzzy_int = 0.0024305555.         
-         my $fuzzy_int = 0.002430555555;
-         $window_length += $fuzzy_int;
             
          # Find the set of observed and pending intervals...
          
@@ -624,27 +635,74 @@ sub queue_obs {
          $log->warn("[$target] Largest theoretical timestamp observed or"
          . " pending to date is $largest_time...");
       
-         # Find the current theory time...
-         my $datetime_now = get_network_time();
-#         my $theory_time_now = ($datetime_now - $first_datetime) / $runlength;
-#         my ($theory_time_now) = datetime_strs2theorytimes($first_datetime,
-#                                  $runlength, "$datetime_now");      
 
-         # Stupid hack to deal with datetime weirdness if values are very small
-#         $theory_time_now = 0 if $theory_time_now < 0;
 
-         # Determine the subset of optimum intervals to consider...
-         #use Data::Dumper;
-         #print Dumper $largest_time, $window_length, $theory_time_now;
-
-         # Each observation taken so far could be up to 30 minutes later than 
-         # expected (the expire time for the obs).
-         # So the window length needs an additional contribution which covers
-         # these extra potential overruns, n x 30 minutes.
+         # Make sure the window is larger than the elapsed time, otherwise we
+         # won't have any intervals...
          
+         my $dt_now = get_network_time();
+         my ($tt_now) = datetime_strs2theorytimes($first_datetime, $runlength, 
+                                                  datetime2utc_str($dt_now) );         
+
+         $log->warn("Current theorytime is $tt_now");
+
+         my $tt_elapsed = $tt_now - $largest_time;         
+         
+         my $n_effective = $n_obs_in_progress;
+         while ( $window_length < $tt_elapsed ) {
+            $log->warn("Window length is smaller than elapsed time since last "
+                 .     "observation. Exapanding...");
+            $n_effective++;
+            $window_length = find_window_length($n_effective, $n_surplus,
+                                                $opt_ints);
+
+            # If we've run out of maximum intervals, we'll just have to go with
+            # the current time...
+            if ( ! defined $window_length ) {
+               $log->warn("Ran out of usable intervals." 
+                           . "Placing observation at current time.");                           
+               last;                           
+            }                                                
+         }
+         
+         my @allowed_ints;
+         if ( ! defined $window_length ) {
+            # Place an observation immediately if the wait has been too long... 
+            @allowed_ints = ($tt_elapsed);
+            $log->warn("Setting a single allowed interval to the time elapsed"
+                        . " ($tt_elapsed)");
+         }
+         
+         else {
+            # Add a small amount to the window length, to fix the boundary bug...
+            # WARNING: This is a hack with hardcoded values!
+            # 35 min = 0.583333hrs = 0.024305555 days
+            # In a 10 day run, that means fuzzy_int = 0.0024305555.         
+            my $fuzzy_int = 0.002430555555;
+            $window_length += $fuzzy_int;
+            $log->warn("Adding fuzz ($fuzzy_int) to window length...");
+            $log->warn("Final window length is $window_length...");
 
 
-         my @allowed_ints = grep { $_ <= $window_length } @{$opt_ints};   
+            # Find all intervals that lie within the window...
+            @allowed_ints = grep { $_ <= $window_length } @{$opt_ints};   
+
+            # Discard intervals which are smaller than the difference between the
+            # last successful observation and the current time (these cannot be
+            # obtained)...
+
+            my ($n_ints_before, $n_ints_after) = (0, 0);
+            $n_ints_before = scalar(@allowed_ints) if scalar(@allowed_ints);
+            @allowed_ints = grep { $_ >= $tt_elapsed } @allowed_ints;
+            $n_ints_after = scalar(@allowed_ints) if scalar(@allowed_ints);
+
+            my $n_ints_discarded = $n_ints_before - $n_ints_after;
+
+            $log->warn("Discarded $n_ints_discarded intervals " 
+                        . "($n_ints_before before)"
+                        . " (not observable due to current time)" );
+         }
+
 
          #$log->warn("[$target] Allowed intervals are:");
          #$log->warn("   $_") for @allowed_ints;
@@ -672,8 +730,7 @@ sub queue_obs {
          }
 
          # If we didn't have any intervals, then we are dealing with redundant
-         # observations.
-
+         # observations. We should never get here.
          else {
             $log->warn("[$target] Placing redundant observation...");
             die "This is not implemented yet!!!\n";
@@ -690,19 +747,24 @@ sub queue_obs {
  
       $log->warn("[$target] This corresponds to a *real* timestamp of $datetime_to_submit (+ 5 minutes).");
       $log->warn("   *************************************************");
+
+
  
       # Put in an offset so that we are asking for something just in future...
       my $offset = DateTime::Duration->new( minutes => 5 );
       $datetime_to_submit = $datetime_to_submit + $offset;
       
+      # Stringify the datetime...
+      my $dt_utc_string = datetime2utc_str($datetime_to_submit);
+      
       # Enqueue the observation...                                                  
-      $obs_of_target{$target}->{"$datetime_to_submit"} = 'pending';
+      $obs_of_target{$target}->{ $dt_utc_string } = 'pending';
       my $req:shared;
       $req = &share([]);
-      @{$req} = ($target, "$datetime_to_submit");
+      @{$req} = ($target, $dt_utc_string);
       $obs_request_queue->enqueue($req);
       $queued++;
-      $log->warn("[$target] Submitted: start time: $datetime_to_submit\n");
+      $log->warn("[$target] Submitted: start time: $dt_utc_string\n");
       
 
    }
@@ -922,7 +984,7 @@ sub process_message {
 
    $log->thread2( $thread_name, "Message terminated at " . get_network_time() );
 
-   # Protect us from errors in the incoming data...
+   # Warn us about errors in the incoming data...
    unless ( defined $incoming{target} ) {
       $log->warn("Received message contains no target!");
       return;

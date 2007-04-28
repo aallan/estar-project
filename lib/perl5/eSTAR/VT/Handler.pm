@@ -43,7 +43,8 @@ use eSTAR::Constants qw( :all);
 use eSTAR::Util;
 use eSTAR::Mail;
 use eSTAR::Config;
-use eSTAR::ADP::Util qw( get_network_time str2datetime build_dummy_header );
+use eSTAR::ADP::Util qw( get_network_time str2datetime datetime2utc_str 
+                         build_dummy_header );
 
 use XML::Document::RTML;
 use Astro::Telescope;
@@ -409,8 +410,9 @@ sub send_final_message {
    if ( $msg_type eq 'observation' ) {
       # Build a FITS header, and insert the observation timestamp...
       my $time_now = get_network_time();
-      my $header   = build_dummy_header( $time_now );
-      $log->print( "Added obs timestamp '$time_now' to FITS header...\n" );
+      my $utc_str_time = datetime2utc_str($time_now);
+      my $header   = build_dummy_header( $utc_str_time );
+      $log->print( "Added obs timestamp '$utc_str_time' to FITS header...\n" );
 
       # Build the data array that holds a catalogue, URL and the header. For now
       # the catalogue and URL are dummy placeholders.
@@ -679,6 +681,23 @@ sub manage_schedule {
                next GROUP;      
             }
       
+
+            # Check the 'weather'...
+            my $weather = rand;
+            if ( $weather < 0.5 ) {
+               $log->warn("$thread_name: Weather caused observation failure");
+               
+               # Send an update indicating failure...
+               build_and_send_message('update', $rtml, 'inclement weather');
+
+               # Note the failure...
+               $failed_obs++;
+
+               # Move on to the next observation...
+               next GROUP;                 
+            }
+
+
             # If we've got to here then the observation can happen.
 
             # Simulate a readout delay...
@@ -724,13 +743,6 @@ sub handle_rtml {
         
    # Parse the RTML scalar and store in an observation object...
    my $parsed = parse_rtml($rtml);
-   
-   # RTML response from virtual telescope here
-
-   # Set up simple probabilistic weather...
-   my $sunny_factor = 1.0;      
-   my $obs_weather = rand;
-#   my $obs_weather = 1.0;
 
    
    my $response;
@@ -764,7 +776,7 @@ sub handle_rtml {
          $log->warn("Scoring request: Target will be observable at $start_time.");
 
          # Generate a random score...
-         $score = $sunny_factor - $obs_weather;
+         $score = rand;
 
 
       }
@@ -780,50 +792,45 @@ sub handle_rtml {
       # TODO: Should be based on the requested date.
       my $completion_time = get_network_time();
       $completion_time->add( weeks => 4 );
+      my $comp_time_utc_str = datetime2utc_str($completion_time);
 
       # Build the score response...
       $parsed->score( $score );
       $response = $parsed->build( Type           => 'score',
-                                  CompletionTime => $completion_time );
+                                  CompletionTime => $comp_time_utc_str );
                                   
       $log->warn("Received score request. Returning score of $score.");           
             
    }
-   # If the message is an observation request, reply (confirm or reject)...
+
+   # If the message is an observation request, queue and send confirmation...
    elsif ( $parsed->type eq 'request' ) {     
-      # If the document already has a score, then that implies a previous round
-      # of score requesting, so we need to use that - otherwise, we use our 
-      # calculated score...
-      ######### NOTE: THIS IS POTENTIALLY A SERIOUS SECURITY HOLE! ########
-      $obs_weather = $parsed->score if defined $parsed->score;
             
-      # Confirm or deny, depending on the weather...
-      if ( $obs_weather < $sunny_factor ) {
-         $log->warn("Queuing request (weather ok)...");
-         $response = $parsed->build( Type => 'confirmation' );
-         
-         # Start the observation management thread, if this is the first obs...
-         my $proc_name = eSTAR::Process::get_reference->get_process();
-         my $schedule_lock_file = "$ENV{HOME}/.estar/$proc_name/tmp/sch.dat";
+      $log->warn("Queuing request...");
+      $response = $parsed->build( Type => 'confirmation' );
+
+      # Start the observation management thread, if this is the first obs...
+      my $proc_name = eSTAR::Process::get_reference->get_process();
+      my $schedule_lock_file = "$ENV{HOME}/.estar/$proc_name/tmp/sch.dat";
 
 
-         unless ( -e $schedule_lock_file ) {
-            $log->print("Spawning schedule manager thread...");
-            my $obs_thread = threads->create( \&manage_schedule);
-            #$obs_thread->detach;
-            system "touch $schedule_lock_file";
-         }         
+      unless ( -e $schedule_lock_file ) {
+         $log->print("Spawning schedule manager thread...");
+         my $obs_thread = threads->create( \&manage_schedule);
+         #$obs_thread->detach;
+         system "touch $schedule_lock_file";
+      }         
 
-         # Add the observation to the shared schedule...
+      # Add the observation to the shared schedule...
 
 #         $semaphore->down;
-         $log->error("No id defined for this observation!") unless $parsed->id;
-         $log->warn("id is" . $parsed->id);
-         
-         my %obs_data:shared;
-         %obs_data = ( rtml => $response,
-                       status => 'pending');                         
-         $obs_schedule{$parsed->id} = \%obs_data;
+      $log->error("No id defined for this observation!") unless $parsed->id;
+      $log->warn("id is" . $parsed->id);
+
+      my %obs_data:shared;
+      %obs_data = ( rtml => $response,
+                    status => 'pending');                         
+      $obs_schedule{$parsed->id} = \%obs_data;
          
 #         $semaphore->up;
 
@@ -835,14 +842,6 @@ sub handle_rtml {
          # Instruct perl to free the thread memory when it's done...
 #         $obs_thread->detach;
 
-
-
-      }
-      # Reject the request, and forget about it...   
-      else {
-         $log->warn("Rejecting score request based on weather.");
-         $response = $parsed->build( Type => 'reject' );
-      }
 
    }
    # It's an unknown type of document. Complain...

@@ -1,3 +1,15 @@
+2007-04-28 Eric Saunders <saunders@astro.ex.ac.uk>
+
+	* bin/adaptive_vs_scheduler.pl: Algorithm improvements for a more
+	  aggressive window. Numerous big fixes. Options modified for
+	  live operation.
+
+	* lib/ADP/Util.pm: Added support for timestamps with UTC offset
+	  (e.g. +1000) - correctly interprets as DateTimes.
+
+	* t/01_util_adp.t - unit tests for UTC offset code.
+
+
 2007-04-26 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * www/robone-1.0/cgi-bin/status.cgi: FIxed another status corner case.
