@@ -1,3 +1,9 @@
+2007-05-02 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * www/robonet-1.0/cgi-bin/scoring.cgi: New network status web page.
+
+        * www/robonet-1.0/cgi-bin/submit.cgi: Added project tag.
+
 2007-04-28 Eric Saunders <saunders@astro.ex.ac.uk>
 
 	* bin/adaptive_vs_scheduler.pl: Algorithm improvements for a more
@@ -9,10 +15,9 @@
 
 	* t/01_util_adp.t - unit tests for UTC offset code.
 
-
 2007-04-26 Alasdair Allan <aa@astro.ex.ac.uk>
 
-        * www/robone-1.0/cgi-bin/status.cgi: FIxed another status corner case.
+        * www/robonet-1.0/cgi-bin/status.cgi: FIxed another status corner case.
         
         * www/robonet-1.0/cgi-bin/performance.cgi: Completion statistics script
           which calculates how well we're doing.
