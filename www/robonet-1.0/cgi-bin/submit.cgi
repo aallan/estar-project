@@ -118,6 +118,7 @@ my $voevent = $object->build( %event );
 my %observation;
 $observation{user} = "kdh1";
 $observation{pass} = "EXOfollowup";
+$observation{project} = "exoplanet";
 $observation{ra} = $query{ra};
 $observation{dec} = $query{dec};
 $observation{target} = $query{object_name};
