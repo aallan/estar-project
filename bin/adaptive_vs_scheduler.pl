@@ -21,7 +21,7 @@ Eric Saunders (saunders@astro.ex.ac.uk), Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: adaptive_vs_scheduler.pl,v 1.4 2007/04/28 18:54:15 saunders Exp $
+$Id: adaptive_vs_scheduler.pl,v 1.5 2007/05/03 14:24:43 saunders Exp $
 
 =head1 COPYRIGHT
 
@@ -39,7 +39,7 @@ use vars qw / $VERSION $log /;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -217,10 +217,14 @@ my $run_length_in_days = 5;
 
 my %coords_for = ( 
                    'BI Vir' => {
-                                 ra          => '12:29:30.42',
-                                 dec         => '+00:13:27.78',
+                                 ra          => '12 29 30.42',
+                                 dec         => '+00 13 27.78',
                                  exposure    => 5,
-                                 filter_type => 'R';
+                                 filter_type => 'R',
+                                 passband    => 'R',
+                                 groupcount  => 1,
+                                 project     => 'ADP',
+                                 
                                 },
                   );
 
@@ -230,7 +234,6 @@ my $runlength = DateTime::Duration->new(hours => $run_length_in_days * 24);
 # Find the optimal base and set of optimum intervals...
 my ($opt_base, $opt_ints) = find_sampling_base($undersampling, $n_total);
 
-                                         
 # Create a TCP/IP server to accept and process information returned by the UA...
 my $tcpip_server = new_tcpip_server($opt{tcpport}, \&process_message);
 
@@ -279,7 +282,10 @@ sub obs_request_sender {
       $obs_request_ref->{ra}          = $coords_for->{$target}->{ra};
       $obs_request_ref->{dec}         = $coords_for->{$target}->{dec};
       $obs_request_ref->{exposure}    = $coords_for->{$target}->{exposure};
-      $obs_request_ref->{filter_type} = $coords_for->{$target}->{filter_type};
+      $obs_request_ref->{passband}    = $coords_for->{$target}->{passband};
+      $obs_request_ref->{groupcount}  = $coords_for->{$target}->{groupcount};
+      $obs_request_ref->{project}     = $coords_for->{$target}->{project};
+   
 
       my $dt = str2datetime($start_time);
       # Set the end time for the observing sequence to something reasonable...
@@ -287,6 +293,7 @@ sub obs_request_sender {
 
 
       # Stringify the observation time constraints...
+      
       $obs_request_ref->{starttime} = datetime2utc_str($start_time);
       $obs_request_ref->{endtime}   = datetime2utc_str($end_time);
 
