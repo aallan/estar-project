@@ -46,7 +46,7 @@
      $header = <FILE>;
      close FILE;
   }
-  $header =~ s/PAGE_TITLE_STRING/Robonet-1.0 Observation Status/g;
+  $header =~ s/PAGE_TITLE_STRING/Robonet-1.0 Performance/g;
   $header =~ s/<title>/<link rel="stylesheet" HREF="..\/css\/box.css" TYPE="text\/css"><title>/;
 
   my $footer;
@@ -257,24 +257,103 @@
   }    # end of for () { }
   
  
-  print "<table width='90%' border='1'><tr><th>Status</th><th>Number of Requests</th><th>Percentage of Total</th></tr>"; 
-  print "<tr><td colspan='3'><H3>LT</H3></td></tr>";
-  foreach my $key ( sort keys %LT ) {
-     my $percentage = 100.0*($LT{$key}/$LT{total});
-     print "<tr><td align='center'>" . ucfirst($key) . "</td><td align='center'>$LT{$key}</td><td align='center'>$percentage %</td></tr>";
-  }
+  print "<table width='80%' border='0'><tr><th>Status</th><th>Number of Requests</th><th>Percentage of Total</th></tr>"; 
+  my $percentage;
+
+  # LT
+  print "<tr><th colspan='3'>LT</th></tr>";
   
-  print "<tr><td colspan='3'><H3>FTN</H3></td></tr>";
-  foreach my $key ( sort keys %FTN ) {
-     my $percentage = 100.0*($FTN{$key}/$FTN{total});
-     print "<tr><td align='center'>" . ucfirst($key) . "</td><td align='center'>$FTN{$key}</td><td align='center'>$percentage %</td></tr>";
-  } 
+  # Queued
+  $percentage =  sprintf ( "%.3f", 100.0*($LT{queued}/$LT{total}) );
+  print "<tr><td align='center'><font color='green'>Queued</font></td><td align='center'><font color='green'>$LT{queued}</font></td><td align='center'><font color='green'>$percentage %</font></td></tr>";
   
-  print "<tr><td colspan='3'><H3>FTS</H3></td></tr>";
-  foreach my $key ( sort keys %FTS ) {
-     my $percentage = 100.0*($FTS{$key}/$FTS{total});
-     print "<tr><td align='center'>" . ucfirst($key) . "</td><td align='center'>$FTS{$key}</td><td align='center'>$percentage %</td></tr>";
-  }  
+  # Returned
+  $percentage =  sprintf ( "%.3f", 100.0*($LT{returned}/$LT{total}) );
+  print "<tr><td align='center'><font color='green'>Returned</font></td><td align='center'><font color='green'>$LT{returned}</font></td><td align='center'><font color='green'>$percentage %</font></td></tr>";
+  
+  # Incomplete
+  $percentage =  sprintf ( "%.3f", 100.0*($LT{incomplete}/$LT{total}) );
+  print "<tr><td align='center'><font color='orange'>Incomplete</font></td><td align='center'><font color='orange'>$LT{incomplete}</font></td><td align='center'><font color='orange'>$percentage %</font></td></tr>";
+  
+  # Expired
+  $percentage =  sprintf ( "%.3f", 100.0*($LT{expired}/$LT{total}) );
+  print "<tr><td align='center'><font color='orange'>Expired</font></td><td align='center'><font color='orange'>$LT{expired}</font></td><td align='center'><font color='orange'>$percentage %</font></td></tr>";
+  
+  # Failed
+  $percentage =  sprintf ( "%.3f", 100.0*($LT{failed}/$LT{total}) );
+  print "<tr><td align='center'><font color='red'>Failed</font></td><td align='center'><font color='red'>$LT{failed}</font></td><td align='center'><font color='red'>$percentage %</font></td></tr>";
+  
+  # Failed
+  $percentage =  sprintf ( "%.3f", 100.0*($LT{noresponse}/$LT{total}) );
+  print "<tr><td align='center'><font color='red'>No Response</font></td><td align='center'><font color='red'>$LT{noresponse}</font></td><td align='center'><font color='red'>$percentage %</font></td></tr>";
+                   
+  # Total
+  $percentage =  sprintf ( "%.3f", 100.0*($LT{total}/$LT{total}) );
+  print "<tr><td align='center'><font color='grey'>Total</font></td><td align='center'><font color='grey'>$LT{total}</font></td><td align='center'><font color='grey'>$percentage %</font></td></tr>";
+      
+  # FTN
+  print "<tr><th colspan='3'>FTN</th></tr>";
+  
+  # Queued
+  $percentage =  sprintf ( "%.3f", 100.0*($FTN{queued}/$FTN{total}) );
+  print "<tr><td align='center'><font color='green'>Queued</font></td><td align='center'><font color='green'>$FTN{queued}</font></td><td align='center'><font color='green'>$percentage %</font></td></tr>";
+  
+  # Returned
+  $percentage =  sprintf ( "%.3f", 100.0*($FTN{returned}/$FTN{total}) );
+  print "<tr><td align='center'><font color='green'>Returned</font></td><td align='center'><font color='green'>$FTN{returned}</font></td><td align='center'><font color='green'>$percentage %</font></td></tr>";
+  
+  # Incomplete
+  $percentage =  sprintf ( "%.3f", 100.0*($FTN{incomplete}/$FTN{total}) );
+  print "<tr><td align='center'><font color='orange'>Incomplete</font></td><td align='center'><font color='orange'>$FTN{incomplete}</font></td><td align='center'><font color='orange'>$percentage %</font></td></tr>";
+  
+  # Expired
+  $percentage =  sprintf ( "%.3f", 100.0*($FTN{expired}/$FTN{total}) );
+  print "<tr><td align='center'><font color='orange'>Expired</font></td><td align='center'><font color='orange'>$FTN{expired}</font></td><td align='center'><font color='orange'>$percentage %</font></td></tr>";
+  
+  # Failed
+  $percentage =  sprintf ( "%.3f", 100.0*($FTN{failed}/$FTN{total}) );
+  print "<tr><td align='center'><font color='red'>Failed</font></td><td align='center'><font color='red'>$FTN{failed}</font></td><td align='center'><font color='red'>$percentage %</font></td></tr>";
+  
+  # Failed
+  $percentage =  sprintf ( "%.3f", 100.0*($FTN{noresponse}/$FTN{total}) );
+  print "<tr><td align='center'><font color='red'>No Response</font></td><td align='center'><font color='red'>$FTN{noresponse}</font></td><td align='center'><font color='red'>$percentage %</font></td></tr>";
+                   
+  # Total
+  $percentage =  sprintf ( "%.3f", 100.0*($FTN{total}/$FTN{total}) );
+  print "<tr><td align='center'><font color='grey'>Total</font></td><td align='center'><font color='grey'>$FTN{total}</font></td><td align='center'><font color='grey'>$percentage %</font></td></tr>";
+          
+  # FTS
+  print "<tr><th colspan='3'>FTS</th></tr>";
+  
+  # Queued
+  $percentage =  sprintf ( "%.3f", 100.0*($FTS{queued}/$FTS{total}) );
+  print "<tr><td align='center'><font color='green'>Queued</font></td><td align='center'><font color='green'>$FTS{queued}</font></td><td align='center'><font color='green'>$percentage %</font></td></tr>";
+  
+  # Returned
+  $percentage =  sprintf ( "%.3f", 100.0*($FTS{returned}/$FTS{total}) );
+  print "<tr><td align='center'><font color='green'>Returned</font></td><td align='center'><font color='green'>$FTS{returned}</font></td><td align='center'><font color='green'>$percentage %</font></td></tr>";
+  
+  # Incomplete
+  $percentage =  sprintf ( "%.3f", 100.0*($FTS{incomplete}/$FTS{total}) );
+  print "<tr><td align='center'><font color='orange'>Incomplete</font></td><td align='center'><font color='orange'>$FTS{incomplete}</font></td><td align='center'><font color='orange'>$percentage %</font></td></tr>";
+  
+  # Expired
+  $percentage =  sprintf ( "%.3f", 100.0*($FTS{expired}/$FTS{total}) );
+  print "<tr><td align='center'><font color='orange'>Expired</font></td><td align='center'><font color='orange'>$FTS{expired}</font></td><td align='center'><font color='orange'>$percentage %</font></td></tr>";
+  
+  # Failed
+  $percentage =  sprintf ( "%.3f", 100.0*($FTS{failed}/$FTS{total}) );
+  print "<tr><td align='center'><font color='red'>Failed</font></td><td align='center'><font color='red'>$FTS{failed}</font></td><td align='center'><font color='red'>$percentage %</font></td></tr>";
+  
+  # Failed
+  $percentage =  sprintf ( "%.3f", 100.0*($FTS{noresponse}/$FTS{total}) );
+  print "<tr><td align='center'><font color='red'>No Response</font></td><td align='center'><font color='red'>$FTS{noresponse}</font></td><td align='center'><font color='red'>$percentage %</font></td></tr>";
+                   
+  # Total
+  $percentage =  sprintf ( "%.3f", 100.0*($FTS{total}/$FTS{total}) );
+  print "<tr><td align='center'><font color='grey'>Total</font></td><td align='center'><font color='grey'>$FTS{total}</font></td><td align='center'><font color='grey'>$percentage %</font></td></tr>";
+
+
   print "</table>";
   
   print $footer;
