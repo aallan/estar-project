@@ -1,3 +1,9 @@
+2007-05-21 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * bin/jach_agent.pl: Added more debug and updaated project ID
+
+	* startup/test_templates.pl: Updated project ID
+
 2007-05-04 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* www/robonet-1.0/cgi-bin/performance.cgi: Made pretty.

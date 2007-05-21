@@ -22,7 +22,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: jach_agent.pl,v 1.23 2007/01/03 14:15:33 aa Exp $
+#     $Id: jach_agent.pl,v 1.24 2007/05/21 07:12:28 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -67,7 +67,7 @@ translation layer, which also handles external phase 0 discovery requests.
 
 =head1 REVISION
 
-$Id: jach_agent.pl,v 1.23 2007/01/03 14:15:33 aa Exp $
+$Id: jach_agent.pl,v 1.24 2007/05/21 07:12:28 aa Exp $
 
 =head1 AUTHORS
 
@@ -84,7 +84,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.23 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.24 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -296,6 +296,7 @@ $projects{"TJ03"} = "fainguat";
 $projects{"U/03B/D10"} = "strytess";
 $projects{"U/05A/18"} = "reeminge";
 $projects{"U/06A/36"} = "screfera";
+$projects{"U/CMP/4"} = "conezesl";
 
 # PROJECTS REFERENCED BY ESTAR USER ID
 # ------------------------------------
@@ -306,7 +307,8 @@ $projects{"U/06A/36"} = "screfera";
 $project->set_project( "user.aa", "TJ03" );
 $project->set_project( "user.timj", "TJ03" );
 #$project->set_project( "user.nt", "U/05A/18" );
-$project->set_project( "user.nt", "U/06A/36" );
+#$project->set_project( "user.nt", "U/06A/36" );
+$project->set_project( "user.nt", "U/CMP/4" );
 
 # PROJECT LOOKUP FILE
 # -------------------
@@ -829,6 +831,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: jach_agent.pl,v $
+# Revision 1.24  2007/05/21 07:12:28  aa
+# Updated Project ID
+#
 # Revision 1.23  2007/01/03 14:15:33  aa
 # more debug
 #

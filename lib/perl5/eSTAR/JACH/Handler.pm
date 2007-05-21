@@ -788,7 +788,12 @@ sub handle_rtml {
             # then resubmit (probably need a prune method to remove
             # exipired MSB's).
             $log->debug( "Trying now...." );
-            OMP::SpServer->storeProgram( "$sp", $password );
+            eval { OMP::SpServer->storeProgram( "$sp", $password ); };
+            if( $@ ) {
+               $log->error( "Error: Unable to submit MSB to SpServer" );
+               $log->error( "Error: $@");
+               $flag = 1;
+            }
             #$log->warn(
             #   "Warning: OMP::SpServer->storeProgram() commented out");
             #$log->warn( "Warning: MSB will not be sumbitted to SpServer" );
