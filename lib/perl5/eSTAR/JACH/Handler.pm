@@ -718,7 +718,7 @@ sub handle_rtml {
          my $instrument = eSTAR::JACH::Util::current_instrument( 
                                     $config->get_option( "dn.telescope")); 
          $log->debug( "The current instrument is $instrument" );
-         if ( $instrument == "WFCAM" ) {                           
+         if ( $instrument eq "WFCAM" ) {                           
            $log->warn( "Warning: The current instrument is $instrument" );
            $log->warn( "Warning: Offseting by 795 arcsec south and west" );
            my $ra = $input_position->ra( format => "arcsec" );
