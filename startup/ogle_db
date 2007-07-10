@@ -1,0 +1,4 @@
+#! /bin/tcsh
+
+/software/perl-5.8.6/bin/perl /work/estar/third_generation/bin/ogle_DB_client.pl >& ~estar/logs/voevent/server.`date -Iseconds` &
+

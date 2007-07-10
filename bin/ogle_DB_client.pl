@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -519,6 +519,12 @@ my $incoming_callback = sub {
       $log->thread( "Client", "Done." );
       return ESTAR__FAULT;
    }      
+
+   # url
+   my @split = split "#", $id;
+   my $url = 
+     "http://www.estar.org.uk/voevent/eSTAR/uk.org.estar/pl.edu.ogle/" .
+     $split[1] . ".xml";    
      
    # CONNECT TO DB #####################################################
 
