@@ -1,3 +1,9 @@
+2007-08-16 Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* ogle_fetch_v2.pl: Updated ogle_fetch for new V2 of PLOP
+	
+	* startup/cron/ogle_fetch_*: Updated to run ogle_fetch_v2.pl
+	
 2007-07-10 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* ogle_DB_client.pl: Added event client to slurp live OGLE feed

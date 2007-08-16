@@ -1,4 +1,4 @@
 #! /bin/tcsh
 
-/work/estar/third_generation/bin/ogle_fetch.pl -hours '2.0' -user kdh1 -pass EXOfollowup -project exoplanet >& ~estar/logs/ogle/ogle_LT.`date -Iseconds` &
+/work/estar/third_generation/bin/ogle_fetch_v2.pl -hours '2.0' -user kdh1 -pass EXOfollowup -project exoplanet >& ~estar/logs/ogle/ogle_LT.`date -Iseconds` &
 
