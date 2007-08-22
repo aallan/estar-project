@@ -1,3 +1,12 @@
+2007-08-22 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * demo/google_sky/event_client.pl: Basic infrastructure in place.
+        
+2007-08-21 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * www/robonet-1.0/cgi-bin/status.cgi, scoring.cgi & performance.cgi:
+          Modified to work on a month-by-month basis.
+          
 2007-08-16 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* ogle_fetch_v2.pl: Updated ogle_fetch for new V2 of PLOP

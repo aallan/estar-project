@@ -13,7 +13,7 @@
   use Data::Dumper;
   use Fcntl qw(:DEFAULT :flock);
   use DateTime::Format::ISO8601;
- 
+   
 # G R A B   K E Y W O R D S ---------------------------------------------------
 
   my $string = $ENV{QUERY_STRING};
@@ -46,6 +46,24 @@
      $header = <FILE>;
      close FILE;
   }
+  
+  # fix dir string to be date string
+  my $dir = $query{dir};
+  my $date = $dir;
+  $date =~ s/01-/Jan / if $dir =~ /01-/;
+  $date =~ s/02-/Feb / if $dir =~ /02-/;
+  $date =~ s/03-/Mar / if $dir =~ /03-/;
+  $date =~ s/04-/Apr / if $dir =~ /04-/;
+  $date =~ s/05-/May / if $dir =~ /05-/;
+  $date =~ s/06-/Jun / if $dir =~ /06-/;
+  $date =~ s/07-/Jul / if $dir =~ /07-/;
+  $date =~ s/08-/Aug / if $dir =~ /08-/;
+  $date =~ s/09-/Sep / if $dir =~ /09-/;
+  $date =~ s/10-/Oct / if $dir =~ /10-/;
+  $date =~ s/11-/Nov / if $dir =~ /11-/;
+  $date =~ s/12-/Dec / if $dir =~ /12-/;
+  $date = "Current Month" unless defined $date;
+
   $header =~ s/PAGE_TITLE_STRING/Robonet-1.0 Performance/g;
   $header =~ s/<title>/<link rel="stylesheet" HREF="..\/css\/box.css" TYPE="text\/css"><title>/;
 
@@ -65,7 +83,8 @@
   
   my $dir = File::Spec->catdir( File::Spec->rootdir(), "home", "estar", 
                                 ".estar", "user_agent", "state" );
-				
+  $dir = File::Spec->catdir( $dir, $query{dir} ) if defined $query{dir};
+  				
   my ( @files );
   if ( opendir (DIR, $dir )) {
      foreach ( readdir DIR ) {
@@ -85,6 +104,36 @@
   
   print "<P>Observation status at <font color='red'>" . 
         timestamp() . "</font><br>";
+  	
+  print "<font size='-2'><p>Jan 2006 | ". 
+        "Feb 2006 | ". 
+        "Mar 2006 | ". 
+        "Apr 2006 | ". 
+        "May 2006 | ". 
+        "<a href='./performance.cgi?dir=06-2006'>Jun 2006</a> | ". 
+        "<a href='./performance.cgi?dir=07-2006'>Jul 2006</a> | ". 
+        "<a href='./performance.cgi?dir=08-2006'>Aug 2006</a> | ". 
+        "<a href='./performance.cgi?dir=09-2006'>Sep 2006</a> | ". 
+        "<a href='./performance.cgi?dir=10-2006'>Oct 2006</a> | ". 
+        "<a href='./performance.cgi?dir=11-2006'>Nov 2006</a> | ". 
+        "<a href='./performance.cgi?dir=12-2006'>Dec 2006</a></p>";
+  my $this_year = "<p><a href='./performance.cgi?dir=01-2007'>Jan 2007</a> | ". 
+        "<a href='./performance.cgi?dir=02-2007'>Feb 2007</a> | ". 
+        "<a href='./performance.cgi?dir=03-2007'>Mar 2007</a> | ". 
+        "<a href='./performance.cgi?dir=04-2007'>Apr 2007</a> | ". 
+        "<a href='./performance.cgi?dir=05-2007'>May 2007</a> | ". 
+        "<a href='./performance.cgi?dir=06-2007'>Jun 2007</a> | ". 
+        "<a href='./performance.cgi?dir=07-2007'>Jul 2007</a> | ". 
+        "<a href='./performance.cgi?dir=08-2007'>Aug 2007</a> | ". 
+        "<a href='./performance.cgi?dir=09-2007'>Sep 2007</a> | ". 
+        "<a href='./performance.cgi?dir=10-2007'>Oct 2007</a> | ". 
+        "<a href='./performance.cgi?dir=11-2007'>Nov 2007</a> | ". 
+        "<a href='./performance.cgi?dir=12-2007'>Dec 2007</a></p></font>";
+
+  my $month = localtime->mon() + 1;
+  $month = "0$month" if $month < 10;
+  $this_year =~ s/\?dir=$month-2007//;
+  print $this_year;	
 	
   
   my ( %LT, %FTN, %FTS );
@@ -117,6 +166,7 @@
    
      #print "'".$files[$i]."'\n";
      next if $files[$i] =~ m/^\d{4}$/;
+     next if $files[$i] =~ m/^\d{2}-\d{4}$/;
      
      print "<tr>";
      #print "<td><font color='grey'>$files[$i]</font></td>";
