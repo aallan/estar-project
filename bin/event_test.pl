@@ -77,6 +77,8 @@ sub callback {
       $counter = $counter + 1;
       my $ra = 0.2;
       $ra = $ra + 10*$counter;
+      $ra = $ra - 360 if $ra > 360;
+      
       my $dec = 75.2;
 
       # SMC
@@ -109,6 +111,7 @@ sub callback {
   'ivo://uk.org.estar/estar.ex#test/'. $pid . "." . $previous .
   '</EventIVORN>'. "\n".
   '</Citations>'. "\n".
+  '<Description>This is a test eSTAR test packet and does not correspond to a real event on the sky.</Description>'."\n".
   '<Who>'. "\n".
   '  <AuthorIVORN>ivo://uk.org.estar/estar.ex#</AuthorIVORN>'. "\n".
   '  <Date>'.time_iso().'</Date>'. "\n".
