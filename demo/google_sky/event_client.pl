@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -36,7 +36,6 @@ use eSTAR::UserAgent;
 use eSTAR::Mail;
 
 # general modules
-use SOAP::Lite;
 use POSIX qw(:sys_wait_h);
 use Errno qw(EAGAIN);
 use Errno qw(EWOULDBLOCK EINPROGRESS);
@@ -56,7 +55,7 @@ use Socket;
 use Data::Dumper;
 use Carp;
 use Net::FTP;
-
+use File::Copy;
 use Astro::VO::VOEvent;
 
 
@@ -341,6 +340,48 @@ sub event_process {
                 } 
                 $log->debug( "ID: $id" );
 		   
+                my $description;
+                eval { $description = $object->description( ); };
+                if ( $@ ) {
+   	           my $error = "$@";
+   	           chomp( $error );
+   	           $log->error( "Error: $error" );
+   	           $log->error( "\$data = " . $message );
+   	           next;
+                } 
+                $log->debug( "Description: $description" );  
+      
+      
+                # get $name
+                my $name;
+                $name = "eSTAR" if $id =~ "uk.org.estar";
+                $name = "Caltech" if $id =~ "nvo.caltech";
+                $name = "NOAO" if $id =~ "noao.edu";
+                $name = "RAPTOR" if $id =~ "talons.lanl";
+                $name = "PLANET" if $id =~ "planet";
+                $name = "Robonet-1.0" if $id =~ "robonet-1.0";
+                
+                # build url
+                my $idpath = $id;
+                $idpath =~ s/#/\//;
+                my @path = split( "/", $idpath );
+                if ( $path[0] eq "ivo:" ) {
+   	           splice @path, 0 , 1;
+                }
+                if ( $path[0] eq "" ) {
+   	           splice @path, 0 , 1;
+                }
+                my $url = "http://www.estar.org.uk/voevent/$name";
+                foreach my $i ( 0 ... $#path ) {
+   	           $url = $url . "/$path[$i]"; 
+                }
+                $url = $url . ".xml";
+                                 
+                $description = 
+                  '<![CDATA[XML: <a href="'.$url.'">'.$id.'</a><br><br>'.$description .']]>';    
+                   
+                $description =~ s/<a href="http:\/\/www.estar.org.uk\/wiki\/index.php\/OGLE">OGLE<\/a>/OGLE/g;  
+                   
 		my $ra = $object->ra();
 		my $dec = $object->dec();
 		if ( defined $ra && defined $dec ) {
@@ -370,7 +411,7 @@ sub event_process {
 		      my $string = 
 		      '  <Placemark>'."\n".
 		      '    <name>'.$id.'</name>'."\n".
-		      '    <description>'.$object->description().'</description>'."\n".
+		      '    <description>'.$description.'</description>'."\n".
 		      '    <Point>'."\n".
 		      '      <coordinates>'.$long.','.$dec.',0</coordinates>'."\n".
 		      '    </Point>'."\n".
@@ -399,7 +440,7 @@ sub event_process {
 		      '  <Folder>'."\n".
 		      '  <Placemark>'."\n".
 		      '    <name>'.$id.'</name>'."\n".
-		      '    <description>'.$object->description().'</description>'."\n".
+		      '    <description>'.$description.'</description>'."\n".
 		      '    <Point>'."\n".
 		      '      <coordinates>'.$long.','.$dec.',0</coordinates>'."\n".
 		      '    </Point>'."\n".
@@ -411,19 +452,24 @@ sub event_process {
 		      close ( KML );
                    }
 		   
-		   eval { 
-                      $log->print("Opening FTP connection to lion.drogon.net...");  
-                      my $ftp = Net::FTP->new( "lion.drogon.net", Debug => 1 );
-                      $log->debug("Going into PASV mode...");
-                      $log->debug("Logging into estar account...");  
-                      $ftp->login( "estar", "tibileot" );
-                      $ftp->cwd( "www.estar.org.uk/docs/voevent/" );
-                      $log->debug("Transfering file $kml");  
-                      $ftp->put( $kml, "voevent.kml" );
-                      $ftp->quit();
-	              $log->print("Closed FTP connection...");
+		   #eval { 
+                   #   $log->print("Opening FTP connection to lion.drogon.net...");  
+                   #   my $ftp = Net::FTP->new( "lion.drogon.net", Debug => 1 );
+                   #   $log->debug("Going into PASV mode...");
+                   #   $log->debug("Logging into estar account...");  
+                   #   $ftp->login( "estar", "tibileot" );
+                   #   $ftp->cwd( "www.estar.org.uk/docs/voevent/" );
+                   #   $log->debug("Transfering file $kml");  
+                   #   $ftp->put( $kml, "voevent.kml" );
+                   #   $ftp->quit();
+	           #   $log->print("Closed FTP connection...");
+                   #};
+                   
+                   eval {
+                      $log->debug( "Copying file to /var/www/html/voevent/" ); 
+                      copy($kml, "/var/www/html/voevent/") or die "File cannot be copied.";
                    };
-
+                   
                    if ( $@ ) {
                      my $error = "$@";
                      chomp $error;
