@@ -1,5 +1,9 @@
 2007-08-22 Alasdair Allan <aa@astro.ex.ac.uk>
 
+        * demo/google_sky/google_plastic.pl: Plastic-enabling Google Sky.
+	
+2007-08-22 Alasdair Allan <aa@astro.ex.ac.uk>
+
         * demo/google_sky/event_client.pl: Basic infrastructure in place.
         
 2007-08-21 Alasdair Allan <aa@astro.ex.ac.uk>
