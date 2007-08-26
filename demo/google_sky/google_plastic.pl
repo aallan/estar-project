@@ -17,8 +17,8 @@ use XMLRPC::Transport::HTTP;
 use HTTP::Daemon;
 use HTTP::Status;
   
-use vars qw / $VERSION $host $port $http $kml /;
-$VERSION = sprintf "%d.%d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/;
+use vars qw / $VERSION $host $port $http $kml $rpc /;
+$VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
 
 #$ip = inet_ntoa(scalar(gethostbyname(hostname())));
 $host = 'localhost';
@@ -107,9 +107,48 @@ while (my $connection = $httpd->accept) {
 	 print "Sending file = $kml\n";
          $connection->send_file_response( $kml );
 	 print "Done.\n";
+      } elsif ($request->method() eq 'GET' and $request->url()->path() eq "/sendPoint") {
+         print "Connection from Google Sky...\n";
+	 my $url = $request->url();
+         print "Got $url\n";
+	 my @fragments = split /\?/, $url;
+	 my ($ra, $dec ) = split /&/, $fragments[1];
+	 $ra =~ s/ra=//;
+	 $dec =~ s/dec=//;
+	 print "RA = $ra, Dec = $dec\n";
+         my $status;
+	 my @array;
+	 push @array, $ra;
+	 push @array, $dec;
+         eval{ $status = $main::rpc->call( 'plastic.hub.request', 
+         	   "http://".$host.":". $port ."/",
+	 	    "ivo://votech.org/sky/pointAtCoords",
+	 	    \@array ); };
+
+         if( $@ ) {
+            my $error = "$@";
+            croak( "Error: $error" );
+         }   
+         unless( $status->fault() ) {
+            my %hash = %{$status->result()};
+	    if ( scalar %hash ) {
+	      print "Submitted event to hub...\n";
+	      #print Dumper( %hash );
+	      foreach my $key ( sort keys %hash ) {
+	 	print "$key => $hash{$key}\n";
+	      }
+	    } else {
+	       print "Error: There were no registered applications\n"; 
+	    }  
+         } else {
+            croak( "Error: ". $status->faultstring );
+         }		       
+	 print "Sending 200 (OK)\n";
+         $connection->send_status_line( );
+	 print "Done.\n";
       } else {
          print "Connection attempted, but not to /getPoints\n";
-         print "Sending RC_FORBIDDEN\n";	 
+         print "Sending 403 (RC_FORBIDDEN)\n";	 
          $connection->send_error(RC_FORBIDDEN);
 	 print "Done.\n";
       }
@@ -196,8 +235,8 @@ sub perform {
      	print "Updating content...\n";
      	my $string = 
      	'  <Placemark>'."\n".
-     	'    <name>R.A. = '.$ra.', Dec. = '.$dec.'</name>'."\n".
-     	'    <description>Co-ordinates sent via Plastic.</description>'."\n".
+     	'    <name>('.$ra.', '.$dec.')</name>'."\n".
+     	'    <description><![CDATA[Co-ordinates sent via Plastic.<br><a href="http://'.$main::host.':'.$main::http.'/sendPoint?ra='.$ra.'&dec='.$dec.'">Send this point back to the Plastic hub</a>.]]></description>'."\n".
      	'    <Point>'."\n".
      	'      <coordinates>'.$long.','.$dec.',0</coordinates>'."\n".
      	'    </Point>'."\n".
@@ -227,8 +266,8 @@ sub perform {
      	'<kml xmlns="http://earth.google.com/kml/2.1">'."\n".
      	'  <Folder>'."\n".
      	'  <Placemark>'."\n".
-     	'    <name>R.A. = '.$ra.', Dec. = '.$dec.'</name>'."\n".
-     	'    <description>Co-ordinates sent via Plastic.</description>'."\n".
+     	'    <name>('.$ra.', '.$dec.')</name>'."\n".
+     	'    <description><![CDATA[Co-ordinates sent via Plastic.<br><a href="http://'.$main::host.':'.$main::http.'/sendPoint?ra='.$ra.'&dec='.$dec.'">Send this point back to the Plastic hub</a>.]]></description>'."\n".
      	'    <Point>'."\n".
      	'      <coordinates>'.$long.','.$dec.',0</coordinates>'."\n".
      	'    </Point>'."\n".
@@ -286,8 +325,8 @@ sub register {
    }
    
    print "Building XMLRPC::Lite object\n";
-   my $rpc = new XMLRPC::Lite();
-   $rpc->proxy($endpoint);
+   $main::rpc = new XMLRPC::Lite();
+   $main::rpc->proxy($endpoint);
 
    # R E G I S T E R ----------------------------------------------------------
    
@@ -306,7 +345,7 @@ sub register {
 
    print "Calling plastic.hub.registerXMLRPC for $host:$port\n";
    my $return;
-   eval{ $return = $rpc->call( 'plastic.hub.registerXMLRPC', 
+   eval{ $return = $main::rpc->call( 'plastic.hub.registerXMLRPC', 
                      'Google Sky', \@list, "http://$host:$port/" ); };
 
    if( $@ ) {

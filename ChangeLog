@@ -1,6 +1,10 @@
 2007-08-26 Alasdair Allan <aa@astro.ex.ac.uk>
 
-        * startup/google: Startup script for the Google event_client.pl for estar4
+        * startup/google: Startup script for the Google event_client.pl for
+	  estar4.astro.ex.ac.uk and the.
+	  
+	* demo/google_sky/google_plastic.pl: Outbound Plastic added.
+
 
 2007-08-25 Alasdair Allan <aa@astro.ex.ac.uk>
 
