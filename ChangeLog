@@ -1,4 +1,8 @@
-2007-08-22 Alasdair Allan <aa@astro.ex.ac.uk>
+2007-08-26 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * startup/google: Startup script for the Google event_client.pl for estar4
+
+2007-08-25 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * demo/google_sky/google_plastic.pl: Plastic-enabling Google Sky.
 	

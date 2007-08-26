@@ -1,0 +1,3 @@
+#! /bin/tcsh
+
+/software/perl-5.8.6/bin/perl /work/estar/third_generation/demo/google_sky/event_client.pl >& ~estar/logs/google/voevent.`date -Iseconds` &
