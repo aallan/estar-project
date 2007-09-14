@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://earth.google.com/kml/2.2" hint="target=sky">
+<NetworkLink>
+	<name>Plastic Application</name>
+	<open>1</open>
+	<Url>
+		<href>http://localhost:8001/getPoints</href>
+		<refreshMode>onInterval</refreshMode>
+		<refreshInterval>30</refreshInterval>
+	</Url>
+</NetworkLink>
+</kml>

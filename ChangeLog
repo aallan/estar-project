@@ -1,3 +1,9 @@
+2007-09-14 Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* demo/google_sky/plastic.kml: Network link for Plastic application
+	
+	* demo/google_sky/Diagram.ppt: Diagram for proof-of-concept Plastic
+	
 2007-08-26 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * startup/google: Startup script for the Google event_client.pl for
