@@ -1,4 +1,8 @@
-2007-09-24Alasdair Allan <aa@astro.ex.ac.uk>
+2007-09-25 Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* widgets/eSTAR Status.wdgt/*: Removed link to FTN web camera.
+	
+2007-09-24 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * www/istar/*: Basic network status for iPhone using iUI
 
