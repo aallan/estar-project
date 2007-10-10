@@ -1,3 +1,7 @@
+2007-10-10 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * bin/pq_event.pl: Event client for Palomar-Quest events
+
 2007-09-25 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* widgets/eSTAR Status.wdgt/*: Removed link to FTN web camera.
