@@ -1,4 +1,4 @@
 #! /bin/tcsh
 
 source /work/estar/third_generation/etc/user_agent.csh -user timbrown -mail 'aa@astro.ex.ac.uk' >& ~estar/logs/pq/user.`date -Iseconds` &
-/software/perl-5.8.6/bin/perl /work/estar/third_generation/bin/pq_client.pl -user timbrown -pass quest -project palomar >& ~estar/logs/pq/client.`date -Iseconds` &
+/software/perl-5.8.6/bin/perl /work/estar/third_generation/bin/pq_client.pl -user timbrown -pass quest -project palomar -host estar3.astro.ex.ac.uk -port 8099 >& ~estar/logs/pq/client.`date -Iseconds` &
