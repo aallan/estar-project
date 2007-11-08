@@ -24,15 +24,19 @@ function hideURLbar() {
 
 </head>
 
-<body>
+<body onload="hideURLbar()">
     <div class="toolbar">
         <h1 id="pageTitle"></h1>
         <a id="backButton" class="button" href="#"></a>
     </div>
     
     <ul title="eSTAR" selected="true">
-      <li><a href="html/status.html">Network Status</a></li>
- 
+      <li>
+      <iframe width="300" height="200" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="http://maps.google.com/maps/ms?hl=en&amp;geocode=&amp;time=&amp;date=&amp;ttype=&amp;ie=UTF8&amp;msa=0&amp;msid=117219566395833875306.00043e6b94637a52a053e&amp;ll=28.7622,-17.879745&amp;spn=23.875,57.630033&amp;t=h&amp;om=1&amp;output=embed&amp;s=AARTsJoCMkEuz2jJ74Ytx2iqzgiBw7gonw"></iframe>      
+      </li>
+      <li>
+      <a href="html/status.html">Network Status</a>
+      </li>
    <li>
 <div class="vcard">
   <div class="fn">Alasdair Allan</div>
@@ -43,6 +47,12 @@ function hideURLbar() {
 
    </li>
 </ul>
+
+<!-- This doesn't seem to want to fire from <body onload=''> ? -->
+<script language="javascript" type="text/javascript">
+   hideURLbar();
+</script>
+
 
 </body>
 </html>    

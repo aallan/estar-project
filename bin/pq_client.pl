@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -457,8 +457,8 @@ my $incoming_callback = sub {
       $log->debug("Putting cookies in the cookie jar...");
       $soap->proxy($endpoint, cookie_jar => $cookie_jar);
 
-      my $ob_name = "ESSENCE-$name";
-      $log->debug("Fixing object name from $name to $ob_name" );
+      my $ob_name = "$name";
+      #$log->debug("Fixing object name from $name to $ob_name" );
     
       $log->debug( "Generating start and end times...");
       my ( $start_time, $end_time ) = get_times();
@@ -727,13 +727,6 @@ sub get_times{
    if( $hourplustwelve > 24 ) {
      $hourplustwelve = $hourplustwelve - 24;
    } 
-   
-   my $monthplusone = $month + 1;
-   my $yearrollover = $year;
-   if ( $monthplusone > 12 ) {
-      $monthplusone = 1;
-      $yearrollover = $year+1;
-   }     
  
    # fix less than 10 errors
    $month = "0$month" if $month < 10;
@@ -742,7 +735,6 @@ sub get_times{
    $min = "0$min" if $min < 10;   
    $sec = "0$sec" if $sec < 10;   
    $dayplusone = "0$dayplusone" if $dayplusone < 10;   
-   $monthplusone = "0$monthplusone" if $monthplusone < 10;   
    $hourplustwelve = "0$hourplustwelve" if $hourplustwelve < 10;
 
    # defaults of now till 12 hours later 
@@ -757,7 +749,7 @@ sub get_times{
 
    # modify end time
    unless( defined $opt{"start"} ) {
-      $end_time = "$yearrollover-$monthplusone-$dayplusone" . 
+      $end_time = "$year-$month-$dayplusone" . 
                   "T". $hourplustwelve.":".$min.":".$sec . "UTC"; 
    } else {
       $end_time = $opt{"end"};  
@@ -765,4 +757,3 @@ sub get_times{
 
    return ($start_time, $end_time);
 }
-

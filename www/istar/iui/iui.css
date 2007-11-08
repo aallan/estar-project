@@ -48,7 +48,7 @@ body > .toolbar {
     border-bottom: 1px solid #2d3642;
     border-top: 1px solid #6d84a2;
     padding: 10px;
-    height: 45px;
+    height: 25px;
     background: url(toolbar.png) #6d84a2 repeat-x;
 }
 
@@ -57,7 +57,7 @@ body > .toolbar {
     overflow: hidden;
     left: 50%;
     margin: 1px 0 0 -75px;
-    height: 45px;
+    height: 35px;
     font-size: 20px;
     width: 150px;
     font-weight: bold;
