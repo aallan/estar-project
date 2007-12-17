@@ -1,3 +1,7 @@
+2007-12-16 Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* demo/google_maps/*: Plastic-enabling Google Maps for Sky.
+	
 2007-11-08 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * www/istar/*: Fixes for iUI and the iPod touch
