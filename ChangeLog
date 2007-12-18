@@ -1,3 +1,8 @@
+2007-12-17 Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* demo/google_mobile_maps/*: Hacking Google Maps for Sky into the
+	  Google Mobile Maps (Maps.app) on the Apple iPod touch.
+	  
 2007-12-16 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* demo/google_maps/*: Plastic-enabling Google Maps for Sky.
