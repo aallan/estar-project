@@ -2,8 +2,8 @@
   
   #use strict;
   
-  use SOAP::Lite +trace => all;
-  #use SOAP::Lite;
+  #use SOAP::Lite +trace => all;
+  use SOAP::Lite;
   
   use Digest::MD5 'md5_hex';
   use URI;
@@ -73,7 +73,7 @@
   # create a user/passwd cookie
   my $cookie = eSTAR::Util::make_cookie( "agent", "InterProcessCommunication" );
  
-  print Dumper( $cookie );
+  #print Dumper( $cookie );
   
   my $cookie_jar = HTTP::Cookies->new();
   $cookie_jar->set_cookie(0, user => $cookie, '/', $uri->host(), $uri->port());

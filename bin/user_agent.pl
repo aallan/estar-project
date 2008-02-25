@@ -23,7 +23,7 @@
 
 #  Revision:
 
-#     $Id: user_agent.pl,v 1.32 2007/04/24 17:31:49 aa Exp $
+#     $Id: user_agent.pl,v 1.33 2008/02/25 17:04:12 aa Exp $
 
 
 #  Copyright:
@@ -67,7 +67,7 @@ itself.
 
 =head1 REVISION
 
-$Id: user_agent.pl,v 1.32 2007/04/24 17:31:49 aa Exp $
+$Id: user_agent.pl,v 1.33 2008/02/25 17:04:12 aa Exp $
 
 =head1 AUTHORS
 
@@ -84,7 +84,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.32 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.33 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -290,7 +290,8 @@ use Net::Domain qw(hostname hostdomain);
 # Transport modules
 #
 use Socket;
-use SOAP::Lite; # +trace => 'debug';
+#use SOAP::Lite +trace => 'debug';
+use SOAP::Lite;
 use HTTP::Cookies;
 use URI;
 use LWP::UserAgent;
@@ -614,6 +615,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: user_agent.pl,v $
+# Revision 1.33  2008/02/25 17:04:12  aa
+# Fixes
+#
 # Revision 1.32  2007/04/24 17:31:49  aa
 # Updated node list
 #

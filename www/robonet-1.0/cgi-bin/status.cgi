@@ -134,7 +134,7 @@
         "<a href='./status.cgi?dir=09-2007'>Sep 2007</a> | ". 
         "<a href='./status.cgi?dir=10-2007'>Oct 2007</a> | ". 
         "<a href='./status.cgi?dir=11-2007'>Nov 2007</a> | ". 
-        "<a href='./status.cgi?dir=12-2007'>Dec 2007</a></p></font>";
+        "Dec 2007</p></font>";
 
   my $month = localtime->mon() + 1;
   $month = "0$month" if $month < 10;
