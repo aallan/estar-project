@@ -33,3 +33,29 @@ institution=National Optical Astronomy Observatory
 facility=NOAO Science Archive
 facility_url=http://archive.noao.edu/nsa
 soap_name=NOAO
+
+[jbloom]
+author_ivorn=nvo.berkeley
+contact_name=Josh Bloom
+contact_email=jbloom@astro.berkeley.edu
+institution=University of Berkeley
+
+[kerins]
+author_ivorn=uk.ac.man
+contact_name=Eamonn Kerins
+contact_email=eamonn.kerins@manchester.ac.uk
+contact_phone=+44-1612-754191
+project=Angstrom
+institution=University of Manchester
+facility=Robonet-1.0
+facility_url=http://www.astro.livjm.ac.uk/RoboNet/
+soap_name=Angstrom
+
+[rdenny]
+author_ivorn=com.dc3
+contact_name=Robert Denny
+contact_email=rdenny@dc3.com
+contact_phone=+1-480-396-9700
+project=ACP Scheduler
+institution="DC-3 Dreams, SP"
+soap_name=DC3
