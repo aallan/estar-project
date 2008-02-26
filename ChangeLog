@@ -8,6 +8,8 @@
           bin/make_observation.pl -exposure 30 -passband R -user X -pass Y -project Z -target "Test Target" -ra "08 13 42.00" -dec "-05 04 27.00" -starttime "2008-02-26T20:00:00+0000" -endtime "2008-02-27T04:00:00+0000" -priority 1
 
 	* www/voevent/*: Added Bob Denny
+
+	* etc/gsm_gateway: Startup script for GSM Gateway (must be run as root)
 	
 2007-12-17 Alasdair Allan <aa@astro.ex.ac.uk>
 
