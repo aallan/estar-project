@@ -1,6 +1,11 @@
 2008-02-26 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* bin/gsm_gateway.pl: A HTTP frontend for the GSM hardware.
+        
+        * eSTAR/UA/Handler.pm & bin/make_observation.pl: Added priority support
+          to the system, e.g.
+          
+          bin/make_observation.pl -exposure 30 -passband R -user X -pass Y -project Z -target "Test Target" -ra "08 13 42.00" -dec "-05 04 27.00" -starttime "2008-02-26T20:00:00+0000" -endtime "2008-02-27T04:00:00+0000" -priority 1
 	
 2007-12-17 Alasdair Allan <aa@astro.ex.ac.uk>
 
