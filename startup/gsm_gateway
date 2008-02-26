@@ -1,0 +1,4 @@
+#! /bin/tcsh
+
+/software/perl-5.8.8/bin/perl /work/estar/third_generation/bin/gsm_gateway.pl >&~/gsm_gateway.`date -Iseconds` &
+
