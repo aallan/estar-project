@@ -1,3 +1,7 @@
+2008-02-26 Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* bin/gsm_gateway.pl: A HTTP frontend for the GSM hardware.
+	
 2007-12-17 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* demo/google_mobile_maps/*: Hacking Google Maps for Sky into the
