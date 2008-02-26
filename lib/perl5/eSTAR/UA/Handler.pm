@@ -582,7 +582,8 @@ sub new_observation {
                                  $observation{'endtime'} ],
              SeriesCount    => $observation{'seriescount'},
              Interval       => $observation{'interval'},
-             Tolerance      => $observation{'tolerance'} );  
+             Tolerance      => $observation{'tolerance'},
+             Priority       => $observation{'priority'} );  
       
    } else { 
       
@@ -610,7 +611,8 @@ sub new_observation {
                                  $observation{'endtime'} ],
              SeriesCount    => $observation{'seriescount'},
              Interval       => $observation{'interval'},
-             Tolerance      => $observation{'tolerance'} );  
+             Tolerance      => $observation{'tolerance'},
+             Priority       => $observation{'priority'} );  
      
    }
 
@@ -841,7 +843,8 @@ sub new_observation {
                                $score_reply->end_time() ],
              SeriesCount    => $score_reply->series_count(),
              Interval       => $score_reply->interval(),
-             Tolerance      => $score_reply->tolerance() );   
+             Tolerance      => $score_reply->tolerance(),
+             Priority       => $score_reply->priority() );   
    
     } else {  
 
@@ -870,7 +873,8 @@ sub new_observation {
                               $score_reply->end_time() ],
             SeriesCount    => $score_reply->series_count(),
             Interval       => $score_reply->interval(),
-            Tolerance      => $score_reply->tolerance() );   
+            Tolerance      => $score_reply->tolerance(),
+             Priority       => $score_reply->priority() );   
    
    } 
 
@@ -1459,7 +1463,8 @@ sub all_telescopes {
                                  $observation{'endtime'} ],
              SeriesCount    => $observation{'seriescount'},
              Interval       => $observation{'interval'},
-             Tolerance      => $observation{'tolerance'} );  
+             Tolerance      => $observation{'tolerance'},
+             Priority       => $observation{'priority'} );  
       
       } else { 
       
@@ -1487,7 +1492,8 @@ sub all_telescopes {
                                  $observation{'endtime'} ],
              SeriesCount    => $observation{'seriescount'},
              Interval       => $observation{'interval'},
-             Tolerance      => $observation{'tolerance'} );  
+             Tolerance      => $observation{'tolerance'},
+             Priority       => $observation{'priority'} );  
      
        }
 
@@ -1662,7 +1668,8 @@ sub all_telescopes {
                                $score_reply->end_time() ],
              SeriesCount    => $score_reply->series_count(),
              Interval       => $score_reply->interval(),
-             Tolerance      => $score_reply->tolerance() );   
+             Tolerance      => $score_reply->tolerance(),
+             Priority       => $score_reply->priority() );   
    
        } else {  
 
@@ -1691,7 +1698,8 @@ sub all_telescopes {
                               $score_reply->end_time() ],
             SeriesCount    => $score_reply->series_count(),
             Interval       => $score_reply->interval(),
-            Tolerance      => $score_reply->tolerance() );   
+            Tolerance      => $score_reply->tolerance(),
+             Priority       => $score_reply->priority() );   
    
       } 
 
