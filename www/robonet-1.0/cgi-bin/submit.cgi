@@ -11,7 +11,7 @@ use HTTP::Cookies;
 my $event_host = "estar3.astro.ex.ac.uk";
 my $event_port = "9099";
 
-my $agent_host = "estar3.astro.ex.ac.uk";
+my $agent_host = "estar5.astro.ex.ac.uk";
 my $agent_port = "8000";
 
 # create a user/passwd cookie
