@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.32 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.33 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -176,7 +176,7 @@ if ( $config->get_state("ec.unique_process") == 1 ) {
    $config->set_option("ec.project", "exoplanet" );
         
    # user agent
-   $config->set_option("ua.host", 'exo.astro.ex.ac.uk' );
+   $config->set_option("ua.host", 'estar5.astro.ex.ac.uk' );
    $config->set_option("ua.port", 8000 );
      
    # event broker
