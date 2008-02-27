@@ -1,3 +1,9 @@
+2008-02-27 Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* www/robonet-1.0/*: Modified for move form estar3 to estar5
+	
+	* etc/user_agent.csh & startup/exo_planets: Modified for move to estar5
+	
 2008-02-26 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* bin/gsm_gateway.pl: A HTTP frontend for the GSM hardware.

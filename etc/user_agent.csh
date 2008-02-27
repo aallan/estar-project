@@ -20,6 +20,9 @@
 
 #  History:
 #     $Log: user_agent.csh,v $
+#     Revision 1.3  2008/02/27 12:43:10  aa
+#     Modified for move to estar5
+#
 #     Revision 1.2  2006/05/14 17:27:34  aa
 #     Modifications to work on OSX, removed killfam. Fixed gcn_server.pl so that it fires on BAT positions
 #
@@ -37,7 +40,7 @@
 #
 
 #  Revision:
-#     $Id: user_agent.csh,v 1.2 2006/05/14 17:27:34 aa Exp $
+#     $Id: user_agent.csh,v 1.3 2008/02/27 12:43:10 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -67,16 +70,16 @@ else
 endif
 
 # set PGPLOT_DIR to point to the modified version of PGPLOT
-if ($?ESTAR_TKPGPLOT) then
-  setenv PGPLOT_DIR $ESTAR_TKPGPLOT
-  echo "ESTAR_TKPGPLOT = ${ESTAR_TKPGPLOT}"
-else
-  echo " "
-  echo "eSTAR Intelligent Agent Software -- (Version $pkgvers)"
-  echo "PGPLOT could not be found, please install PGPLOT 5.2.2" 
-  echo "patched for use of the /PTK driver (uses Tk::Pgplot 0.30)" 
-  exit
-endif
+#if ($?ESTAR_TKPGPLOT) then
+#  setenv PGPLOT_DIR $ESTAR_TKPGPLOT
+#  echo "ESTAR_TKPGPLOT = ${ESTAR_TKPGPLOT}"
+#else
+#  echo " "
+#  echo "eSTAR Intelligent Agent Software -- (Version $pkgvers)"
+#  echo "PGPLOT could not be found, please install PGPLOT 5.2.2" 
+#  echo "patched for use of the /PTK driver (uses Tk::Pgplot 0.30)" 
+#  exit
+#endif
       
 # Default for ESTAR_PERL5LIB
 

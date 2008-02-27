@@ -5,4 +5,4 @@ source /work/estar/third_generation/etc/user_agent.csh -user kdh1 -mail 'aa@astr
 #source /work/estar/third_generation/etc/node_agent.csh -name FTN -soap 8077 -tcp 2047 -host '132.160.98.239' -port 8081 >& ~estar/logs/exo/node.FTN.`date -Iseconds` &
 #source /work/estar/third_generation/etc/node_agent.csh -name FTS -soap 8079 -tcp 2049 -host '150.203.153.202' -port 8081 >& ~estar/logs/exo/node.FTS.`date -Iseconds` &
 
-/software/perl-5.8.6/bin/perl /work/estar/third_generation/bin/ogle_client.pl -user kdh1 -pass EXOfollowup -project exoplanet >& ~estar/logs/voevent/ogle_ews.`date -Iseconds` &
+/software/perl-5.8.8/bin/perl /work/estar/third_generation/bin/ogle_client.pl -user kdh1 -pass EXOfollowup -project exoplanet -host 144.173.229.22 -port 8099 >& ~estar/logs/exo/voevent/ogle_ews.`date -Iseconds` &
