@@ -1,4 +1,4 @@
-#!/software/perl-5.8.6/bin/perl
+#!/software/perl-5.8.8/bin/perl
 
   #use lib $ENV{"ESTAR_PERL5LIB"};     
   use lib "/work/estar/third_generation/lib/perl5";
@@ -152,12 +152,16 @@
 	"<th align='left'>Status?</th></tr>\n";
 	
 #  foreach my $i ( 2 ... $#files ) {
-   for ( my $i = $#files; $i >= 2; $i = $i - 1 ) {
+   for ( my $i = $#files; $i >= 0; $i = $i - 1 ) {
    
      #print "'".$files[$i]."'\n";
+     next if $files[$i] =~ m/\./;
+     next if $files[$i] =~ m/\.\./;
      next if $files[$i] =~ m/^\d{4}$/;
      next if $files[$i] =~ m/^\d{2}-\d{4}$/;
-    
+   
+     #print "<tr><td colspan='5'>$files[$i]</td></tr>";
+     
      print "<tr>";
      #print "<td><font color='grey'>$files[$i]</font></td>";
      my $object;

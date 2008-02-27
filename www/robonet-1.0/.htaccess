@@ -1,9 +1,6 @@
-AuthUserFile /var/www/html/robonet-1.0/.htpasswd
+AuthUserFile /var/www/robonet-1.0/.htpasswd
 AuthGroupFile /dev/null
 AuthName "Robonet-1.0 Access"
 AuthType Basic
-Options Indexes FollowSymLinks Includes
-
-<Limit GET>
-require valid-user
-</Limit>
+Options +Indexes +FollowSymLinks +Includes
+Require valid-user
