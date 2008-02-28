@@ -1,4 +1,4 @@
-#!/software/perl-5.8.6/bin/perl
+#!/software/perl-5.8.8/bin/perl
 
 use SOAP::Lite;
 use Data::Dumper;
@@ -13,5 +13,5 @@ use Astro::Catalog::Query::Sesame;
 use Astro::SIMBAD::Query;
 
 SOAP::Transport::HTTP::CGI
-     ->dispatch_to('/var/www/html/search/soap')
+     ->dispatch_to('/var/www/search/soap')
      ->handle;

@@ -1,4 +1,4 @@
-#!/software/perl-5.8.6/bin/perl
+#!/software/perl-5.8.8/bin/perl
 
 use Astro::Catalog;
 use Astro::Catalog::Query::USNOA2;
