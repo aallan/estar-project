@@ -1,4 +1,4 @@
-#!/software/perl-5.8.6/bin/perl
+#!/software/perl-5.8.8/bin/perl
 
 use Time::localtime;
 use Net::Domain qw(hostname hostdomain);
@@ -297,7 +297,8 @@ print '</dd>'."\n";
 
 print '<dt><a href="http://www.faulkes-telescope.com/" class="location" id="location05">Haleakala, HI, U.S.A.</a></dt>'."\n";
 print '<dd><a href="javascript:void(0);" class="close"> </a>'."\n";
-print '<em><strong>Faulkes North</strong><br>Haleakala, HI, U.S.A.</em><br><img width="120" src="http://132.160.98.239:8275/axis-cgi/jpg/image.cgi?resolution=320x240" alt="FTN web camera">'."\n";
+#print '<em><strong>Faulkes North</strong><br>Haleakala, HI, U.S.A.</em><br><img width="120" src="http://132.160.98.239:8275/axis-cgi/jpg/image.cgi?resolution=320x240" alt="FTN web camera">'."\n";
+print '<em><strong>Faulkes North</strong><br>Haleakala, HI, U.S.A.</em><br><img src="http://www.estar.org.uk/jpg/test_card.jpg" width="120" alt="FTN web camera" />'."\n";
 
 print '<a href="http://maps.google.com/?ie=UTF8&t=h&om=1&ll=20.732997,-156.187134&spn=0.548416,0.911865">Lat. 10.7, Long. -156.2</a><br>'."\n";
 print '<table>'."\n"; 

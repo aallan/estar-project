@@ -1,4 +1,4 @@
-#!/software/perl-5.8.6/bin/perl
+#!/software/perl-5.8.8/bin/perl
 
 use Time::localtime;
 use Net::Domain qw(hostname hostdomain);
@@ -266,7 +266,8 @@ print "<tr><td>Node Agent&nbsp;&nbsp;</td><td>$fts_status_string</td></tr>";
 
 print '<tr><td colspan="2"><hr width="100%"></td></tr>'."\n";
 print '<tr><td colspan="2" style="padding-top:5px"><strong>Faulkes North</strong>, <em>Haleakala, HI, U.S.A.<br><font size="-2">Lat. 10.7, Long. -156.2</font></em></td></tr>'."\n";
-print '<tr><td><img width="160" height="120" src="http://132.160.98.239:8275/axis-cgi/jpg/image.cgi?resolution=320x240" alt="FTN web camera"></td><td>&nbsp;</td></tr>'."\n";
+#print '<tr><td><img width="160" height="120" src="http://132.160.98.239:8275/axis-cgi/jpg/image.cgi?resolution=320x240" alt="FTN web camera"></td><td>&nbsp;</td></tr>'."\n";
+print '<tr><td><img src="http://www.estar.org.uk/jpg/test_card.jpg" width="160" height="120" alt="FTN web camera" /></td><td>&nbsp;</td></tr>'."\n";
 my $string = "";
 foreach my $key ( sort keys %machine ) {
    my $host = "ftnproxy.ifa.hawaii.edu" if $key eq "132.160.98.239";

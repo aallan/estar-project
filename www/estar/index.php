@@ -1,4 +1,4 @@
 <?
-  Header ("Location: http://vo.astro.ex.ac.uk/estar/cgi-bin/status.cgi") ;
+  Header ("Location: http://estar9.astro.ex.ac.uk/estar/cgi-bin/status.cgi") ;
 ?>
 
