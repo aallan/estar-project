@@ -1,5 +1,9 @@
 2008-02-28 Alasdair Allan <aa@astro.ex.ac.uk>
 
+	* demo/google_sky/event_client.pl: Moved to estar6 and updated
+	
+	* startup/google: Updated for estar6
+
 	* www/ogle/*: Moved to estar6 and updated
 	
 	* www/sdss/*: Moved to estar6 and updated

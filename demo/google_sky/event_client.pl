@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -167,7 +167,7 @@ $log->debug("This machine as an IP address of $ip");
 if ( $config->get_state("ec.unique_process") == 1 ) {
 
    # event broker
-   $config->set_option("eb.host", "144.173.229.22" );
+   $config->set_option("eb.host", "144.173.231.44" );
    $config->set_option("eb.port", 8099 );
 
    # connection options defaults
@@ -175,7 +175,7 @@ if ( $config->get_state("ec.unique_process") == 1 ) {
    $config->set_option("connection.proxy", 'NONE'  );
   
    # mail server
-   $config->set_option("mailhost.name", 'butch' );
+   $config->set_option("mailhost.name", 'mail.ex.ac.uk' );
    $config->set_option("mailhost.domain", 'astro.ex.ac.uk' );
    $config->set_option("mailhost.timeout", 30 );
    $config->set_option("mailhost.debug", 0 );   
@@ -381,7 +381,7 @@ sub event_process {
                   '<![CDATA['.
                   'XML: <a href="'.$url.'">'.$id.'</a><br><br>'.$description .
                   '<br>'.
-                  '<table><tr width="100%"><td><a href="http://www.estar.org.uk/"><img border="0" src="http://estar4.astro.ex.ac.uk/voevent/estar_logo.png"></a></td><td align="justify"><font size="-1"><em>The <a href="http://www.estar.org.uk/">eSTAR</a> project is a programme to build an intelligent robotic telescope network. It is a joint project between the Astrophysics Research Institute at Liverpool John Moores University and the Astrophysics Research Group of the School of Physics at the University of Exeter.</td></tr></table>'. 
+                  '<table><tr width="100%"><td><a href="http://www.estar.org.uk/"><img border="0" src="http://estar6.astro.ex.ac.uk/google/png/estar_logo.png"></a></td><td align="justify"><font size="-1"><em>The <a href="http://www.estar.org.uk/">eSTAR</a> project is a programme to build an intelligent robotic telescope network. It is a joint project between the Astrophysics Research Institute at Liverpool John Moores University and the Astrophysics Research Group of the School of Physics at the University of Exeter.</td></tr></table>'. 
                   ']]>';    
                    
                 $description =~ s/ OGLE / <a href="http:\/\/www.estar.org.uk\/wiki\/index.php\/OGLE">OGLE<\/a> /g;  
@@ -470,8 +470,8 @@ sub event_process {
                    #};
                    
                    eval {
-                      $log->debug( "Copying file to /var/www/html/voevent/" ); 
-                      copy($kml, "/var/www/html/voevent/") or die "File cannot be copied.";
+                      $log->debug( "Copying file to /var/www/google/" ); 
+                      copy($kml, "/var/www/google/") or die "File cannot be copied.";
                    };
                    
                    if ( $@ ) {
