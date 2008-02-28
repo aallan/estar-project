@@ -1,10 +1,7 @@
-AuthUserFile /var/www/html/voevent/.htpasswd
+AuthUserFile /var/www/voevent/.htpasswd
 AuthGroupFile /dev/null
 AuthName "VOEvent Network"
 AuthType Basic
-Options Indexes FollowSymLinks Includes ExecCGI
+Options +Indexes +FollowSymLinks +Includes +ExecCGI
 AddHandler cgi-script .cgi
-
-<Limit GET>
-require valid-user
-</Limit>
+Require valid-user

@@ -1,9 +1,6 @@
-AuthUserFile /var/www/html/voevent/.htpasswd
+AuthUserFile /var/www/voevent/.htpasswd
 AuthGroupFile /dev/null
 AuthName "VOEvent Network"
 AuthType Basic
-Options Indexes FollowSymLinks Includes
-
-<Limit GET>
-require valid-user
-</Limit>
+Options +Indexes +FollowSymLinks +Includes
+Require valid-user
