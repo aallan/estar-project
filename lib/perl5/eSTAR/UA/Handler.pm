@@ -69,6 +69,7 @@ sub new {
   $config = eSTAR::Config::get_reference();
   
   if( $user and $passwd ) {
+    print "USER = $user\nPASSWD = $passwd\n";
     return undef unless $self->set_user( user => $user, password => $passwd );
   }
   
@@ -92,6 +93,8 @@ sub set_user {
       $log->warn("SOAP Request: Could not load data for $args{user}");
       return "Could not load data for $args{user}";
    }
+   
+   $log->debug( Dumper( $self->{_user} ) );
    
    # user data is loaded beforehand, so that the password is available
    # for testing. If the validation fails, user object is destroyed

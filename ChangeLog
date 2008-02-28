@@ -10,6 +10,9 @@
 	
 	* eSTAR/Broker/Handler.pm: Hack to fixed bad VOEvent document submission
 
+	* bin/ogle_parsemail.pl: Run from .procmailrc when an EWS mail comes in
+	  now changed to point at estar6
+	  
 2008-02-27 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* www/robonet-1.0/*: Modified for move form estar3 to estar5
