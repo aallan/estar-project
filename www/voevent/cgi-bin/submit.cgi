@@ -1,4 +1,4 @@
-#!/software/perl-5.8.6/bin/perl
+#!/software/perl-5.8.8/bin/perl
 
 use Time::localtime;
 use Data::Dumper;
@@ -10,7 +10,7 @@ use HTTP::Cookies;
 use LWP::UserAgent;
 use Config::Simple;
 
-my $host = "estar3.astro.ex.ac.uk";
+my $host = "estar6.astro.ex.ac.uk";
 my $port = "9099";
 
 # G R A B   U S E R  I N F O R M A T I O N ------------------------------------
@@ -330,6 +330,7 @@ if ( $query{inference_name} ne "" &&
  
 my $object = new Astro::VO::VOEvent( );
 my $document = $object->build( %observation );
+$document =~ s/</&lt;/g;
 
 # S U B M I T   E V E N T   M E S S A G E ------------------------------------
 
@@ -383,7 +384,7 @@ print "<H3>Transport Status</H3>".
       "Transport Status: <font color='green'>" . 
       $soap->transport()->status() . "</font><BR>" .
       "Stored at: <a href='$path'>". $ivorn . "</a><br>\n";
-print "Return to the <a href='http://vo.astro.ex.ac.uk/voevent/cgi-bin/index.cgi'>manual injection page</a>";
+print "Return to the <a href='http://estar6.astro.ex.ac.uk/voevent/cgi-bin/index.cgi'>manual injection page</a>";
       
  
 $document =~ s/>/&gt;/g;

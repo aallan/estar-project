@@ -1,4 +1,4 @@
-#!/software/perl-5.8.6/bin/perl
+#!/software/perl-5.8.8/bin/perl
 
 use Time::localtime;
 use Data::Dumper;
@@ -72,7 +72,7 @@ print $header;
 print "<em>From eSTAR (or via <a href='http://www.thinkingtelescopes.lanl.gov/voevent/cgi-bin/index.cgi'>TALONS</a>)</em><br><br>";
 #print Dumper( %query);
 
-print '<form action="http://vo.astro.ex.ac.uk/voevent/cgi-bin/submit.cgi" method="PUT">'."\n";
+print '<form action="http://estar6.astro.ex.ac.uk/voevent/cgi-bin/submit.cgi" method="PUT">'."\n";
 print '<center>'."\n";
 print '<table width="95%" cellpadding="2" cellspacing="2" border="0">'."\n";
 
