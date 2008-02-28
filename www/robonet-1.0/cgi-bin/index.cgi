@@ -35,7 +35,7 @@ print $header;
 
 print '<p><b><font color="red">WARNING:</font></b> Since no more than 10 target of opportunity (TOO) override requests per telescope for immediate observations on the RoboNet-1.0 can be made per year, the use of this facility must be restricted to <b>quite exceptional</b> cases, such as a significicant probability for an ongoing planetary anomaly, for which obtaining data at the given time is absolutely crucial. In general, a peak magnification of less than 200 without a previous sign of an anomaly is not seen as such a case. For less urgent cases please submit requests in normal mode, which will queue additional observations onto the Robonet-1.0 telescopes for later observation. All time used by observations requested through this form will be billed to the exo-planet programme allocation.</p>'."\n";
 
-print '<form action="http://vo.astro.ex.ac.uk/robonet-1.0/cgi-bin/submit.cgi" method="PUT">'."\n";
+print '<form action="http://estar5.astro.ex.ac.uk/robonet-1.0/cgi-bin/submit.cgi" method="PUT">'."\n";
 print '   <center>'."\n";
 print '   <table width="95%" cellpadding="2" cellspacing="2" border="0">'."\n";
 
