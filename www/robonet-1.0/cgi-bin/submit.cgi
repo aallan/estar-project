@@ -8,7 +8,7 @@ use Digest::MD5 'md5_hex';
 use URI;
 use HTTP::Cookies;
 
-my $event_host = "estar3.astro.ex.ac.uk";
+my $event_host = "estar6.astro.ex.ac.uk";
 my $event_port = "9099";
 
 my $agent_host = "estar5.astro.ex.ac.uk";
