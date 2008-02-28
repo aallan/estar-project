@@ -1,4 +1,4 @@
-#!/software/perl-5.8.6/bin/perl
+#!/software/perl-5.8.8/bin/perl
 
   #use lib $ENV{"ESTAR_PERL5LIB"};     
   use lib "/work/estar/third_generation/lib/perl5";
@@ -140,7 +140,7 @@
   
   # output xml
   my $output = File::Spec->catfile(  File::Spec->rootdir(), "var", "www",
-                                     "html", "sdss", "events", "sdss.xml" );
+                                     "sdss", "events", "sdss.xml" );
 				     
   unless ( open FILE, "+>$output" ) {
      print "Error: Can not open $output for updating\n";
@@ -152,7 +152,7 @@
 
   # output widget xml
   my $output3 = File::Spec->catfile(  File::Spec->rootdir(), "var", "www",
-                                  "html", "sdss", "events", "sdssWidget.xml" );
+                                  "sdss", "events", "sdssWidget.xml" );
 
   unless ( open FILE, "+>$output3" ) {     
      print "Error: Can not open $output3 for updating\n";
@@ -163,7 +163,7 @@
   
   # output html 
   my $output2 = File::Spec->catfile(  File::Spec->rootdir(), "var", "www",
-                                     "html", "sdss", "events", "sdss.inc" );
+                                     "sdss", "events", "sdss.inc" );
 				     
   unless ( open FILE, "+>$output2" ) {
      print "Error: Can not open $output2 for updating\n";

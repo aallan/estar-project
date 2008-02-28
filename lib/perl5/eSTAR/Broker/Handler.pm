@@ -278,6 +278,7 @@ sub handle_voevent {
    my $voevent = shift;
 
    $log->debug("Called handle_voevent() from \$tid = ".threads->tid());
+   $log->debug("Inserting document into $name...");
    $config->reread();
    
    # check we have a valid user object            
@@ -290,6 +291,11 @@ sub handle_voevent {
    # ------------------
    
    # validate the incoming message
+   $voevent =~ s/&amp;lt;/</g;
+   $voevent =~ s/&lt;/</g;
+   $voevent =~ s/&amp;gt;/>/g;
+   $voevent =~ s/&gt;/>/g;
+
    my $message;
    eval { $message = new Astro::VO::VOEvent( XML => $voevent ) };
    

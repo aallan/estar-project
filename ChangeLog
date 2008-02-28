@@ -1,3 +1,11 @@
+2008-02-28 Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* www/ogle/*: Moved to estar6 and updated
+	
+	* www/sdss/*: Moved to estar6 and updated
+	
+	* eSTAR/Broker/Handler.pm: Hack to fixed bad VOEvent document submission
+
 2008-02-27 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* www/robonet-1.0/*: Modified for move form estar3 to estar5

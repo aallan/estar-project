@@ -2,5 +2,5 @@
 
 source /work/estar/third_generation/etc/event_broker.csh >& ~estar/logs/voevent/broker.`date -Iseconds` &
 
-/software/perl-5.8.6/bin/perl /work/estar/third_generation/bin/event_test.pl -wait 3600 -port 9999 >& ~estar/logs/voevent/server.`date -Iseconds` &
+/software/perl-5.8.8/bin/perl /work/estar/third_generation/bin/event_test.pl -wait 3600 -port 9999 >& ~estar/logs/voevent/test_server.`date -Iseconds` &
 
