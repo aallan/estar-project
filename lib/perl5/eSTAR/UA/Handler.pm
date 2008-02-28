@@ -704,7 +704,11 @@ sub new_observation {
       }
       
       my $reply = $result->result();
-      
+      $reply =~ s/&amp;lt;/</g;
+      $reply =~ s/&lt;/</g;
+      $reply =~ s/&amp;gt;/>/g;
+      $reply =~ s/&gt;/>/g;
+            
       my $ers_reply;
       eval { $ers_reply = new XML::Document::RTML( XML => $reply ); };
       if ( $@ ) {
@@ -964,7 +968,11 @@ sub new_observation {
    }   
    
    my $reply = $result->result();
-      
+      $reply =~ s/&amp;lt;/</g;
+      $reply =~ s/&lt;/</g;
+      $reply =~ s/&amp;gt;/>/g;
+      $reply =~ s/&gt;/>/g;
+            
    my $ers_reply;
    eval { $ers_reply = new XML::Document::RTML( XML => $reply ); };
    if ( $@ ) {
@@ -1553,13 +1561,22 @@ sub all_telescopes {
       }
       
       my $reply = $result->result();
+      $reply =~ s/&amp;lt;/</g;
+      $reply =~ s/&lt;/</g;
+      $reply =~ s/&amp;gt;/>/g;
+      $reply =~ s/&gt;/>/g;
+      
+      print $reply ."\n\n\n";
       
       my $ers_reply;
       eval { $ers_reply = new XML::Document::RTML( XML => $reply ); };
       if ( $@ ) {
          $log->error("Error: $@");
          $log->error("Error: Unable to parse ERS reply, not XML?" );
-         if( $config->get_option("user.notify") == 1 ) {
+         $log->error("Reply is...\n" . $reply );
+	 #$log->error( Dumper( $result ) );
+	 
+        if( $config->get_option("user.notify") == 1 ) {
       
           $log->print( "Sending notification email...");
             
@@ -1787,7 +1804,11 @@ sub all_telescopes {
      }   
      
      my $reply = $result->result();
-      
+      $reply =~ s/&amp;lt;/</g;
+      $reply =~ s/&lt;/</g;
+      $reply =~ s/&amp;gt;/>/g;
+      $reply =~ s/&gt;/>/g;
+            
      my $ers_reply;
      eval { $ers_reply = new XML::Document::RTML( XML => $reply ); };
      if ( $@ ) {
@@ -1985,7 +2006,12 @@ sub handle_rtml {
    
    # Message Validation
    # ------------------
-   
+
+      $rtml =~ s/&amp;lt;/</g;
+      $rtml =~ s/&lt;/</g;
+      $rtml =~ s/&amp;gt;/>/g;
+      $rtml =~ s/&gt;/>/g;  
+       
    # validate the incoming message
    my $message;
    eval { $message = new XML::Document::RTML( XML => $rtml ); };
