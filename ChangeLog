@@ -1,3 +1,7 @@
+2008-03-05 Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* widgets/OGLE Timeline.wdgt/*: Updated to point at estar6
+	
 2008-02-28 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* demo/google_sky/event_client.pl: Moved to estar6 and updated

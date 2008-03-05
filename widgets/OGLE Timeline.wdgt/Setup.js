@@ -74,9 +74,9 @@ function countDown () {
 
 function update() {
    counterDiv.innerHTML = 
-      "Updating from http://vo.astro.ex.ac.uk/ogle/events/ogleWidget.xml";  
+      "Updating from http://estar6.astro.ex.ac.uk/ogle/events/ogleWidget.xml";  
    updateCounter = 600;
-   Timeline.loadXML( "http://vo.astro.ex.ac.uk/ogle/events/empty.xml",
+   Timeline.loadXML( "http://estar6.astro.ex.ac.uk/ogle/events/empty.xml",
    		 function(xml, url) { eventSource.loadXML(xml, url); });
    Timeline.paint();	  
    reloadData();
@@ -85,7 +85,7 @@ function update() {
 
 
 function reloadData() {		    
-  Timeline.loadXML( "http://vo.astro.ex.ac.uk/ogle/events/ogleWidget.xml",
+  Timeline.loadXML( "http://estar6.astro.ex.ac.uk/ogle/events/ogleWidget.xml",
                     function(xml, url) { eventSource.loadXML(xml, url); });
   Timeline.paint();		    
 		    
