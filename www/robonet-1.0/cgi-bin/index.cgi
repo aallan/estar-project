@@ -173,7 +173,12 @@ if ( $user eq 'aa' ) {
    $contact_name = 'Eric Saunders';
    $contact_email = 'saunders@astro.ex.ac.uk';
    $contact_phone = '+44-1392-264124';
+} elsif ( $user eq 'rs' ) {
+   $contact_name = 'Rachel Street';
+   $contact_email = 'rstreet@lcogt.net';
+   $contact_phone = '';
 }
+
 
 print '     <tr align="left" valign="middle">'."\n";     
 print '        <td colspan="3">'."\n";
@@ -219,6 +224,11 @@ if(  $user eq 'aa' ) {
    print '             <option VALUE="eSTAR">   eSTAR'."\n";
    print '             <option VALUE="Robonet-1.0">     RoboNet-1.0'."\n";
 } elsif ( $user eq 'ess' ) {
+   print '             <option VALUE="LCO"> LCO GT'."\n";
+   print '             <option VALUE="eSTAR">   eSTAR'."\n";
+   print '             <option VALUE="PLANET">  PLANET'."\n";
+   print '             <option VALUE="Robonet-1.0">     RoboNet-1.0'."\n";
+} elsif ( $user eq 'rs' )  {
    print '             <option VALUE="LCO"> LCO GT'."\n";
    print '             <option VALUE="eSTAR">   eSTAR'."\n";
    print '             <option VALUE="PLANET">  PLANET'."\n";

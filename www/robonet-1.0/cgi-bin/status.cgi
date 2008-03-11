@@ -94,9 +94,9 @@
   } else {
      error("Can not open state directory ($dir) for reading");      
   } 
-  #my @sorted = sort {-M "$dir$a" <=> -M "$dir$b"} @files;
-  #@files = @sorted;
-
+  my @sorted = sort {-M "$dir$a" <=> -M "$dir$b"} @files;
+  @files = @sorted;
+  
   # NB: first 2 entries in a directory listing are '.' and '..'
   print "Content-type: text/html\n\n"; 
   print $header;
@@ -478,7 +478,19 @@
   exit;
   
 # S U B - R O U T I N E S #################################################
+ 
+  sub by_last_mod {
+    # vars $a and $b automatically passed in
   
+    # perl function 'stat' returns array of info on a file
+    # 10th element of the stat array is last modified date,
+    # returned as number of seconds since 1/1/1970.
+    my $adate = (stat($a))[9]; # get last modified date
+    my $bdate = (stat($b))[9]; # get last modified date
+  
+    return $adate <=> $bdate;
+  }
+ 
   sub error {
     my $error = shift;
   
