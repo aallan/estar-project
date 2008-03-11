@@ -119,7 +119,7 @@ unless ( defined $status ) {
      $config->set_option("connection.proxy", 'NONE'  );
   
      # mail server
-     $config->set_option("mailhost.name", 'butch' );
+     $config->set_option("mailhost.name", 'pinky' );
      $config->set_option("mailhost.domain", 'astro.ex.ac.uk' );
      $config->set_option("mailhost.timeout", 30 );
      $config->set_option("mailhost.debug", 0 );   
@@ -169,9 +169,17 @@ unless ( defined $status ) {
 
   # list of "default" known nodes  
   my @hosts;
-  push @hosts, "estar.astro.ex.ac.uk";
+  push @hosts, "estar-switch.astro.ex.ac.uk";
+  push @hosts, "estar-ups.astro.ex.ac.uk";
+  push @hosts, "estar1.astro.ex.ac.uk";
   push @hosts, "estar2.astro.ex.ac.uk";
   push @hosts, "estar3.astro.ex.ac.uk";
+  push @hosts, "estar4.astro.ex.ac.uk";
+  push @hosts, "estar5.astro.ex.ac.uk";
+  push @hosts, "estar6.astro.ex.ac.uk";
+  push @hosts, "estar7.astro.ex.ac.uk";
+  push @hosts, "estar8.astro.ex.ac.uk";
+  push @hosts, "estar9.astro.ex.ac.uk";
   push @hosts, "estar.ukirt.jach.hawaii.edu";
   push @hosts, "www.estar.org.uk";
   push @hosts, "132.160.98.239"; # FTN proxy
@@ -295,8 +303,8 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
 # K N O W N   A G E N T S  --------------------------------------------------
 
   # list of "default" known nodes  
-  $config->set_option( "useragents.GRB", "estar2.astro.ex.ac.uk:8000" );
-  $config->set_option( "useragents.EXO-PLANET", "estar3.astro.ex.ac.uk:8000" );
+  $config->set_option( "useragents.GRB", "estar7.astro.ex.ac.uk:8000" );
+  $config->set_option( "useragents.EXO-PLANET", "estar5.astro.ex.ac.uk:8000" );
   $config->set_option( "useragents.ADP", "estar.astro.ex.ac.uk:8000" );
   $status = $config->write_option( );
   
@@ -381,7 +389,7 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
 # K N O W N   B R O K E R S -------------------------------------------------
 
   # list of "default" known nodes  
-  $config->set_option( "brokers.eSTAR", "estar3.astro.ex.ac.uk:9099" );
+  $config->set_option( "brokers.eSTAR", "estar6.astro.ex.ac.uk:9099" );
   $status = $config->write_option( );    
     
   
