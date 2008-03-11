@@ -1,4 +1,4 @@
-#!/software/perl-5.8.6/bin/perl -w
+#!/software/perl-5.8.8/bin/perl -w
 
 #use strict;
 #use warnings;
@@ -22,7 +22,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: gcn_server.pl,v 1.23 2007/01/02 15:10:55 aa Exp $
+$Id: gcn_server.pl,v 1.24 2008/03/11 13:27:18 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -41,7 +41,7 @@ my $status;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.23 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.24 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -237,7 +237,7 @@ if ( $config->get_state("gcn.unique_process") == 1 ) {
    #$config->set_option("user.institution", "eSTAR Project" );
 
    # user agentrameters
-   $config->set_option("ua.host", "144.173.229.21" );
+   $config->set_option("ua.host", "144.173.231.45" );
    $config->set_option("ua.port", 8000 );
 
    # interprocess communication
@@ -249,7 +249,7 @@ if ( $config->get_state("gcn.unique_process") == 1 ) {
    $config->set_option("connection.proxy", 'NONE'  );
   
    # mail server
-   $config->set_option("mailhost.name", 'butch' );
+   $config->set_option("mailhost.name", 'mail.ex.ac.uk' );
    $config->set_option("mailhost.domain", 'astro.ex.ac.uk' );
    $config->set_option("mailhost.timeout", 30 );
    $config->set_option("mailhost.debug", 0 );   
