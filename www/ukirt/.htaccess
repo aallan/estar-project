@@ -1,9 +1,6 @@
-AuthUserFile /var/www/html/ukirt/.htpasswd
+AuthUserFile /var/www/ukirt/.htpasswd
 AuthGroupFile /dev/null
 AuthName "UKIRT Access"
 AuthType Basic
-Options Indexes FollowSymLinks Includes
-
-<Limit GET>
-require valid-user
-</Limit>
+Options +Indexes +FollowSymLinks +Includes
+Require valid-user

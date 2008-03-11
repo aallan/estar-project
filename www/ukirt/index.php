@@ -1,4 +1,4 @@
 <?
-  Header ("Location: http://vo.astro.ex.ac.uk/robonet-1.0/cgi-bin/index.cgi") ;
+  Header ("Location: http://estar7.astro.ex.ac.uk/ukirt/cgi-bin/status.cgi") ;
 ?>
 
