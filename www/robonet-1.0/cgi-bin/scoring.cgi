@@ -94,8 +94,8 @@
   } else {
      error("Can not open state directory ($dir) for reading");      
   } 
-  #my @sorted = sort {-M "$dir$a" <=> -M "$dir$b"} @files;
-  #@files = @sorted;
+  my @sorted = sort {-M "$dir/$a" <=> -M "$dir/$b"} @files;
+  @files = @sorted;
 
   # NB: first 2 entries in a directory listing are '.' and '..'
   print "Content-type: text/html\n\n"; 
@@ -152,8 +152,8 @@
         "<th align='left'>FTS</th>".
         "<th align='left'>Status</th></tr>\n";
 	
-#  foreach my $i ( 2 ... $#files ) {
-   for ( my $i = $#files; $i >= 0; $i = $i - 1 ) {
+  foreach my $i ( 0 ... $#files ) {
+#   for ( my $i = $#files; $i >= 0; $i = $i - 1 ) {
    
      #print "'".$files[$i]."'\n";
      next if $files[$i] =~ m/\./;
