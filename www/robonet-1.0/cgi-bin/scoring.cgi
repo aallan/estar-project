@@ -142,9 +142,10 @@
   print $this_year;	
   
   print "<font size='-2'><table border='0' width='95%'>\n"; 
-  print "<tr><th>&nbsp</th><th colspan='2' align='left'>Time</th>".
+  print "<tr><th>&nbsp</th><th>&nbsp;</th><th colspan='2' align='left'>Time</th>".
         "<th colspan='3' align='left'>Telescope</th></tr>\n";
   print "<tr><th align='left'>Unique ID</th>".
+        "<th align='left'>Target</th".
 	"<th align='left'>Start</th>".
         "<th align='left'>End</th>".
         "<th align='left'>LT</th>".
@@ -254,10 +255,16 @@
         }
 	
         # TARGET - 1 ---------------------------------------------------
+
+        my @split = split ":", $files[$i];
 	print "<td>";
-        print "<font color='grey'>$files[$i]</font>";
+        print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Unique ID] body=[$files[$i]]' >";
+        print "<font color='grey'>$split[0]</font>";
+        print "</DIV>";
 	print "</td>";
-	   
+	
+        print "<td><font color='grey'>$target</td>";
+   
 	# TIMESTAMP - 2 & 3 ------------------------------------------------
 	
 	print "<td>";
