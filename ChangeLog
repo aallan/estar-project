@@ -1,3 +1,9 @@
+2008-03-12 Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* eSTAR/GSM.pm: A front end for the GSM Service on estar6
+	
+	* bin/test_servers_gsm.pl: Cron'd status script (run on estar6)
+	
 2008-03-05 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* widgets/OGLE Timeline.wdgt/*: Updated to point at estar6
