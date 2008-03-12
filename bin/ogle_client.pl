@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.33 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.34 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -482,7 +482,8 @@ my $incoming_callback = sub {
                        followup      => 0,
                        starttime     => $start_time,
                        endtime       => $end_time,
-                       project       => $config->get_option("ec.project") );	  
+                       project       => $config->get_option("ec.project"),
+		       priority	     => 0 );	  
     
     
       # report
