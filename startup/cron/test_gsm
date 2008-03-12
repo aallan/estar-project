@@ -1,0 +1,4 @@
+#! /bin/tcsh
+
+/software/perl-5.8.8/bin/perl /work/estar/third_generation/bin/test_servers_gsm.pl >& ~estar/logs/test/test.`date -Iseconds` &
+
