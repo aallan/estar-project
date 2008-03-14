@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.105 2007/04/02 14:31:53 aa Exp $
+$Id: event_broker.pl,v 1.106 2008/03/14 16:11:15 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.105 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.106 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -203,8 +203,9 @@ $SIG{INT} = sub {
               exit(1); };
 
 $SIG{ALRM} = sub { 
-             $log->error( "Socket connection timed out" );
-             die "Socket connection timed out"; };
+             $log->error( "Socket connection timed out. Trapped globally." );
+             #die "Socket connection timed out"; 
+	    };
 
 # A G E N T  C O N F I G U R A T I O N ----------------------------------------
 
@@ -379,10 +380,10 @@ if ( $config->get_state("broker.unique_process") == 1 ) {
       
    # server parameters
    # -----------------
-   $config->set_option( "raptor.host", "astro.lanl.gov" );
-   $config->set_option( "raptor.port", 43003 );
-   $config->set_option( "raptor.ack", 43003 );
-   $config->set_option( "raptor.iamalive", 60 );
+   #$config->set_option( "raptor.host", "astro.lanl.gov" );
+   #$config->set_option( "raptor.port", 43003 );
+   #$config->set_option( "raptor.ack", 43003 );
+   #$config->set_option( "raptor.iamalive", 60 );
 
    $config->set_option( "estar.host", "estar3.astro.ex.ac.uk" );
    $config->set_option( "estar.port", 9999 );
@@ -400,7 +401,7 @@ if ( $config->get_state("broker.unique_process") == 1 ) {
    $config->set_option( "noao.iamalive", 60 );
  
    # list of event servers
-   $config->set_option("server.RAPTOR", "raptor" );
+   #$config->set_option("server.RAPTOR", "raptor" );
    $config->set_option("server.eSTAR", "estar" );
    $config->set_option("server.Caltech", "caltech" );
    $config->set_option("server.NOAO", "noao" ); 
@@ -1306,6 +1307,7 @@ my $iamalive = sub {
       my $bytes_read;
 
       eval {
+        local $SIG{ALRM} = sub {die "Socket connection timed out waiting for IAMALIVE response";};
         alarm $config->get_option( "connection.timeout" );
         $bytes_read = sysread( $c, $length, 4 ); 
 	alarm 0;
@@ -1512,6 +1514,7 @@ my $broker_callback = sub {
      my $bytes_read;
 
      eval {
+       local $SIG{ALRM} = sub {die "Socket connection timed out waiting for ACK response";};
        alarm $config->get_option( "connection.timeout" );
        $bytes_read = sysread( $c, $length, 4 ); 
        alarm 0;
@@ -1864,6 +1867,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.106  2008/03/14 16:11:15  aa
+# Bug fix and commented out LANL
+#
 # Revision 1.105  2007/04/02 14:31:53  aa
 # Added NOAO server to default list
 #
