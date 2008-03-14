@@ -43,6 +43,7 @@ use eSTAR::Constants qw/:all/;
 use eSTAR::Util;
 use eSTAR::Mail;
 use eSTAR::Config;
+use eSTAR::GSM;
 
 #
 # Astro modules
@@ -1048,6 +1049,13 @@ sub new_observation {
       if ( $type eq 'confirmation' ) {
          $log->debug( $best_node . " confirmed start of observation" );
          $observation_object->status( 'running' );
+	 
+	 if ( $config->get_option("user.user_name") eq 'nt' ) {
+	    my $text = "eSTAR GRB: Node agent confirmed start of observation (" .
+	       $score_request->ra() .", ". $score_request->dec( ) . " at " . ctime();
+	    eSTAR::GSM::send_sms( "447973793139", $text );  
+	    eSTAR::GSM::send_sms( "18087690579", $text );
+	 }
          
          # SERIALISE OBSERVATION TO STATE DIRECTORY 
          # ========================================
