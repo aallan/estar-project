@@ -503,7 +503,7 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
   
      my $text = "eSTAR Test: network connection down at ". ctime();
      $log->debug( $text );
-     eSTAR::GSM->send_sms( "447973793139", $text );  
+     eSTAR::GSM::send_sms( "447973793139", $text );  
 
   } else {
   
@@ -512,19 +512,19 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
       
          my $text = "eSTAR Test: Event broker down at ".ctime();
          $log->debug( $text );
-    	 eSTAR::GSM->send_sms( "447973793139", $text );
+    	 eSTAR::GSM::send_sms( "447973793139", $text );
       }
       
       if( $USER_AGENTS{GRB} ne 'UP' ) {
           my $text = "eSTAR Test: GRB user agent down at ".ctime();
           $log->debug( $text );	  
-    	  eSTAR::GSM->send_sms( "447973793139", $text );
+    	  eSTAR::GSM::send_sms( "447973793139", $text );
       } 	       
 
       if( $USER_AGENTS{'EXO-PLANET'}  ne 'UP' ) {
           my $text = "eSTAR Test: EXO user agent down at ".ctime();
           $log->debug( $text );	  
-    	  eSTAR::GSM->send_sms( "447973793139", $text );
+    	  eSTAR::GSM::send_sms( "447973793139", $text );
       }
     	    
       if( $NODE_AGENTS{UKIRT} ne 'UP' ) {
@@ -535,7 +535,7 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
              $text = "eSTAR Test: Fault with UKIRT node agent at ".ctime();
 	  }
           $log->debug( $text );	  
-    	  eSTAR::GSM->send_sms( "447973793139", $text );  
+    	  eSTAR::GSM::send_sms( "447973793139", $text );  
       
       }
       
@@ -547,7 +547,7 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
              $text = "eSTAR Test: Fault with LT node agent at ".ctime();
 	  }
           $log->debug( $text );	  
-    	  eSTAR::GSM->send_sms( "447973793139", $text );  
+    	  eSTAR::GSM::send_sms( "447973793139", $text );  
       
       }
       if( $NODE_AGENTS{FTN} ne 'UP' ) {
@@ -558,7 +558,7 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
              $text = "eSTAR Test: Fault with FTN node agent at ".ctime();
 	  }   
 	  $log->debug( $text );
-    	  eSTAR::GSM->send_sms( "447973793139", $text );  
+    	  eSTAR::GSM::send_sms( "447973793139", $text );  
       
       }
       if( $NODE_AGENTS{FTS} ne 'UP' ) {
@@ -569,7 +569,7 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
              $text = "eSTAR Test: Fault with FTS node agent at ".ctime();
 	  }
 	  $log->debug( $text );
-    	  eSTAR::GSM->send_sms( "447973793139", $text );  
+    	  eSTAR::GSM::send_sms( "447973793139", $text );  
       
       } 
   }
