@@ -1,3 +1,11 @@
+2008-03-14 Eric Saunders <saunders@astro.ex.ac.uk>
+
+        * eSTAR/ADP/Util.pm: Commited update from last summer to use 
+        DateTime::Epoch. Fixes 1 month boundary bug.
+        
+        * bin/adaptive_vs_scheduler.pl: Commited update from last summer which
+        implements partial run restarts for the ADP agent.
+
 2008-03-12 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* eSTAR/GSM.pm: A front end for the GSM Service on estar6

@@ -27,6 +27,7 @@ use IO::Socket::INET;
 use DateTime;
 use DateTime::Duration;
 use DateTime::Format::ISO8601;
+use DateTime::Format::Epoch;
 
 require Exporter;
 use vars qw( $VERSION @EXPORT_OK %EXPORT_TAGS @ISA );
@@ -179,6 +180,46 @@ sub datetime_strs2theorytimes {
    my $runlength = shift;
    my @dt_strs   = @_;
 
+   
+   my $formatter = DateTime::Format::Epoch->new(
+                       epoch          => $first,
+                       unit           => 'seconds',
+                       type           => 'int',    # or 'float', 'bigint'
+                       skip_leap_seconds => 1,
+                       start_at       => 0,
+                       local_epoch    => undef,
+                   );
+
+   # Using epochs means month boundaries are handled correctly...
+   my $end_datetime = $first + $runlength;
+   my $rl_in_secs = $formatter->format_datetime($end_datetime);
+
+   # Translate all datetimes using the first as a reference point...
+   my @tts;
+   foreach my $datetime_str ( @dt_strs ) {
+      my $datetime = str2datetime($datetime_str);
+      
+      my $epoch_time = $formatter->format_datetime($datetime);
+      
+      
+      my $theorytime = $epoch_time / $rl_in_secs;
+      
+      push @tts, $theorytime;
+   }
+   @tts = sort { $a <=> $b } @tts;
+
+   return @tts;
+}
+
+# THIS FUNCTION IS DEPRECATED. IT DOES NOT WORK FOR ACTUAL RUNS EXCEEDING ONE
+# MONTH! DELETE THIS AFTER THE ADP TEST RUN IS COMPLETE (I.E. AFTER 09/07)!!
+# USE THE EPOCH VERSION INSTEAD!!!
+sub datetime_strs2theorytimes_old {
+   my $first     = shift;
+   my $runlength = shift;
+   my @dt_strs   = @_;
+
+
    # Translate all datetimes using the first as a reference point...
    my @tts;
    foreach my $datetime_str ( @dt_strs ) {
@@ -204,6 +245,7 @@ sub datetime_strs2theorytimes {
 
    return @tts;
 }
+
 
 
 sub theorytime2datetime {

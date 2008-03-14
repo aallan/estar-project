@@ -21,7 +21,7 @@ Eric Saunders (saunders@astro.ex.ac.uk), Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: adaptive_vs_scheduler.pl,v 1.5 2007/05/03 14:24:43 saunders Exp $
+$Id: adaptive_vs_scheduler.pl,v 1.6 2008/03/14 17:10:44 saunders Exp $
 
 =head1 COPYRIGHT
 
@@ -39,7 +39,7 @@ use vars qw / $VERSION $log /;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -103,7 +103,8 @@ my $opt_base_dir = "$ENV{HOME}/optimal_base_data";
 my ( %opt, %obs_request );
 
 # grab options from command line
-my $status = GetOptions( 
+my $status = GetOptions(
+                         "partial=s"     =>   \$opt{partialfile}, 
                          "soaphost=s"    =>   \$opt{soaphost},
                          "soapport=s"    =>   \$opt{soapport},
                          "user=s"        =>   \$obs_request{user},
@@ -127,6 +128,7 @@ my $status = GetOptions(
                          "tcpport=i"     =>   \$opt{tcpport},
                          "schedule=s"    =>   \$opt{schedule},
                         );
+
 
 
 # Default hostname for the user agent...
@@ -242,7 +244,11 @@ my $tcpip_thread = threads->create( $tcpip_server );
 
 # Start the thread that monitors the status of the observations...
 my $adp_thread = threads->create(\&evaluate_schedule_progress, $n_initial,
-                                 $n_total);
+                                 $n_total, $opt{partialfile});
+
+# Possible race condition if reading a large partial file. This hack
+# fixes that (maybe)...
+sleep 10;
 
 
 # Create authentication cookie...
@@ -396,13 +402,42 @@ sub log_obs_request {
 
 
 sub evaluate_schedule_progress {
-   my $name = "ADP Thread";
-   my $n_initial = shift;
-   my $n_total = shift;
+   my $name         = "ADP Thread";
+   my $n_initial    = shift;
+   my $n_total      = shift;
+   my $partial_file = shift;
    
    $log->debug("Started $name...");
 
-
+   # If there is a partial file of previous times, then we need to read it to
+   # initialise the state of the agent. This would occur if the program had
+   # crashed and needed to be restarted, for example.   
+   if ( defined $partial_file ) {
+      open my $partial_fh, '<', $partial_file
+         or die "Can't open partial run file '$partial_file':$!";
+   
+      while ( <$partial_fh> ) {
+         my ($dt_utc_string, $status) = m/([^ ]*)\s+(.*)/;
+         
+         # WARNING: HACK: This only works for single targets!
+         foreach my $target ( keys %obs_of_target ) {                                 
+            
+            # Set the timestamp and obs status in the shared memory...
+            if ( defined $dt_utc_string && defined $status ) {
+               $log->debug("Adding '$dt_utc_string' with status '$status' to shared memory...");
+               $obs_of_target{$target}->{$dt_utc_string} = $status;
+            }
+         
+         }
+         
+      }
+      
+      $log->debug("Reading of partial file complete...");   
+      close $partial_fh;
+   }
+   
+   
+   
    
    # Initialise the flag structure to keep track of each programme's progress...
    my %complete_flag_for;
@@ -613,8 +648,10 @@ sub queue_obs {
       
       # Initialise trackers for best position and time...
       my $new_obs_time = undef;
-      my $w_pos_best   = 1;
       my $first_datetime;
+      
+      # Something ridiculously huge for the initial value of w...
+      my $w_pos_best   = 1000000;
       
       # Deal with the special case of the first observation...
       if ( $window_length == 0 ) {
@@ -657,11 +694,13 @@ sub queue_obs {
          
          my $n_effective = $n_obs_in_progress;
          while ( $window_length < $tt_elapsed ) {
-            $log->warn("Window length is smaller than elapsed time since last "
-                 .     "observation. Exapanding...");
             $n_effective++;
             $window_length = find_window_length($n_effective, $n_surplus,
                                                 $opt_ints);
+
+            $log->warn("Window length is smaller than elapsed time since last "
+                 .     "observation. Expanding to $window_length...");
+
 
             # If we've run out of maximum intervals, we'll just have to go with
             # the current time...
@@ -999,7 +1038,7 @@ sub process_message {
    
    unless ( defined $incoming{starttime} ) {
       $log->warn("Received message contains no start time!");
-      return;
+      return; 
    }
    
    unless ( defined $incoming{messagetype} ) {
@@ -1009,8 +1048,26 @@ sub process_message {
     
    # Update the shared agent memory...
    if ( defined $obs_of_target{$incoming{target}}->{$incoming{starttime}} ) {
-      $obs_of_target{$incoming{target}}->{$incoming{starttime}} 
-         = "$incoming{messagetype}_[$incoming{timestamp}]";
+   
+      # Update the timestamp if we have one (we always should)...
+      if ( defined $incoming{timestamp} ) {
+
+         $obs_of_target{$incoming{target}}->{$incoming{starttime}} 
+            = "$incoming{messagetype}_$incoming{timestamp}";
+
+      }      
+      # ...we've been fed a broken message (no FITS timestamp). Deal with it...
+      else {
+
+         # Mark broken observation messages - treat as fails...
+         if ( $incoming{messagetype} =~ m/observation/ ) {
+            $obs_of_target{$incoming{target}}->{$incoming{starttime}}
+               = 'fail_[broken obs]';
+         }  
+
+      }
+
+   
    }
    # The starttime doesn't match our records - this is very wrong...
    else {
