@@ -558,9 +558,9 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
              $text = "eSTAR Test: Fault with FTN node agent at ".ctime();
 	  }   
 	  $log->debug( $text );
-    	  eSTAR::GSM::send_sms( "447973793139", $text );  
+    	  #eSTAR::GSM->send_sms( "447973793139", $text );  
       
-      }
+      } 
       if( $NODE_AGENTS{FTS} ne 'UP' ) {
           my $text;
 	  if( $NODE_AGENTS{FTS} eq 'DOWN' ) {
