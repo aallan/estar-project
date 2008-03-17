@@ -13,6 +13,9 @@
 	* bin/soap_client.pl: Hacked about to talk to Java NodeAgent. Needs
 	  rewriting from scratch at some point.  
 	  
+	 * eSTAR/Util.pm: Added time_at_LT, time_at_FTN and time_at_FTS
+	   functions 
+	  
 2008-03-14 Eric Saunders <saunders@astro.ex.ac.uk>
 
         * eSTAR/ADP/Util.pm: Commited update from last summer to use 
