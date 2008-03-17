@@ -1,3 +1,8 @@
+2008-03-17 Eric Saunders <saunders@astro.ex.ac.uk>
+
+	* bin/user_agent.pl: Moved default list of node agents to first start
+	  only. Won't update unless this is the first run.
+	  
 2008-03-14 Eric Saunders <saunders@astro.ex.ac.uk>
 
         * eSTAR/ADP/Util.pm: Commited update from last summer to use 

@@ -23,7 +23,7 @@
 
 #  Revision:
 
-#     $Id: user_agent.pl,v 1.33 2008/02/25 17:04:12 aa Exp $
+#     $Id: user_agent.pl,v 1.34 2008/03/17 14:45:26 aa Exp $
 
 
 #  Copyright:
@@ -67,7 +67,7 @@ itself.
 
 =head1 REVISION
 
-$Id: user_agent.pl,v 1.33 2008/02/25 17:04:12 aa Exp $
+$Id: user_agent.pl,v 1.34 2008/03/17 14:45:26 aa Exp $
 
 =head1 AUTHORS
 
@@ -84,7 +84,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.33 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.34 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -428,9 +428,12 @@ $ua->set_ua( $lwp );
 #$config->set_option( "nodes.FTSproxy", "estar3.astro.ex.ac.uk:8079" );
 
 # Current (24/04/07) nodes
-$config->set_option( "nodes.LT", "161.72.57.3:8080/axis/services/NodeAgent" );
-$config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent" );
-$config->set_option( "nodes.FTN", "132.160.98.239:8080/axis/services/NodeAgent" );
+if ( $config->get_state("ua.unique_process") == 1 ) {
+   $config->set_option( "nodes.LT", "161.72.57.3:8080/axis/services/NodeAgent" );
+   $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent" );
+   $config->set_option( "nodes.FTN", "132.160.98.239:8080/axis/services/NodeAgent" );
+   #$config->set_option( "nodes.UKIRT", "estar.ukirt.jach.hawaii.edu:8080" );
+}
 
 # Virtual nodes
 #$config->set_option( "nodes.virtual_LT",  "127.0.0.1:8080" );
@@ -615,6 +618,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: user_agent.pl,v $
+# Revision 1.34  2008/03/17 14:45:26  aa
+# Updated list of node agents
+#
 # Revision 1.33  2008/02/25 17:04:12  aa
 # Fixes
 #
