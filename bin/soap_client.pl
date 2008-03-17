@@ -18,17 +18,19 @@
 
   unless ( scalar @ARGV >= 1 ) {
      die "USAGE: $0 -method method [-file filename] [-arg1 arg] [-arg2 arg]" .
-         " [-host host] [-port port] [-urn urn]\n";
+         " [-host host] [-port port] [-urn urn] [-user user] [-pass password]\n";
   }
 
-  my ( $host, $port, $urn, $method, $file, $args );   
+  my ( $host, $port, $urn, $method, $file, $args, $user, $pass );   
   my $status = GetOptions( "host=s"       => \$host,
                            "port=s"       => \$port,
                            "urn=s"        => \$urn,
                            "method=s"     => \$method,
                            "file=s"       => \$file,
                            "arg1=s"       => \$arg1,
-                           "arg2=s"       => \$arg2 );
+                           "arg2=s"       => \$arg2,
+			   "user=s"	  => \$user,
+			   "pass=s"	  => \$pass );
 
   # default hostname
   unless ( defined $host ) {
@@ -45,7 +47,7 @@
   # need method
   unless ( defined $method ) {
      die "USAGE: $0 -method method [-file filename] [-arg1 arg] [-arg2 arg]" .
-         " [-host host] [-port port] [-urn urn]\n";
+         " [-host host] [-port port] [-urn urn] [-user user] [-pass password]\n";
   }
          
   # if we have a file
@@ -64,6 +66,8 @@
        $arg1 = $xml;
      }    
   }
+  
+  print "---\n".$xml."\n---\n";
                
   # end point
   $endpoint = "http://" . $host . ":" . $port;
@@ -71,7 +75,9 @@
   print "End Point       : " . $endpoint . "\n";
   
   # create a user/passwd cookie
-  my $cookie = eSTAR::Util::make_cookie( "agent", "InterProcessCommunication" );
+  $user = "agent" unless defined $user;
+  $pass = "InterProcessCommunication" unless defined $pass;
+  my $cookie = eSTAR::Util::make_cookie( $user,$pass );
  
   #print Dumper( $cookie );
   
@@ -95,6 +101,10 @@
   # grab result 
   my $result;
   eval { $result = $soap->$method( $arg1, $arg2 ); };
+  
+  # Needed for the Java NodeAgent
+  #$arg1 =~ s/</&lt;/g;
+  #eval { $result = $soap->$method( SOAP::Data->name('query', $arg1 )->type('xsd:string') ); };
   if ( $@ ) {
      print "Error: $@";
      exit;   
