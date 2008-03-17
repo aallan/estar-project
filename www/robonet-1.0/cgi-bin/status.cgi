@@ -2,6 +2,7 @@
 
   #use lib $ENV{"ESTAR_PERL5LIB"};     
   use lib "/work/estar/third_generation/lib/perl5";
+  use eSTAR::Util;
   use eSTAR::Observation;
   use eSTAR::RTML::Parse;
   use eSTAR::RTML::Build;
@@ -12,6 +13,7 @@
   use Time::localtime;
   use Data::Dumper;
   use Fcntl qw(:DEFAULT :flock);
+  use DateTime;
   use DateTime::Format::ISO8601;
    
 # G R A B   K E Y W O R D S ---------------------------------------------------
@@ -106,11 +108,15 @@
         timestamp() . "</font><br>";
 
   if ( defined $query{dir} ) {
-     print "More information available on the <a href='./scoring.cgi?dir=$query{dir}'>scoring status</a> pages.";
+     print "More information available on the <a href='./scoring.cgi?dir=$query{dir}'>scoring status</a> pages.<br>";
   } else {
      print "More information available on the <a href='./scoring.cgi'>scoring status</a> pages.<br>";
   }   
-  	
+ 
+  print "Time at FTS is <font color='red'>".eSTAR::Util::time_at_FTS()."</font> (Australia/Sydney)<br>\n";
+  print "Time at LT is <font color='red'>".eSTAR::Util::time_at_LT()."</font> (Atlantic/Canary)<br>\n";
+  print "Time at FTN is <font color='red'>".eSTAR::Util::time_at_FTN()."</font> (Pacific/Honolulu)<br>\n";
+	
   print "<font size='-2'><p>Jan 2006 | ". 
         "Feb 2006 | ". 
         "Mar 2006 | ". 
@@ -478,7 +484,7 @@
   exit;
   
 # S U B - R O U T I N E S #################################################
- 
+
   sub by_last_mod {
     # vars $a and $b automatically passed in
   
