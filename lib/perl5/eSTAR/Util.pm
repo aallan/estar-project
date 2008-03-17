@@ -38,9 +38,9 @@ use eSTAR::Error qw /:try/;
 @EXPORT_OK = 
       qw/ make_cookie make_id freeze thaw reheat melt query_simbad 
           fudge_message fudge_user fudge_project
-	  time_at_LT time_at_FTN time_at_FTS /;
+	  time_at_LT time_at_FTN time_at_FTS time_in_UK time_UTC/;
 
-'$Revision: 1.21 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.22 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # This is the code that is used to generate cookies based on the user
 # name and password. It is NOT cryptographically sound, it is just a
@@ -465,25 +465,42 @@ sub fudge_project {
    return $new_rtml;
 }
 
+sub time_in_UK {
+  my $dt = DateTime->now();
+  $dt->set_time_zone( 'Europe/London' );
+  my $iso = $dt->strftime("%F"."T"."%H:%M:%S"."%z");
+  return $iso;
+}
 
+sub time_UTC {
+  my $dt = DateTime->now();
+  $dt->set_time_zone( 'UTC' );
+  my $iso = $dt->strftime("%F"."T"."%H:%M:%S"."%z");
+  return $iso;
+}
+  
 sub time_at_LT {
   my $dt = DateTime->now();
   $dt->set_time_zone( 'Atlantic/Canary' );
-  my $iso = $dt->ymd('-') . "T" . $dt->hms(':') ." (". $dt->time_zone_short_name() .")"; 
+  my $iso = $dt->strftime("%F"."T"."%H:%M:%S"."%z");
+  #my $iso = $dt->ymd('-') . "T" . $dt->hms(':') ." (". $dt->time_zone_short_name() .")"; 
   return $iso;
 }
 
 sub time_at_FTN {
   my $dt = DateTime->now();
   $dt->set_time_zone( 'Pacific/Honolulu' );
-  my $iso = $dt->ymd('-') . "T" . $dt->hms(':') ." (". $dt->time_zone_short_name() .")";	
+  
+  my $iso = $dt->strftime("%F"."T"."%H:%M:%S"."%z");
+  #my $iso = $dt->ymd('-') . "T" . $dt->hms(':') ." (". $dt->time_zone_short_name() .")";	
   return $iso;
 }
 
 sub time_at_FTS {
   my $dt = DateTime->now();
   $dt->set_time_zone( 'Australia/Sydney' );
-  my $iso = $dt->ymd('-') . "T" . $dt->hms(':') ." (". $dt->time_zone_short_name() . ")";
+  my $iso = $dt->strftime("%F"."T"."%H:%M:%S"."%z");
+  #my $iso = $dt->ymd('-') . "T" . $dt->hms(':') ." (". $dt->time_zone_short_name() . ")";
   return $iso;
 }
 
@@ -491,7 +508,7 @@ sub time_at_FTS {
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.21 2008/03/17 17:10:57 aa Exp $
+$Id: Util.pm,v 1.22 2008/03/17 17:23:31 aa Exp $
 
 =head1 AUTHORS
 
