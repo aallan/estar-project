@@ -116,6 +116,7 @@
   print "Time at FTS is <font color='red'>".eSTAR::Util::time_at_FTS()."</font> (Australia/Sydney)<br>\n";
   print "Time at LT is <font color='red'>".eSTAR::Util::time_at_LT()."</font> (Atlantic/Canary)<br>\n";
   print "Time at FTN is <font color='red'>".eSTAR::Util::time_at_FTN()."</font> (Pacific/Honolulu)<br>\n";
+  print "Time in UK is <font color='red'>".eSTAR::Util::time_in_UK()."</font> (Europe/London)<br>\n";
 	
   print "<font size='-2'><p>Jan 2006 | ". 
         "Feb 2006 | ". 
