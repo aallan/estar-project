@@ -39,7 +39,6 @@ use Data::Dumper;
 use eSTAR::SOAP::User;
 use eSTAR::Logging;
 use eSTAR::Observation;
-use eSTAR::LDAP::Search;
 use eSTAR::RTML;
 use eSTAR::RTML::Build;
 use eSTAR::RTML::Parse;

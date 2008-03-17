@@ -37,7 +37,6 @@ use Config::User;
 #
 use eSTAR::SOAP::User;
 use eSTAR::Logging;
-use eSTAR::LDAP::Search;
 use eSTAR::Constants qw/:all/;
 use eSTAR::Util;
 use eSTAR::Mail;

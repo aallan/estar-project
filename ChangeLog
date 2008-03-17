@@ -1,3 +1,9 @@
+2008-03-17 Eric Saunders <saunders@astro.ex.ac.uk>
+
+        * eSTAR/NA/Handler.pm, eSTAR/RAPTOR/Handler.pm, eSTAR/VT/Handler.pm, 
+        eSTAR/JACH/Handler.pm, eSTAR/NA/Handler.pm, eSTAR/RAPTOR/Handler.pm,
+        eSTAR/VT/Handler.pm, eSTAR/JACH/Handler.pm: Removed obsolete 
+        eSTAR::LDAP::Search dependency from all handlers. 
 
 2008-03-17 Alasdair Allan <aa@astro.ex.ac.uk>
 
