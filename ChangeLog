@@ -1,3 +1,9 @@
+2008-03-18 Eric Saunders <saunders@astro.ex.ac.uk>
+
+        * bin/time_server.pl: Upgraded to allow arbitrary start time. Fixed to
+        allow simulations beginning in the past to be run correctly when
+        accelerated.
+
 2008-03-18 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* eSTAR/UA/Handler.pm: Added GSM alerts for Nial Tanvir

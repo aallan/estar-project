@@ -19,7 +19,7 @@ Eric Saunders (saunders@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: time_server.pl,v 1.3 2007/04/24 17:32:30 aa Exp $
+$Id: time_server.pl,v 1.4 2008/03/18 16:55:19 saunders Exp $
 
 =head1 COPYRIGHT
 
@@ -37,7 +37,7 @@ use vars qw ( $VERSION $log );
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -56,7 +56,7 @@ use threads::shared;
 # eSTAR modules...
 use lib $ENV{ESTAR_PERL5LIB};
 use eSTAR::Constants qw( :status );
-use eSTAR::ADP::Util qw( init_logging );
+use eSTAR::ADP::Util qw( init_logging str2datetime );
 
 # Other modules...
 use IO::Socket::INET;
@@ -64,6 +64,11 @@ use DateTime;
 use DateTime::Format::ISO8601;
 
 my $acc_factor = shift || 1;
+my $sim_start_time_str = shift;
+
+my $sim_start_time = $sim_start_time_str ? str2datetime($sim_start_time_str) 
+                                         : DateTime->now;
+
 
 # Set up logging...
 my $log_verbosity = ESTAR__DEBUG;
@@ -79,7 +84,7 @@ my $tcp_daemon = new IO::Socket::INET(
                                       );
 
 # Instantiate the time server...
-my $get_accelerated_time = new_time_server($acc_factor);
+my $get_accelerated_time = new_time_server($acc_factor, $sim_start_time);
 
 
 # Returns the current time to the requester...
@@ -121,8 +126,8 @@ while ( my $incoming = $tcp_daemon->accept ) {
 
 
 sub new_time_server {
-   my $acc_factor = shift;
-
+   my $acc_factor     = shift;
+   my $sim_start_time = shift;
    my $start_time = DateTime->now;
 
    return sub {
@@ -133,7 +138,7 @@ sub new_time_server {
       
       # Calculate the sim time that has passed, and the current sim time...
       my $sim_time_elapsed = $real_time_elapsed->multiply($acc_factor);
-      my $current_sim_time = $start_time + $sim_time_elapsed;
+      my $current_sim_time = $sim_start_time + $sim_time_elapsed;
 
       # A load of useful info to print... (debug)
       my %deltas_of = $real_time_elapsed->deltas;
