@@ -1,3 +1,7 @@
+2008-03-18 Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* eSTAR/UA/Handler.pm: Added GSM alerts for Nial Tanvir
+
 2008-03-17 Eric Saunders <saunders@astro.ex.ac.uk>
 
         * eSTAR/NA/Handler.pm, eSTAR/RAPTOR/Handler.pm, eSTAR/VT/Handler.pm, 

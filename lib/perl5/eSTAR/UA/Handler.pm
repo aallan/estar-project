@@ -623,6 +623,16 @@ sub new_observation {
 
    $observation_object->score_request( $score_message ); 
    $log->print( $score_message->dump_rtml() );
+
+ 
+   if ( $config->get_option("user.user_name") eq 'nt' ) {
+      my $text = "eSTAR GRB: User agent checking observability of target at (" .
+   	 $observation{'ra'} .", ". $observation{'dec'} . ") at " . ctime();
+      eSTAR::GSM::send_sms( "447973793139", $text ); # Alasdair Allan
+      eSTAR::GSM::send_sms( "18087690579", $text ); # Brad Cavanagh
+      eSTAR::GSM::send_sms( "447980136499", $text ); # Nial Tanvir
+      eSTAR::GSM::send_sms( "447714250373", $text ); # Andrew Levan
+   }
       
    
    # SCORE REQUEST
@@ -1053,8 +1063,10 @@ sub new_observation {
 	 if ( $config->get_option("user.user_name") eq 'nt' ) {
 	    my $text = "eSTAR GRB: Node agent confirmed start of observation (" .
 	       $score_request->ra() .", ". $score_request->dec( ) . " at " . ctime();
-	    eSTAR::GSM::send_sms( "447973793139", $text );  
-	    eSTAR::GSM::send_sms( "18087690579", $text );
+	    eSTAR::GSM::send_sms( "447973793139", $text ); # Alasdair Allan
+	    eSTAR::GSM::send_sms( "18087690579", $text ); # Brad Cavanagh
+	    eSTAR::GSM::send_sms( "447980136499", $text ); # Nial Tanvir
+	    eSTAR::GSM::send_sms( "447714250373", $text ); # Andrew Levan
 	 }
          
          # SERIALISE OBSERVATION TO STATE DIRECTORY 
