@@ -627,7 +627,8 @@ sub new_observation {
  
    if ( $config->get_option("user.user_name") eq 'nt' ) {
       my $text = "eSTAR GRB: User agent checking observability of target at (" .
-   	 $observation{'ra'} .", ". $observation{'dec'} . ") at " . ctime();
+   	 $observation{'ra'} .", ". $observation{'dec'} . ") for ". 
+	 $observation{'type'} . " at " . ctime();
       eSTAR::GSM::send_sms( "447973793139", $text ); # Alasdair Allan
       eSTAR::GSM::send_sms( "18087690579", $text ); # Brad Cavanagh
       eSTAR::GSM::send_sms( "447980136499", $text ); # Nial Tanvir
@@ -1062,7 +1063,8 @@ sub new_observation {
 	 
 	 if ( $config->get_option("user.user_name") eq 'nt' ) {
 	    my $text = "eSTAR GRB: Node agent confirmed start of observation (" .
-	       $score_request->ra() .", ". $score_request->dec( ) . " at " . ctime();
+	       $score_request->ra() .", ". $score_request->dec( ) . ") for ". 
+	       $observation{'type'} . "  at " . ctime();
 	    eSTAR::GSM::send_sms( "447973793139", $text ); # Alasdair Allan
 	    eSTAR::GSM::send_sms( "18087690579", $text ); # Brad Cavanagh
 	    eSTAR::GSM::send_sms( "447980136499", $text ); # Nial Tanvir

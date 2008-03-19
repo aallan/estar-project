@@ -1,3 +1,7 @@
+2008-03-19 Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* eSTAR/UA/Handler.pm: Modified text for GSM alerts.
+
 2008-03-18 Eric Saunders <saunders@astro.ex.ac.uk>
 
         * bin/time_server.pl: Upgraded to allow arbitrary start time. Fixed to
