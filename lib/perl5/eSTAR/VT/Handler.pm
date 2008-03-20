@@ -44,6 +44,7 @@ use eSTAR::Mail;
 use eSTAR::Config;
 use eSTAR::ADP::Util qw( get_network_time str2datetime datetime2utc_str 
                          build_dummy_header );
+use eSTAR::VT;
 
 use XML::Document::RTML;
 use Astro::Telescope;
@@ -51,7 +52,7 @@ use Astro::Coords;
 
 my ($log, $process, $ua, $config);
 
-# The Astro::Telescope object used for location information.
+# The eSTAR::VT object used for location information.
 my $telescope;
 
 my $semaphore = new Thread::Semaphore;
@@ -106,13 +107,8 @@ sub new {
        my $proc_name = $process->get_process;
        if ( $proc_name =~ m/$name/i  ) {
           $log->thread2("Instantiating telescope with coords for $name...");
-          $telescope = new Astro::Telescope(
-                                             Name => $attrs_for{$name}->{name}, 
-                                             Long => $attrs_for{$name}->{long},
-                                             Lat  => $attrs_for{$name}->{lat},
-                                             Alt  => $attrs_for{$name}->{alt}
-                                            );         
-         last;
+          $telescope = new eSTAR::VT($name);         
+          last;
        }
     }
     
@@ -254,34 +250,6 @@ sub ping {
 } 
 
 
-sub is_dark {
-   my $time     = shift;
-   my $telescope = shift;
-   
-   my $sun = new Astro::Coords(planet => 'sun');
-   $sun->datetime( $time );
-   $sun->telescope( $telescope );
-
-   my $sunrise = $sun->rise_time( horizon => Astro::Coords::AST_TWILIGHT );
-   my $sunset  = $sun->set_time( horizon => Astro::Coords::AST_TWILIGHT );
-   
-   if ( $sunrise < $sunset ) {
-      return wantarray() ? (1, $sunrise) : 1;
-   }
-   else {
-      return wantarray() ? (0, $sunset) : 0;
-   }
-}
-
-sub is_within_limits {
-   my $target_el = shift;
-
-   my $min_el = new Astro::Coords::Angle(30, units => 'deg');
-#   $log->warn("target_el: " . $target_el->radians .  " min_el: " . $min_el->radians);
-#   $log->warn("target_el: " . $target_el->degrees .  " min_el: " . $min_el->degrees);
-
-   return ( $target_el > $min_el ) ? 1 : 0;
-}
 
 sub parse_rtml {
    my $rtml = shift;
@@ -438,7 +406,7 @@ sub initialise_coordinates {
                                   );
 
    # Associate the object with the telescope location...
-   $object->telescope( $telescope );
+   $object->telescope( $telescope->get_telescope );
 
    # Associate the object with the current time...
    
@@ -510,7 +478,7 @@ sub manage_obs {
 
 
       # Check whether the object is in the observable sky...
-      if ( is_within_limits($object->el) ) {
+      if ( $telescope->is_within_limits($object->el) ) {
          $log->warn("$thread_name: Observable     (object sets at  $set_time)");
       }
       else {
@@ -528,7 +496,7 @@ sub manage_obs {
 
 
       # Check whether it's dark or not...
-      my @dark_status = is_dark($current_time, $telescope);
+      my @dark_status = $telescope->is_dark($current_time);
       if ( $dark_status[0] ) {
          $log->warn("$thread_name:"
                       . "It is night    (next sunrise at $dark_status[1])");
@@ -644,7 +612,7 @@ sub manage_schedule {
 
 
             # Check whether the object is in the observable sky...
-            if ( is_within_limits($object->el) ) {
+            if ( $telescope->is_within_limits($object->el) ) {
                $log->warn("$thread_name: Observable     (object sets at  $set_time)");
             }
             else {
@@ -661,7 +629,7 @@ sub manage_schedule {
             }
       
             # Check whether it's dark or not...
-            my @dark_status = is_dark($current_time, $telescope);
+            my @dark_status = $telescope->is_dark($current_time);
             if ( $dark_status[0] ) {
                $log->warn("$thread_name:"
                             . "It is night    (next sunrise at $dark_status[1])");
@@ -769,9 +737,9 @@ sub handle_rtml {
       my $score;
 
       # Check whether the object is in the observable sky...
-      my @dark_status = is_dark($start_time, $telescope);
+      my @dark_status = $telescope->is_dark($start_time);
       
-      if ( is_within_limits($object->el) && $dark_status[0] ) {
+      if ( $telescope->is_within_limits($object->el) && $dark_status[0] ) {
          $log->warn("Scoring request: Target will be observable at $start_time.");
 
          # Generate a random score...

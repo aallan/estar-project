@@ -1,3 +1,11 @@
+2008-03-19 Eric Saunders <saunders@astro.ex.ac.uk>
+
+        * eSTAR/VT/Handler.pm, eSTAR/VT.pm: Abstracted functionality not 
+          directly associated with handling into new class eSTAR::VT. This will
+          allow generic virtual telescope functionality independent of
+          infrastructure implementation.
+
+
 2008-03-19 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* eSTAR/UA/Handler.pm: Modified text for GSM alerts.

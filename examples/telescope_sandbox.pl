@@ -23,14 +23,14 @@ use eSTAR::ADP::Util qw( get_network_time str2datetime );
 
 # Create the observer location object...
 #my $vt = new Astro::Telescope('JCMT');
-#my $vt = new Astro::Telescope(Name => 'LT simulator', Long => 5.97113454,
-#                              Lat  => 0.502001024,     Alt =>  2344);
+my $vt = new Astro::Telescope(Name => 'LT simulator', Long => 5.97113454,
+                              Lat  => 0.502001024,     Alt =>  2344);
 
 #my $vt = new Astro::Telescope(Name => 'Virtual FTN', Long => 3.55604516,
 #                              Lat  => 0.3620788211,     Alt =>  3055);
 
-my $vt = new Astro::Telescope(Name => 'Virtual FTS', Long => 2.60153048,
-                              Lat  => -0.54577638,     Alt =>  1150);
+#my $vt = new Astro::Telescope(Name => 'Virtual FTS', Long => 2.60153048,
+#                              Lat  => -0.54577638,     Alt =>  1150);
 
 # Observatory code for La Palma. This doesn't work.
 #$vt->obscode(950);
@@ -84,6 +84,8 @@ my ($az, $el) = $c->azel;
 print "   Azimuth = ", $az->degrees, " degrees\n";
 print "   Elevation = ", $el->degrees, " degrees\n\n";
 
+
+
 # Find the transit times of these coords...
 my $rise_time = $c->rise_time( horizon => $horizon );
 my $set_time  = $c->set_time( horizon => $horizon );
@@ -93,6 +95,7 @@ print "   Time = ", $time, "\n";
 # Determine whether the object is in the observable sky...
 is_within_limits($c->el) ? print "   Observable     (object sets at  $set_time)\n"
                          : print "   Not observable (object rises at $rise_time)\n";
+
 
 # Determine whether it's dark or not...
 my @dark_status = is_dark($time, $vt);
@@ -105,7 +108,7 @@ $dark_status[0] ? print "   It is night    (next sunrise at $dark_status[1])\n"
    : print "\nStatus: observation denied.\n";
 
 # Display the ephemeris in obsplan...
-display_obsplan($ra, $dec);
+#display_obsplan($ra, $dec);
 
 
 
