@@ -484,8 +484,8 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
 # N O T I F Y   P E O P L  E ------------------------------------------------
 
   eval { 
-  $log->print("Opening FTP connection to lion.drogon.net...");  
-  my $ftp = Net::FTP->new( "lion.drogon.net", Debug => 1 );
+  $log->print("Opening FTP connection to estar.org.uk...");  
+  my $ftp = Net::FTP->new( "estar.org.uk", Debug => 1 );
   $log->debug("Going into PASV mode...");
   $log->debug("Logging into estar account...");  
   $ftp->login( "estar", "tibileot" );

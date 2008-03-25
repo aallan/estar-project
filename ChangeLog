@@ -1,3 +1,7 @@
+2008-03-25 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * bin/test_servers.pl: Changed FTP endpoint for DNS updates.
+
 2008-03-19 Eric Saunders <saunders@astro.ex.ac.uk>
 
         * eSTAR/VT/Handler.pm, eSTAR/VT.pm: Abstracted functionality not 
