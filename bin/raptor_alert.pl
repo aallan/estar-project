@@ -35,7 +35,7 @@ incoming alerts from the RAPTOR system.
 
 =head1 REVISION
 
-$Id: raptor_alert.pl,v 1.18 2006/05/19 21:58:52 aa Exp $
+$Id: raptor_alert.pl,v 1.19 2008/03/25 14:42:50 aa Exp $
 
 =head1 AUTHORS
 
@@ -52,7 +52,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.18 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.19 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -527,9 +527,9 @@ my $tcp_callback = sub {
      foreach my $i ( 0 ... $#path - 1 ) {
         $path = $path . "/$path[$i]"; 
      }
-     $log->debug("Opening FTP connection to lion.drogon.net...");  
+     $log->debug("Opening FTP connection to estar.org.uk...");  
      $log->debug("Logging into estar account...");  
-     my $ftp = Net::FTP->new( "lion.drogon.net", Debug => 1 );
+     my $ftp = Net::FTP->new( "estar.org.uk", Debug => 1 );
      $ftp->login( "estar", "tibileot" );
      $log->debug("Changing directory to $path");
      $ftp->cwd( $path );
@@ -736,7 +736,7 @@ my $tcp_callback = sub {
      $log->debug("Closing raptor.rdf file...");
      close(RSS);    
      
-     $log->debug("Opening FTP connection to lion.drogon.net...");  
+     $log->debug("Opening FTP connection to estar.org.uk...");  
      $log->debug("Logging into estar account...");  
      $ftp->login( "estar", "tibileot" );
      $ftp->cwd( "www.estar.org.uk/docs/voevent" );
@@ -892,6 +892,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: raptor_alert.pl,v $
+# Revision 1.19  2008/03/25 14:42:50  aa
+# Updated lion.drogon.net to estar.org.uk
+#
 # Revision 1.18  2006/05/19 21:58:52  aa
 # Moved to VOEvent v1.1
 #

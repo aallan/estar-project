@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -456,9 +456,14 @@ sub event_process {
 		      close ( KML );
                    }
 		   
+		   # Comment'ed out because the voevent.kml file is now
+		   # served from the local machine in /var/www/google/
+		   # and www.estar.org.uk/voevent/voevent.kml is a network
+		   # link to this local webserver file.
+		   
 		   #eval { 
-                   #   $log->print("Opening FTP connection to lion.drogon.net...");  
-                   #   my $ftp = Net::FTP->new( "lion.drogon.net", Debug => 1 );
+                   #   $log->print("Opening FTP connection to estar.org.uk...");  
+                   #   my $ftp = Net::FTP->new( "estar.org.uk", Debug => 1 );
                    #   $log->debug("Going into PASV mode...");
                    #   $log->debug("Logging into estar account...");  
                    #   $ftp->login( "estar", "tibileot" );
@@ -468,7 +473,13 @@ sub event_process {
                    #   $ftp->quit();
 	           #   $log->print("Closed FTP connection...");
                    #};
-                   
+
+                   #if ( $@ ) {
+                   #  my $error = "$@";
+                   #  chomp $error;
+                   #  $log->error( "Error: $error" );
+                   #} 
+		                     
                    eval {
                       $log->debug( "Copying file to /var/www/google/" ); 
                       copy($kml, "/var/www/google/") or die "File cannot be copied.";

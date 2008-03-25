@@ -350,9 +350,9 @@ sub handle_voevent {
    
    # Upload the event message to estar.org.uk
    # ----------------------------------------
-   $log->debug("Opening FTP connection to lion.drogon.net...");  
+   $log->debug("Opening FTP connection to estar.org.uk...");  
    $log->debug("Logging into estar account...");  
-   my $ftp = Net::FTP->new( "lion.drogon.net", Debug => 0 );
+   my $ftp = Net::FTP->new( "estar.org.uk", Debug => 1 );
    $ftp->login( "estar", "tibileot" );
    
    my $idpath = $id; 
@@ -622,8 +622,8 @@ sub handle_voevent {
    $log->debug("Closing $name.rdf file...");
    close(RSS);    
    
-   $log->debug("Opening FTP connection to lion.drogon.net...");  
-   my $ftp2 = Net::FTP->new( "lion.drogon.net", Debug => 0 );
+   $log->debug("Opening FTP connection to estar.org.uk...");  
+   my $ftp2 = Net::FTP->new( "estar.org.uk", Debug => 1 );
    $log->debug("Logging into estar account...");  
    $ftp2->login( "estar", "tibileot" );
    $ftp2->cwd( "www.estar.org.uk/docs/voevent/$name" );

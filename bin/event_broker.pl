@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.106 2008/03/14 16:11:15 aa Exp $
+$Id: event_broker.pl,v 1.107 2008/03/25 14:42:50 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.106 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.107 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -670,9 +670,9 @@ my $incoming_callback = sub {
      
      # Upload the event message to estar.org.uk
      # ----------------------------------------
-     $log->debug("Opening FTP connection to lion.drogon.net...");  
+     $log->debug("Opening FTP connection to estar.org.uk...");  
      $log->debug("Logging into estar account...");  
-     my $ftp = Net::FTP->new( "lion.drogon.net", Debug => 0 );
+     my $ftp = Net::FTP->new( "estar.org.uk", Debug => 1 );
      $ftp->login( "estar", "tibileot" );
     
      my $idpath = $id; 
@@ -953,8 +953,8 @@ my $incoming_callback = sub {
      $log->debug("Closing $name.rdf file...");
      close(RSS);    
      
-     $log->debug("Opening FTP connection to lion.drogon.net...");  
-     my $ftp2 = Net::FTP->new( "lion.drogon.net", Debug => 0 );
+     $log->debug("Opening FTP connection to estar.org.uk...");  
+     my $ftp2 = Net::FTP->new( "estar.org.uk", Debug => 1 );
      $log->debug("Logging into estar account...");  
      $ftp2->login( "estar", "tibileot" );
      $ftp2->cwd( "www.estar.org.uk/docs/voevent/$name" );
@@ -1867,6 +1867,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.107  2008/03/25 14:42:50  aa
+# Updated lion.drogon.net to estar.org.uk
+#
 # Revision 1.106  2008/03/14 16:11:15  aa
 # Bug fix and commented out LANL
 #

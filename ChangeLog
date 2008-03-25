@@ -1,6 +1,14 @@
 2008-03-25 Alasdair Allan <aa@astro.ex.ac.uk>
 
-        * bin/test_servers.pl: Changed FTP endpoint for DNS updates.
+        * bin/test_servers.pl: Updated to FTP end point to estar.org.uk
+	
+	* bin/raptor_alert.pl: Updated to FTP end point to estar.org.uk
+
+	* bin/event_broker.pl: Updated to FTP end point to estar.org.uk
+		
+	* eSTAR/Broker/Handler.pm: Updated to FTP end point to estar.org.uk
+
+	* demo/google_sky/event_client.pl: Updated to FTP end point
 
 2008-03-19 Eric Saunders <saunders@astro.ex.ac.uk>
 
