@@ -147,7 +147,7 @@ if ( $user eq 'aa' ) {
    $contact_phone = '+44-151-2312912'; 
 } elsif ( $user eq 'yt' ) {
    $contact_name = "Yiannis Tsapras";
-   $contant_email = 'yt@astro.livjm.ac.uk';
+   $contant_email = 'ytsapras@lcogt.net';
    $contant_phone = '+44-151-231-2903';
 } elsif ( $user eq 'mfb' ) {
    $contact_name = "Mike Bode";
@@ -223,7 +223,7 @@ if(  $user eq 'aa' ) {
    print '             <option VALUE="eSTAR">   eSTAR'."\n";
    print '             <option VALUE="PLANET">  PLANET'."\n";
    print '             <option VALUE="Robonet-1.0">     RoboNet-1.0'."\n";
-} elsif ( $user eq 'ias' || $user eq 'nrc' || $user eq 'cjm' || $user eq 'mfb' || $user eq 'mjb' || $user eq 'yt' || $user eq 'nr' ) {
+} elsif ( $user eq 'ias' || $user eq 'nrc' || $user eq 'cjm' || $user eq 'mfb' || $user eq 'mjb' || $user eq 'nr' ) {
    print '             <option VALUE="Robonet-1.0">     RoboNet-1.0'."\n";
    print '             <option VALUE="eSTAR">   eSTAR'."\n";
    print '             <option VALUE="PLANET">  PLANET'."\n";
@@ -236,7 +236,7 @@ if(  $user eq 'aa' ) {
    print '             <option VALUE="eSTAR">   eSTAR'."\n";
    print '             <option VALUE="PLANET">  PLANET'."\n";
    print '             <option VALUE="Robonet-1.0">     RoboNet-1.0'."\n";
-} elsif ( $user eq 'rs' | $user eq 'eh' )  {
+} elsif ( $user eq 'rs' | $user eq 'eh' || $user eq 'yt' )  {
    print '             <option VALUE="LCO"> LCO GT'."\n";
    print '             <option VALUE="eSTAR">   eSTAR'."\n";
    print '             <option VALUE="PLANET">  PLANET'."\n";

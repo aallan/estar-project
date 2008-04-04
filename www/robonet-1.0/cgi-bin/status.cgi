@@ -113,6 +113,11 @@
      print "More information available on the <a href='./scoring.cgi'>scoring status</a> pages.<br>";
   }   
  
+ print '<p><APPLET archive="http://estar5.astro.ex.ac.uk/robonet-1.0/applet/GeochronApplet.jar" code="GeochronApplet" width="550" height="275">';
+ print '  <param name="dayImageURL" value="http://estar5.astro.ex.ac.uk/robonet-1.0/jpg/day.jpg">';
+ print '  <param name="nightImageURL" value="http://estar5.astro.ex.ac.uk/robonet-1.0/jpg/night.jpg">';
+ print '</applet></p>';
+ 
   print "Time at FTS is <font color='red'>".eSTAR::Util::time_at_FTS()."</font> (Australia/Sydney)<br>\n";
   print "Time at LT is <font color='red'>".eSTAR::Util::time_at_LT()."</font> (Atlantic/Canary)<br>\n";
   print "Time at FTN is <font color='red'>".eSTAR::Util::time_at_FTN()."</font> (Pacific/Honolulu)<br>\n";
