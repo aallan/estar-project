@@ -10,7 +10,7 @@ dl.map.on {
 	position:relative;
 	width:550px;
 	height:275px;
-	background:url(../png/worldmap.png) no-repeat;
+	background:url(../png/worldmap.png) no-repeat; 
 	text-align:left;
 	margin:0px;
 	padding:0px;

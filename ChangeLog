@@ -1,3 +1,10 @@
+2008-04-04 Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* www/robonet-1.0 & www/estar: Added GeochronApplet.jar and associated
+	  jpeg files into the two web directories
+	  
+	* bin/.cvsignore: Added .DS_Store to ignore list.  
+
 2008-03-25 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * bin/test_servers.pl: Updated to FTP end point to estar.org.uk
