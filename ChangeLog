@@ -4,6 +4,9 @@
 	
 	* eSTAR/Broker/Handler.pm: Added twittering
 	
+	* bin/test_servers_gsm.pl: Bug fix eSTAR::GSM->send_sms() should be
+	  a class call eSTAR::GSM::send_sms().
+	  
 2008-04-04 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* www/robonet-1.0 & www/estar: Added GeochronApplet.jar and associated
