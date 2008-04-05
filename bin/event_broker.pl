@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.108 2008/04/05 18:53:33 aa Exp $
+$Id: event_broker.pl,v 1.109 2008/04/05 19:05:02 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.108 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.109 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -972,7 +972,7 @@ my $incoming_callback = sub {
       my $twit = new Net::Twitter( username => "eSTAR_Project", 
       				   password => "twitter*User" );
 
-      my $twit_status = "VOEvent message: $url";     
+      my $twit_status = "VOEvent message: http://$path/$path[$#path].xml";     
       my $twit_result;
       eval { $twit_result = $twit->update( $twit_status );
       if( $@ || !defined $twit_result ) {
@@ -1886,6 +1886,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.109  2008/04/05 19:05:02  aa
+# bug fix
+#
 # Revision 1.108  2008/04/05 18:53:33  aa
 # Added twittering
 #
