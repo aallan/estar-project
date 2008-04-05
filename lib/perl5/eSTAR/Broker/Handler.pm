@@ -632,6 +632,26 @@ sub handle_voevent {
    $ftp2->quit();     
    $log->debug("Closed FTP connection");  
 
+
+   # Tweet to Twitter
+   # ----------------
+   
+    $log->debug( "Twittering event to twitter.com" );
+    my $twit = new Net::Twitter( username => "eSTAR_Project", 
+   				 password => "twitter*User" );
+
+    my $twit_status = "VOEvent message: http://$path/$path[$#path].xml";     
+    my $twit_result;
+    eval { $twit_result = $twit->update( $twit_status ); };
+    if( $@ || !defined $twit_result ) {
+      my $error = "$@";
+      $log->error( "Error: Problem updating twitter.com with new status" );
+      $log->error( "Error: $error" ) if defined $error;
+   } else {
+      $log->debug( "Updated status on twitter.com" ); 
+   }
+     
+
    # Clean up the alert.log file
    # ---------------------------
    if ( defined $not_present[0] ) {

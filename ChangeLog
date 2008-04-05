@@ -2,6 +2,8 @@
 
 	* bin/event_broker.pl: Added twittering
 	
+	* eSTAR/Broker/Handler.pm: Added twittering
+	
 2008-04-04 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* www/robonet-1.0 & www/estar: Added GeochronApplet.jar and associated
