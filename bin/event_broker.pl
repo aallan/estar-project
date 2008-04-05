@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.110 2008/04/05 19:06:10 aa Exp $
+$Id: event_broker.pl,v 1.111 2008/04/05 19:07:08 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.110 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.111 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -974,7 +974,7 @@ my $incoming_callback = sub {
 
       my $twit_status = "VOEvent message: http://$path/$path[$#path].xml";     
       my $twit_result;
-      eval { $twit_result = $twit->update( $twit_status );
+      eval { $twit_result = $twit->update( $twit_status ); };
       if( $@ || !defined $twit_result ) {
         my $error = "$@";
 	$log->error( "Error: Problem updating twitter.com with new status" );
@@ -1887,6 +1887,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.111  2008/04/05 19:07:08  aa
+# bug fix
+#
 # Revision 1.110  2008/04/05 19:06:10  aa
 # bug fix
 #
