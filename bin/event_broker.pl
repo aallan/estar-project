@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.111 2008/04/05 19:07:08 aa Exp $
+$Id: event_broker.pl,v 1.112 2008/04/05 21:45:31 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.111 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.112 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -972,7 +972,9 @@ my $incoming_callback = sub {
       my $twit = new Net::Twitter( username => "eSTAR_Project", 
       				   password => "twitter*User" );
 
-      my $twit_status = "VOEvent message: http://$path/$path[$#path].xml";     
+      my $url = "http://$path/$path[$#path].xml";
+      $url =~ s/\/docs//;
+      my $twit_status = "Event message $id at $url";     
       my $twit_result;
       eval { $twit_result = $twit->update( $twit_status ); };
       if( $@ || !defined $twit_result ) {
@@ -1416,8 +1418,17 @@ my $iamalive = sub {
               $log->debug( $response );
               $log->debug( "Done." );
             }  
-         }
+         } else {
+	 
+	    # we don't seem to have a message. That's bad
+	    $log->error( "Error: Have not been able to parse message" );
+	    $log->error( $response );	
+	 }   	 
+         $log->warn("Warning: $response");
+
+
       }
+       
             
       # finished ping, loop to while(1) { ]
       $log->debug( "Done sending IAMALIVE to $server, next message in " .
@@ -1887,6 +1898,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.112  2008/04/05 21:45:31  aa
+# bug fixes
+#
 # Revision 1.111  2008/04/05 19:07:08  aa
 # bug fix
 #
