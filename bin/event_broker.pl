@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.107 2008/03/25 14:42:50 aa Exp $
+$Id: event_broker.pl,v 1.108 2008/04/05 18:53:33 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.107 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.108 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -291,6 +291,7 @@ use Config::Simple;
 use Config::User;
 use Time::localtime;
 use XML::RSS;
+use Net::Twitter;
 
 #
 # Networking modules
@@ -962,6 +963,24 @@ my $incoming_callback = sub {
      $ftp2->put( $rss, "$name.rdf" );
      $ftp2->quit();     
      $log->debug("Closed FTP connection");  
+
+
+     # Tweet to Twitter
+     # ----------------
+     
+      $log->debug( "Twittering event to twitter.com" );
+      my $twit = new Net::Twitter( username => "eSTAR_Project", 
+      				   password => "twitter*User" );
+
+      my $twit_status = "VOEvent message: $url";     
+      my $twit_result;
+      eval { $twit_result = $twit->update( $twit_status );
+      if( $@ || !defined $twit_result ) {
+        my $error = "$@";
+	$log->error( "Error: Problem updating twitter.com with new status" );
+	$log->error( "Error: $error" ) if defined $error;
+     } else {
+        $log->debug( "Updated status on twitter.com" );	
 
      # Clean up the alert.log file
      # ---------------------------
@@ -1867,6 +1886,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.108  2008/04/05 18:53:33  aa
+# Added twittering
+#
 # Revision 1.107  2008/03/25 14:42:50  aa
 # Updated lion.drogon.net to estar.org.uk
 #
