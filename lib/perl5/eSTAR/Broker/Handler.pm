@@ -29,7 +29,10 @@ use Config::User;
 use Data::Dumper;
 use Fcntl qw(:DEFAULT :flock);
 use Net::FTP;
-
+use Net::Twitter;
+use WWW::Shorten::TinyURL;
+use WWW::Shorten 'TinyURL';
+  
 # 
 # eSTAR modules
 #
@@ -642,7 +645,18 @@ sub handle_voevent {
 
     my $url = "http://$path/$path[$#path].xml";
     $url =~ s/\/docs//;
-    my $twit_status = "Event message $id at $url";  
+    my $short_url;
+    $log->debug( "Passing $url to tinyurl.com" );
+    eval { $short_url = makeashorterlink($url); };
+    if ( $@ || !defined $short_url ) {
+       $short_url = $url;
+       my $error = "$@";
+       $log->error( "Error: Call to tinyurl.com failed" );
+       $log->error( "Error: $error" ) if defined $error;
+    } else {
+      $log->debug( "Got $short_url back from tinyurl.com" );
+    }  
+    my $twit_status = "Event message $id at $short_url";  
     my $twit_result;
     eval { $twit_result = $twit->update( $twit_status ); };
     if( $@ || !defined $twit_result ) {

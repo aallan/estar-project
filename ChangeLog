@@ -1,5 +1,12 @@
 2008-04-05 Alasdair Allan <aa@astro.ex.ac.uk>
 
+	* bin/event_broker.pl: Used WWW::Shorten to encode event URLs for
+	  sending to twitter.com
+
+	* eSTAR/Broker/Handler.pm: Ditto.
+
+2008-04-05 Alasdair Allan <aa@astro.ex.ac.uk>
+
 	* bin/event_broker.pl: Added twittering
 	
 	* eSTAR/Broker/Handler.pm: Added twittering
