@@ -713,17 +713,17 @@ sub handle_rtml {
                                                  name => $parsed->target());
 
         
-         # Offset the target MSB by -795 arcsec in both RA and Dec (S & W)
+         # Offset the target MSB by -720 arcsec in both RA and Dec (S & W)
          my $instrument = eSTAR::JACH::Util::current_instrument( 
                                     $config->get_option( "dn.telescope")); 
          $log->debug( "The current instrument is $instrument" );
          if ( $instrument eq "WFCAM" ) {                           
            $log->warn( "Warning: The current instrument is $instrument" );
-           $log->warn( "Warning: Offseting by 795 arcsec south and west" );
+           $log->warn( "Warning: Offseting by 720 arcsec south and west" );
            my $ra = $input_position->ra( format => "arcsec" );
            my $dec = $input_position->dec( format => "arcsec" );
            $log->debug( "Input position is $input_position" );
-           my $offset = 795;
+           my $offset = 720;
            my $offset_ra = $offset/cos(abs($input_position->dec(format => "radians"))); 
            $log->debug("An offset of $offset in Dec translates to $offset_ra in RA");
            $ra = $ra - $offset_ra;
@@ -956,7 +956,7 @@ sub handle_rtml {
             # then resubmit (probably need a prune method to remove
             # exipired MSB's).
             $log->debug( "Trying now...." );
-            eval { OMP::SpServer->storeProgram( "$sp", $password ); };
+            eval { my @array = OMP::SpServer->storeProgram( "$sp", $password ); use Data::Dumper; print "MY ARRAY IS: " . Dumper( @array ) };
             if( $@ ) {
                $log->error( "Error: Unable to submit MSB to SpServer" );
                $log->error( "Error: $@");

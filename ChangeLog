@@ -1,3 +1,7 @@
+2008-04-09 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * eSTAR/JACH/Handler.pm: Changed offset from -795 to -720 arcsec
+
 2008-04-05 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* bin/event_broker.pl: Used WWW::Shorten to encode event URLs for
