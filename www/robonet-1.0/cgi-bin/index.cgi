@@ -1,5 +1,8 @@
 #!/software/perl-5.8.8/bin/perl
 
+#use lib $ENV{"ESTAR_PERL5LIB"};     
+use lib "/work/estar/third_generation/lib/perl5";
+use eSTAR::Util;
 use Time::localtime;
 
 my $header;
@@ -13,7 +16,7 @@ unless ( open ( FILE, "<../header.inc") ) {
    $header = <FILE>;
    close FILE;
 }
-$header =~ s/PAGE_TITLE_STRING/PLANET Override/g;
+$header =~ s/PAGE_TITLE_STRING/LCO Override/g;
 
 my $footer;
 unless ( open ( FILE, "<../footer.inc") ) {
@@ -33,11 +36,27 @@ my $user = $ENV{REMOTE_USER};
 print "Content-type: text/html\n\n";
 print $header;
 
-print '<p><b><font color="red">WARNING:</font></b> Since no more than 10 target of opportunity (TOO) override requests per telescope for immediate observations on the RoboNet-1.0 can be made per year, the use of this facility must be restricted to <b>quite exceptional</b> cases, such as a significicant probability for an ongoing planetary anomaly, for which obtaining data at the given time is absolutely crucial. In general, a peak magnification of less than 200 without a previous sign of an anomaly is not seen as such a case. For less urgent cases please submit requests in normal mode, which will queue additional observations onto the Robonet-1.0 telescopes for later observation. All time used by observations requested through this form will be billed to the exo-planet programme allocation.</p>'."\n";
-
 print '<form action="http://estar5.astro.ex.ac.uk/robonet-1.0/cgi-bin/submit.cgi" method="PUT">'."\n";
 print '   <center>'."\n";
 print '   <table width="95%" cellpadding="2" cellspacing="2" border="0">'."\n";
+
+print ' <tr><td colspan="3">';
+ print '<p><APPLET archive="http://estar5.astro.ex.ac.uk/robonet-1.0/applet/GeochronApplet.jar" code="GeochronApplet" width="550" height="275">';
+ print '  <param name="dayImageURL" value="http://estar5.astro.ex.ac.uk/robonet-1.0/jpg/day.jpg">';
+ print '  <param name="nightImageURL" value="http://estar5.astro.ex.ac.uk/robonet-1.0/jpg/night.jpg">';
+ print '</applet></p>';
+ 
+  print "Time at FTS is <font color='red'>".eSTAR::Util::time_at_FTS()."</font> (Australia/Sydney)<br>\n";
+  print "Time at LT is <font color='red'>".eSTAR::Util::time_at_LT()."</font> (Atlantic/Canary)<br>\n";
+  print "Time at FTN is <font color='red'>".eSTAR::Util::time_at_FTN()."</font> (Pacific/Honolulu)<br>\n";
+  print "Time in UK is <font color='red'>".eSTAR::Util::time_in_UK()."</font> (Europe/London)<br><br>\n";
+	
+print "</td></tr>";
+
+#print '<tr><td colspan="3">';
+#print '<p><b><font color="red" size="-2">WARNING:</font></b> <font size="-2">Since no more than 10 target of opportunity (TOO) override requests per telescope for immediate observations on the RoboNet-1.0 can be made per year, the use of this facility must be restricted to <b>quite exceptional</b> cases, such as a significicant probability for an ongoing planetary anomaly, for which obtaining data at the given time is absolutely crucial. In general, a peak magnification of less than 200 without a previous sign of an anomaly is not seen as such a case. For less urgent cases please submit requests in normal mode, which will queue additional observations onto the Robonet-1.0 telescopes for later observation. All time used by observations requested through this form will be billed to the exo-planet programme allocation.</font></p>'."\n";
+#print "</td></tr>";
+
 
 print '     <tr align="left" valign="middle">'."\n";
 
