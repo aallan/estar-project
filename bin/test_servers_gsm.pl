@@ -9,6 +9,7 @@
   #
   # General modules
   use Getopt::Long;
+  use LWP::UserAgent;
   use SOAP::Lite;
   use Digest::MD5 'md5_hex';
   use Fcntl qw(:DEFAULT :flock);
@@ -36,6 +37,7 @@
   use eSTAR::Mail;
   use eSTAR::UserAgent;
   use eSTAR::GSM;
+  use eSTAR::UserAgent;
 
   my $process = new eSTAR::Process( "test_servers_gsm" );  
   $process->set_version( $VERSION );
@@ -213,6 +215,29 @@ $ua->set_ua( $lwp );
   print SERIAL "# MACHINES\n";
   
   foreach my $i ( 0 ... $#hosts ) {
+  
+    if( $hosts[$i] eq "www.estar.org.uk" ) {
+       $log->header("\n$hosts[$i]");    
+       $log->debug( "Checking webhost $hosts[$i]...");
+
+       my $url = "http://www.estar.org.uk/network.status";        
+       $log->debug("URL = $url" );
+       $log->debug("Fetching page..." );
+       my $reply;
+       eval { $reply = $ua->get_ua()->get( $url ) };
+
+       if ( $@ || ${$reply}{"_rc"} ne 200 ) {
+          print SERIAL "$hosts[$i] NACK\n";
+          $content = $content . "$hosts[$i] NACK\n";     
+          $log->error( "$hosts[$i]: NACK");         
+       } else {  
+          print SERIAL "$hosts[$i] PING\n";
+          $content = $content . "$hosts[$i] PING\n";  
+          $log->print( "$hosts[$i]: ACK");       
+       }
+       next;
+    }  
+
     $log->header("\n$hosts[$i]");
     $log->debug( "Pinging $hosts[$i]...");
 #    my $ping = Net::Ping->new( "icmp" );
@@ -499,6 +524,8 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
   
 # N O T I F Y   P E O P L  E ------------------------------------------------
    
+  $log->print( "Checking for notifiable error states..." );
+   
   if ($MACHINES{'estar-switch.astro.ex.ac.uk'} ne 'PING' ) {
   
      my $text = "eSTAR Test: network connection down at ". ctime();
@@ -575,5 +602,5 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
       } 
   }
   
-  $log->debug("Done.");  
+  $log->print("Done.");  
   exit;

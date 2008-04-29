@@ -9,6 +9,7 @@
   #
   # General modules
   use Getopt::Long;
+  use LWP::UserAgent;
   use SOAP::Lite;
   use Digest::MD5 'md5_hex';
   use Fcntl qw(:DEFAULT :flock);
@@ -32,6 +33,7 @@
   use eSTAR::Error qw /:try/;
   use eSTAR::Constants qw/:status/;
   use eSTAR::Mail;
+  use eSTAR::UserAgent;
 
   my $process = new eSTAR::Process( "test_servers" );  
   $process->set_version( $VERSION );
@@ -134,6 +136,23 @@ unless ( defined $status ) {
      $status = $config->write_state();
   }
 
+# H T T P   U S E R   A G E N T ----------------------------------------------
+
+$log->debug("Creating an HTTP User Agent...");
+ 
+
+# Create HTTP User Agent
+my $lwp = new LWP::UserAgent( 
+                timeout => $config->get_option( "connection.timeout" ));
+
+# Configure User Agent                         
+$lwp->env_proxy();
+$lwp->agent( "eSTAR OGLE Fetch /$VERSION (" 
+             . hostname() . ")" );
+
+my $ua = new eSTAR::UserAgent(  );  
+$ua->set_ua( $lwp );
+
 # O P E N   O U T P U T   F I L E -----------------------------------------
 
   my $content = "";
@@ -193,6 +212,29 @@ unless ( defined $status ) {
   $content = $content . "Machines\n--------\n\n";   
   
   foreach my $i ( 0 ... $#hosts ) {
+  
+    if( $hosts[$i] eq "www.estar.org.uk" ) {
+       $log->header("\n$hosts[$i]");    
+       $log->debug( "Checking webhost $hosts[$i]...");
+
+       my $url = "http://www.estar.org.uk/network.status";        
+       $log->debug("URL = $url" );
+       $log->debug("Fetching page..." );
+       my $reply;
+       eval { $reply = $ua->get_ua()->get( $url ) };
+
+       if ( $@ || ${$reply}{"_rc"} ne 200 ) {
+          print SERIAL "$hosts[$i] NACK\n";
+          $content = $content . "$hosts[$i] NACK\n";     
+          $log->error( "$hosts[$i]: NACK");         
+       } else {  
+          print SERIAL "$hosts[$i] PING\n";
+          $content = $content . "$hosts[$i] PING\n";  
+          $log->print( "$hosts[$i]: ACK");       
+       }
+       next;
+    }  
+  
     $log->header("\n$hosts[$i]");
     $log->debug( "Pinging $hosts[$i]...");
 #    my $ping = Net::Ping->new( "icmp" );

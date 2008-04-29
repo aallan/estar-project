@@ -1,3 +1,8 @@
+2008-04-29 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * bin/test_servers.pl & bin/test_servers_gsm.pl: Added Brad as a contact
+	  for UKIRT and changed pinging for www.estar.org.uk to poll webserver
+	  
 2008-04-09 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * eSTAR/JACH/Handler.pm: Changed offset from -795 to -720 arcsec
