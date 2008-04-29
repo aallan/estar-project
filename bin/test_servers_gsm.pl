@@ -535,7 +535,8 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
              $text = "eSTAR Test: Fault with UKIRT node agent at ".ctime();
 	  }
           $log->debug( $text );	  
-    	  eSTAR::GSM::send_sms( "447973793139", $text );  
+    	  eSTAR::GSM::send_sms( "447973793139", $text ); # Alasdair Allan 
+          eSTAR::GSM::send_sms( "18087690579", $text ); # Brad Cavanagh
       
       }
       
