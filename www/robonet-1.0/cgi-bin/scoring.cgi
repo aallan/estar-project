@@ -139,7 +139,7 @@
         "<a href='./status.cgi?dir=02-2008'>Feb 2008</a> | ". 
         "<a href='./status.cgi?dir=03-2008'>Mar 2008</a> | ". 
         "<a href='./status.cgi?dir=04-2008'>Apr 2008</a> | ". 
-        "May 2008 | ". 
+        "<a href='./status.cgi?dir=05-2008'>May 2008</a> | ". 
         "Jun 2008 | ". 
         "Jul 2008 | ". 
         "Aug 2008 | ". 
