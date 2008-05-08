@@ -288,15 +288,16 @@ sub convert_from_sextuplets {
  
  my ($ra_hour, $ra_min, $ra_sec) = split " ", $ra;
  my ($dec_deg, $dec_min, $dec_sec) = split " ",$dec;
- 
+ $dec_deg =~ s/\+// if $dec_deg eq "+";
+
  my $decimal_ra = $ra_hour*15.0 + ($ra_min/60.0) + ($ra_sec/3600.0);
+ 
  my $decimal_dec;
  if ( $dec_deg =~ "-" ) {
     $decimal_dec = $dec_deg - ($dec_min/60.0) - ($dec_sec/3600.0);
  } else {   
     $decimal_dec = $dec_deg + ($dec_min/60.0) + ($dec_sec/3600.0);
  }
- $decimal_dec =~ s/\+// if $decimal_dec eq "+";
  
  return( $decimal_ra, $decimal_dec );
 } 
