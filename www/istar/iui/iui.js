@@ -1,3 +1,8 @@
+/*
+ 	 Copyright (c) 2007, iUI Project Members
+	 See LICENSE.txt for licensing terms
+ */
+
 
 (function() {
 
@@ -56,7 +61,7 @@ window.iui =
         }
     },
 
-    showPageByHref: function(href, args, method, link, cb)
+    showPageByHref: function(href, args, method, replace, cb)
     {
         var req = new XMLHttpRequest();
         req.onerror = function()
@@ -69,12 +74,8 @@ window.iui =
         {
             if (req.readyState == 4)
             {
-                if( link ) {
-	           if (link.target == "_insert") 
-                       insertElementWithSource(link, req.responseText);
-		   else if (link.target == "_replace" )
-                       replaceElementWithSource(link, req.responseText);
-		}
+                if (replace)
+                    replaceElementWithSource(replace, req.responseText);
                 else
                 {
                     var frag = document.createElement("div");
@@ -175,11 +176,6 @@ addEventListener("click", function(event)
             link.setAttribute("selected", "progress");
             iui.showPageByHref(link.href, null, null, link, unselect);
         }
-        else if (link.target == "_insert")
-        {
-            link.setAttribute("selected", "progress");
-            iui.showPageByHref(link.href, null, null, link, unselect);
-        }	
         else if (!link.target)
         {
             link.setAttribute("selected", "progress");
@@ -379,14 +375,6 @@ function replaceElementWithSource(replace, source)
 
     while (frag.firstChild)
         page.appendChild(frag.firstChild);
-}
-
-function insertElementWithSource(insert, source)
-{
-
-    var parent = insert.parentNode;
-    parent.innerHTML = source;
-
 }
 
 function $(id) { return document.getElementById(id); }

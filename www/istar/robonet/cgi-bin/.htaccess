@@ -1,0 +1,7 @@
+AuthUserFile /home/estar/www.estar.org.uk/docs/istar/robonet-2.0/cgi-bin/.htpasswd
+AuthGroupFile /dev/null
+AuthName "Robonet-2.0 Access"
+AuthType Basic
+Options +Indexes +FollowSymLinks +Includes +ExecCGI
+AddHandler cgi-script .cgi
+Require valid-user

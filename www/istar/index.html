@@ -3,56 +3,65 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title>eSTAR iStatus</title>
-<meta name="viewport" content="width=320; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/>
+<title>eSTAR</title>
+<link rel="apple-touch-icon" href="png/webclip_icon.png"/>
+
+<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/>
 <style type="text/css" media="screen">@import "iui/iui.css";</style>
+<style type="text/css" media="screen">@import "css/estar.css";</style>
 <script type="application/x-javascript" src="iui/iui.js"></script>
-
-<script type="application/x-javascript">
-
-if (navigator.userAgent.indexOf('iPhone') != -1) {
-        addEventListener("load", function() {
-                setTimeout(hideURLbar, 0);
-        }, false);
-}
-
-function hideURLbar() {
-        window.scrollTo(0, 1);
-}
-
-</script>
-
 </head>
 
-<body onload="hideURLbar()">
+<body>
     <div class="toolbar">
         <h1 id="pageTitle"></h1>
         <a id="backButton" class="button" href="#"></a>
+        <a class="button" href="#search">Search</a>
     </div>
+
+    <ul id="home" title="eSTAR" selected="true">
     
-    <ul title="eSTAR" selected="true">
-      <li>
-      <iframe width="300" height="200" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="http://maps.google.com/maps/ms?hl=en&amp;geocode=&amp;time=&amp;date=&amp;ttype=&amp;ie=UTF8&amp;msa=0&amp;msid=117219566395833875306.00043e6b94637a52a053e&amp;ll=28.7622,-17.879745&amp;spn=23.875,57.630033&amp;t=h&amp;om=1&amp;output=embed&amp;s=AARTsJoCMkEuz2jJ74Ytx2iqzgiBw7gonw"></iframe>      
-      </li>
-      <li>
-      <a href="html/status.html">Network Status</a>
-      </li>
-   <li>
-<div class="vcard">
-  <div class="fn">Alasdair Allan</div>
-  <div class="fn org">eSTAR Project</div>
-  <div>Phone: <span class="tel">+44-1392-264160</span></div>
-  <div>Email: <span class="email">aa@estar.org.uk</span></div>
-</div>
+     <li><img src="png/network.png"></li>
+      <li><a href="robonet-2.0/cgi-bin/index.cgi">Robonet-2.0 Login</a></li>
+      <li><a href="ukirt/cgi-bin/index.cgi">UKIRT Login</a></li>
+      <li><a href="voevent/cgi-bin/index.cgi">VOEvent Manual Inject</a></li>
+      <li><a href="estar/html/status.html">Network Status</a></li>
+      <li><a href="#settings">Settings</a></li>
+      <li><a href="#about">About eSTAR</a></li>
+    </ul>
 
-   </li>
-</ul>
+    </div>
 
-<!-- This doesn't seem to want to fire from <body onload=''> ? -->
-<script language="javascript" type="text/javascript">
-   hideURLbar();
-</script>
-
+    <form id="search" class="dialog" action="cgi-bin/estar/search.cgi">
+        <fieldset>
+            <h1>Search</h1>
+            <a class="button leftButton" type="cancel">Cancel</a>
+            <a class="button blueButton" type="submit">Search</a>
+            
+            <label>Query:</label>
+            <input id="string" type="text" name="string"/>
+        </fieldset>
+    </form>
+ 
+    <div id="settings" title="Settings" class="panel">
+        <h2>User</h2>
+        <fieldset>
+            <div class="row">
+                <label>Name</label>
+                <input type="text" name="userName" value=""/>
+            </div>
+            <div class="row">
+                <label>Password</label>
+                <input type="password" name="password" value=""/>
+            </div>
+            <div class="row">
+                <label>Confirm</label>
+                <input type="password" name="password" value=""/>
+            </div>
+        </fieldset>
+    </div>
 
 </body>
-</html>    
+</html>
+
+
