@@ -1,4 +1,4 @@
-#!/software/perl-5.8.6/bin/perl
+#!/software/perl-5.8.8/bin/perl
 
 
 =head1 NAME
@@ -20,7 +20,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: ogle_fetch_v2.pl,v 1.1 2007/08/16 12:01:58 aa Exp $
+$Id: ogle_fetch_v2.pl,v 1.2 2008/05/13 13:34:05 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -37,7 +37,7 @@ use vars qw / $VERSION /;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.1 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -222,43 +222,55 @@ if ( $config->get_state("of.unique_process") == 1 ) {
    # ogle page
 #   $config->set_option("of.remote", "cgi.st-andrews.ac.uk");
 #   $config->set_option("of.url", "cgi/~cdbs/optimise.pl");
-   $config->set_option("of.remote", "robonet.astro.livjm.ac.uk");
+
+#   $config->set_option("of.remote", "robonet.astro.livjm.ac.uk");
+#   $config->set_option("of.url", "~robonet/newcode/cgi-bin/optimise.cgi");
+
+   $config->set_option("of.remote", "robonet.lcogt.net");
    $config->set_option("of.url", "~robonet/newcode/cgi-bin/optimise.cgi");
+
+#   $config->set_option("of.remote", "algo1.lcogt.net");
+#   $config->set_option("of.url", "robonet/newcode/cgi-bin/optimise.cgi");
 
    # connection options defaults
    $config->set_option("connection.timeout", 20 );
    $config->set_option("connection.proxy", 'NONE'  );
   
    # mail server
-   $config->set_option("mailhost.name", 'butch' );
+   $config->set_option("mailhost.name", 'mail.ex.ac.uk' );
    $config->set_option("mailhost.domain", 'astro.ex.ac.uk' );
    $config->set_option("mailhost.timeout", 30 );
    $config->set_option("mailhost.debug", 0 );   
    
-   # science (defaults are for LT)
-   $config->set_option("science.long", "-17.88166" );
-   $config->set_option("science.lat", "28.76" );
-   $config->set_option("science.elev", "2326" );
-   $config->set_option("science.Vmean", "20.0" );
+   # science 
+   $config->set_option("science.Vmean", "19.0" );
    $config->set_option("science.k", "0.1" );
    $config->set_option("science.aperture", "2.0" );
    $config->set_option("science.thruput", "60" );
    $config->set_option("science.bandwidth", "1410" );
    $config->set_option("science.QE", "90" );
    $config->set_option("science.pixel", "0.27" );
-   $config->set_option("science.gain", "2.6" );
-   $config->set_option("science.ron", "2.5" );
+   $config->set_option("science.gain", "2.708" );
+   $config->set_option("science.ron", "2.33" );
    $config->set_option("science.bias", "1200" );
    $config->set_option("science.sat", "60000" );
    $config->set_option("science.tread", "10" );
    $config->set_option("science.slew", "30" );
    $config->set_option("science.data", "PLENS" );
-   $config->set_option("science.time", "TONIGHT" );
+   $config->set_option("science.time", "NOW" );
+   $config->set_option("science.OPTIMISE", "NOW" );
    $config->set_option("science.seeing", "1.0" );
    $config->set_option("science.q", "0.001" );
    $config->set_option("science.dchi", "25" );
-   $config->set_option("science.hours", "2.0" );
-    
+   $config->set_option("science.hours", "1.0" );
+   $config->set_option("science.last_data", "ROBONET" );
+   $config->set_option("science.tel_max_exp", "180" );
+   
+   # long, lat & elev defaults are for the LT
+   #$config->set_option("science.long", "-17.88166" );
+   #$config->set_option("science.lat", "28.76" );
+   #$config->set_option("science.elev", "2326" );
+       
    # C O M M I T T   O P T I O N S  T O   F I L E S
    # ----------------------------------------------
    
@@ -437,7 +449,10 @@ my $query = [ "long"        => $config->get_option("science.long"),
               "q"           => $config->get_option("science.q"),
               "dchi"        => $config->get_option("science.dchi"),
               "hrspernight" => $config->get_option("science.hours"),
-	      "output"      => "ascii" ];
+	      "OPTIMISE"    => $config->get_option("science.OPTIMISE" ),
+              "last_data"   => $config->get_option("science.last_data"),
+   	      "tel_max_exp" => $config->get_option("science.tel_max_exp" ),
+	      "output"      => "ASCII" ];
 
 my $url = "http://" . $config->get_option("of.remote") . "/" . 
           $config->get_option("of.url");
@@ -471,7 +486,7 @@ $log->debug("Harvesting content from data file...");
 my @page = split "\n", ${$reply}{_content};
 
 #print Dumper( @page );
-#exit;
+exit;
 
 # P A R S E   D A T A -----------------------------------------------------
 
