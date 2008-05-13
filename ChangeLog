@@ -1,3 +1,8 @@
+2008-05-13 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * www/robonet-1.0/cgi-bin/count.cgi & single.cgi: Incremental query
+	  tools into the Microlensing UA backend.
+	  
 2008-04-29 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * bin/test_servers.pl & bin/test_servers_gsm.pl: Added Brad as a contact
