@@ -1,3 +1,6 @@
+.e {color: #FF0000; font-size: 200%}
+.star {color: #666666 }
+
 li img {
   display: block;
   width: 95%;
@@ -28,39 +31,15 @@ li img {
   color: inherit;
 }
 
-.row > green {
-  display: block;
-  margin: 0;
-  border: none;
-  padding: 12px 10px 0 110px;
-  text-align: left;
-  text-decoration: inherit;
-  height: 42px;
-  box-sizing: border-box;
+#green {
   color: green;
 }
 
-.row > red {
-  display: block;
-  margin: 0;
-  border: none;
-  padding: 12px 10px 0 110px;
-  text-align: left;
-  text-decoration: inherit;
-  height: 42px;
-  box-sizing: border-box;
+#red {
   color: red;
 }
 
-.row > orange {
-  display: block;
-  margin: 0;
-  border: none;
-  padding: 12px 10px 0 110px;
-  text-align: left;
-  text-decoration: inherit;
-  height: 42px;
-  box-sizing: border-box;
+#orange {
   color: orange;
 }
 
@@ -73,3 +52,16 @@ li img {
   color: #7388a5;
 }
 
+.serviceButton {
+  display: block;
+  margin: 0;
+  border: none;
+  padding: 12px 10px 0 0px;
+  text-align: center;
+  font-weight: bold;
+  text-decoration: inherit;
+  height: 42px;
+  color: #7388a5;
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+}

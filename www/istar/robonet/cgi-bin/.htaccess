@@ -1,4 +1,4 @@
-AuthUserFile /home/estar/www.estar.org.uk/docs/istar/robonet-2.0/cgi-bin/.htpasswd
+AuthUserFile /home/estar/www.estar.org.uk/docs/istar/robonet/cgi-bin/.htpasswd
 AuthGroupFile /dev/null
 AuthName "Robonet-2.0 Access"
 AuthType Basic

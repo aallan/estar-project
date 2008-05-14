@@ -110,7 +110,7 @@ if ( $query{item} eq "LT" ) {
    print '</div>';
    print '<div class="row">';
    print '  <label>Location</label>';
-   print '  <p>Lat. 28.70, Long. -17.87</p>';
+   print '  <p><a href="http://maps.google.com/staticmap?center=28.7624,-17.8792&zoom=14&size=512x512&maptype=mobile&key=ABQIAAAAE-fH9yAlvJ5m2wOajR_KXRT-tlO_4MfMkLaEL3ap_C1rBF4dfhSLxgDlKXq8dQ1gTkqm4glgwgLGbg">Lat. 28.70, Long. -17.87</a></p>';
    print '</div>';
 
    my $string;
@@ -119,9 +119,9 @@ if ( $query{item} eq "LT" ) {
          $string = '<div class="row">';
          $string = $string . "<label>Proxy</label>";
          if ( $machine{$key} eq "PING" ) {
-            $string = $string . "<green>OK</green>";
+            $string = $string . '<p id="green">OK</p>';
          } else {
-            $string = $string . "<red>NO</red>\n";
+            $string = $string . '<p id="red">NO</p>';
          }
          $string = $string . '</div>';
          print $string;
@@ -132,11 +132,11 @@ if ( $query{item} eq "LT" ) {
    my $lt_status = ${$node{LT}}[2];
    my $lt_status_string = "";
    if( $lt_status eq "UP" ) {
-      $lt_status_string = "<green>UP</green>";
+      $lt_status_string = '<p id="green">UP</p>';
    } elsif ( $lt_status eq "DOWN" ) {
-      $lt_status_string = "<red>DOWN</red>";
+      $lt_status_string = '<p id="red">DOWN</p>';
    } else {
-      $lt_status_string = "<orange>$lt_status</orange>";
+      $lt_status_string = '<p id="orange">'.$lt_status.'</p>';
    }
    print "<label>Agent</label>";
    print $lt_status_string; 
@@ -146,34 +146,56 @@ if ( $query{item} eq "LT" ) {
 }
 
 if ( $query{item} eq "FTS" ) {
-   print 'Faulkes South<br>Coonabarabran, Australia<br><font size="-2">Lat. -31.27, Long. 149.28</font><br>'."\n";
-   print '<img src="http://www.estar.org.uk/jpg/test_card.jpg" width="160" height="120" alt="FTS web camera" /><br>'."\n";
-   my $string = "<table width='100%'>";
-   foreach my $key ( sort keys %machine ) {
-      my $host = "ftsproxy.aao.gov.au" if $key eq "150.203.153.202";
-      if ( $host =~ "aao.gov.au" ) {
-         $string = $string . "<tr><td>$host</td><td align='right'><font color='";
-         if ( $machine{$key} eq "PING" ) {
-            $string = $string . "lightgreen'>OK</font></td></tr>\n";
-         } else {
-            $string = $string . "red'>NO</font></td></tr>\n";
-         }
-      }
-   }
-   $string =  "<tr><td>ftsproxy.aao.gov.au</td><td><font color='red'>NO</font></td></tr>\n" if $string eq "";
+   print '<div title="FTS" class="panel">';
+   print ' <div>';
+   print '  <img src="http://www.estar.org.uk/jpg/test_card.jpg" />';
+   print ' </div>';
+   print ' <h2>Details</h2>';
+   print '<fieldset>';
+   print '<div class="row">';
+   print '  <label>Telescope</label>';
+   print '  <p>Faulkes South</p>';
+   print '</div>';
+   print '<div class="row">';
+   print '  <label>Location</label>';
+   print '  <p>Coonabarabran, Australia</p>';
+   print '</div>';
+   print '<div class="row">';
+   print '  <label>Location</label>';
+   print '  <p>Lat. -31.27, Long. 149.28</p>';
+   print '</div>';
 
-   print $string ."\n"; 
-   my $fts_status = ${$node{FTS}}[2];
+   my $string;
+   foreach my $key ( sort keys %machine ) {
+      if ( $key eq "150.203.153.202" ) {
+         $string = '<div class="row">';
+         $string = $string . "<label>Proxy</label>";
+         if ( $machine{$key} eq "PING" ) {
+            $string = $string . '<p id="green">OK</p>';
+         } else {
+            $string = $string . '<p id="red">NO</p>';
+         }
+         $string = $string . '</div>';
+         print $string;
+      }
+   } 
+
+
+   print '<div class="row">';
+   my $fts_status = ${$node{LT}}[2];
    my $fts_status_string = "";
    if( $fts_status eq "UP" ) {
-      $fts_status_string = "<font color='lightgreen'>UP</font>";
+      $fts_status_string = '<p id="green">UP</p>';
    } elsif ( $fts_status eq "DOWN" ) {
-      $fts_status_string = "<font color='red'>DOWN</font>";
+      $fts_status_string = '<p id="red">DOWN</p>';
    } else {
-      $fts_status_string = "<font color='orange'>$fts_status</font>";
+      $fts_status_string = '<p id="orange">'.$fts_status.'</p>';
    }
-   print "<tr><td>Node Agent&nbsp;&nbsp;</td><td align='right'>$fts_status_string</td></tr>"; 
-   print "</table>";
+   print "<label>Agent</label>";
+   print $fts_status_string; 
+   print "</div>";
+   print "</fieldset>";
+   print "</div>";
 }
 
 if ( $query{item} eq "FTN" ) {
