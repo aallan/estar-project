@@ -60,31 +60,38 @@
   #foreach my $i ( 0 ... $#sorted ) {
   #  print "$i $sorted[$i]<br>";
   #}  
-	
-  my $file = $query{file};     
-  foreach my $i ( 0 ... $query{file} ) {
-    #print "i = $i $sorted[$i]<BR>\n";
-    if ( $files[$i] =~ m/\./ ) {
-       $file = $file + 1;	
-       next;
-    }
-    if ( $files[$i] =~ m/\.\./ ) {
-       $file = $file + 1;	
-       next;   
-    }
-    if ( $files[$i] =~ m/^\d{4}$/ ) {
-       $file = $file + 1;	
-       next;	
-    } 
-    if ( $files[$i] =~ m/^\d{2}-\d{4}$/ ) {
-       $file = $file + 1;	
-       next;   
-    }
+
+  my $serialised;
+  if ( defined $query{file} ) {
+  	    
+      my $file = $query{file};     
+      foreach my $i ( 0 ... $query{file} ) {
+  	#print "i = $i $sorted[$i]<BR>\n";
+  	if ( $files[$i] =~ m/\./ ) {
+  	   $file = $file + 1;	    
+  	   next;
+  	}
+  	if ( $files[$i] =~ m/\.\./ ) {
+  	   $file = $file + 1;	    
+  	   next;   
+  	}
+  	if ( $files[$i] =~ m/^\d{4}$/ ) {
+  	   $file = $file + 1;	    
+  	   next;    
+  	} 
+  	if ( $files[$i] =~ m/^\d{2}-\d{4}$/ ) {
+  	   $file = $file + 1;	    
+  	   next;   
+  	}
+      }
+      $serialised = $files[$file];
+  } elsif ( defined $query{id} ) {
+      $serialised = $query{id};
   }
-  print $files[$file];
- 
+  
+  print $serialised;
   my $object;
-  eval { $object = thaw( $dir, $files[$file] ); };
+  eval { $object = thaw( $dir, $serialised ); };
 
   my $status = $object->status();
   my $node = $object->node();
