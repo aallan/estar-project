@@ -37,6 +37,7 @@
   }
  
 # M A I N   L O O P  #########################################################
+  print "Content-type: text/ascii\n\n";  
   
   my $dir = File::Spec->catdir( File::Spec->rootdir(), "home", "estar", 
                                 ".estar", "user_agent", "state" );
@@ -54,16 +55,18 @@
   my @sorted = sort {-M "$dir/$a" <=> -M "$dir/$b"} @files;
   @files = @sorted;
   
-  print "Content-type: text/html\n\n";  
-	
+  my $count = 0;	
   foreach my $i ( 0 ... $#files ) {
-   
+     
+     #print "\n$i $files[$i] ";
+     
      next if $files[$i] =~ m/\./;
      next if $files[$i] =~ m/\.\./;
      next if $files[$i] =~ m/^\d{4}$/;
      next if $files[$i] =~ m/^\d{2}-\d{4}$/;
    
      $count = $count + 1;
+     #print " count = $count";
 
   }
   print $count;  

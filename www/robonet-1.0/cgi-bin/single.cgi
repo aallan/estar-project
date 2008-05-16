@@ -63,28 +63,34 @@
 
   my $serialised;
   if ( defined $query{file} ) {
-  	    
-      my $file = $query{file};     
-      foreach my $i ( 0 ... $query{file} ) {
-  	#print "i = $i $sorted[$i]<BR>\n";
-  	if ( $files[$i] =~ m/\./ ) {
-  	   $file = $file + 1;	    
-  	   next;
-  	}
-  	if ( $files[$i] =~ m/\.\./ ) {
-  	   $file = $file + 1;	    
-  	   next;   
-  	}
-  	if ( $files[$i] =~ m/^\d{4}$/ ) {
-  	   $file = $file + 1;	    
-  	   next;    
-  	} 
-  	if ( $files[$i] =~ m/^\d{2}-\d{4}$/ ) {
-  	   $file = $file + 1;	    
-  	   next;   
-  	}
+ 
+     my $skipped = 0;
+     my $count = 0;
+     foreach my $i ( 0 ... $#files ) {
+     
+        #print "\n$i $files[$i] ";
+        unless ( $files[$i] =~ m/\./ || 
+                 $files[$i] =~ m/\.\./ ||
+                 $files[$i] =~ m/^\d{4}$/ ||
+                 $files[$i] =~ m/^\d{2}-\d{4}$/ ) {
+	   $count = $count + 1;
+	   if ( $count == $query{file} ) {
+	      #print "final file ";
+              my $index = $query{file} + $skipped - 1;
+	      $serialised = $files[$index];
+	      #print " count = $count, skipped = $skipped, index = $index";
+	      last;
+	   }   
+	   #print "ok ($count)"; 
+	   next;
+	}   	 
+   
+        $skipped = $skipped + 1;
+	#print "skipping ($skipped)"; 
+
       }
-      $serialised = $files[$file];
+      
+     #print " serialised = $serialised\n";	  
   } elsif ( defined $query{id} ) {
       $serialised = $query{id};
   }
