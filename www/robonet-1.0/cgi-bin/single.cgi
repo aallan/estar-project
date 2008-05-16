@@ -69,24 +69,20 @@
      foreach my $i ( 0 ... $#files ) {
      
         #print "\n$i $files[$i] ";
-        unless ( $files[$i] =~ m/\./ || 
-                 $files[$i] =~ m/\.\./ ||
-                 $files[$i] =~ m/^\d{4}$/ ||
-                 $files[$i] =~ m/^\d{2}-\d{4}$/ ) {
-	   $count = $count + 1;
-	   if ( $count == $query{file} ) {
-	      #print "final file ";
-              my $index = $query{file} + $skipped - 1;
-	      $serialised = $files[$index];
-	      #print " count = $count, skipped = $skipped, index = $index";
-	      last;
-	   }   
-	   #print "ok ($count)"; 
+	if ( $files[$i] =~ m/\./ || $files[$i] =~ m/\.\./ ||
+             $files[$i] =~ m/^\d{4}$/ || $files[$i] =~ m/^\d{2}-\d{4}$/ ) {
+           $skipped = $skipped + 1;
+	   #print "skipping ($skipped)";
 	   next;
-	}   	 
-   
-        $skipped = $skipped + 1;
-	#print "skipping ($skipped)"; 
+	}   	   
+	
+	$count = $count + 1;
+        if ( $count == $query{file} ) {
+	      #print "final file count = $count, skipped = $skipped";
+	      $serialised = $files[$i];
+	      last;
+	}   
+	#print "ok ($count)"; 
 
       }
       
