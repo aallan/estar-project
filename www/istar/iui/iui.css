@@ -190,6 +190,34 @@ a[target="_replace"] {
     background-image: none;
 }
 
+a[target="_replaceButton"] {
+  display: block;
+  margin: 0;
+  border: none;
+  padding: 12px 10px 0 0px;
+  text-align: center;
+  font-weight: bold;
+  text-decoration: inherit;
+  height: 42px;
+  color: #7388a5;
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+}
+
+.row > replaceButton {
+  display: block;
+  margin: 0;
+  border: none;
+  padding: 12px 10px 0 0px;
+  text-align: center;
+  font-weight: bold;
+  text-decoration: inherit;
+  height: 42px;
+  color: #7388a5;
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+}
+
 /************************************************************************************************/
     
 body > .dialog {

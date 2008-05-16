@@ -176,6 +176,11 @@ addEventListener("click", function(event)
             link.setAttribute("selected", "progress");
             iui.showPageByHref(link.href, null, null, link, unselect);
         }
+        else if (link.target == "_replaceButton")
+        {
+            link.setAttribute("selected", "progress");
+            iui.showPageByHref(link.href, null, null, link, unselect);
+        }	
         else if (!link.target)
         {
             link.setAttribute("selected", "progress");

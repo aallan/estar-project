@@ -78,7 +78,7 @@ my $max = $query{max};
 my $min = $query{min};
 $max = 10 unless defined $max;
 $max = $total if $max > $total;
-$min = 0 unless defined $min;
+$min = 1 unless defined $min;
 
 print "<fieldset>";
 foreach my $i ( $min ... $max ) {
@@ -88,10 +88,46 @@ foreach my $i ( $min ... $max ) {
    if ( $@ ) {
       ${$reply}{_content} = "Error";
    }   
+   
+   my @fields = split " ", ${$reply}{_content};
+   my $node = $fields[11]; 
+   $node = '<a href="estar/cgi-bin/status.cgi?item=LT">LT</a>' if $node eq "LT";
+   $node = '<a href="estar/cgi-bin/status.cgi?item=FTN">FTN</a>' if $node eq "FTN";
+   $node = '<a href="estar/cgi-bin/status.cgi?item=FTS">FTS</a>' if $node eq "FTS";
+
    print '<div class="row">';
-   print '  <label>'.$i.'</label>';
-   print '  <p>'.$i.'</p>';
+   if ( $query{listby} eq "id" ) {
+      my $id = $fields[0];
+      my @split = split ":", $id;
+      $id = $split[0];
+      print '  <label>'.$id.'</label>';
+   } else {
+      my $target = $fields[1];
+      print '  <label>'.$target.'</label>';
+   }
+   my $obs_status = $fields[12];
+   my $observations = 0;
+   if ( $obs_status =~ /\(/ ) {
+      my ($status, $num) = split /\(/, $obs_status;
+      $obs_status = $status;
+      chop( $num );
+      $observations = $num;
+   }
+   $obs_status = "Queued" if $obs_status eq "queued";
+   $obs_status = "No Response" if $obs_status eq "no_response";
+   $obs_status = "Failed" if $obs_status eq "failed";
+   $obs_status = "Error" if $obs_status eq "error";
+   $obs_status = "In Progress" if $obs_status eq "in_progress";
+   $obs_status = "Expired" if $obs_status eq "expired";
+   $obs_status = "Incomplete" if $obs_status eq "incomplete";
+   $obs_status = "Returned" if $obs_status eq "returned";
+   $obs_status = "Unknown" if $obs_status eq "unknown";
+   $obs_status = $obs_status . " ($observations)" if $observations != 0;
+   my $id = $fields[0];
+   $id =~ s/#/%23/g;
+   print '  <p><a href="robonet/cgi-bin/observation.cgi?id='.$id.'">'.$obs_status.'</a> on '.$node.'</p>';
    print '</div>';
+   
 }
 print "</fieldset>";
 
@@ -101,7 +137,7 @@ $next_max = $total if $next_max > $total;
 if ( $next_max > $max ) {
    print "<fieldset>";   
    print '<div class="row">';
-   print '  <a class="serviceButton" target="_replace" href="robonet/cgi-bin/status.cgi?min='.$next_min.'&max='.$next_max.'&listby='.$query{listby}.'">Get more objects...</a>';
+   print '  <a class="_replaceButton" target="_replaceButton" href="robonet/cgi-bin/status.cgi?min='.$next_min.'&max='.$next_max.'&listby='.$query{listby}.'">Get more objects...</a>';
    print '</div>';  
    print "</fieldset>";
 }
