@@ -1,4 +1,12 @@
+2008-05-16 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * www/istar/*: Big update, working ongoing.
+
+        * www/robonet-1.0/cgi-bin/graphs.cgi: Google Chart version of the
+	  performance.cgi sript. Meant to be consumed by the istar stuff.
+
 2008-05-14 Alasdair Allan <aa@astro.ex.ac.uk>
+
         * www/istar/*: Big update, working ongoing.
 
 2008-05-13 Alasdair Allan <aa@astro.ex.ac.uk>
