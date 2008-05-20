@@ -34,51 +34,6 @@
      $query{$name} = $value;
   }
 
-# G R A B   F I L E S ---------------------------------------------------------
-
-  my $header;
-  unless ( open ( FILE, "<../header.inc") ) {
-     error( "Can not open header.inc file", undef, \%query );
-     exit;
-  }
-  {
-     undef $/;
-     $header = <FILE>;
-     close FILE;
-  }
-  
-  # fix dir string to be date string
-  my $dir = $query{dir};
-  my $date = $dir;
-  $date =~ s/01-/Jan / if $dir =~ /01-/;
-  $date =~ s/02-/Feb / if $dir =~ /02-/;
-  $date =~ s/03-/Mar / if $dir =~ /03-/;
-  $date =~ s/04-/Apr / if $dir =~ /04-/;
-  $date =~ s/05-/May / if $dir =~ /05-/;
-  $date =~ s/06-/Jun / if $dir =~ /06-/;
-  $date =~ s/07-/Jul / if $dir =~ /07-/;
-  $date =~ s/08-/Aug / if $dir =~ /08-/;
-  $date =~ s/09-/Sep / if $dir =~ /09-/;
-  $date =~ s/10-/Oct / if $dir =~ /10-/;
-  $date =~ s/11-/Nov / if $dir =~ /11-/;
-  $date =~ s/12-/Dec / if $dir =~ /12-/;
-  $date = "Current Month" unless defined $date;
-
-  $header =~ s/PAGE_TITLE_STRING/Robonet-1.0 Performance/g;
-  $header =~ s/<title>/<link rel="stylesheet" HREF="..\/css\/box.css" TYPE="text\/css"><title>/;
-
-  my $footer;
-  unless ( open ( FILE, "<../footer.inc") ) {
-     error( "Can not open footer.inc file", undef, \%query );
-     exit;
-  }
-  {
-     undef $/;
-     $footer = <FILE>;
-     close FILE;
-  }
-  $footer =~ s/LAST_MODIFIED_DATE/ctime()/e;
- 
 # M A I N   L O O P  #########################################################
   
   my $dir = File::Spec->catdir( File::Spec->rootdir(), "home", "estar", 

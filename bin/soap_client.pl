@@ -2,8 +2,8 @@
   
   #use strict;
   
-  #use SOAP::Lite +trace => all;
-  use SOAP::Lite;
+  use SOAP::Lite +trace => all;
+  #use SOAP::Lite;
   
   use Digest::MD5 'md5_hex';
   use URI;
