@@ -54,11 +54,21 @@ my @fields = split " ", $line;
 # we should have a reply
 print "Content-type: text/html\n\n";
 
-
 my $target = $fields[1];
 print '<div title="'.$target.'" class="panel">';
-print ' <fieldset>';
 
+if ( $target =~ "OB" || $target =~ "KB" ) {
+
+  my $plens = 'http://robonet.lcogt.net/~robonet/newcode/EVENTS/'.$target.'.m.gif';
+  print '<div>';
+  print '<img src="'.$plens.'">';
+  print '</div>';
+  print '<fieldset><div>';
+  print '<a class="serviceButton" href="robonet/cgi-bin/ogle.cgi?ogle='.$target.'">Get more plots...</a>';
+  print '</div></fieldset>';
+}
+    
+print ' <fieldset>';
 my $id = $fields[0];
 my @split = split ":", $id;
 $id = $split[0];
