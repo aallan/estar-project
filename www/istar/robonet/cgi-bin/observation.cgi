@@ -3,6 +3,7 @@
 use Time::localtime;
 use Net::Domain qw(hostname hostdomain);
 use LWP::UserAgent;
+use LWP::Simple;
 use Data::Dumper;
 
 my $single = "http://estar5.astro.ex.ac.uk/robonet-1.0/cgi-bin/single.cgi";
@@ -60,6 +61,9 @@ print '<div title="'.$target.'" class="panel">';
 if ( $target =~ "OB" || $target =~ "KB" ) {
 
   my $plens = 'http://robonet.lcogt.net/~robonet/newcode/EVENTS/'.$target.'.m.gif';
+  unless ( head($plens) ) {
+     $plens = "http://www.estar.org.uk/jpg/test_card.jpg";
+  }
   print '<div>';
   print '<img src="'.$plens.'">';
   print '</div>';

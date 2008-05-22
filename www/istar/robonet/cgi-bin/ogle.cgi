@@ -3,6 +3,7 @@
 use Time::localtime;
 use Net::Domain qw(hostname hostdomain);
 use LWP::UserAgent;
+use LWP::Simple;
 use Data::Dumper;
 
 my $single = "http://estar5.astro.ex.ac.uk/robonet-1.0/cgi-bin/single.cgi";
@@ -72,11 +73,23 @@ if ( !defined $query{plot} ) {
    print "<h2>PLENS</h2>";
 
    my $mr = 'http://robonet.lcogt.net/~robonet/newcode/EVENTS/'.$target.'.mr.gif';
+   {
+     my ( $type, $length, $modified, $expires, $server ) = head($mr);
+     unless ( defined $length ) {
+       $mr = "http://www.estar.org.uk/jpg/test_card.jpg" unless defined $length;
+     }
+   }  
    print '<div>';
    print '<img src="'.$mr.'">';
    print '</div>';
 
    my $c = 'http://robonet.lcogt.net/~robonet/newcode/EVENTS/'.$target.'.c.gif';
+   {
+     my ( $type, $length, $modified, $expires, $server ) = head($c);
+     unless ( defined $length ) {
+       $c = "http://www.estar.org.uk/jpg/test_card.jpg" unless defined $length;
+     }
+   } 
    print '<div>';
    print '<img src="'.$c.'">';
    print '</div>';
@@ -89,16 +102,35 @@ if ( !defined $query{plot} ) {
    print "<h2>Signalmen</h2>";
 
    my $st = 'http://www.artemis-uk.org/LightCurves/'.$target.'t.gif';
+   my ( $type, $length, $modified, $expires, $server ) = head($st);
+   {
+     my ( $type, $length, $modified, $expires, $server ) = head($st);
+     unless ( defined $length ) {
+       $st = "http://www.estar.org.uk/jpg/test_card.jpg" unless defined $length;
+     }
+   } 
    print '<div>';
    print '<img src="'.$st.'">';
    print '</div>';
  
    my $sp = 'http://www.artemis-uk.org/LightCurves/'.$target.'p.gif';
+   {
+     my ( $type, $length, $modified, $expires, $server ) = head($sp);
+     unless ( defined $length ) {
+       $sp = "http://www.estar.org.uk/jpg/test_card.jpg" unless defined $length;
+     }
+   } 
    print '<div>';
    print '<img src="'.$sp.'">';
    print '</div>';
 
    my $sd = 'http://www.artemis-uk.org/LightCurves/'.$target.'d.gif';
+   {
+     my ( $type, $length, $modified, $expires, $server ) = head($sd);
+     unless ( defined $length ) {
+       $sd = "http://www.estar.org.uk/jpg/test_card.jpg" unless defined $length;
+     }
+   } 
    print '<div>';
    print '<img src="'.$sd.'">';
    print '</div>'; 
@@ -118,12 +150,30 @@ if ( !defined $query{plot} ) {
   print "<h2>OGLE EWS</h2>";
   
   print '<div>';
+  {
+    my ( $type, $length, $modified, $expires, $server ) = head($find);
+    unless ( defined $length ) {
+      $find = "http://www.estar.org.uk/jpg/test_card.jpg" unless defined $length;
+    }
+  } 
   print '<img src="'.$find.'">';
   print '</div>';
   print '<div>';
+  {
+    my ( $type, $length, $modified, $expires, $server ) = head($curve);
+    unless ( defined $length ) {
+      $curve = "http://www.estar.org.uk/jpg/test_card.jpg" unless defined $length;
+    }
+  } 
   print '<img src="'.$curve.'">';
   print '</div>';
   print '<div>';
+  {
+    my ( $type, $length, $modified, $expires, $server ) = head($event);
+    unless ( defined $length ) {
+      $event = "http://www.estar.org.uk/jpg/test_card.jpg" unless defined $length;
+    }
+  } 
   print '<img src="'.$event.'">';
   print '</div>';  
 
