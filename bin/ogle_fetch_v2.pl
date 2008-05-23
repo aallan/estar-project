@@ -20,7 +20,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: ogle_fetch_v2.pl,v 1.3 2008/05/23 09:48:35 aa Exp $
+$Id: ogle_fetch_v2.pl,v 1.4 2008/05/23 20:15:25 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -37,7 +37,7 @@ use vars qw / $VERSION /;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -265,6 +265,7 @@ if ( $config->get_state("of.unique_process") == 1 ) {
    $config->set_option("science.hours", "1.0" );
    $config->set_option("science.last_data", "ROBONET" );
    $config->set_option("science.tel_max_exp", "180" );
+   $config->set_option("science.anomalies", "TRUE" );
    
    # long, lat & elev defaults are for the LT
    #$config->set_option("science.long", "-17.88166" );
@@ -452,6 +453,7 @@ my $query = [ "long"        => $config->get_option("science.long"),
 	      "OPTIMISE"    => $config->get_option("science.OPTIMISE" ),
               "last_data"   => $config->get_option("science.last_data"),
    	      "tel_max_exp" => $config->get_option("science.tel_max_exp" ),
+              "anomalies"   => $config->get_option("science.anomalies" ),
 	      "output"      => "ASCII" ];
 
 my $url = "http://" . $config->get_option("of.remote") . "/" . 

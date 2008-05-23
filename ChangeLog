@@ -2,6 +2,8 @@
 
 	* bin/ogle_fetch_v2.pl: Updated for new PLOP
 
+        * www/robonet-1.0/*: Added Colin Snodgrass
+
 2008-05-16 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * www/istar/*: Big update, working ongoing.
