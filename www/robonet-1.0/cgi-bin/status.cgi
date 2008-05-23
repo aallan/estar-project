@@ -297,9 +297,11 @@
 	   my $url;
 	   if( $full_name =~ "2006" ) {
 	      $url = 'http://star-www.st-and.ac.uk/~kdh1/cool/' . $name . '.html';
-	   } else {
+	   } elsif( $full_name =~ "2007" ) {
 	      $url = 'http://robonet.astro.livjm.ac.uk/~robonet/newcode/cgi-bin/event_pages.cgi?event=' . $target;	
-	   }
+	   } else {
+              $url = 'http://robonet.lcogt.net/~robonet/newcode/cgi-bin/event_pages.cgi?event=' . $target;
+           }
 	   print "<A HREF='$url'>$full_name</A>";
 	   
 	   
