@@ -20,7 +20,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: ogle_fetch_v2.pl,v 1.2 2008/05/13 13:34:05 aa Exp $
+$Id: ogle_fetch_v2.pl,v 1.3 2008/05/23 09:48:35 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -37,7 +37,7 @@ use vars qw / $VERSION /;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -211,7 +211,7 @@ $log->debug("This machine as an IP address of $ip");
 if ( $config->get_state("of.unique_process") == 1 ) {
   
    # user agentrameters
-   $config->set_option("ua.host", "144.173.229.22" );
+   $config->set_option("ua.host", "estar5.astro.ex.ac.uk" );
    $config->set_option("ua.port", 8000 );
 
    # interprocess communication
@@ -486,7 +486,7 @@ $log->debug("Harvesting content from data file...");
 my @page = split "\n", ${$reply}{_content};
 
 #print Dumper( @page );
-exit;
+#exit;
 
 # P A R S E   D A T A -----------------------------------------------------
 
@@ -664,7 +664,8 @@ foreach my $n ( 0 ... $#data ) {
                           starttime     => $start_time,
                           endtime       => $end_time,
                           seriescount   => ${$data[$n]}{SeriesCount},
-                          project       => $config->get_option("of.project") );
+                          project       => $config->get_option("of.project"),
+			  priority      => 1 );
           
    } elsif ( defined ${$data[$n]}{GroupCount} &&
              ${$data[$n]}{SeriesCount} > 1 ) {

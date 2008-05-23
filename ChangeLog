@@ -1,3 +1,7 @@
+2008-05-23 Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* bin/ogle_fetch_v2.pl: Updated for new PLOP
+
 2008-05-16 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * www/istar/*: Big update, working ongoing.
