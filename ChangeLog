@@ -1,3 +1,9 @@
+2008-05-27Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * bin/ogle_fetch_v2.pl: Fixed.
+
+	* startup/cron/ogle_fetch: Script for cron'd running
+
 2008-05-23 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* bin/ogle_fetch_v2.pl: Updated for new PLOP

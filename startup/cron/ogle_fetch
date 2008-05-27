@@ -1,0 +1,4 @@
+#! /bin/tcsh
+
+/work/estar/third_generation/bin/ogle_fetch_v2.pl -user kdh1 -pass EXOfollowup -project exoplanet >& ~estar/logs/exo/plop/plop.`date -Iseconds` &
+

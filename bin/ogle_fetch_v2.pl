@@ -20,7 +20,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: ogle_fetch_v2.pl,v 1.4 2008/05/23 20:15:25 aa Exp $
+$Id: ogle_fetch_v2.pl,v 1.5 2008/05/27 20:45:33 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -37,7 +37,7 @@ use vars qw / $VERSION /;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.4 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -85,6 +85,7 @@ use Getopt::Long;
 use Data::Dumper;
 use Config;
 use Socket;
+use DateTime;
 
 # tag name of the current process, this identifies where log and 
 # status files for this process will be stored.
@@ -559,67 +560,18 @@ foreach my $n ( 0 ... $#data ) {
 
 # O B S E V R A T I O N   R E Q U E S T S   T O   U S E R   A G E N T -------
 
-my $year = 1900 + localtime->year();
-my $month = localtime->mon() + 1;
-my $day = localtime->mday();
+my ( $default_start_time, $default_end_time ) = get_times( );
 
-my $hour = localtime->hour();
-my $min = localtime->min();
-$sec = localtime->sec();
-
-# could be last day of the month
-if ( $day >= 28 && $day <= 31 ) {
-  
-  # Special case for Februry
-  if ( $month == 2 ) {
-  
-     # insert code to handle leap year here
-  
-     $month = $month + 1;
-     $day = 1;
-     
-  } elsif ( $month == 9 || $month == 4 || $month == 6 || $month == 11 ) {
-    if( $day == 30 ) {
-       $month = $month + 1;
-       $day = 1;
-    }
-    
-  } elsif ( $day == 31 ) {
-    $month = $month + 1;
-    $day = 1;
-  }  
-}
-
-# fix roll over errors
-my $dayplusone = $day + 1;
-my $hourplustwelve = $hour + 13; # Actually plus 13 hours, not 12 now!
-if( $hourplustwelve > 24 ) {
-  $hourplustwelve = $hourplustwelve - 24;
-} 
- 
-# fix less than 10 errors
-$month = "0$month" if $month < 10;
-$day = "0$day" if $day < 10;   
-$hour = "0$hour" if $hour < 10;   
-$min = "0$min" if $min < 10;   
-$sec = "0$sec" if $sec < 10;   
-$dayplusone = "0$dayplusone" if $dayplusone < 10;   
-$hourplustwelve = "0$hourplustwelve" if $hourplustwelve < 10;
-
-# defaults of now till 12 hours later 
-my ( $start_time, $end_time ); 
- 
 # modify start time
 unless( defined $opt{"start"} ) {
-   $start_time = "$year-$month-$day" . "T". $hour.":".$min.":".$sec . "UTC";
+   $start_time = $default_start_time;
 } else {
    $start_time = $opt{"start"};
 } 
 
 # modify end time
 unless( defined $opt{"start"} ) {
-   $end_time = "$year-$month-$dayplusone" . 
-               "T". $hourplustwelve.":".$min.":".$sec . "UTC"; 
+   $end_time = $default_end_time;
 } else {
    $end_time = $opt{"end"};  
 }    
@@ -667,7 +619,7 @@ foreach my $n ( 0 ... $#data ) {
                           endtime       => $end_time,
                           seriescount   => ${$data[$n]}{SeriesCount},
                           project       => $config->get_option("of.project"),
-			  priority      => 1 );
+			  priority      => 0 );
           
    } elsif ( defined ${$data[$n]}{GroupCount} &&
              ${$data[$n]}{SeriesCount} > 1 ) {
@@ -690,7 +642,8 @@ foreach my $n ( 0 ... $#data ) {
                           seriescount   => ${$data[$n]}{SeriesCount},
                           interval      => $interval,
                           tolerance     => $tolerance,
-                          project       => $config->get_option("of.project") );
+                          project       => $config->get_option("of.project"),
+			  priority      => 0 );
                     
           
                           
@@ -709,7 +662,8 @@ foreach my $n ( 0 ... $#data ) {
                           followup      => 0,
                           starttime     => $start_time,
                           endtime       => $end_time,
-                          project       => $config->get_option("of.project") );
+                          project       => $config->get_option("of.project"),
+			  priority      => 0 );
    } else {
    
       $log->print("We have a series of " . ${$data[$n]}{SeriesCount} . 
@@ -728,7 +682,8 @@ foreach my $n ( 0 ... $#data ) {
                           seriescount   => ${$data[$n]}{SeriesCount},
                           interval      => $interval,
                           tolerance     => $tolerance,
-                          project       => $config->get_option("of.project") );   
+                          project       => $config->get_option("of.project"),
+			  priority      => 0 );   
    
    }
    
@@ -794,3 +749,15 @@ foreach my $n ( 0 ... $#data ) {
 # T I M E   A T   T H E   B A R ---------------------------------------------
  
 exit;
+
+sub get_times{
+
+   my $end_time = DateTime->now()->add( hours => 2 );
+   my $start_time = DateTime->now();
+
+   $start_time = $start_time->ymd('-') . "T" . $start_time->hms(':') . "+0000";
+   $end_time = $end_time->ymd('-') . "T" . $end_time->hms(':') . "+0000";
+
+   return ($start_time, $end_time);
+}
+
