@@ -302,7 +302,9 @@
 	   } else {
               $url = 'http://robonet.lcogt.net/~robonet/newcode/cgi-bin/event_pages.cgi?event=' . $target;
            }
+           print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Co-ordinates] body=[<table><tr><td width=25px><b>RA:</b></td><td><center>$ra</center></td></tr><tr><td><b>Dec:</b></td><td><center>$dec</center></td></tr></table>]' >";
 	   print "<A HREF='$url'>$full_name</A>";
+           print "</DIV>";
 	   
 	   
         } elsif ( $target =~ m/ESSENCE/ ) {
@@ -312,7 +314,9 @@
               chop $name;
            }
 	   my $url = 'http://ctiokw.ctio.noao.edu/~sm/w/public/' . $name . '/';	
+           print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Co-ordinates] body=[<table><tr><td width=25px><b>RA:</b></td><td><center>$ra</center></td></tr><tr><td><b>Dec:</b></td><td><center>$dec</center></td></tr></table>]' >";
 	   print "<A HREF='$url'>$full_name</A>";
+           print "</DIV>";
 	} else {
            print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Co-ordinates] body=[<table><tr><td width=25px><b>RA:</b></td><td><center>$ra</center></td></tr><tr><td><b>Dec:</b></td><td><center>$dec</center></td></tr></table>]' >";
            print "$full_name";
