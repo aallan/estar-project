@@ -1,4 +1,9 @@
-2008-05-27Alasdair Allan <aa@astro.ex.ac.uk>
+2008-05-28 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * bin/event_bridge.pl: Bridges event messages from a vanilla TCP 
+	  server to eSTAR-like SOAP server.
+	
+2008-05-27 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * bin/ogle_fetch_v2.pl: Fixed.
 
