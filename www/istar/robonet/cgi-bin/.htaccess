@@ -1,8 +1,4 @@
-<<<<<<< .htaccess
 AuthUserFile /home/estar/www.estar.org.uk/docs/istar/robonet/.htpasswd
-=======
-AuthUserFile /home/estar/www.estar.org.uk/docs/istar/robonet/cgi-bin/.htpasswd
->>>>>>> 1.2
 AuthGroupFile /dev/null
 AuthName "Robonet-2.0 Access"
 AuthType Basic
