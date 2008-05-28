@@ -289,7 +289,12 @@
   } else {
      print " unknown";
   }
- 
+
+  # RA & Dec
+
+  $ra =~ s/ /:/g;
+  $dec =~ s/ /:/g; 
+  print " $ra $dec"; 
   exit;
   
 # S U B - R O U T I N E S #################################################
