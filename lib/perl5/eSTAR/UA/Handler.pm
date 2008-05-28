@@ -28,6 +28,9 @@ use Config::Simple;
 use Config::User;
 use Data::Dumper;
 use Fcntl qw(:DEFAULT :flock);
+use Net::Twitter;
+use WWW::Shorten::TinyURL;
+use WWW::Shorten 'TinyURL';
 
 # 
 # eSTAR modules
@@ -633,6 +636,25 @@ sub new_observation {
       eSTAR::GSM::send_sms( "18087690579", $text ); # Brad Cavanagh
       eSTAR::GSM::send_sms( "447980136499", $text ); # Nial Tanvir
       eSTAR::GSM::send_sms( "447714250373", $text ); # Andrew Levan
+      
+      # Tweet to Twitter
+      # ----------------
+ 
+      print "Twittering event to twitter.com\n";
+      my $twit = new Net::Twitter( username => "eSTAR_Project", 
+                                    password => "twitter*User" );
+
+      my $twit_status = "Queuing $observation{'type'} of target at RA $observation{'ra'}, Dec $observation{'dec'} onto UKIRT in response to GCN";  
+      my $twit_result;
+      eval { $twit_result = $twit->update( $twit_status ); };
+      if( $@ || !defined $twit_result ) {
+         my $error = "$@";
+         print "Error: Problem updating twitter.com with new status\n";
+         print "Error: $error" if defined $error;
+      } else {
+         print "Updated status on twitter.com\n"; 
+      }
+      
    }
       
    
