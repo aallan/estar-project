@@ -1,8 +1,10 @@
+
 #!/usr/bin/perl
 
 use Time::localtime;
 use Net::Domain qw(hostname hostdomain);
 use LWP::UserAgent;
+use LWP::Simple;
 use Data::Dumper;
 
 my $url = "http://www.estar.org.uk/network.status";
@@ -96,7 +98,14 @@ print "Content-type: text/html\n\n";
 if ( $query{item} eq "LT" ) {
    print '<div title="LT" class="panel">';
    print ' <div>';
-   print '  <img src="http://telescope.livjm.ac.uk/pics/webcam_ext_1.jpg" />';
+   my $url = "http://telescope.livjm.ac.uk/pics/webcam_ext_1.jpg";
+   {
+     my ( $type, $length, $modified, $expires, $server ) = head($url);
+     unless ( defined $length ) {
+       $url = "http://www.estar.org.uk/jpg/test_card.jpg" unless defined $length;
+     }
+   }  
+   print '  <img src="'.$url.'" />';
    print ' </div>';
    print ' <h2>Details</h2>';
    print '<fieldset>';
@@ -148,8 +157,14 @@ if ( $query{item} eq "LT" ) {
 if ( $query{item} eq "FTS" ) {
    print '<div title="FTS" class="panel">';
    print ' <div>';
-   print '  <img src="http://lcogt.net/files/faulkes-telescope.com/status/fts-we
-bcam.jpg" />';
+   my $url = "http://lcogt.net/files/faulkes-telescope.com/status/fts-webcam.jpg";
+   {
+     my ( $type, $length, $modified, $expires, $server ) = head($url);
+     unless ( defined $length ) {
+       $url = "http://www.estar.org.uk/jpg/test_card.jpg" unless defined $length;
+     }
+   }
+   print '  <img src="'.$url.'" />';
    print ' </div>';
    print ' <h2>Details</h2>';
    print '<fieldset>';
@@ -202,8 +217,14 @@ bcam.jpg" />';
 if ( $query{item} eq "FTN" ) {
    print '<div title="FTN" class="panel">';
    print ' <div>';
-   print '  <img src="http://lcogt.net/files/faulkes-telescope.com/status/ftn-webc
-am.jpg" />';
+   my $url = "http://lcogt.net/files/faulkes-telescope.com/status/ftn-webcam.jpg";
+   {
+     my ( $type, $length, $modified, $expires, $server ) = head($url);
+     unless ( defined $length ) {
+       $url = "http://www.estar.org.uk/jpg/test_card.jpg" unless defined $length;
+     }
+   }
+   print '  <img src="'.$url.'" />';
    print ' </div>';
    print ' <h2>Details</h2>';
    print '<fieldset>';

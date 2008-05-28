@@ -61,14 +61,20 @@ print '<div title="'.$target.'" class="panel">';
 if ( $target =~ "OB" || $target =~ "KB" ) {
 
   my $plens = 'http://robonet.lcogt.net/~robonet/newcode/EVENTS/'.$target.'.m.gif';
-  unless ( head($plens) ) {
-     $plens = "http://www.estar.org.uk/jpg/test_card.jpg";
-  }
+   {
+     my ( $type, $length, $modified, $expires, $server ) = head($plens);
+     unless ( defined $length ) {
+       $plens = "http://www.estar.org.uk/jpg/test_card.jpg" unless defined $length;
+     }
+   }
   print '<div>';
   print '<img src="'.$plens.'">';
   print '</div>';
   print '<fieldset><div>';
   print '<a class="serviceButton" href="robonet/cgi-bin/ogle.cgi?ogle='.$target.'">Get more plots...</a>';
+  print '</div></fieldset>';
+  print '<fieldset><div>';
+  print '<a class="serviceButton" href="robonet/cgi-bin/get_obs.cgi?target='.$target.'&ra='.$fields[14].'&dec='.$fields[15].'&exposure='.$fields[9].'&group='.$fields[8].'">New observations...</a>';
   print '</div></fieldset>';
 }
     
