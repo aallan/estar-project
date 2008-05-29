@@ -123,10 +123,7 @@ $obs_return =~ s/</&lt;/g;
 
 print "<fieldset>";
 my %telescopes;
-if ( $obs_return =~ "QUEUED OK" ) {
-   my $tel =~ m/\[($\w+)\]/;
-   $telescopes{$tel} = 1;
-} elsif ( $obs_return =~ "DONE OK" ) {
+if ( $obs_return =~ "OK" ) {
    my $string =~ m/\[($\w+)\]/;
    my @tels = split " ", $string;
    foreach my $i ( 0 ... $#tels ) {
