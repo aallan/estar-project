@@ -120,9 +120,9 @@ if ($obs_result->fault() ) {
   print "<label>Fault</label>";
   print "<p>" . $obs_result->faultcode() . "</p>";
   print "</div>";
-  print "<div>";
-  print "<p>" . $obs_result->faultstring() . "</p>";
-  print "</div>"; 
+#  print "<div>";
+#  print "<p>" . $obs_result->faultstring() . "</p>";
+#  print "</div>"; 
   print "</fieldset>";
   exit;
 }
@@ -144,7 +144,7 @@ if ( $obs_return =~ "OK" ) {
    }   
 } 
    
-print "<div clas='row'>";
+print "<div class='row'>";
 print "<label>LT</label>";
 if ( $telescopes{LT} ) {
    print "<p id='green'>OK</p>";
@@ -153,7 +153,7 @@ if ( $telescopes{LT} ) {
 }   
 print "</div>"; 
 
-print "<div clas='row'>";
+print "<div class='row'>";
 print "<label>FTN</label>";
 if ( $telescopes{FTN} ) {
    print "<p id='green'>OK</p>";
@@ -162,7 +162,7 @@ if ( $telescopes{FTN} ) {
 }   
 print "</div>"; 
 
-print "<div clas='row'>";
+print "<div class='row'>";
 print "<label>FTS</label>";
 if ( $telescopes{FTS} ) {
    print "<p id='green'>OK</p>";
