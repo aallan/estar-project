@@ -110,9 +110,9 @@ print "<fieldset>";
 print '<div class="row">';
 print "<label>Transport</label>";
 if ( $agent_soap->transport()->status() =~ "200" ) {
-   print "<p id='green'>" . $agent_soap->transport()->status() . "</p>";
+   print '<p id="green">' . $agent_soap->transport()->status() . "</p>";
 } else {
-   print "<p id='red'>" . $agent_soap->transport()->status() . "</p>";
+   print '<p id="red">' . $agent_soap->transport()->status() . "</p>";
 }
 print "</div>";
 if ($obs_result->fault() ) {
