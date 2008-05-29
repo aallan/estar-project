@@ -122,7 +122,7 @@ $obs_return =~ s/>/&gt;/g;
 $obs_return =~ s/</&lt;/g;
 
 print "<fieldset>";
-my %telescopes
+my %telescopes;
 if ( $obs_return =~ "QUEUED OK" ) {
    my $tel =~ m/\[($\w+)\]/;
    $telescopes{$tel} = 1;
