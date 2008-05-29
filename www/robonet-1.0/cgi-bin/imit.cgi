@@ -105,27 +105,70 @@ if ($obs_result->fault() ) {
 
 print "Content-type: text/html\n\n";
 
-#print "<P>User = ".$ENV{REMOTE_USER}."</P>\n";
-#foreach my $key ( sort keys %query ) {
-#   print "$key = $query{$key}<BR>\n";
-#}
-#print "<P><PRE>" . Dumper( %observation ) . "</PRE></P>";
-
-print "<H3>Observation Status</H3>";
+print "<H2>Observation Status</H2>";
  
-#my $obs_return = $obs_result->result(); 
-#print "Transport Status:  <font color='green'>" . 
-#      $agent_soap->transport()->status() . "</font><BR>\n";
+print "<fieldset>";
+print "<div clas='row'>";
+print "<label>Transport</label>";
+if ( $agent_soap->transport()->status() =~ "200" ) {
+   print "<p id='green'>" . $agent_soap->transport()->status() . "</p>";
+} else {
+   print "<p id='red'>" . $agent_soap->transport()->status() . "</p>";
+}
+print "</div>";
+print "</fieldset>";
 
-#$obs_return =~ s/>/&gt;/g;
-#$obs_return =~ s/</&lt;/g;
-#if ( $obs_return eq "QUEUED OK" ) {
-#   print "Result: <font color='green'>$obs_return</font><br>\n";
-#} elsif ( $obs_return eq "DONE OK" ) {
-#   print "Result: <font color='green'>$obs_return</font> (attempted to queue on all telescopes)<br>\n";
-#} else {
-#   print "Result: <font color='red'>$obs_return</font><br>\n";
-#}
+$obs_return =~ s/>/&gt;/g;
+$obs_return =~ s/</&lt;/g;
+
+print "<fieldset>";
+my %telescopes
+if ( $obs_return =~ "QUEUED OK" ) {
+   my $tel =~ m/\[($\w+)\]/;
+   $telescopes{$tel} = 1;
+} elsif ( $obs_return =~ "DONE OK" ) {
+   my $string =~ m/\[($\w+)\]/;
+   my @tels = split " ", $string;
+   foreach my $i ( 0 ... $#tels ) {
+      $telescopes{$tels[$i]} = 1;
+   }   
+} else {
+   print "<div clas='row'>";
+   print "<label>Status</label>";
+   print "<p id='red'>NOT QUEUED</p>";
+   print "</div>";
+}
+
+   
+print "<div clas='row'>";
+print "<label>LT</label>";
+if ( $telescopes{LT} ) {
+   print "<p id='green'>OK</p>";
+} else {   
+   print "<p id='red'>NO</p>";
+}   
+print "</div>"; 
+
+print "<div clas='row'>";
+print "<label>FTN</label>";
+if ( $telescopes{FTN} ) {
+   print "<p id='green'>OK</p>";
+} else {   
+   print "<p id='red'>NO</p>";
+}   
+print "</div>"; 
+
+print "<div clas='row'>";
+print "<label>FTS</label>";
+if ( $telescopes{FTS} ) {
+   print "<p id='green'>OK</p>";
+} else {   
+   print "<p id='red'>NO</p>";
+}   
+print "</div>";   
+  
+  
+print "</fieldset>";
    
 exit;
 
