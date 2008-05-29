@@ -116,6 +116,10 @@ if ( $agent_soap->transport()->status() =~ "200" ) {
    print "<p id='red'>" . $agent_soap->transport()->status() . "</p>";
 }
 print "</div>";
+print "<div clas='row'>";
+print "<label>Return</label>";
+print "<p>$obs_return</p>";
+print "</div>";
 print "</fieldset>";
 
 $obs_return =~ s/>/&gt;/g;
