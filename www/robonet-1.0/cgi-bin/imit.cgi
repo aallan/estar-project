@@ -97,9 +97,11 @@ if ( $@ ) {
 }
 
 if ($obs_result->fault() ) {
-  error( "(" . $obs_result->faultcode() . "): " . $obs_result->faultstring(), \%observation, \%query  );
+  error( "(" . $obs_result->faultcode() . "): " . $obs_result->faultstring()  );
   exit;
 }
+
+my $obs_return = $obs_result->result(); 
 
 # G E N E R A T E   P A G E --------------------------------------------------
 
