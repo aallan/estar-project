@@ -104,7 +104,7 @@ my $obs_return = $obs_result->result();
 
 print "Content-type: text/html\n\n";
 
-print "<H2>Observation Status</H2>";
+print "<H2>Transport Status</H2>";
  
 print "<fieldset>";
 print "<div class='row'>";
@@ -128,13 +128,15 @@ if ($obs_result->fault() ) {
 }
 print "</fieldset>";
 
+print "<H2>Queued Status</H2>";
+
 $obs_return =~ s/>/&gt;/g;
 $obs_return =~ s/</&lt;/g;
 
 print "<fieldset>";
 my %telescopes;
 if ( $obs_return =~ "OK" ) {
-   my $string =~ m/\[(\w+)\]/;
+   my $string =~ m/\[(.+)\]/;
    my @tels = split " ", $1;
    foreach my $i ( 0 ... $#tels ) {
       $telescopes{$tels[$i]} = 1;
