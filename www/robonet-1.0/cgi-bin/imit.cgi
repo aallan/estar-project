@@ -92,14 +92,11 @@ if ( $query{"all_telescopes"} == 1 ) {
 }
 if ( $@ ) {
    my $error = "$@";
-   error( $error, \%observation, \%query );
+   error( $error );
    exit;   
 }
 
-if ($obs_result->fault() ) {
-  error( "(" . $obs_result->faultcode() . "): " . $obs_result->faultstring()  );
-  exit;
-}
+
 
 my $obs_return = $obs_result->result(); 
 
@@ -110,7 +107,7 @@ print "Content-type: text/html\n\n";
 print "<H2>Observation Status</H2>";
  
 print "<fieldset>";
-print "<div clas='row'>";
+print "<div class='row'>";
 print "<label>Transport</label>";
 if ( $agent_soap->transport()->status() =~ "200" ) {
    print "<p id='green'>" . $agent_soap->transport()->status() . "</p>";
@@ -118,10 +115,17 @@ if ( $agent_soap->transport()->status() =~ "200" ) {
    print "<p id='red'>" . $agent_soap->transport()->status() . "</p>";
 }
 print "</div>";
-print "<div clas='row'>";
-print "<label>Return</label>";
-print "<p>$obs_return</p>";
-print "</div>";
+if ($obs_result->fault() ) {
+  print "<div class='row'>";
+  print "<label>Fault</label>";
+  print "<p>" . $obs_result->faultcode() . "</p>";
+  print "</div>";
+  print "<div>";
+  print "<p>" . $obs_result->faultstring() . "</p>";
+  print "</div>"; 
+  print "</fieldset>";
+  exit;
+}
 print "</fieldset>";
 
 $obs_return =~ s/>/&gt;/g;
@@ -131,17 +135,11 @@ print "<fieldset>";
 my %telescopes;
 if ( $obs_return =~ "OK" ) {
    my $string =~ m/\[($\w+)\]/;
-   my @tels = split " ", $string;
+   my @tels = split " ", $1;
    foreach my $i ( 0 ... $#tels ) {
       $telescopes{$tels[$i]} = 1;
    }   
-} else {
-   print "<div clas='row'>";
-   print "<label>Status</label>";
-   print "<p id='red'>NOT QUEUED</p>";
-   print "</div>";
-}
-
+} 
    
 print "<div clas='row'>";
 print "<label>LT</label>";
