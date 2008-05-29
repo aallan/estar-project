@@ -1181,8 +1181,8 @@ sub new_observation {
    }      
    
    # return sucess code
-   $log->debug( "Returning 'QUEUED OK' message" );
-   return SOAP::Data->name('return', 'QUEUED OK')->type('xsd:string');
+   $log->debug( "Returning 'QUEUED OK' message [$best_name]" );
+   return SOAP::Data->name('return', "QUEUED OK [$best_name]")->type('xsd:string');
    
 }
 
