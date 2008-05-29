@@ -1,6 +1,18 @@
 .e {color: #FF0000; font-size: 200%}
 .star {color: #666666 }
 
+#green {
+  color: green;
+}
+
+#red {
+  color: red;
+}
+
+#orange {
+  color: orange;
+}
+
 li img {
   display: block;
   width: 95%;
@@ -31,18 +43,6 @@ li img {
   color: inherit;
 }
 
-#green {
-  color: green;
-}
-
-#red {
-  color: red;
-}
-
-#orange {
-  color: orange;
-}
-
 .row > label {
   text-align: right;
   width: 80px;
@@ -51,6 +51,37 @@ li img {
   line-height: 42px;
   color: #7388a5;
 }
+
+.row > input {
+  display: block;
+  margin: 0;
+  border: none;
+  padding: 12px 10px 0 110px;
+  text-align: left;
+  text-decoration: inherit;
+  height: 42px;
+  box-sizing: border-box;
+  color: inherit;
+}
+
+.row > p > input {
+  display: inline;
+  margin: 6px 20px 6px 6px;
+  text-align: left;
+  text-decoration: inherit;
+  color: inherit;
+}
+
+.row > select {
+  display: inline;
+  margin: 6px 20px 6px 6px;
+  text-align: left;
+  width: 140px;
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  font-size: 16px;
+  font-weight: normal;
+}    
 
 .serviceButton {
   display: block;

@@ -5,6 +5,10 @@ use Net::Domain qw(hostname hostdomain);
 use LWP::UserAgent;
 use Data::Dumper;
 
+my %OPTS = @LWP::Protocol::http::EXTRA_SOCK_OPTS;
+$OPTS{MaxLineLength} = 8192; # Or however large is needed...
+@LWP::Protocol::http::EXTRA_SOCK_OPTS = %OPTS;
+
 my $single = "http://estar5.astro.ex.ac.uk/robonet-1.0/cgi-bin/graphs.cgi";
 
 # G R A B   K E Y W O R D S ---------------------------------------------------
@@ -195,3 +199,12 @@ print '</div>';
 
 
 exit;
+
+sub error {
+   my $string = shift;
+   
+   print "Content-type: text/html\n\n";
+   print "<div title='Error' class='panel'>";
+   print "<p>" . $string . "</p>";
+   print "</div>";
+}   

@@ -330,7 +330,15 @@ function preloadImages()
 
 function submitForm(form)
 {
-    iui.showPageByHref(form.action || "POST", encodeForm(form), form.method);
+ /* iui.showPageByHref(form.action || "POST", encodeForm(form), form.method); */
+    formValues = encodeForm(form);
+    formMethod = (form.method || "POST").toUpperCase();
+    formAction = form.action;
+    if(formMethod != "POST") {
+     	    formAction = formAction + "?" + formValues.join("&");
+     	    formValues = Array();
+    }
+    iui.showPageByHref(formAction, formValues, formMethod);
 }
 
 function encodeForm(form)
