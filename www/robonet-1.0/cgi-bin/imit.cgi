@@ -107,7 +107,7 @@ print "Content-type: text/html\n\n";
 print "<H2>Transport Status</H2>";
  
 print "<fieldset>";
-print "<div class='row'>";
+print '<div class="row">';
 print "<label>Transport</label>";
 if ( $agent_soap->transport()->status() =~ "200" ) {
    print "<p id='green'>" . $agent_soap->transport()->status() . "</p>";
@@ -116,7 +116,7 @@ if ( $agent_soap->transport()->status() =~ "200" ) {
 }
 print "</div>";
 if ($obs_result->fault() ) {
-  print "<div class='row'>";
+  print '<div class="row">';
   print "<label>Fault</label>";
   print "<p>" . $obs_result->faultcode() . "</p>";
   print "</div>";
@@ -144,30 +144,30 @@ if ( $obs_return =~ "OK" ) {
    }   
 } 
    
-print "<div class='row'>";
+print '<div class="row">';
 print "<label>LT</label>";
 if ( $telescopes{LT} ) {
-   print "<p id='green'>OK</p>";
+   print '<p id="green">OK</p>';
 } else {   
-   print "<p id='red'>NO</p>";
+   print '<p id="red">NO</p>';
 }   
 print "</div>"; 
 
-print "<div class='row'>";
+print '<div class="row">';
 print "<label>FTN</label>";
 if ( $telescopes{FTN} ) {
-   print "<p id='green'>OK</p>";
+   print '<p id="green">OK</p>';
 } else {   
-   print "<p id='red'>NO</p>";
+   print '<p id="red">NO</p>';
 }   
 print "</div>"; 
 
-print "<div class='row'>";
+print '<div class="row">';
 print "<label>FTS</label>";
 if ( $telescopes{FTS} ) {
-   print "<p id='green'>OK</p>";
+   print '<p id="green">OK</p>';
 } else {   
-   print "<p id='red'>NO</p>";
+   print '<p id="red">NO</p>';
 }   
 print "</div>";   
   
