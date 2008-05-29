@@ -136,8 +136,9 @@ $obs_return =~ s/</&lt;/g;
 print "<fieldset>";
 my %telescopes;
 if ( $obs_return =~ "OK" ) {
-   my $string =~ m/\[(.+)\]/;
+   $obs_return =~ m/\[(.+)\]/;
    my @tels = split " ", $1;
+
    foreach my $i ( 0 ... $#tels ) {
       $telescopes{$tels[$i]} = 1;
    }   
