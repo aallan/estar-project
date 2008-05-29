@@ -117,7 +117,7 @@ my $voevent = $object->build( %event );
 
 my %observation;
 
-if( ( $query{set_toop} == 1 ) {
+if ( $query{set_toop} == 1 ) {
    $observation{toop} = "toop";
 } else {
    $observation{toop} = "normal";
