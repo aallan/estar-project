@@ -113,19 +113,19 @@ print "Content-type: text/html\n\n";
 
 print "<H3>Observation Status</H3>";
  
-my $obs_return = $obs_result->result(); 
-print "Transport Status:  <font color='green'>" . 
-      $agent_soap->transport()->status() . "</font><BR>\n";
+#my $obs_return = $obs_result->result(); 
+#print "Transport Status:  <font color='green'>" . 
+#      $agent_soap->transport()->status() . "</font><BR>\n";
 
-$obs_return =~ s/>/&gt;/g;
-$obs_return =~ s/</&lt;/g;
-if ( $obs_return eq "QUEUED OK" ) {
-   print "Result: <font color='green'>$obs_return</font><br>\n";
-} elsif ( $obs_return eq "DONE OK" ) {
-   print "Result: <font color='green'>$obs_return</font> (attempted to queue on all telescopes)<br>\n";
-} else {
-   print "Result: <font color='red'>$obs_return</font><br>\n";
-}
+#$obs_return =~ s/>/&gt;/g;
+#$obs_return =~ s/</&lt;/g;
+#if ( $obs_return eq "QUEUED OK" ) {
+#   print "Result: <font color='green'>$obs_return</font><br>\n";
+#} elsif ( $obs_return eq "DONE OK" ) {
+#   print "Result: <font color='green'>$obs_return</font> (attempted to queue on all telescopes)<br>\n";
+#} else {
+#   print "Result: <font color='red'>$obs_return</font><br>\n";
+#}
    
 exit;
 
