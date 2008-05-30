@@ -1777,7 +1777,7 @@ sub all_telescopes {
       my $obs_rtml = $obs_request->dump_rtml();   
  
      # end point
-     my $endpoint = "http://" . $best_node;
+      my $endpoint = "http://" . $dn_host . ":" . $dn_port;
      my $uri = new URI($endpoint); 
    
      # create a user/passwd cookie
@@ -1795,7 +1795,7 @@ sub all_telescopes {
      $soap->proxy($endpoint, cookie_jar => $cookie_jar, timeout => 30);
     
      # report
-     $log->print("Connecting to " . $best_node . "..." );
+     $log->print("Connecting to " . $dn_host . ":" . $dn_port . "..." );
    
      # fudge RTML document? 
      $obs_rtml =~ s/</&lt;/g;
@@ -1805,7 +1805,7 @@ sub all_telescopes {
      eval { $result = $soap->handle_rtml(  
                SOAP::Data->name('query', $obs_rtml )->type('xsd:string') ); };
      if ( $@ ) {
-        my $error = "Error: Failed to connect to " . $best_node;
+        my $error = "Error: Failed to connect to " . $dn_host . ":" . $dn_port;
       
         if( $config->get_option("user.notify") == 1 ) {
       
@@ -1813,7 +1813,7 @@ sub all_telescopes {
             
           my $mail_body = 
             "Your user agent attempted to submit your observing request (ID=$id)\n" .
-            "of type $observation{type} to $best_node ($NAMES[$i]) but it but failed ".
+            "of type $observation{type} to $dn_host:$dn_port ($NAMES[$i]) but it but failed ".
             "to reconnect to the node after it had recieved a valid inital ".
             "score from that node. The RTML message that was sent to the  ".
             "node is attached below.\n".
@@ -1860,7 +1860,7 @@ sub all_telescopes {
             
           my $mail_body = 
             "Your user agent attempted to submit your observing request (ID = $id) " .
-            "of type $observation{type} to $best_node ($NAMES[$i]) but failed to parse ".
+            "of type $observation{type} to $dn_host:$dn_port ($NAMES[$i]) but failed to parse ".
             "the reply. The RTML message sent to the node is attached below, along ".
             "with the reply returned by the node agent.\n".
             "\n\n".
@@ -1884,7 +1884,7 @@ sub all_telescopes {
      # check for errors, if none stuff the score reply into the
      # observation object
      unless ( defined $ers_reply->determine_type() )  {
-        my $error = "Error: node $best_node has gone down since scoring";
+        my $error = "Error: node $dn_host:$dn_port is down";
         
         if( $config->get_option("user.notify") == 1 ) {
       
@@ -1892,8 +1892,8 @@ sub all_telescopes {
             
           my $mail_body = 
             "Your user agent attempted to submit your observing request (ID = $id) " .
-            "of type $observation{type} to $best_node ($NAMES[$i]) but it but failed ".
-            "to reconnect to $best_node after it had recieved a valid inital ".
+            "of type $observation{type} to $dn_host:$dn_port ($NAMES[$i]) but it but failed ".
+            "to reconnect to $dn_host:$dn_port after it had recieved a valid inital ".
             "score from that node. The RTML message that was sent to the ".
             "node is attached below.\n".
             "\n" .
@@ -1910,7 +1910,7 @@ sub all_telescopes {
         
          }            
       
-         $log->warn("Warning: node $best_node has gone down since scoring");
+         $log->warn("Warning: node $dn_host:$dn_port is down");
          $log->warn("Warning: discarding observation from queue");
          $log->error( $error );
          next;
@@ -1918,11 +1918,15 @@ sub all_telescopes {
      } else {
       
       my $type = $ers_reply->determine_type();    
-      $log->debug( "Got a '" . $type . "' message from $best_node");  
+      $log->debug( "Got a '" . $type . "' message from $dn_host:$dn_port");  
       $observation_object->obs_reply( $ers_reply );
+
+      # grab score and log it
+      $observation_object->node( "$dn_host:$dn_port");
+
     
       if ( $type eq 'confirmation' ) {
-         $log->debug( $best_node . " confirmed start of observation" );
+         $log->debug( "$dn_host:$dn_port confirmed start of observation" );
          $observation_object->status( 'running' );
          
          # SERIALISE OBSERVATION TO STATE DIRECTORY 
@@ -1962,7 +1966,7 @@ sub all_telescopes {
          }
          
       } else {
-         $log->debug( $best_node . " rejected the observation" );
+         $log->debug( "$dn_host:$dn_port rejected the observation" );
          my $error = "Error: Observation rejected";
          
       
@@ -1972,7 +1976,7 @@ sub all_telescopes {
              
              my $mail_body = 
               "Your user agent attempted to submit your observing request (ID=$id) " .
-              "of type $observation{type} to $best_node ($NAMES[$i]) but the request ".
+              "of type $observation{type} to $dn_host:$dn_port ($NAMES[$i]) but the request ".
               "was rejected with the error '$error'.\n\n" .
               "This is a fatal error. You may want to try and followup up ".
               "manually. The RTML message returned from the node is ".
@@ -2000,7 +2004,7 @@ sub all_telescopes {
             
           my $mail_body = 
             "Your user agent has submitted an observing request (ID=$id) into the " .
-            "queue at $best_node ($NAMES[$i]) of type $observation{type}. The RTML ".
+            "queue at $dn_host:$dn_port ($NAMES[$i]) of type $observation{type}. The RTML ".
             "message that was sent to the node is attached below ".
             "\n\n".
             $observation_object->obs_request()->dump_rtml();

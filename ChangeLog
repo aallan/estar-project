@@ -1,3 +1,13 @@
+2008-05-30 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * www/robonet-1.0/*: Fixes for iPod stuff
+	
+	* www/istar/*: Just dpon't ask!
+	
+	* eSTAR/Observation.pm: Fixes for non-scored observation requests
+	
+	* eSTAR/UA/Handler.pm: Fixed all_telescopes() so it doesn't score.
+	
 2008-05-28 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * bin/event_bridge.pl: Bridges event messages from a vanilla TCP 

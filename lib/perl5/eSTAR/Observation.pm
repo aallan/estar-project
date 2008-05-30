@@ -20,7 +20,7 @@ package eSTAR::Observation;
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: Observation.pm,v 1.8 2006/06/24 04:26:44 aa Exp $
+#     $Id: Observation.pm,v 1.9 2008/05/30 09:31:53 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2001-2003 University of Exeter. All Rights Reserved.
@@ -60,13 +60,13 @@ use Net::Domain qw(hostname hostdomain);
 use File::Spec;
 use Carp;
 
-'$Revision: 1.8 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.9 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # C O N S T R U C T O R ----------------------------------------------------
 
 =head1 REVISION
 
-$Id: Observation.pm,v 1.8 2006/06/24 04:26:44 aa Exp $
+$Id: Observation.pm,v 1.9 2008/05/30 09:31:53 aa Exp $
 
 =head1 METHODS
 
@@ -266,9 +266,14 @@ Return the node of the obsevation should (will) be performed on
 
 sub node {
   my $self = shift;
+
+  if (@_) { 
+    $self->{NODE} = shift;
+  } else {
   
-  my ($node_name, $score_parsed) = $self->highest_score();
-  $self->{NODE} = $node_name;
+     my ($node_name, $score_parsed) = $self->highest_score();
+     $self->{NODE} = $node_name unless defined $self->{NODE};
+  }
     
   return $self->{NODE};
 }
@@ -356,7 +361,10 @@ sub highest_score {
   }
   
   # return the best node and related RTML message
-  $self->{NODE} = $best_node;
+  $self->{NODE} = $best_node unless defined $self->{NODE};
+  if ( defined $self->{NODE} && !defined $best_node ) {
+     $best_node = $self->{NODE};
+  }   
   return ( $best_node, ${$self->{SCORE_REPLY}}{$best_node} );
 
 } 
