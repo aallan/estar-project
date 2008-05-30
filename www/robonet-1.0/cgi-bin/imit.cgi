@@ -8,15 +8,6 @@ use Digest::MD5 'md5_hex';
 use URI;
 use HTTP::Cookies;
 
-{
- local ($oldbar) = $|;
- $cfh = select (STDOUT);
- $| = 1;
- print "Content-type: text/html\n\n";
- $| = $oldbar;
- select ($cfh);
-}
-
 my $event_host = "estar6.astro.ex.ac.uk";
 my $event_port = "9099";
 
@@ -73,6 +64,15 @@ if( $observation{toop} eq "toop" ) {
   $observation{seriescount} = $query{series_count} if $query{series_count} ne "";
   $observation{interval} = "PT" . $query{interval} . "S" if $query{interval} ne "";
   $observation{tolerance} = "PT" . $query{tolerance} . "S" if  $query{tolerance} ne "";
+}
+
+{
+ local ($oldbar) = $|;
+ $cfh = select (STDOUT);
+ $| = 1;
+ print "Content-type: text/html\n\n";
+ $| = $oldbar;
+ select ($cfh);
 }
 
 # O B S E R V I N G   R E Q U E S T -------------------------------------------- 
