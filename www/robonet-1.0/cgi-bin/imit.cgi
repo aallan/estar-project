@@ -37,9 +37,6 @@ foreach my $i ( 0 ... $#pairs ) {
    $query{$name} = $value;
 }
 
-# report
-print "Content-type: text/html\n\n";
-
 # G E N E R A T E   O B S E R V A T I O N ------------------------------------
 
 my %observation;
@@ -85,6 +82,9 @@ $agent_soap->uri( "urn:/user_agent" );
 $agent_soap->proxy($agent_endpoint, cookie_jar => $agent_cookie_jar,
                                     timeout => 90 );
     
+
+print "Content-type: text/html\n\n";
+
 # grab result 
 my $obs_result;
 if ( $query{"all_telescopes"} == 1 ) {
