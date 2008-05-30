@@ -8,6 +8,8 @@ use Digest::MD5 'md5_hex';
 use URI;
 use HTTP::Cookies;
 
+print "Content-type: text/html\n\n";
+
 my $event_host = "estar6.astro.ex.ac.uk";
 my $event_port = "9099";
 
@@ -82,9 +84,6 @@ $agent_soap->uri( "urn:/user_agent" );
 $agent_soap->proxy($agent_endpoint, cookie_jar => $agent_cookie_jar,
                                     timeout => 90 );
     
-
-print "Content-type: text/html\n\n";
-
 # grab result 
 my $obs_result;
 if ( $query{"all_telescopes"} == 1 ) {
