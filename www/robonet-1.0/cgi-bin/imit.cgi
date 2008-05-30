@@ -103,6 +103,7 @@ my $obs_return = $obs_result->result();
 # G E N E R A T E   P A G E --------------------------------------------------
 
 print "Content-type: text/html\n\n";
+print '<div title="Submitted" class="panel">';
 
 print "<H2>Transport Status</H2>";
  
@@ -174,6 +175,7 @@ print "</div>";
   
 print "</fieldset>";
    
+print "</div>";
 exit;
 
 # S U B - R O U T I N E S ----------------------------------------------------
