@@ -7,11 +7,20 @@
 	* eSTAR/Observation.pm: Fixes for non-scored observation requests
 	
 	* eSTAR/UA/Handler.pm: Fixed all_telescopes() so it doesn't score.
+
+2008-05-29 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * Massive changes to www/istar/* and www/robonet-1.0/*
+
+	* eSTAR/UA/Handler.pm: Added node message to QUEUED OK. This is
+	  going to break lots of stuff I've forgotten about I think?
 	
 2008-05-28 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * bin/event_bridge.pl: Bridges event messages from a vanilla TCP 
 	  server to eSTAR-like SOAP server.
+
+	* Fixed massive problem with CVS check-in of www/istar/*
 	
 2008-05-27 Alasdair Allan <aa@astro.ex.ac.uk>
 

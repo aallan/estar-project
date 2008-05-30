@@ -74,7 +74,7 @@ if ( $target =~ "OB" || $target =~ "KB" ) {
   print '<a class="serviceButton" href="robonet/cgi-bin/ogle.cgi?ogle='.$target.'">Get more plots...</a>';
   print '</div></fieldset>';
   print '<fieldset><div>';
-  print '<a class="serviceButton" href="robonet/cgi-bin/get_obs.cgi?target='.$target.'&ra='.$fields[14].'&dec='.$fields[15].'&exposure='.$fields[9].'&group='.$fields[8].'">New observations...</a>';
+  print '<a class="serviceButton" href="robonet/cgi-bin/iphone.cgi?target='.$target.'&ra='.$fields[14].'&dec='.$fields[15].'&exposure='.$fields[9].'&group='.$fields[8].'">New observations...</a>';
   print '</div></fieldset>';
 }
     
@@ -95,19 +95,19 @@ if ( $obs_status =~ /\(/ ) {
    chop( $num );
    $observations = $num;
 }
-$obs_status = "Queued" if $obs_status eq "queued";
-$obs_status = "No Response" if $obs_status eq "no_response";
-$obs_status = "Failed" if $obs_status eq "failed";
-$obs_status = "Error" if $obs_status eq "error";
-$obs_status = "In Progress" if $obs_status eq "in_progress";
-$obs_status = "Expired" if $obs_status eq "expired";
-$obs_status = "Incomplete" if $obs_status eq "incomplete";
-$obs_status = "Returned" if $obs_status eq "returned";
-$obs_status = "Unknown" if $obs_status eq "unknown";
+$obs_status = '<p id="green">Queued' if $obs_status eq "queued";
+$obs_status = '<p id="red">No Response' if $obs_status eq "no_response";
+$obs_status = '<p id="red">Failed' if $obs_status eq "failed";
+$obs_status = '<p id="red">Error' if $obs_status eq "error";
+$obs_status = '<p id="green">In Progress' if $obs_status eq "in_progress";
+$obs_status = '<p id="yellow">Expired' if $obs_status eq "expired";
+$obs_status = '<p id="yellow">Incomplete' if $obs_status eq "incomplete";
+$obs_status = '<p id="green">Returned' if $obs_status eq "returned";
+$obs_status = '<p id="red">Unknown' if $obs_status eq "unknown";
 $obs_status = $obs_status . " ($observations)" if $observations != 0;
 print '<div class="row">';
 print '<label>Status</label>';
-print '<p>'.$obs_status.'</p>';
+print $obs_status . "</p>";
 print '</div>';  
 
 my $type = $fields[3];

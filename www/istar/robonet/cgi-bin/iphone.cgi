@@ -28,32 +28,35 @@ my $user = $ENV{REMOTE_USER};
 
 print "Content-type: text/html\n\n";
 
-print '<form title="Observation" class="panel" action="robonet/cgi-bin/dumper.cgi" method="PUT">';
+print '<form title="Observation" class="panel" action="robonet/cgi-bin/submit.cgi" method="GET">';
+#print '<form title="Observation" class="panel" action="http://estar5.astro.ex.ac.uk/robonet-1.0/cgi-bin/imit.cgi" method="GET">';
 
 print '<h2>Event Information</h2>';
 
-print '<fieldset>';
-print '<div class="row">';
-print '<label>Target:</label>';
-print '<p><input type="text" name="object_name" value="'.$query{target}.'"></p>';
+print '<div>';
+print '<label class="altLabel">Target:</label>';
+print '<input class="altInput" name="object_name" value="'.$query{target}.'" />';
 print '</div>';
 
-print '<div class="row">';
-print '<label>R.A.:</label>';
-print '<input name="ra" value="'.$query{ra}.'">';
+# Clean up :'s in the RA and Dec strings
+$query{ra} =~ s/:/ /g;
+$query{dec} =~ s/:/ /g;
+
+print '<div>';
+print '<label class="altLabel">R.A.:</label>';
+print '<input class="altInput" name="ra" value="'.$query{ra}.'" />';
 print '</div>';
 
-print '<div class="row">';
-print '<label>Dec.:</label>';
-print '<input name="ra" value="'.$query{dec}.'">';
+print '<div>';
+print '<label class="altLabel">Dec.:</label>';
+print '<input class="altInput" name="dec" value="'.$query{dec}.'" />';
 print '</div>';
 
 print '<input type="hidden" name="equinox" value="J2000">';
 print '<input type="hidden" name="concept" value="EXO">';
 print '<input type="hidden" name="probability" value="90">';
 print '<input type="hidden" name="description" value="Submitted from my iPhone">';
-
-print '</fieldset>';
+print '</div>';
 
 my ( $contact_name, $contact_email, $contact_phone );
 if ( $user eq 'aa' ) {
@@ -114,20 +117,17 @@ if ( $user eq 'aa' ) {
    $contact_phone = '';
 }
 
-print '<h2>Contact Information</h2>';
+print '<br><h2>Contact Information</h2>';
 
-print '<fieldset>';
-print '<div class="row">';
-print '<label>Contact:</label>';
-print '<input type="text" name="name" value="'.$contact_name.'">';
+print '<div>';
+print '<label class="altLabel">Contact:</label>';
+print '<input class="altInput" name="name" value="'.$contact_name.'">';
 print '</div>';
 
-print '<div class="row">';
-print '<label>Email:</label>';
-print '<input type="text" name="email" value="'.$contact_email.'">';
+print '<div>';
+print '<label class="altLabel">Email:</label>';
+print '<input class="altInput" name="email" value="'.$contact_email.'">';
 print '</div>';
-
-print '</fieldset>';
  
 if(  $user eq 'aa' ) {
    print '<input type="hidden" name="project" value="eSTAR">';
@@ -143,137 +143,69 @@ if(  $user eq 'aa' ) {
    print '<input type="hidden" name="project" value="ESO">';
 }
 
-print '<h2>Observing Constraints</h2>';
+print '<br><h2>Observing Constraints</h2>';
 
-print '<fieldset>';
+print '<div style="padding-top: -10px;">';
+print '<label class="altLabel">Exposure:</label>';
+print '<input class="altInput" name="exposure" value="'.$query{exposure}.'">';
+print '</div>';
+
+print '<div>';
+print '<label class="altLabel">Group Count:</label>';
+print '<input class="altInput" type="text" name="group_count" value="'.$query{group}.'">';
+print '</div>';
+
+print '<div>';
+print '<select NAME="filter">';
+print ' <option VALUE="R">R band';
+print ' <option VALUE="I">I band';
+print ' <option VALUE="V">V band';
+print ' <option VALUE="B">B band';
+print '</select>';
+print '</div>';
+
+my ($start_time, $end_time) = start_and_end_timestamp();
+
+print '<div>';
+print '<label class="altLabel">Start:</label>';
+print '<input class="altInput" name="start_time" value="'.$start_time.'">';
+print '</div>';
+
+print '<div>';
+print '<label class="altLabel">End:</label>';
+print '<input class="altInput" name="end_time" value="'.$end_time.'">';
+print '</div>';
+
+print '<br><fieldset>';
 print '<div class="row">';
-print '<label>Override?</label>';
+print '<label id="tmp1">Override?</label>';
 print '<div class="toggle" toggled="false" onclick="'."if(document.getElementById( 'setTOOP' ).value==1){document.getElementById( 'setTOOP' ).value=0;}else{document.getElementById( 'setTOOP' ).value=1;};".'">';
+#print '<div class="toggle" toggled="false" onclick="'."document.getElementById( 'tmp1' ).innerHTML='test1';".'">';
 print '<span class="thumb"></span>';
 print '<span class="toggleOn">ON</span>';
 print '<span class="toggleOff">OFF</span>';
 print '</div>';
 print '</div>';
+print '</fieldset>';
 print '<input type="hidden" id="setTOOP" name="set_toop" value="0">';
 
-print '</fieldset>';
-
 print '<fieldset>';
 print '<div class="row">';
-print '<label>Exposure:</label>';
-print '<p><input type="text" name="exposure" value="'.$query{exposure}.'"> sec</p>';
+print '<label id="tmp2">Global?</label>';
+print '<div class="toggle" toggled="true" onclick="'."if(document.getElementById( 'setALL' ).value==1){document.getElementById( 'setALL' ).value=0;}else{document.getElementById( 'setALL' ).value=1;};".'">';
+#print '<div class="toggle" toggled="true" onclick="'."document.getElementById( 'tmp2' ).innerHTML='test2';".'">';
+print '<span class="thumb"></span>';
+print '<span class="toggleOn">ON</span>';
+print '<span class="toggleOff">OFF</span>';
 print '</div>';
-
-print '<div class="row">';
-print '<label>Count:</label>';
-print '<input type="text" name="group_count" value="'.$query{group}.'">';
-print '</div>';
-
-print '<div class="row">';
-print '<label>Filter:</label>';
-print '<select NAME="filter">';
-print ' <option VALUE="R">R';
-print ' <option VALUE="I">I';
-print ' <option VALUE="V">V';
-print ' <option VALUE="B">B';
-print '</select>';
 print '</div>';
 print '</fieldset>';
+print '<input type="hidden" id="setALL" name="all_telescopes" value="1">';
 
-
-my ($start_time, $end_time) = start_and_end_timestamp();
-
-print '<fieldset>';
-print '<div class="row">';
-print '<label>Start:</label>';
-print '<input type="text" name="start_time" value="'.$start_time.'">';
-print '</div>';
-
-print '<div class="row">';
-print '<label>End:</label>';
-print '<input type="text" name="end_time" value="'.$end_time.'">';
-print '</div>';
-print '</fieldset>';
 
 print '<input TYPE="submit" VALUE="Submit Observation">'."\n";
 
 print '</form>';
-exit;
-
-
-print '         <td>'."\n";
-print '             <b>Type :</b>   '."\n";
-print '	     <br>'."\n";
-print '             <i><small>Filter requested</small></i>'."\n";
-print '         </td>'."\n";
-
-print '      </tr>'."\n";
-
-#print '      <!-- ############################################################# -->'."\n";
-#print '      <!-- # Observing Information                                     # -->'."\n";
-#print '      <!-- ############################################################# -->'."\n";
-   
-#print '     <tr align="left" valign="middle">'."\n";
-     
-#print '        <td colspan="3">'."\n";
-#print '           <u><strong>Authorisation</strong></u>  '."\n";      
-#print '        </td>'."\n";
-        
-#print '     </tr>'."\n";
-    
-#print '     <tr align="left" valign="middle">'."\n";
-     
-#print '        <td valign="middle">'."\n";
-#print '            <b>User :</b> <input size="15" name="user_name"> '."\n";
-#print '	     <br>'."\n";
-#print '             <i><small>Your <b><font color="red">e</font>STAR</b> user name</small></i>'."\n";
-
-#print '        </td>'."\n";
-
-
-#print '        <td valign="middle">'."\n";
-#print '            <b>Password :</b> <input size="15" type="password" name="user_pass"> '."\n";
-#print '	     <br>'."\n";
-#print '             <i><small>Your <b><font color="red">e</font>STAR</b> password</small></i>'."\n";
-#print '        </td>'."\n";
-
-
-#print '        <td  valign="middle">'."\n";
-#print '           &nbsp;'."\n";
-#print '        </td>'."\n";
-        
-#print '     </tr>'."\n";
-
-
-print '     <!-- ################################################################ -->'."\n";
-print '     <!-- # ALL TELESCOPES                                               # -->'."\n";
-print '     <!-- ################################################################ -->'."\n";
-
-print '   <tr align="left" valign="middle">'."\n";
-print '        <td colspan="3">'."\n";
-
-print '          <b>Observe on all telescopes? <input type="checkbox" name="all_telescopes" value="1"> </b>'."\n";
-print '        </td>'."\n";
-print '     </tr>'."\n";
-
-print '     <!-- ################################################################ -->'."\n";
-print '     <!-- # BUTTONS                                                      # -->'."\n";
-print '     <!-- ################################################################ -->'."\n";
-
-print '    <tr align="right" valign="middle">'."\n";
-     
-print '        <td colspan="3">'."\n";
-print '           <input TYPE="submit" VALUE="Submit Event">'."\n";
-print '           <input TYPE="reset" VALUE="Reset Input Fields">'."\n";
-print '        </td>'."\n";
-print '     </tr>'."\n";
-
-print '   </table>'."\n";
-print '   </center>'."\n";
-  
-print '</form>'."\n";
-print $footer;
-
 exit;
 
 sub timestamp {
