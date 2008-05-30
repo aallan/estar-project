@@ -37,6 +37,9 @@ foreach my $i ( 0 ... $#pairs ) {
    $query{$name} = $value;
 }
 
+# report
+print "Content-type: text/html\n\n";
+
 # G E N E R A T E   O B S E R V A T I O N ------------------------------------
 
 my %observation;
@@ -80,9 +83,7 @@ my $agent_soap = new SOAP::Lite();
 
 $agent_soap->uri( "urn:/user_agent" ); 
 $agent_soap->proxy($agent_endpoint, cookie_jar => $agent_cookie_jar);
-  
-# report
-  
+    
 # grab result 
 my $obs_result;
 if ( $query{"all_telescopes"} == 1 ) {
@@ -96,14 +97,9 @@ if ( $@ ) {
    exit;   
 }
 
-
-
 my $obs_return = $obs_result->result(); 
 
 # G E N E R A T E   P A G E --------------------------------------------------
-
-print "Content-type: text/html\n\n";
-print '<div title="Submitted" class="panel">';
 
 print "<H2>Transport Status</H2>";
  
@@ -180,52 +176,6 @@ exit;
 
 # S U B - R O U T I N E S ----------------------------------------------------
 
-sub timestamp {
-   # ISO format 2006-01-05T08:00:00
-   		     
-   my $year = 1900 + localtime->year();
-   
-   my $month = localtime->mon() + 1;
-   $month = "0$month" if $month < 10;
-   
-   my $day = localtime->mday();
-   $day = "0$day" if $day < 10;
-   
-   my $hour = localtime->hour();
-   $hour = "0$hour" if $hour < 10;
-   
-   my $min = localtime->min();
-   $min = "0$min" if $min < 10;
-   
-   my $sec = localtime->sec();
-   $sec = "0$sec" if $sec < 10;
-   
-   my $timestamp = $year ."-". $month ."-". $day ."T". 
-   		   $hour .":". $min .":". $sec;
-
-   return $timestamp;
-}
-
-sub convert_from_sextuplets {
- my $ra = shift;
- my $dec = shift;
- 
- my ($ra_hour, $ra_min, $ra_sec) = split " ", $ra;
- my ($dec_deg, $dec_min, $dec_sec) = split " ",$dec;
- $dec_deg =~ s/\+// if $dec_deg eq "+";
-
- my $decimal_ra = $ra_hour*15.0 + ($ra_min/60.0) + ($ra_sec/3600.0);
- 
- my $decimal_dec;
- if ( $dec_deg =~ "-" ) {
-    $decimal_dec = $dec_deg - ($dec_min/60.0) - ($dec_sec/3600.0);
- } else {   
-    $decimal_dec = $dec_deg + ($dec_min/60.0) + ($dec_sec/3600.0);
- }
- 
- return( $decimal_ra, $decimal_dec );
-} 
-
 sub make_cookie {
    my ($user, $passwd) = @_;
    my $cookie = $user . "::" . md5_hex($passwd);
@@ -233,30 +183,6 @@ sub make_cookie {
    $cookie =~ s/%/%25/g;
    $cookie;
 }
-
-sub grab_url_of_document {
-   my $result = shift;
-   
-   my $param;
-   if ( $result =~ "/home/estar/.estar/" ) {
-      my @array = split "\n", $result;
-      foreach my $i ( 0 ... $#array ) {
-        if ( $array[$i] =~ "/home/estar/.estar/" ) {
-           $param = $array[$i];
-	   last;
-        }
-      }
-   }
-
-   my $start_index = rindex $param, 'value="';
-   my $path = substr $param, $start_index+7;
-   my $length = length $path;
-   $path = substr $path, 0, $length-4;
-   $path =~ s/\/home\/estar\/\.estar\/event_broker\/state\//http:\/\/www\.estar\.org\.uk\/voevent\//;
-
-   return $path;
-}
-
 
 sub error {
    my $string = shift;
