@@ -1493,211 +1493,211 @@ sub all_telescopes {
          $observation{'toop'} = "normal";
       }      
 
-      if ( defined $observation{'exposure'} ) {
-
-           # build a score request
-           $score_message->build(
-             Type  => "score",
-             Port        => $config->get_option( "server.port"),
-             Host        => $config->get_option( "server.host"),
-             ID          => $id,
-             User        => $config->get_option("user.user_name"),
-             Name        => $config->get_option("user.real_name"),
-             Institution => $config->get_option("user.institution"),
-             Email       => $config->get_option("user.email_address"),
-             Project         => $observation{'project'},
-             Target         => $observation{'target'},
-             TargetIdent    => $observation{'type'},
-	     TargetType     => $observation{'toop'},
-             RA             => $observation{'ra'},
-             Dec            => $observation{'dec'},
-             Exposure       => $observation{'exposure'},
-             Filter         => $observation{'passband'},
-             GroupCount     => $observation{'groupcount'},
-             TimeConstraint => [ $observation{'starttime'},
-                                 $observation{'endtime'} ],
-             SeriesCount    => $observation{'seriescount'},
-             Interval       => $observation{'interval'},
-             Tolerance      => $observation{'tolerance'},
-             Priority       => $observation{'priority'} );  
-      
-      } else { 
-      
-            # build a score request
-            $score_message->build(
-             Type  => "score",
-             Port        => $config->get_option( "server.port"),
-             Host        => $config->get_option( "server.host"),
-             ID          => $id,
-             User        => $config->get_option("user.user_name"),
-             Name        => $config->get_option("user.real_name"),
-             Institution => $config->get_option("user.institution"),
-             Email       => $config->get_option("user.email_address"),
-             Project         => $observation{'project'},
-             Target         => $observation{'target'},
-             TargetIdent    => $observation{'type'},
-	     TargetType     => $observation{'toop'},
-             RA             => $observation{'ra'},
-             Dec            => $observation{'dec'},
-             Snr       => $observation{'signaltonoise'},
-             Flux   => $observation{'magnitude'},
-             Filter         => $observation{'passband'},
-             GroupCount     => $observation{'groupcount'},
-             TimeConstraint => [ $observation{'starttime'},
-                                 $observation{'endtime'} ],
-             SeriesCount    => $observation{'seriescount'},
-             Interval       => $observation{'interval'},
-             Tolerance      => $observation{'tolerance'},
-             Priority       => $observation{'priority'} );  
-     
-       }
-
-      $observation_object->score_request( $score_message ); 
-      $log->print( $score_message->dump_rtml() );
-      
-      # SCORE REQUEST
-      # -------------
-   
-      my $score_request = $observation_object->score_request();
-      my $score_rtml = $score_request->dump_rtml();
-      
-      # end point
-      my $endpoint = "http://" . $dn_host . ":" . $dn_port;
-      my $uri = new URI($endpoint);
-   
-      # create a user/passwd cookie
-      my $cookie = eSTAR::Util::make_cookie( 
-                      $observation{"user"}, $observation{"pass"} );
-  
-      my $cookie_jar = HTTP::Cookies->new();
-      $cookie_jar->set_cookie( 0, user => $cookie, '/', 
-                              $uri->host(), $uri->port());
-
-      # create SOAP connection
-      my $soap = new SOAP::Lite();
-  
-      $soap->uri('urn:/node_agent'); 
-      $soap->proxy($endpoint, cookie_jar => $cookie_jar, timeout => 30);
-    
-      # report
-      $log->print("Connecting to $dn_host:$dn_port..." );
-    
-      # fudge RTML document?
-      $score_rtml =~ s/</&lt;/g;
-
-    
-      # grab result 
-      my $result;
-      eval { $result = $soap->handle_rtml( 
-               SOAP::Data->name('query', $score_rtml )->type('xsd:string')); };
-      if ( $@ ) {
-         $log->warn("Warning: Failed to connect to $dn_host:$dn_port" );
-         $log->warn("Warning: Skipping to next node..."  );
-         next;    
-      }
-   
-      # Check for errors
-      unless ($result->fault() ) {
-        $log->debug("Transport Status: " . $soap->transport()->status() );
-      } else {
-        $log->error("Fault Code   : " . $result->faultcode() );
-        $log->error("Fault String : " . $result->faultstring() );
-      }
-      
-      my $reply = $result->result();
-      $reply =~ s/&amp;lt;/</g;
-      $reply =~ s/&lt;/</g;
-      $reply =~ s/&amp;gt;/>/g;
-      $reply =~ s/&gt;/>/g;
-      
-      print $reply ."\n\n\n";
-      
-      my $ers_reply;
-      eval { $ers_reply = new XML::Document::RTML( XML => $reply ); };
-      if ( $@ ) {
-         $log->error("Error: $@");
-         $log->error("Error: Unable to parse ERS reply, not XML?" );
-         $log->error("Reply is...\n" . $reply );
-	 #$log->error( Dumper( $result ) );
-	 
-        if( $config->get_option("user.notify") == 1 ) {
-      
-          $log->print( "Sending notification email...");
-            
-          my $mail_body = 
-            "Your user agent attempted to score your observing request (ID=$id) " .
-            "of type $observation{type} with $NODES[$i] ($NAMES[$i]). However ".
-            "it could not parse the response from the node. ".
-            "\n\n".
-            $observation_object->score_request()->dump_rtml();
-      
-          eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
-                              $config->get_option("user.real_name"),
-                              'estar@astro.ex.ac.uk',
-                              'eSTAR User Agent (Error)',
-                              $mail_body, 'estar-status@estar.org.uk' ); 
-         } 
-         next;          
-      }
-            
-      # check for errors, if none stuff the score reply into the
-      # observation object
-      unless ( defined $ers_reply->determine_type() )  {
-         $log->warn( "Warning: node $dn_host:$dn_port must be down.." );
-      } else {
-
-         my $type = $ers_reply->determine_type();       
-         $log->debug( "Got a '" . $type . "' message from $dn_host:$dn_port");  
-         $observation_object->score_reply( "$dn_host:$dn_port", $ers_reply );
-      
-      }   
-        
-      # GRAB BEST SCORE
-      # ---------------
-      my ( $best_node, $score_reply ) = $observation_object->highest_score();
-      my $score_request = $observation_object->score_request();
-   
-      # check we have any scores
-      unless ( defined $best_node && defined $score_reply ) {
-         my $error = "Error: No nodes able to carry out observation";
-         next;
-      }     
- 
-      # grab best score and log it
-      my $score_replies = $observation_object->score_reply();
-      $score_reply = $$score_replies{$best_node};
-      my $best_score = $score_reply->score();
-      $log->print("Score of $best_score from $best_node");
-
-      # check the best score is not zero
-      if ( $best_score == 0.0 ) {
-         my $error = "Error: score is $best_score, possible problem?";
-      
-         if( $config->get_option("user.notify") == 1 ) {
-      
-          $log->print( "Sending notification email...");
-            
-          my $mail_body = 
-            "Your user agent attempted to score your observing request (ID=$id) " .
-            "of type $observation{type} with $NODES[$i] ($NAMES[$i]). It returned a ".
-            "score of zero indicating that the target was below the ".
-            "horizon or otherwise unobservable. ".
-            "\n".
-            "The RTML which was sent to the telescopes is attached below.".
-            "\n\n".
-            $observation_object->score_request()->dump_rtml();
-            
-          eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
-                              $config->get_option("user.real_name"),
-                              'estar@astro.ex.ac.uk',
-                              'eSTAR User Agent (Score 0)',
-                              $mail_body, 'estar-status@estar.org.uk'); 
-         }                                          
-      
-         $log->error( $error );
-         next;
-      }
-   
+#      if ( defined $observation{'exposure'} ) {
+#
+#           # build a score request
+#           $score_message->build(
+#             Type  => "score",
+#             Port        => $config->get_option( "server.port"),
+#             Host        => $config->get_option( "server.host"),
+#             ID          => $id,
+#             User        => $config->get_option("user.user_name"),
+#             Name        => $config->get_option("user.real_name"),
+#             Institution => $config->get_option("user.institution"),
+#             Email       => $config->get_option("user.email_address"),
+#             Project         => $observation{'project'},
+#             Target         => $observation{'target'},
+#             TargetIdent    => $observation{'type'},
+#	     TargetType     => $observation{'toop'},
+#             RA             => $observation{'ra'},
+#             Dec            => $observation{'dec'},
+#             Exposure       => $observation{'exposure'},
+#             Filter         => $observation{'passband'},
+#             GroupCount     => $observation{'groupcount'},
+#             TimeConstraint => [ $observation{'starttime'},
+#                                 $observation{'endtime'} ],
+#             SeriesCount    => $observation{'seriescount'},
+#             Interval       => $observation{'interval'},
+#             Tolerance      => $observation{'tolerance'},
+#             Priority       => $observation{'priority'} );  
+#      
+#      } else { 
+#      
+#            # build a score request
+#            $score_message->build(
+#             Type  => "score",
+#             Port        => $config->get_option( "server.port"),
+#             Host        => $config->get_option( "server.host"),
+#             ID          => $id,
+#             User        => $config->get_option("user.user_name"),
+#             Name        => $config->get_option("user.real_name"),
+#             Institution => $config->get_option("user.institution"),
+#             Email       => $config->get_option("user.email_address"),
+#             Project         => $observation{'project'},
+#             Target         => $observation{'target'},
+#             TargetIdent    => $observation{'type'},
+#	     TargetType     => $observation{'toop'},
+#             RA             => $observation{'ra'},
+#             Dec            => $observation{'dec'},
+#             Snr       => $observation{'signaltonoise'},
+#             Flux   => $observation{'magnitude'},
+#             Filter         => $observation{'passband'},
+#             GroupCount     => $observation{'groupcount'},
+#             TimeConstraint => [ $observation{'starttime'},
+#                                 $observation{'endtime'} ],
+#             SeriesCount    => $observation{'seriescount'},
+#             Interval       => $observation{'interval'},
+#             Tolerance      => $observation{'tolerance'},
+#             Priority       => $observation{'priority'} );  
+#     
+#       }
+#
+#      $observation_object->score_request( $score_message ); 
+#      $log->print( $score_message->dump_rtml() );
+#      
+#      # SCORE REQUEST
+#      # -------------
+#   
+#      my $score_request = $observation_object->score_request();
+#      my $score_rtml = $score_request->dump_rtml();
+#      
+#      # end point
+#      my $endpoint = "http://" . $dn_host . ":" . $dn_port;
+#      my $uri = new URI($endpoint);
+#   
+#      # create a user/passwd cookie
+#      my $cookie = eSTAR::Util::make_cookie( 
+#                      $observation{"user"}, $observation{"pass"} );
+#  
+#      my $cookie_jar = HTTP::Cookies->new();
+#      $cookie_jar->set_cookie( 0, user => $cookie, '/', 
+#                              $uri->host(), $uri->port());
+#
+#      # create SOAP connection
+#      my $soap = new SOAP::Lite();
+#  
+#      $soap->uri('urn:/node_agent'); 
+#      $soap->proxy($endpoint, cookie_jar => $cookie_jar, timeout => 30);
+#    
+#      # report
+#      $log->print("Connecting to $dn_host:$dn_port..." );
+#    
+#      # fudge RTML document?
+#      $score_rtml =~ s/</&lt;/g;
+#
+#    
+#      # grab result 
+#      my $result;
+#      eval { $result = $soap->handle_rtml( 
+#               SOAP::Data->name('query', $score_rtml )->type('xsd:string')); };
+#      if ( $@ ) {
+#         $log->warn("Warning: Failed to connect to $dn_host:$dn_port" );
+#         $log->warn("Warning: Skipping to next node..."  );
+#         next;    
+#      }
+#   
+#      # Check for errors
+#      unless ($result->fault() ) {
+#        $log->debug("Transport Status: " . $soap->transport()->status() );
+#      } else {
+#        $log->error("Fault Code   : " . $result->faultcode() );
+#        $log->error("Fault String : " . $result->faultstring() );
+#      }
+#      
+#      my $reply = $result->result();
+#      $reply =~ s/&amp;lt;/</g;
+#      $reply =~ s/&lt;/</g;
+#      $reply =~ s/&amp;gt;/>/g;
+#      $reply =~ s/&gt;/>/g;
+#      
+#      print $reply ."\n\n\n";
+#      
+#      my $ers_reply;
+#      eval { $ers_reply = new XML::Document::RTML( XML => $reply ); };
+#      if ( $@ ) {
+#         $log->error("Error: $@");
+#         $log->error("Error: Unable to parse ERS reply, not XML?" );
+#         $log->error("Reply is...\n" . $reply );
+#	 #$log->error( Dumper( $result ) );
+#	 
+#        if( $config->get_option("user.notify") == 1 ) {
+#      
+#          $log->print( "Sending notification email...");
+#            
+#          my $mail_body = 
+#            "Your user agent attempted to score your observing request (ID=$id) " .
+#            "of type $observation{type} with $NODES[$i] ($NAMES[$i]). However ".
+#            "it could not parse the response from the node. ".
+#            "\n\n".
+#            $observation_object->score_request()->dump_rtml();
+#      
+#          eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
+#                              $config->get_option("user.real_name"),
+#                              'estar@astro.ex.ac.uk',
+#                              'eSTAR User Agent (Error)',
+#                              $mail_body, 'estar-status@estar.org.uk' ); 
+#         } 
+#         next;          
+#      }
+#            
+#      # check for errors, if none stuff the score reply into the
+#      # observation object
+#      unless ( defined $ers_reply->determine_type() )  {
+#         $log->warn( "Warning: node $dn_host:$dn_port must be down.." );
+#      } else {
+#
+#         my $type = $ers_reply->determine_type();       
+#         $log->debug( "Got a '" . $type . "' message from $dn_host:$dn_port");  
+#         $observation_object->score_reply( "$dn_host:$dn_port", $ers_reply );
+#      
+#      }   
+#        
+#      # GRAB BEST SCORE
+#      # ---------------
+#      my ( $best_node, $score_reply ) = $observation_object->highest_score();
+#      my $score_request = $observation_object->score_request();
+#   
+#      # check we have any scores
+#      unless ( defined $best_node && defined $score_reply ) {
+#         my $error = "Error: No nodes able to carry out observation";
+#         next;
+#      }     
+# 
+#      # grab best score and log it
+#      my $score_replies = $observation_object->score_reply();
+#      $score_reply = $$score_replies{$best_node};
+#      my $best_score = $score_reply->score();
+#      $log->print("Score of $best_score from $best_node");
+#
+#      # check the best score is not zero
+#      if ( $best_score == 0.0 ) {
+#         my $error = "Error: score is $best_score, possible problem?";
+#      
+#         if( $config->get_option("user.notify") == 1 ) {
+#      
+#          $log->print( "Sending notification email...");
+#	     
+#	   my $mail_body = 
+#	     "Your user agent attempted to score your observing request (ID=$id) " .
+#	     "of type $observation{type} with $NODES[$i] ($NAMES[$i]). It returned a ".
+#	     "score of zero indicating that the target was below the ".
+#	     "horizon or otherwise unobservable. ".
+#	     "\n".
+#	     "The RTML which was sent to the telescopes is attached below.".
+#	     "\n\n".
+#	     $observation_object->score_request()->dump_rtml();
+#	     
+#	   eSTAR::Mail::send_mail( $config->get_option("user.email_address"),
+#			       $config->get_option("user.real_name"),
+#			       'estar@astro.ex.ac.uk',
+#			       'eSTAR User Agent (Score 0)',
+#			       $mail_body, 'estar-status@estar.org.uk'); 
+#	  }					     
+#      
+#	  $log->error( $error );
+#	  next;
+#      }
+#   
       # BUILD OBSERVATION REQUEST
       # -------------------------
   
@@ -1710,60 +1710,56 @@ sub all_telescopes {
 
          $observe_message->build( 
              Type =>     "request",
-             Port        => $config->get_option( "server.port"),
-             Host        => $config->get_option( "server.host"),
-             ID          => $observation_object->id(),
-             User        => $score_reply->user(),
-             Name        => $score_reply->name(),
-             Institution => $score_reply->institution(),
-             Email       => $score_reply->email(),              
-             Target   => $score_reply->target(),
-             Project => $score_reply->project(),
-             TargetIdent => $observation{'type'},
-	     TargetType  => $observation{'toop'},
-             RA       => $score_request->ra(),
-             Dec      => $score_request->dec(),
-             Score    => $score_reply->score(),
-             Time     => $score_reply->time(),
-             Exposure => $score_request->exposure(),
-             Filter   => $score_request->filter(),
-             GroupCount     => $score_reply->group_count(),
-             TimeConstraint => [ $score_reply->start_time(),
-                               $score_reply->end_time() ],
-             SeriesCount    => $score_reply->series_count(),
-             Interval       => $score_reply->interval(),
-             Tolerance      => $score_reply->tolerance(),
-             Priority       => $score_reply->priority() );   
-   
+	     Port	 => $config->get_option( "server.port"),
+	     Host	 => $config->get_option( "server.host"),
+	     ID 	 => $id,
+	     User	 => $config->get_option("user.user_name"),
+	     Name	 => $config->get_option("user.real_name"),
+	     Institution => $config->get_option("user.institution"),
+	     Email	 => $config->get_option("user.email_address"),
+	     Project	     => $observation{'project'},
+	     Target	    => $observation{'target'},
+	     TargetIdent    => $observation{'type'},
+	    TargetType     => $observation{'toop'},
+	     RA 	    => $observation{'ra'},
+	     Dec	    => $observation{'dec'},
+	     Exposure	    => $observation{'exposure'},
+	     Filter	    => $observation{'passband'},
+	     GroupCount     => $observation{'groupcount'},
+	     TimeConstraint => [ $observation{'starttime'},
+				 $observation{'endtime'} ],
+	     SeriesCount    => $observation{'seriescount'},
+	     Interval	    => $observation{'interval'},
+	     Tolerance      => $observation{'tolerance'},
+	     Priority	    => $observation{'priority'} );  
+
        } else {  
 
            $observe_message->build(
             Type =>     "request",
-            Port        => $config->get_option( "server.port"),
-            Host        => $config->get_option( "server.host"),
-            ID          => $observation_object->id(),
-            User        => $score_request->user(),
-            Name        => $score_request->name(),
-            Institution => $score_request->institution(),
-            Email       => $score_request->email(),                        
-            Project => $score_reply->project(),
-            Target   => $score_request->target(),
-            TargetIdent => $observation{'type'},
-	    TargetType  => $observation{'toop'},
-            RA       => $score_request->ra(),
-            Dec      => $score_request->dec(),
-            Score    => $score_reply->score(),
-            Time     => $score_reply->time(),
-            Snr      => $score_request->snr(),
-            Flux     => $score_request->flux(),
-            Filter   => $score_request->filter(),
-            GroupCount     => $score_reply->group_count(),
-            TimeConstraint => [ $score_reply->start_time(),
-                              $score_reply->end_time() ],
-            SeriesCount    => $score_reply->series_count(),
-            Interval       => $score_reply->interval(),
-            Tolerance      => $score_reply->tolerance(),
-             Priority       => $score_reply->priority() );   
+	     Port	 => $config->get_option( "server.port"),
+	     Host	 => $config->get_option( "server.host"),
+	     ID 	 => $id,
+	     User	 => $config->get_option("user.user_name"),
+	     Name	 => $config->get_option("user.real_name"),
+	     Institution => $config->get_option("user.institution"),
+	     Email	 => $config->get_option("user.email_address"),
+	     Project	     => $observation{'project'},
+	     Target	    => $observation{'target'},
+	     TargetIdent    => $observation{'type'},
+	    TargetType     => $observation{'toop'},
+	     RA 	    => $observation{'ra'},
+	     Dec	    => $observation{'dec'},
+	     Snr       => $observation{'signaltonoise'},
+	     Flux   => $observation{'magnitude'},
+	     Filter	    => $observation{'passband'},
+	     GroupCount     => $observation{'groupcount'},
+	     TimeConstraint => [ $observation{'starttime'},
+				 $observation{'endtime'} ],
+	     SeriesCount    => $observation{'seriescount'},
+	     Interval	    => $observation{'interval'},
+	     Tolerance      => $observation{'tolerance'},
+	     Priority	    => $observation{'priority'} );   
    
       } 
 
