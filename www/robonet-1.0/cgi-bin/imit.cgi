@@ -1,4 +1,4 @@
-#!/software/perl-5.8.8/bin/perl -X
+#!/software/perl-5.8.8/bin/perl -w
 
 use Time::localtime;
 use Data::Dumper;
