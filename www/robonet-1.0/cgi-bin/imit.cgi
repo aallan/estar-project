@@ -42,6 +42,13 @@ foreach my $i ( 0 ... $#pairs ) {
 # G E N E R A T E   O B S E R V A T I O N ------------------------------------
 
 my %observation;
+
+if ( $query{set_toop} == 1 ) {
+   $observation{toop} = "toop";
+} else {
+   $observation{toop} = "normal";
+}
+
 $observation{user} = "kdh1";
 $observation{pass} = "EXOfollowup";
 $observation{project} = "exoplanet";
@@ -54,7 +61,7 @@ $observation{type} = "ExoPlanetMonitor";
 $observation{groupcount} = $query{group_count};
 $observation{starttime} = $query{start_time};
 $observation{endtime} = $query{end_time};
-$observation{toop} = $query{type};
+$observation{toop} = $query{type} unless defined $observation{toop};
 $observation{filter} = $query{filter};
 $observation{priority} = 0;
 
