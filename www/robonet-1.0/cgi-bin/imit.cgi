@@ -1,4 +1,4 @@
-#!/software/perl-5.8.8/bin/perl -X
+#!/software/perl-5.8.8/bin/perl
 
 use Time::localtime;
 use Data::Dumper;
@@ -8,14 +8,7 @@ use Digest::MD5 'md5_hex';
 use URI;
 use HTTP::Cookies;
 
-{
- local ($oldbar) = $|;
- $cfh = select (STDOUT);
- $| = 1;
- print "Content-type: text/html\n\n";
- $| = $oldbar;
- select ($cfh);
-}
+print "Content-type: text/html\n\n";
 
 my $event_host = "estar6.astro.ex.ac.uk";
 my $event_port = "9099";
@@ -68,6 +61,11 @@ $observation{type} = "ExoPlanetMonitor";
 $observation{groupcount} = $query{group_count};
 $observation{starttime} = $query{start_time};
 $observation{endtime} = $query{end_time};
+
+# hack, don't know where the space comes from
+$observation{starttime} =~ s/ /\+/;   
+$observation{endtime} =~ s/ /\+/;   
+
 $observation{toop} = $query{type} unless defined $observation{toop};
 $observation{filter} = $query{filter};
 $observation{priority} = 0;

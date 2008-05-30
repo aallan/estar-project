@@ -201,14 +201,24 @@
 	
 	my $status = $object->status();
 	my $node = $object->node();
-        my ($node_name, $score_reply) = $object->highest_score();
+	
+	#print "$files[$i] = $node<br>";
+	
+        my ($node_name, $score_reply);
+	eval { ($node_name, $score_reply) = $object->highest_score(); };
+	if ( $@ ) {
+	  error( "$@" );
+	  exit;
+	}  
 	$node = "FTN" if $node eq "estar3.astro.ex.ac.uk:8077";
 	$node = "FTN Proxy" if $node eq "132.160.98.239:8080/axis/services/NodeAgent";
 	$node = "LT" if $node eq "estar3.astro.ex.ac.uk:8078";
 	$node = "LT Proxy" if $node eq "161.72.57.3:8080/axis/services/NodeAgent";
 	$node = "FTS" if $node eq "estar3.astro.ex.ac.uk:8079";  
 	$node = "FTS Proxy" if $node eq "150.203.153.202:8080/axis/services/NodeAgent";
-        my $score;
+        $node = "UNKNOWN" unless defined $node;
+	
+	my $score;
         eval { $score = $score_reply->score() if defined $score_reply; };
         if ( $@ ) {
            error( "$@");
@@ -421,6 +431,10 @@
               print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Error] body=[Returned observation not in database.<br>Possible timeout at Node Agent?]' >";
               print " <b><font color='red'>ERROR</font></b>";
               print "</DIV>";
+	   } elsif( $node eq "UNKNOWN" ) {
+              print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Error] body=[Observations were queued without a score request.<br>Queued, but at unknown telescope]' >";
+              print " <b><font color='red'>ERROR</font></b>";
+              print "</DIV>";	      
            } elsif ( $target =~ m/OGLE/ ) {
               print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Error] body=[<table><tr><td><b>$node_name</b> ($node)</td></tr><tr><td><b>Score:</b> $score</td></tr><tr><td>&nbsp;</td></tr><tr><td>OGLE target with incorrectly formated name</td></tr><tr><td>Target name will not trigger pipeline?</td></tr><tr><td>Use name in format: OB07xxx</td></tr></table>]' >";
               print "<font color='red'><b>ERROR</b></font>";
@@ -592,7 +606,11 @@
      my $start = shift;
      my $end = shift;
      my $current = timestamp();
-   
+     
+     # hack for a limited set of broken observations
+     $start =~ s/ /\+/;
+     $end =~ s/ /\+/;
+     
      chop $end if $end =~ /.\d{4}$/;
      chop $end if $end =~ /.\d{3}$/;
      #$current =~ s/.\d{4}$//;
@@ -605,6 +623,7 @@
      my $current_dt = $iso8601->parse_datetime( $current );
      my $interval = DateTime->compare($current_dt, $end_dt);
      
+     die( "Problem finsing expiry time" ) unless defined $interval;
      return $interval;
 
   }
