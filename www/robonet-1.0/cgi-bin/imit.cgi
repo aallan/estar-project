@@ -82,7 +82,8 @@ $agent_cookie_jar->set_cookie(0, user => $cookie, '/', $agent_uri->host(), $agen
 my $agent_soap = new SOAP::Lite();
 
 $agent_soap->uri( "urn:/user_agent" ); 
-$agent_soap->proxy($agent_endpoint, cookie_jar => $agent_cookie_jar);
+$agent_soap->proxy($agent_endpoint, cookie_jar => $agent_cookie_jar,
+                                    timeout => 90 );
     
 # grab result 
 my $obs_result;
@@ -185,7 +186,5 @@ sub make_cookie {
 
 sub error {
    my $string = shift;
-   
-   print "Content-type: text/html\n\n";
-   print "<p>" . $string . "</p>";
+   print $string;
 }   
