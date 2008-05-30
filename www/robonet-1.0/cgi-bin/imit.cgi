@@ -8,7 +8,14 @@ use Digest::MD5 'md5_hex';
 use URI;
 use HTTP::Cookies;
 
-print "Content-type: text/html\n\n";
+{
+ local ($oldbar) = $|;
+ $cfh = select (STDOUT);
+ $| = 1;
+ print "Content-type: text/html\n\n";
+ $| = $oldbar;
+ select ($cfh);
+}
 
 my $event_host = "estar6.astro.ex.ac.uk";
 my $event_port = "9099";
