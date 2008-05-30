@@ -1,9 +1,4 @@
 #!/software/perl-5.8.8/bin/perl -X
-BEGIN {
- $| = 1;
- print "Content-type: text/html\n\n";
-
-}
 
 use Time::localtime;
 use Data::Dumper;
@@ -21,6 +16,8 @@ my $agent_port = "8000";
 
 # create a user/passwd cookie
 my $cookie = make_cookie( "agent", "InterProcessCommunication" );
+
+print "Content-type: text/html\n\n";
 
 # G R A B   K E Y W O R D S ---------------------------------------------------
 
