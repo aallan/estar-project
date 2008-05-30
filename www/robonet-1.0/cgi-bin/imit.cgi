@@ -1,6 +1,5 @@
 #!/software/perl-5.8.8/bin/perl -X
 BEGIN {
-  print "Content-type: text/plain\n\n--OUTPUT--\n";
   open STDERR, ">&STDOUT"; # errors go to browser now
 }
 
