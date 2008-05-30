@@ -171,7 +171,6 @@ print "</div>";
   
 print "</fieldset>";
    
-print "</div>";
 exit;
 
 # S U B - R O U T I N E S ----------------------------------------------------
