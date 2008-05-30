@@ -1,6 +1,8 @@
 #!/software/perl-5.8.8/bin/perl -X
 BEGIN {
-  open STDERR, ">&STDOUT"; # errors go to browser now
+ $| = 1;
+ print "Content-type: text/html\n\n";
+
 }
 
 use Time::localtime;
@@ -10,15 +12,6 @@ use SOAP::Lite;
 use Digest::MD5 'md5_hex';
 use URI;
 use HTTP::Cookies;
-
-{
- local ($oldbar) = $|;
- $cfh = select (STDOUT);
- $| = 1;
- print "Content-type: text/html\n\n";
- $| = $oldbar;
- select ($cfh);
-}
 
 my $event_host = "estar6.astro.ex.ac.uk";
 my $event_port = "9099";
