@@ -234,9 +234,83 @@
   print "Content-type: text/ascii\n\n"; 
   
   # Data
-  my $LT_data = "$LT{queued},$LT{returned},$LT{incomplete},$LT{expired},$LT{failed},$LT{noresponse}";
-  my $FTN_data = "$FTN{queued},$FTN{returned},$FTN{incomplete},$FTN{expired},$FTN{failed},$FTN{noresponse}";
-  my $FTS_data = "$FTS{queued},$FTS{returned},$FTS{incomplete},$FTS{expired},$FTS{failed},$FTS{noresponse}";
+  my $too_big = 1;
+  my $chart_queued = $LT{queued};
+  my $chart_returned = $LT{returned};
+  my $chart_incomplete = $LT{incomplete};
+  my $chart_expired = $LT{expired};
+  my $chart_failed = $LT{failed};
+  my $chart_no_reply = $LT{noresponse};
+
+  while ( $too_big ) {
+    if ( $chart_queued > 100.0 || $chart_returned > 100.0 ||
+         $chart_incomplete > 100.0 || $chart_expired > 100.0 ||
+         $chart_failed > 100.0 || $chart_no_reply > 100.0 ) {
+
+      $chart_queued = $chart_queued / 2;
+      $chart_returned = $chart_returned / 2;
+      $chart_incomplete = $chart_incomplete / 2;
+      $chart_expired = $chart_expried / 2;
+      $chart_failed = $chart_failed / 2;
+      $chart_no_reply = $chart_no_reply / 2;
+    } else {
+      $too_big = 0;
+    }
+  }
+
+  my $LT_data = "$chart_queued,$chart_returned,$chart_incomplete,$chart_expired,$chart_failed,$chart_no_reply";
+
+  $too_big = 1;
+  $chart_queued = $FTN{queued};
+  $chart_returned = $FTN{returned};
+  $chart_incomplete = $FTN{incomplete};
+  $chart_expired = $FTN{expired};
+  $chart_failed = $FTN{failed};
+  $chart_no_reply = $FTN{noresponse};
+
+  while ( $too_big ) {
+    if ( $chart_queued > 100.0 || $chart_returned > 100.0 ||
+         $chart_incomplete > 100.0 || $chart_expired > 100.0 ||
+         $chart_failed > 100.0 || $chart_no_reply > 100.0 ) {
+
+      $chart_queued = $chart_queued / 2;
+      $chart_returned = $chart_returned / 2;
+      $chart_incomplete = $chart_incomplete / 2;
+      $chart_expired = $chart_expried / 2;
+      $chart_failed = $chart_failed / 2;
+      $chart_no_reply = $chart_no_reply / 2;
+    } else {
+      $too_big = 0;
+    }
+  }
+
+  my $FTN_data = "$chart_queued,$chart_returned,$chart_incomplete,$chart_expired,$chart_failed,$chart_no_reply";
+
+  $too_big = 1;
+  $chart_queued = $FTS{queued};
+  $chart_returned = $FTS{returned};
+  $chart_incomplete = $FTS{incomplete};
+  $chart_expired = $FTS{expired};
+  $chart_failed = $FTS{failed};
+  $chart_no_reply = $FTS{noresponse};
+
+  while ( $too_big ) {
+    if ( $chart_queued > 100.0 || $chart_returned > 100.0 ||
+         $chart_incomplete > 100.0 || $chart_expired > 100.0 ||
+         $chart_failed > 100.0 || $chart_no_reply > 100.0 ) {
+
+      $chart_queued = $chart_queued / 2;
+      $chart_returned = $chart_returned / 2;
+      $chart_incomplete = $chart_incomplete / 2;
+      $chart_expired = $chart_expried / 2;
+      $chart_failed = $chart_failed / 2;
+      $chart_no_reply = $chart_no_reply / 2;
+    } else {
+      $too_big = 0;
+    }
+  }
+
+  my $FTS_data = "$chart_queued,$chart_returned,$chart_incomplete,$chart_expired,$chart_failed,$chart_no_reply";
  
   my $url_head = 'http://chart.apis.google.com/chart?cht=p&chco=0000ff&chd=t:';
   my $url_foot = '&chs=360x200&chl=Queued|Returned|Incomplete|Expired|Failed|No%20Response';
