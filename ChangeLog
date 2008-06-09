@@ -2,6 +2,8 @@
 
         * www/robonet-1.0/single.cgi, performance.cgi, graphs.cgi, status.cgi
 	  & scoring.cgi: Fixed to handle new LT node agent endpoint.
+	  
+	* bin/test_servers*: Moved LT endpoint.  
 
 2008-05-30 Alasdair Allan <aa@astro.ex.ac.uk>
 
