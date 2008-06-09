@@ -1,3 +1,8 @@
+2008-06-09 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * www/robonet-1.0/single.cgi, performance.cgi, graphs.cgi, status.cgi
+	  & scoring.cgi: Fixed to handle new LT node agent endpoint.
+
 2008-05-30 Alasdair Allan <aa@astro.ex.ac.uk>
 
         * www/robonet-1.0/*: Fixes for iPod stuff
