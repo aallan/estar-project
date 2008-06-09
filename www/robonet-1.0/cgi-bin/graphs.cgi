@@ -109,6 +109,7 @@
 	$node = "FTN Proxy" if $node eq "132.160.98.239:8080/axis/services/NodeAgent";
 	$node = "LT" if $node eq "estar3.astro.ex.ac.uk:8078";
 	$node = "LT Proxy" if $node eq "161.72.57.3:8080/axis/services/NodeAgent";
+	$node = "LT New" if $node eq "161.72.57.3:8080/org_estar_nodeagent/services/NodeAgent";
 	$node = "FTS" if $node eq "estar3.astro.ex.ac.uk:8079";  
 	$node = "FTS Proxy" if $node eq "150.203.153.202:8080/axis/services/NodeAgent";
         my $score;
@@ -165,7 +166,7 @@
 	
         # LT ---------------------------------------------------
        
-        if ($node eq "LT" || $node eq "LT Proxy" ) {
+        if ($node eq "LT" || $node eq "LT Proxy" || $node eq "LT New") {
            if( !( $expire == -1 || $expire == 0 ) && $status eq "update" ) { 
                $LT{expired} = $LT{expired} + 1;
            } elsif ( $status eq "running" ) {

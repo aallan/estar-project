@@ -194,6 +194,7 @@
 	$node = "FTN Proxy" if $node eq "132.160.98.239:8080/axis/services/NodeAgent";
 	$node = "LT" if $node eq "estar3.astro.ex.ac.uk:8078";
 	$node = "LT Proxy" if $node eq "161.72.57.3:8080/axis/services/NodeAgent";
+	$node = "LT New" if $node eq "161.72.57.3:8080/org_estar_nodeagent/services/NodeAgent";
 	$node = "FTS" if $node eq "estar3.astro.ex.ac.uk:8079";  
 	$node = "FTS Proxy" if $node eq "150.203.153.202:8080/axis/services/NodeAgent";
         my $score;
@@ -294,10 +295,16 @@
         push @nodes_list, "132.160.98.239:8080/axis/services/NodeAgent";   # FTN
         push @nodes_list, "150.203.153.202:8080/axis/services/NodeAgent";  # FTS
 	
+        my @nodes2_list;
 	push @nodes2_list, "estar3.astro.ex.ac.uk:8078";	# LT
 	push @nodes2_list, "estar3.astro.ex.ac.uk:8077";	# FTN
 	push @nodes2_list, "estar3.astro.ex.ac.uk:8079";	# FTS
 
+        my @nodes3_list;
+	push @nodes3_list, "161.72.57.3:8080/org_estar_nodeagent/services/NodeAgent";  # LT
+	push @nodes3_list, "132.160.98.239:8080/org_estar_nodeagent/services/NodeAgent";  # FTN
+	push @nodes3_list, "150.203.153.202:8080/org_estar_nodeagent/services/NodeAgent";  # FTS
+	
         my $score_reply; 
 	eval { $score_reply = $object->score_reply(); };
 	if ( $@ ) {
@@ -314,9 +321,21 @@
 	      $document = ${$score_reply}{$nodes2_list[$n]};
 	      eval { $this_score = $document->score(); };
               if ( $@ ) {
+	         $document = ${$score_reply}{$nodes3_list[$n]};
+	         eval { $this_score = $document->score(); };
+	         if( $@ ) {
 	         print "<font color='red'>";
 		 printf("%.5f", 0.0);
 		 print "</font>";
+		 } else {
+	            if ( $this_score == $score ) {  
+	                print "<font color='blue'>";    
+	            } else {
+	                print "<font color='grey'>";    
+                    }	    
+	            printf("%.5f", $this_score);
+	            print "</font>" if $this_score == $score;  	      
+	         }	  
 	      } else {
 	         if ( $this_score == $score ) {  
 	             print "<font color='blue'>";    
