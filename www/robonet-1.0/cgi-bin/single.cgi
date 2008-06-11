@@ -169,6 +169,8 @@
      $series_count = $obs->seriescount();
      $exposure = $obs->exposure();
      @time = $obs->timeconstraint();
+     $time[0] =~ s/UTC/\+0000/ if $time[0] =~ "UTC";
+     $time[1] =~ s/UTC/\+0000/ if $time[1] =~ "UTC";	  
      $type = $obs->targettype();
      $filter = $obs->filter();
      $priority = $obs->priority();
