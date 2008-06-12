@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.34 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.35 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -736,7 +736,7 @@ sub get_times{
  
    # modify start time
    unless( defined $opt{"start"} ) {
-      $start_time = "$year-$month-$day" . "T". $hour.":".$min.":".$sec . "UTC";
+      $start_time = "$year-$month-$day" . "T". $hour.":".$min.":".$sec . "+0000";
    } else {
       $start_time = $opt{"start"};
    } 
@@ -744,7 +744,7 @@ sub get_times{
    # modify end time
    unless( defined $opt{"start"} ) {
       $end_time = "$year-$month-$dayplusone" . 
-                  "T". $hourplustwelve.":".$min.":".$sec . "UTC"; 
+                  "T". $hourplustwelve.":".$min.":".$sec . "+0000"; 
    } else {
       $end_time = $opt{"end"};  
    }    
