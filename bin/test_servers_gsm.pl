@@ -24,6 +24,7 @@
   use File::Spec;
   use Time::localtime;
   use Data::Dumper;
+  use Net::Twitter;
   
   #
   # eSTAR modules
@@ -525,6 +526,9 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
   
 # N O T I F Y   P E O P L  E ------------------------------------------------
    
+  $log->print( "Twittering..." );
+  twitter( "eSTAR has successfully run a self-check" ); 
+   
   $log->print( "Checking for notifiable error states..." );
    
   if ($MACHINES{'estar-switch.astro.ex.ac.uk'} ne 'PING' ) {
@@ -534,7 +538,7 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
      eSTAR::GSM::send_sms( "447973793139", $text );  
 
   } else {
-  
+    
       # We can contact the switch, we should be able to contact the world
       if( $EVENT_BROKERS{eSTAR} ne 'UP' ) {
       
@@ -542,18 +546,21 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
          $log->debug( $text );
     	 eSTAR::GSM::send_sms( "447973793139", $text );
       }
+      twitter( "The VOEvent broker is $EVENT_BROKERS{eSTAR}" );
       
       if( $USER_AGENTS{GRB} ne 'UP' ) {
           my $text = "eSTAR Test: GRB user agent down at ".ctime();
           $log->debug( $text );	  
     	  eSTAR::GSM::send_sms( "447973793139", $text );
-      } 	       
+      }      
+      twitter( "The GRB programme is $USER_AGENTS{GRB}" );
 
       if( $USER_AGENTS{'EXO-PLANET'}  ne 'UP' ) {
           my $text = "eSTAR Test: EXO user agent down at ".ctime();
           $log->debug( $text );	  
     	  eSTAR::GSM::send_sms( "447973793139", $text );
       }
+      twitter( "The Exo-planet programme is $USER_AGENTS{EXO-PLANET}" );
     	    
       if( $NODE_AGENTS{UKIRT} ne 'UP' ) {
           my $text;
@@ -567,6 +574,7 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
           eSTAR::GSM::send_sms( "18087690579", $text ); # Brad Cavanagh
       
       }
+      twitter( "The UKIRT node agent is $NODE_AGENTS{UKIRT}" );
       
       if( $NODE_AGENTS{LT} ne 'UP' ) {
           my $text;
@@ -578,7 +586,7 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
           $log->debug( $text );	  
     	  eSTAR::GSM::send_sms( "447973793139", $text );  
       
-      }
+      }      
       if( $NODE_AGENTS{FTN} ne 'UP' ) {
           my $text;
 	  if( $NODE_AGENTS{FTN} eq 'DOWN' ) {
@@ -601,7 +609,30 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
     	  eSTAR::GSM::send_sms( "447973793139", $text );  
       
       } 
+      twitter( "The Liverpool Telescope (LT) node agent is $NODE_AGENTS{LT}"  );
+      twitter( "The Faulkes North (FTN) node agent is $NODE_AGENTS{FTN}"  );
+      twitter( "The Faulkes South (FTS_ node agent is $NODE_AGENTS{FTS}"  );
+      
   }
   
   $log->print("Done.");  
   exit;
+  
+  sub twitter {
+     my $twit_status = shift;
+     
+     $log->debug( "Building Net::Twitter object..." );
+     my $twit = new Net::Twitter( username => "eSTAR_Project", 
+  			  	  password => "twitter*User" );
+       
+     my $twit_result;
+     eval { $twit_result = $twit->update( $twit_status ); };
+     if( $@ || !defined $twit_result ) {
+       my $error = "$@";
+       $log->error( "Error: Problem updating twitter.com with new status" );
+       $log->error( "Error: $error" ) if defined $error;
+    } else {
+       $log->debug( "Updated status on twitter.com" ); 
+    }   
+    
+  }    
