@@ -47,6 +47,9 @@
   $log->header("Starting Server Test (with GSM): Version $VERSION");
   my $config = new eSTAR::Config(  );  
   
+   
+  $log->print( "Twittering start of self-check..." );
+  twitter( "eSTAR is starting a self check at ".ctime() );   
 
 # S T A T E   F I L E --------------------------------------------------------
 
@@ -526,9 +529,6 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
   
 # N O T I F Y   P E O P L  E ------------------------------------------------
    
-  $log->print( "Twittering..." );
-  twitter( "eSTAR has successfully run a self-check" ); 
-   
   $log->print( "Checking for notifiable error states..." );
    
   if ($MACHINES{'estar-switch.astro.ex.ac.uk'} ne 'PING' ) {
@@ -546,21 +546,21 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
          $log->debug( $text );
     	 eSTAR::GSM::send_sms( "447973793139", $text );
       }
-      twitter( "The VOEvent broker is $EVENT_BROKERS{eSTAR}" );
+      twitter( "The VOEvent broker in Exeter is $EVENT_BROKERS{eSTAR}." );
       
       if( $USER_AGENTS{GRB} ne 'UP' ) {
           my $text = "eSTAR Test: GRB user agent down at ".ctime();
           $log->debug( $text );	  
     	  eSTAR::GSM::send_sms( "447973793139", $text );
       }      
-      twitter( "The GRB programme is $USER_AGENTS{GRB}" );
+      twitter( "The GRB programme is $USER_AGENTS{GRB}." );
 
       if( $USER_AGENTS{'EXO-PLANET'}  ne 'UP' ) {
           my $text = "eSTAR Test: EXO user agent down at ".ctime();
           $log->debug( $text );	  
     	  eSTAR::GSM::send_sms( "447973793139", $text );
       }
-      twitter( "The Exo-planet programme is $USER_AGENTS{EXO-PLANET}" );
+      twitter( "The Exo-planet programme is $USER_AGENTS{'EXO-PLANET'}." );
     	    
       if( $NODE_AGENTS{UKIRT} ne 'UP' ) {
           my $text;
@@ -574,7 +574,6 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
           eSTAR::GSM::send_sms( "18087690579", $text ); # Brad Cavanagh
       
       }
-      twitter( "The UKIRT node agent is $NODE_AGENTS{UKIRT}" );
       
       if( $NODE_AGENTS{LT} ne 'UP' ) {
           my $text;
@@ -653,12 +652,12 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
                                   $mail_body, $cc );     	  
 	  
       
-      } 
-      twitter( "The Liverpool Telescope (LT) node agent is $NODE_AGENTS{LT}"  );
-      twitter( "The Faulkes North (FTN) node agent is $NODE_AGENTS{FTN}"  );
-      twitter( "The Faulkes South (FTS_ node agent is $NODE_AGENTS{FTS}"  );
-      
+      }       
   }
+
+ 
+  $log->print( "Twittering start of self-check..." );
+  twitter( "eSTAR has completed its self check at ".ctime() );   
   
   $log->print("Done.");  
   exit;
@@ -666,7 +665,7 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
   sub twitter {
      my $twit_status = shift;
      
-     $log->debug( "Building Net::Twitter object..." );
+     #$log->debug( "Building Net::Twitter object..." );
      my $twit = new Net::Twitter( username => "eSTAR_Project", 
   			  	  password => "twitter*User" );
        
