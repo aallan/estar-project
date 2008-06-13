@@ -12,9 +12,22 @@ use Getopt::Long;
 use Net::Domain qw(hostname hostdomain);
 use Socket;
 use Time::localtime;
-
+use LWP::UserAgent;
+  
 use lib $ENV{"ESTAR_PERL5LIB"};     
 use eSTAR::Util;
+use eSTAR::GSM;
+use eSTAR::UserAgent;
+
+# Create HTTP User Agent
+my $lwp = new LWP::UserAgent( timeout => 20 );
+
+# Configure User Agent                         
+$lwp->env_proxy();
+$lwp->agent( "eSTAR OGLE PROCMAIL (". hostname() . "." . hostdomain() .")");
+
+my $ua = new eSTAR::UserAgent(  );  
+$ua->set_ua( $lwp );
 
 # contact details for the event broker
 my $host = 'estar6.astro.ex.ac.uk';
@@ -35,6 +48,22 @@ foreach my $j ( 0 ... $#message ) {
    print "> ". $message[$j];
 }
 print "\n";
+
+# check for ANOMALY, HIGH MAGNIFICATION, BRIGHTENING or EXTREME EVENT
+foreach my $k ( 0 ... $#message ) {
+   if ( $message[$k] =~ "Subject" ) {
+      if ( $message[$k] =~ "ANOMALY" || $message[$k] =~ "HIGH MAGNIFICATION" || 
+           $message[$k] =~ "BRIGHTENING" || $message[$k] =~ "EXTREME EVENT" ||
+	   $message[$k] =~ "ANOMALOUS EVENT" ) {
+	   
+	   my $text = $message[$k];
+	   $text =~ s/Subject/eSTAR/;
+           eSTAR::GSM::send_sms( "447973793139", $text );  
+           eSTAR::GSM::send_sms( "447732320241", $text );  
+      }
+      exit;
+   }   
+}
 
 foreach my $i ( 0 ... $#message ) {
    if( $message[$i] =~ "OGLE Early Warning System has detected another microlensing" ) {

@@ -25,7 +25,7 @@ use eSTAR::Util;
 @ISA = qw/Exporter/;
 @EXPORT_OK = qw/ send_sms /;
 
-'$Revision: 1.2 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.3 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 
 sub send_sms {
@@ -49,7 +49,7 @@ sub send_sms {
       $ua->set_ua( $lwp );
    } 
   
-   $log->debug( "Sending SMS message to +$to" ); 
+   #$log->debug( "Sending SMS message to +$to" ); 
    
    my $response;
    eval {
