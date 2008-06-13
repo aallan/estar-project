@@ -590,7 +590,7 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
 	  my $to = 'cjm@astro.livjm.ac.uk';
 	  my $cc = 'nrc@astro.livjm.ac.uk';
   
-          eSTAR::Mail::send_mail( $to, "Chris Mottram"
+          eSTAR::Mail::send_mail( $to, "Chris Mottram",
                                   'estar@astro.ex.ac.uk',
                                   'eSTAR: LT Node Agent is DOWN',
                                   $mail_body, $cc );     
@@ -618,7 +618,7 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
 	  
 	  my $to = 'telops@lcogt.net';
 	  my $cc = undef;
-          eSTAR::Mail::send_mail( $to, "LCO Telescope Operations"
+          eSTAR::Mail::send_mail( $to, "LCO Telescope Operations",
                                   'estar@astro.ex.ac.uk',
                                   'eSTAR: FTN Node Agent is DOWN',
                                   $mail_body, $cc );     
@@ -646,7 +646,7 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
 	  
 	  my $to = 'telops@lcogt.net';
 	  my $cc = undef;
-          eSTAR::Mail::send_mail( $to, "LCO Telescope Operations"
+          eSTAR::Mail::send_mail( $to, "LCO Telescope Operations",
                                   'estar@astro.ex.ac.uk',
                                   'eSTAR: FTS Node Agent is DOWN',
                                   $mail_body, $cc );     	  
