@@ -656,7 +656,7 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
   }
 
  
-  $log->print( "Twittering start of self-check..." );
+  $log->print( "Twittering end of self-check..." );
   twitter( "eSTAR has completed its self check at ".ctime() );   
   
   $log->print("Done.");  
