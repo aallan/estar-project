@@ -13,6 +13,7 @@ use Net::Domain qw(hostname hostdomain);
 use Socket;
 use Time::localtime;
 use LWP::UserAgent;
+use Net::Twitter;
   
 use lib $ENV{"ESTAR_PERL5LIB"};     
 use eSTAR::Util;
@@ -37,7 +38,7 @@ my $method = 'handle_voevent';
 my $name = 'eSTAR';
 $urn = "urn:/" . $urn;
 
-print "ogle_parsemail.pl run at " . localtime() . "\n";
+print "ogle_parsemail.pl run at " . timestamp() . "\n";
 
 # generate a list of VOEvents from the mail message on <STDIN>
 my @events;
@@ -55,11 +56,19 @@ foreach my $k ( 0 ... $#message ) {
       if ( $message[$k] =~ "ANOMALY" || $message[$k] =~ "HIGH MAGNIFICATION" || 
            $message[$k] =~ "BRIGHTENING" || $message[$k] =~ "EXTREME EVENT" ||
 	   $message[$k] =~ "ANOMALOUS EVENT" ) {
+
+           print "This is an OGLE related email...\n";
 	   
 	   my $text = $message[$k];
 	   $text =~ s/Subject/eSTAR/;
+	   print "Sending text message to +447973793139\n";
            eSTAR::GSM::send_sms( "447973793139", $text );  
-           eSTAR::GSM::send_sms( "447732320241", $text );  
+	   print "Sending text message to +447732320241\n";
+           eSTAR::GSM::send_sms( "447732320241", $text ); 
+	   
+	   print "Twittering the message...\n";
+	   twitter( $text );
+	    
       }
       exit;
    }   
@@ -361,5 +370,21 @@ sub timestamp {
    return $timestamp;
 } 
   
-
+  
+sub twitter {
+   my $twit_status = shift;
+   
+   #$log->debug( "Building Net::Twitter object..." );
+   my $twit = new Net::Twitter( username => "eSTAR_Project", 
+				password => "twitter*User" );
+     
+   my $twit_result;
+   eval { $twit_result = $twit->update( $twit_status ); };
+   if( $@ || !defined $twit_result ) {
+     my $error = "$@";
+     print "Error: Problem updating twitter.com with new status";
+     print "Error: $error" if defined $error;
+  }   
+  
+}  
   
