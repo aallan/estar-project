@@ -584,7 +584,17 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
              $text = "eSTAR Test: Fault with LT node agent at ".ctime();
 	  }
           $log->debug( $text );	  
-    	  eSTAR::GSM::send_sms( "447973793139", $text );  
+    	  eSTAR::GSM::send_sms( "447973793139", $text ); 
+	  
+	  $log->debug( "Sending notification email...");
+          my $mail_body = "The LT node agent is down at ".ctime() . ".\n\n";
+	  my $to = 'cjm@astro.livjm.ac.uk';
+	  my $cc = 'nrc@astro.livjm.ac.uk';
+  
+          eSTAR::Mail::send_mail( $to, "Chris Mottram"
+                                  'estar@astro.ex.ac.uk',
+                                  'eSTAR: LT Node Agent is DOWN',
+                                  $mail_body, $cc );     
       
       }      
       if( $NODE_AGENTS{FTN} ne 'UP' ) {
@@ -596,6 +606,23 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
 	  }   
 	  $log->debug( $text );
     	  eSTAR::GSM::send_sms( "447973793139", $text );  
+
+	  $log->debug( "Sending notification email...");
+          my $mail_body = "The Faulkes North (FTN) node agent is down at ".ctime() . ".\n\n";
+	  "********** Restarting the agent ************\n". 
+          'Log in as root on the proxy (e.g. root@proxy.ogg.lco.gtn if you are an internal user) and type:'."\n\n".
+          '    /etc/rc.d/init.d/tomcat restart'."\n\n".
+          'The status of the node agents is polled hourly and can be checked at:'."\n\n".
+	  '    http://estar9.astro.ex.ac.uk/estar/cgi-bin/status.cgi'."\n".
+	  'or  http://www.estar.org.uk/network.status'."\n\n".
+          "********************************************\n";
+	  
+	  my $to = 'telops@lcogt.net';
+	  my $cc = undef;
+          eSTAR::Mail::send_mail( $to, "LCO Telescope Operations"
+                                  'estar@astro.ex.ac.uk',
+                                  'eSTAR: FTN Node Agent is DOWN',
+                                  $mail_body, $cc );     
       
       } 
       if( $NODE_AGENTS{FTS} ne 'UP' ) {
@@ -607,6 +634,24 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
 	  }
 	  $log->debug( $text );
     	  eSTAR::GSM::send_sms( "447973793139", $text );  
+	  
+	  $log->debug( "Sending notification email...");
+          my $mail_body = "The Faulkes South (FTS) node agent is down at ".ctime() . ".\n\n";
+	  "********** Restarting the agent ************\n". 
+          'Log in as root on the proxy (e.g. root@proxy.ogg.lco.gtn if you are an internal user) and type:'."\n\n".
+          '    /etc/rc.d/init.d/tomcat restart'."\n\n".
+          'The status of the node agents is polled hourly and can be checked at:'."\n\n".
+	  '    http://estar9.astro.ex.ac.uk/estar/cgi-bin/status.cgi'."\n".
+	  'or  http://www.estar.org.uk/network.status'."\n\n".
+          "********************************************\n";
+	  
+	  my $to = 'telops@lcogt.net';
+	  my $cc = undef;
+          eSTAR::Mail::send_mail( $to, "LCO Telescope Operations"
+                                  'estar@astro.ex.ac.uk',
+                                  'eSTAR: FTS Node Agent is DOWN',
+                                  $mail_body, $cc );     	  
+	  
       
       } 
       twitter( "The Liverpool Telescope (LT) node agent is $NODE_AGENTS{LT}"  );
