@@ -68,9 +68,9 @@ foreach my $k ( 0 ... $#message ) {
 	   
 	   print "Twittering the message...\n";
 	   twitter( $text );
-	    
+	   
+           exit; 
       }
-      exit;
    }   
 }
 
