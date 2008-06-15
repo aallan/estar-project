@@ -572,6 +572,16 @@ $config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent"
           $log->debug( $text );	  
     	  eSTAR::GSM::send_sms( "447973793139", $text ); # Alasdair Allan 
           eSTAR::GSM::send_sms( "18087690579", $text ); # Brad Cavanagh
+
+          $log->debug( "Sending notification email...");
+          my $mail_body = "$text\n\n";
+          my $to = 'estar_down@jach.hawaii.edu';
+          my $cc = undef;
+
+          eSTAR::Mail::send_mail( $to, "eSTAR Down Mailing List",
+                                  'estar@astro.ex.ac.uk',
+                                  'eSTAR: UKIRT Node Agent is DOWN',
+                                  $mail_body, $cc );
       
       }
       
