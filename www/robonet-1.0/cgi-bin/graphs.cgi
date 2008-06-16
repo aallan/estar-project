@@ -55,7 +55,7 @@
   my $month = localtime->mon() + 1;
   $month = "0$month" if $month < 10;
   $this_year =~ s/\?dir=$month-2008//;
-  print $this_year;
+  #print $this_year;
   
   my ( %LT, %FTN, %FTS );
   $LT{queued} = 0;
@@ -81,7 +81,7 @@
   $FTS{expired} = 0;
   $FTS{failed} = 0;
   $FTS{total} = 0;  
-  
+
   foreach my $i ( 0 ... $#files ) {
 #  for ( my $i = $#files; $i >= 0; $i = $i - 1 ) {
    
@@ -91,15 +91,15 @@
      next if $files[$i] =~ m/^\d{4}$/;
      next if $files[$i] =~ m/^\d{2}-\d{4}$/;
      
-     print "<tr>";
+     #print "<tr>";
      #print "<td><font color='grey'>$files[$i]</font></td>";
      my $object;
      eval { $object = thaw( $dir, $files[$i] ); };
      
      # QUERY OBSERVATION OBJECT ------------------------------------------
      if ( $@ ) {
-        print "<font color='red'>Error opening $files[$i]: $@</font>\n";
-     } else {
+        #print "<font color='red'>Error opening $files[$i]: $@</font>\n";
+    } else {
         #print "<td><font color='green'>OK</font></td>\n";
 	
 	my $status = $object->status();
@@ -407,8 +407,17 @@
      my $end_dt;
      eval { $end_dt = $iso8601->parse_datetime( $end ); };
      if ( $@ ) {
-         print "<br><font color='red'><strong>ERROR: $@, dates are '$start' and '$end'</strong></font><br>";
-         return -1;
+        if ( $@ =~ /The 'hour' parameter \("24"\)/ ) {
+           $end =~ s/T24/T00/;
+           eval { $end_dt = $iso8601->parse_datetime( $end ); };
+           if ( $@ ) {
+              print "Content-type: text/ascii\n\nERROR: $@, dates are '$start' and '$end'";
+              return -1;
+           }
+         } else {
+            print "Content-type: text/ascii\n\nERROR: $@, dates are '$start' and '$end'";
+            return -1;
+         }
      }	 
      $end_dt->add( days => 1 );
      
