@@ -120,7 +120,7 @@ my %observation;
 if ( $query{set_toop} == 1 ) {
    $observation{toop} = "toop";
 } else {
-   $observation{toop} = "normal";
+   $observation{toop} = "normal" unless $observation{toop} = "toop";
 }
    
 $observation{user} = "kdh1";
