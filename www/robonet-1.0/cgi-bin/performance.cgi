@@ -507,7 +507,7 @@
      my $end_dt;
      eval { $end_dt = $iso8601->parse_datetime( $end ); };
      if ( $@ ) {
-         print "<br><font color='red'><strong>ERROR: $@, dates are '$start' and '$end'</strong></font><br>";
+         #print "<br><font color='red'><strong>ERROR: $@, dates are '$start' and '$end'</strong></font><br>";
          return -1;
      }	 
      $end_dt->add( days => 1 );
