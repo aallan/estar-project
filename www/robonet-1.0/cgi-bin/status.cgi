@@ -422,13 +422,20 @@
 	print "<td>";
         my $expire;
 	my $parse_error = 0;
+        my $parse_warn = 0;
 	eval { $expire = expired( @time ); };
 	if( $@ ) {
 	   my $error = "$@";
-           print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Error] body=[$error]' >";
-           print " <b><font color='red'>ERROR</font></b>";
+           if( $error =~ /The 'hour' parameter \("24"\) to DateTime::new/ ) {
+               print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Warning] body=[<table><tr><td><b>$node_name</b> ($node)</td></tr><tr><td><b>Score:</b> $score</td></tr><tr><td>&nbsp;</td></tr><tr><td>Problem parsing the time stamps.</td></tr><tr><td>Looks like a midnight rollover error has occured</td></tr></table>]' >";
+               print " <b><font color='orange'>WARN</font></b>";
+               $parse_warn = 1;
+           } else {
+              print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Error] body=[$error]' >";
+              print " <b><font color='red'>ERROR</font></b>";
+              $parse_error = 1;
+           }
            print "</DIV>";
-	   $parse_error = 1;	
 	} else {
 	   if( $unknown == 1 ) {
               print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Error] body=[Returned observation not in database.<br>Possible timeout at Node Agent?]' >";
@@ -446,6 +453,7 @@
               print "<DIV TITLE='offsetx=[-50] cssbody=[popup_body] cssheader=[popup_header] header=[Warning] body=[<table><tr><td><b>$node_name</b> ($node)</td></tr><tr><td><b>Score:</b> $score</td></tr><tr><td>&nbsp;</td></tr><tr><td>The observation has expired.</td></tr><tr><td>But no final return document was received.</td></tr></table>]' >";
               print "<font color='orange'><b>WARN</b></font>";
               print "</DIV>";
+              $parse_warn = 1;
 	   } else {
               print "<DIV TITLE='offsetx=[-75] cssbody=[popup_body] cssheader=[popup_header] header=[Best Score] body=[<table><tr><td><b>$node_name</b></td></tr><tr><td><b>Score:</b> $score</td></tr></table>]' >";
               print "<font color='grey'>$node</font>";
@@ -470,12 +478,19 @@
               print "<font color='orange'>No response</font>";
            }
 
+        } elsif ( $parse_warn == 1 ) {
+           my @updates = $object->update();
+           my $num = scalar @updates;
+           print "<font color='orange'>Warning";
+           print " ($num)" if $num > 0;
+           print "</font>";	
+
         } elsif ( $parse_error == 1 ) {
            my @updates = $object->update();
            my $num = scalar @updates;
            print "<font color='red'>Error";
            print " ($num)" if $num > 0;
-           print "</font>";	
+           print "</font>";
 	   
 	} elsif ( $status eq "failed" ) {
            print "<font color='red'>Failed</font>";
