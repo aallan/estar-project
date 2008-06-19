@@ -147,3 +147,13 @@ unless( defined $query{min} && defined $query{max} ) {
    print "</div>";
 }
 exit;
+
+
+sub error {
+   my $string = shift;
+   
+   print "Content-type: text/html\n\n";
+   print "<div title='Error' class='panel'>";
+   print "<p>" . $string . "</p>";
+   print "</div>";
+}  
