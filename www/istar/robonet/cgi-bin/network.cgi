@@ -33,7 +33,7 @@ foreach my $i ( 0 ... $#pairs ) {
 
 # G R A B    I N F O    F I L E -------------------------
 
-my $lwp = new LWP::UserAgent( timeout => 15 );
+my $lwp = new LWP::UserAgent( timeout => 45 );
 $lwp->env_proxy();
 $lwp->agent( "eSTAR iPhone Robonet Script /$VERSION (". hostname() . ")" );
 my $request = new HTTP::Request(GET => $single);
