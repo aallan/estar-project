@@ -118,7 +118,8 @@ if ( $query{item} eq "LT" ) {
    print '</div>';
    print '<div class="row">';
    print '  <label>Location</label>';
-   print '  <p>Lat. 28.7624, Long. -17.8792</p>';
+#   print '  <p>Lat. 28.7624, Long. -17.8792</p>';
+   print '  <p>Lat. 28.8, Long. -17.9</p>';
    print '</div>';
 
    my $string;
@@ -177,7 +178,7 @@ if ( $query{item} eq "FTS" ) {
    print '</div>';
    print '<div class="row">';
    print '  <label>Location</label>';
-   print '  <p>Lat. -31.27, Long. 149.28</p>';
+   print '  <p>Lat. -31.3, Long. 149.3</p>';
    print '</div>';
 
    my $string;
@@ -296,12 +297,12 @@ if ( $query{item} eq "UKIRT" ) {
    print '</div>';
    print '<div class="row">';
    print '  <label>Location</label>';
-   print '  <p>Lat. 19.71, Long. -155.09</p>';
+   print '  <p>Lat. 19.7, Long. -155.1</p>';
    print '</div>';
 
    my $string;
    foreach my $key ( sort keys %machine ) {
-      if ( $key eq "jach.hawaii.edu" ) {
+      if ( $key =~ "jach.hawaii.edu" ) {
          $string = '<div class="row">';
          $string = $string . "<label>Proxy</label>";
          if ( $machine{$key} eq "PING" ) {
@@ -334,7 +335,7 @@ if ( $query{item} eq "UKIRT" ) {
 
 if ( $query{item} eq "TALONS" ) {
 
-   print '<div title="RAPTOR/TALONS" class="panel">';
+   print '<div title="TALONS" class="panel">';
    print ' <div>';
    my $url = "http://www.estar.org.uk/jpg/test_card.jpg";
    {
