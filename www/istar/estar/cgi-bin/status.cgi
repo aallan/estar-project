@@ -273,48 +273,109 @@ if ( $query{item} eq "FTN" ) {
 }
 
 if ( $query{item} eq "UKIRT" ) {
-   print 'UKIRT<br>Mauna Kea, HI, U.S.A.<br><font size="-2">Lat. 19.71, Long. -155.09</font><br>'."\n";
-   print '<img width="160" height="120" src="http://www.jach.hawaii.edu/UKIRT/irtcam.jpg" alt="UKIRT web camera"><br>'."\n";
-   my $string = "<table width='100%'>";
+   print '<div title="UKIRT" class="panel">';
+   print ' <div>';
+   my $url = "http://www.jach.hawaii.edu/UKIRT/irtcam.jpg";
+   {
+     my ( $type, $length, $modified, $expires, $server ) = head($url);
+     unless ( defined $length ) {
+       $url = "http://www.estar.org.uk/jpg/test_card.jpg" unless defined $length;
+     }
+   }
+   print '  <img src="'.$url.'" />';
+   print ' </div>';
+   print ' <h2>Details</h2>';
+   print '<fieldset>';
+   print '<div class="row">';
+   print '  <label>Telescope</label>';
+   print '  <p>UKIRT</p>';
+   print '</div>';
+   print '<div class="row">';
+   print '  <label>Location</label>';
+   print '  <p>Mauna Kea, HI, U.S.A.</p>';
+   print '</div>';
+   print '<div class="row">';
+   print '  <label>Location</label>';
+   print '  <p>Lat. 19.71, Long. -155.09</p>';
+   print '</div>';
+
+   my $string;
    foreach my $key ( sort keys %machine ) {
-      if ( $key =~ "jach.hawaii.edu" ) {
-         $string = $string . "<tr><td>$key</td><td align='right'><font color='";
+      if ( $key eq "jach.hawaii.edu" ) {
+         $string = '<div class="row">';
+         $string = $string . "<label>Proxy</label>";
          if ( $machine{$key} eq "PING" ) {
-            $string = $string . "lightgreen'>OK</font></td></tr>\n";
+            $string = $string . '<p id="green">OK</p>';
          } else {
-            $string = $string . "red'>NO</font></td></tr>\n";
+            $string = $string . '<p id="red">NO</p>';
          }
+         $string = $string . '</div>';
+         print $string;
       }
-   } 
-   print $string ."\n"; 
+   }
+   
+   print '<div class="row">';
    my $ukirt_status = ${$node{UKIRT}}[2];
    my $ukirt_status_string = "";
    if( $ukirt_status eq "UP" ) {
-      $ukirt_status_string = "<font color='lightgreen'>UP</font>";
+      $ukirt_status_string = '<p id="green">UP</p>';
    } elsif ( $ukirt_status eq "DOWN" ) {
-      $ukirt_status_string = "<font color='red'>DOWN</font>";
+      $ukirt_status_string = '<p id="red">DOWN</p>';
    } else {
-      $ukirt_status_string = "<font color='orange'>$ukirt_status</font>";
+      $ukirt_status_string = '<p id="orange">'.$ukirt_status.'</p>';
    }
-   print "<tr><td>Node Agent&nbsp;&nbsp;</td><td align='right'>$ukirt_status_string</td></tr>"; 
-   print "</table>";
+   print "<label>Agent</label>";
+   print $ukirt_status_string; 
+   print "</div>";
+   print "</fieldset>";
+   print "</div>";   
+    
 }
 
 if ( $query{item} eq "TALONS" ) {
-   print 'RAPTOR/TALONS<br>Los Alamos, NM, U.S.A.<br><font size="-2">Lat. 35.9, Long. -106.3</font><br>'."\n";
-   print '<img width="160" height="120" src="http://wwc.instacam.com/InstacamImg/lsalm/02032005/020320051200_l.jpg" alt="Los Alamos web camera"><br>'."\n";
+
+   print '<div title="RAPTOR/TALONS" class="panel">';
+   print ' <div>';
+   my $url = "http://www.estar.org.uk/jpg/test_card.jpg";
+   {
+     my ( $type, $length, $modified, $expires, $server ) = head($url);
+     unless ( defined $length ) {
+       $url = "http://www.estar.org.uk/jpg/test_card.jpg" unless defined $length;
+     }
+   }
+   print '  <img src="'.$url.'" />';
+   print ' </div>';
+   print ' <h2>Details</h2>';
+   print '<fieldset>';
+   print '<div class="row">';
+   print '  <label>Telescope</label>';
+   print '  <p>RAPTOR/TALONS</p>';
+   print '</div>';
+   print '<div class="row">';
+   print '  <label>Location</label>';
+   print '  <p>Los Alamos, NM, U.S.A.</p>';
+   print '</div>';
+   print '<div class="row">';
+   print '  <label>Location</label>';
+   print '  <p>Lat. 35.9, Long. -106.3</p>';
+   print '</div>';
+   
+   print '<div class="row">';
    my $raptor_status = ${$node{RAPTOR}}[2];
    my $raptor_status_string = "";
    if( $raptor_status eq "UP" ) {
-      $raptor_status_string = "<font color='lightgreen'>UP</font>";
+      $raptor_status_string = '<p id="green">UP</p>';
    } elsif ( $raptor_status eq "DOWN" ) {
-      $raptor_status_string = "<font color='red'>DOWN</font>";
+      $raptor_status_string = '<p id="red">DOWN</p>';
    } else {
-      $raptor_status_string = "<font color='orange'>$raptor_status</font>";
+      $raptor_status_string = '<p id="orange">'.$raptor_status.'</p>';
    }
-   print "<table width='100%'>";
-   print "<tr><td>Gateway&nbsp;&nbsp;</td><td align='right'>$raptor_status_string</td></tr>";
-   print "</table>";
+   print "<label>Gateway</label>";
+   print $raptor_status_string; 
+   print "</div>";
+   print "</fieldset>";
+   print "</div>";   
+   
 }
 
 exit;
