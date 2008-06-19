@@ -64,6 +64,17 @@ li img {
   color: inherit;
 }
 
+.panel > p {
+    position: relative;
+    margin: 0 0 20px 0;
+    padding: 10px;
+    background: #FFFFFF;
+    -webkit-border-radius: 10px;
+    border: 1px solid #999999;
+    text-align: justify;
+    font-size: 16px;
+}
+
 select {
   box-sizing: border-box;
   -webkit-box-sizing: border-box;
