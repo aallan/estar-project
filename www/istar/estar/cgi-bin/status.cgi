@@ -157,13 +157,14 @@ if ( $query{item} eq "LT" ) {
 if ( $query{item} eq "FTS" ) {
    print '<div title="FTS" class="panel">';
    print ' <div>';
-   my $url = "http://lcogt.net/files/faulkes-telescope.com/status/fts-webcam.jpg";
-   {
-     my ( $type, $length, $modified, $expires, $server ) = head($url);
-     unless ( defined $length ) {
-       $url = "http://www.estar.org.uk/jpg/test_card.jpg" unless defined $length;
-     }
-   }
+#   my $url = "http://lcogt.net/files/faulkes-telescope.com/status/fts-webcam.jpg";
+    my $url = "http://150.203.153.202:8272/axis-cgi/mjpg/video.cgi?camera=&resolution=320x240&1214237293230";
+   #{
+   #  my ( $type, $length, $modified, $expires, $server ) = head($url);
+   #  unless ( defined $length ) {
+   #    $url = "http://www.estar.org.uk/jpg/test_card.jpg" unless defined $length;
+   #  }
+   #}
    print '  <img src="'.$url.'" />';
    print ' </div>';
    print ' <h2>Details</h2>';
