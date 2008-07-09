@@ -298,6 +298,7 @@ sub handle_voevent {
    $voevent =~ s/&lt;/</g;
    $voevent =~ s/&amp;gt;/>/g;
    $voevent =~ s/&gt;/>/g;
+   $voevent =~ s/&#xd;//g;
 
    my $message;
    eval { $message = new Astro::VO::VOEvent( XML => $voevent ) };
@@ -348,6 +349,18 @@ sub handle_voevent {
    
    unless ( defined $file ) {
       $log->warn( "Warning: The message has not been serialised..." );
+
+      my $object = new XML::Document::Transport();
+      my $ack_response = $object->build(
+         Role      => 'ack',
+	 Origin    => 'ivo://uk.org.estar/estar.broker#',
+	 TimeStamp => eSTAR::Broker::Util::time_iso(),
+	 Meta => [{ Name => 'ERROR',UCD => 'meta', Value => "Not Serialised" },]
+	 );
+
+      $log->warn( "Returning 'ERROR' message" );
+      return SOAP::Data->name('return', $ack_response )->type('base64');
+
    }
        
    

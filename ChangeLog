@@ -1,3 +1,7 @@
+2008-07-09 Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* eSTAR/Broker/Handler.pm: Bug fix for GCN broken messages
+	
 2008-06-13 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* bin/ogle_parsemail.pl: Added SMS alerts for ANOMALY events on OGLE 
