@@ -40,7 +40,7 @@ the messages, and forward them to connected clients.
 
 =head1 REVISION
 
-$Id: event_broker.pl,v 1.113 2008/04/06 21:57:25 aa Exp $
+$Id: event_broker.pl,v 1.114 2008/07/10 13:17:05 aa Exp $
 
 =head1 AUTHORS
 
@@ -57,7 +57,7 @@ Copyright (C) 2005 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.113 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.114 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -584,7 +584,15 @@ my $incoming_callback = sub {
         $log->debug( "Ignoring <Transport> IAMALIVE message from $host");
         $log->debug( "Done.");
         return ESTAR__OK;
-     } 
+     } elsif ( $transport->role() eq "utility" ) {
+        $log->error( "Error: Recieved <Transport> UTILITY message from $host...");
+        $log->error( "Error: Recieved at " . ctime() );
+        $log->error( $transport );
+        $log->error( "Error: Returning ESTAR__FAULT" );
+        return ESTAR__FAULT;     
+     
+     
+     }
   }    
 
   # It really, really should be a VOEvent message
@@ -1911,6 +1919,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: event_broker.pl,v $
+# Revision 1.114  2008/07/10 13:17:05  aa
+# rogue role='utiltiy' messages
+#
 # Revision 1.113  2008/04/06 21:57:25  aa
 # Added tinyurl.com encoding
 #

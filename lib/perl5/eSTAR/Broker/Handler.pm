@@ -300,6 +300,17 @@ sub handle_voevent {
    $voevent =~ s/&gt;/>/g;
    $voevent =~ s/&#xd;//g;
 
+  if ( $voevent =~ /Transport/ ) {
+     my $error = "You sent me a transport document when I was expecting a voevent";
+     $log->error( "Error: This looks like a Transport document..." );
+     $log->error( "Transport Document:\n$voevent" );
+     $log->error( "Returned SOAP FAULT message" );
+     die SOAP::Fault
+       ->faultcode("Client.DataError")
+       ->faultstring("Client Error: $error\nDocument:\n$voevent");
+   }           
+     
+     
    my $message;
    eval { $message = new Astro::VO::VOEvent( XML => $voevent ) };
    
@@ -349,6 +360,7 @@ sub handle_voevent {
    
    unless ( defined $file ) {
       $log->warn( "Warning: The message has not been serialised..." );
+      $log->warn( "Message:\n$voevent\n" );
 
       my $object = new XML::Document::Transport();
       my $ack_response = $object->build(
