@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -354,8 +354,11 @@ sub event_process {
       
                 # get $name
                 my $name;
+                $name = "GCN" if $id =~ "nasa.gsfc.gcn";
                 $name = "eSTAR" if $id =~ "uk.org.estar";
+                $name = "Angstrom" if $id =~ "uk.ac.man";
                 $name = "Caltech" if $id =~ "nvo.caltech";
+		$name = "Caltech" if $id =~ "moa.massey";
                 $name = "NOAO" if $id =~ "noao.edu";
                 $name = "RAPTOR" if $id =~ "talons.lanl";
                 $name = "PLANET" if $id =~ "planet";
