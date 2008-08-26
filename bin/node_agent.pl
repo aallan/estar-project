@@ -23,7 +23,7 @@
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: node_agent.pl,v 1.17 2006/05/14 17:27:34 aa Exp $
+#     $Id: node_agent.pl,v 1.18 2008/08/26 16:55:57 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2003 University of Exeter. All Rights Reserved.
@@ -69,7 +69,7 @@ have a duplicate copy of the current user database.
 
 =head1 REVISION
 
-$Id: node_agent.pl,v 1.17 2006/05/14 17:27:34 aa Exp $
+$Id: node_agent.pl,v 1.18 2008/08/26 16:55:57 aa Exp $
 
 =head1 AUTHORS
 
@@ -86,7 +86,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.17 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.18 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -372,12 +372,12 @@ if ( $config->get_state("na.unique_process") == 1 ) {
    if ( defined $ers_port ) {
       $config->set_option( "ers.port", $ers_port );
    } else {
-      $config->set_option( "ers.port", 8081 );
+      $config->set_option( "ers.port", 4321 );
    }   
    if ( defined $ers_host ) {
       $config->set_option( "ers.host", $ers_host );
    } else {
-      $config->set_option( "ers.host", "161.72.57.3" );
+      $config->set_option( "ers.host", "blaze.dc3.com" );
    }    
    
    #$config->set_option( "ers.host", "161.72.57.3" );
@@ -549,7 +549,10 @@ my $tcp_callback = sub {
    # change the hostname and port in the rtml
    $log->debug( "Replacing original <IntelligentAgent> XML tag" ) ;
 
+   # OOOOPPPPPSSSS! Both are possible, quick hack. Remove before flight
    my $current = "<IntelligentAgent host=\"$host\" port=\"$port\">";
+   $rtml =~ s/$current/$original/;
+   $current = "<IntelligentAgent port=\"$port\" host=\"$host\">";
    $rtml =~ s/$current/$original/;
    
    #print "CURRENT: $current\n";
@@ -577,6 +580,7 @@ my $tcp_callback = sub {
    # end point
    my $endpoint = "http://" . $host . ":" . $port;
    my $uri = new URI($endpoint);
+   $log->print( "Remote endpoint is $endpoint" );
    
    # create a user/passwd cookie
    my $cookie = eSTAR::Util::make_cookie( $config->get_option( "ua.user" ), 
@@ -787,6 +791,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: node_agent.pl,v $
+# Revision 1.18  2008/08/26 16:55:57  aa
+# Fixes for DC3
+#
 # Revision 1.17  2006/05/14 17:27:34  aa
 # Modifications to work on OSX, removed killfam. Fixed gcn_server.pl so that it fires on BAT positions
 #

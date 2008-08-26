@@ -1,4 +1,8 @@
-2008-07-21 Alasdair Allan <aa@astro.ex.ac.uk>
+2008-08-26 Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* bin/node_agent.pl & eSTAR/Util.pm: Fixes for DC3
+	
+2008-08-21 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* demo/google_sky/event_client.pl: Fixes for $name
 	

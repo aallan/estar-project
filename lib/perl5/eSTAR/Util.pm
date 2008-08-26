@@ -40,7 +40,7 @@ use eSTAR::Error qw /:try/;
           fudge_message fudge_user fudge_project
 	  time_at_LT time_at_FTN time_at_FTS time_in_UK time_UTC/;
 
-'$Revision: 1.22 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.23 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # This is the code that is used to generate cookies based on the user
 # name and password. It is NOT cryptographically sound, it is just a
@@ -354,42 +354,57 @@ sub fudge_message {
         my ( $host_index, $port_index, $start_index, $last_index );
         
         # grab hostname
+        #if ( $message[$i] =~ 'host="' ) {
+        #   $host_index = index( $message[$i], q/host=/ );
+        #   $host = substr( $message[$i], $host_index, 
+        #                                 length($message[$i])-$host_index );
+        #   $start_index = index( $host, q/"/ );         
+        #   $port_index = index( $host, q/port=/ );
+        #   $host = substr( $host, $start_index+1, $port_index-$start_index-1 );
+        #   $last_index = rindex( $host, q/"/ );         
+        #   $host = substr( $host, 0, $last_index );
+	#} else {
+        #   $host_index = index( $message[$i], q/host=/ );
+        #   $host = substr( $message[$i], $host_index, 
+        #                                 length($message[$i])-$host_index );
+        #   $start_index = index( $host, q/=/ );         
+        #   $port_index = index( $host, q/ / );
+        #   $host = substr( $host, $start_index+1, $port_index-$start_index );
+        #   $last_index = rindex( $host, q/"/ );         
+        #   $host = substr( $host, 0, $last_index );        
+        #}  
         if ( $message[$i] =~ 'host="' ) {
-           $host_index = index( $message[$i], q/host=/ );
-           $host = substr( $message[$i], $host_index, 
-                                         length($message[$i])-$host_index );
-           $start_index = index( $host, q/"/ );         
-           $port_index = index( $host, q/port=/ );
-           $host = substr( $host, $start_index+1, $port_index-$start_index-1 );
-           $last_index = rindex( $host, q/"/ );         
-           $host = substr( $host, 0, $last_index );
-        } else {
-           $host_index = index( $message[$i], q/host=/ );
-           $host = substr( $message[$i], $host_index, 
-                                         length($message[$i])-$host_index );
-           $start_index = index( $host, q/=/ );         
-           $port_index = index( $host, q/ / );
-           $host = substr( $host, $start_index+1, $port_index-$start_index );
-           $last_index = rindex( $host, q/"/ );         
-           $host = substr( $host, 0, $last_index );        
-        }  
+	   $message[$i] =~ m/host="(\d+\.\d+\.\d+\.\d+)"/;
+	   $host = $1;
+	} else {
+	   $message[$i] =~ m/host=(\d+\.\d+\.\d+\.\d+)/;
+	   $host = $1;
+        }
         
         # grab port number
+        #if ( $message[$i] =~ 'port="' ) {
+        #   $port_index = index( $message[$i], q/port=/ );
+        #   $last_index = rindex( $message[$i], q/"/ );
+        #   $port = substr( $message[$i], $port_index, $last_index-$port_index );
+        #   $start_index = index( $port, q/"/ );
+        #   $last_index = rindex( $message[$i], q/"/ );
+        #   $port = substr( $port, $start_index+1, $last_index-$start_index-1 );
+        #} else {
+        #   $port_index = index( $message[$i], q/port=/ );
+        #   $last_index = rindex( $message[$i], '>' );
+        #   $port = substr( $message[$i], $port_index, $last_index-$port_index );
+        #   $start_index = index( $port, q/=/ );
+        #   $last_index = index( $port, '>' );
+        #   $port = substr( $port, $start_index+1, $last_index-$start_index-1 );
+        #}
         if ( $message[$i] =~ 'port="' ) {
-           $port_index = index( $message[$i], q/port=/ );
-           $last_index = rindex( $message[$i], q/"/ );
-           $port = substr( $message[$i], $port_index, $last_index-$port_index );
-           $start_index = index( $port, q/"/ );
-           $last_index = rindex( $message[$i], q/"/ );
-           $port = substr( $port, $start_index+1, $last_index-$start_index-1 );
-        } else {
-           $port_index = index( $message[$i], q/port=/ );
-           $last_index = rindex( $message[$i], '>' );
-           $port = substr( $message[$i], $port_index, $last_index-$port_index );
-           $start_index = index( $port, q/=/ );
-           $last_index = index( $port, '>' );
-           $port = substr( $port, $start_index+1, $last_index-$start_index-1 );
-        }  
+	   $message[$i] =~ m/port="(\d+)"/;
+	   $port = $1;
+	} else {
+	   $message[$i] =~ m/port=(\d+)/;
+	   $port = $1;
+        }	
+	  
         $log->debug("Reply address: " . $host . ":" . $port);
 
         # grab unique identity
@@ -508,7 +523,7 @@ sub time_at_FTS {
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.22 2008/03/17 17:23:31 aa Exp $
+$Id: Util.pm,v 1.23 2008/08/26 16:55:57 aa Exp $
 
 =head1 AUTHORS
 
