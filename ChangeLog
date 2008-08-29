@@ -1,3 +1,7 @@
+2008-08-29 Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* Changes for the new FTS node agent endpoint
+
 2008-08-26 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* bin/node_agent.pl & eSTAR/Util.pm: Fixes for DC3

@@ -11,7 +11,7 @@ use threads::shared;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.35 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.36 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -622,6 +622,15 @@ sub event_process {
                            Origin    => $transport->origin(),
 		   	   Response  => 'ivo:/uk.org.estar/estar.exo#ack',
                            TimeStamp => eSTAR::Broker::Util::time_iso() );
+	         } elsif ( $transport->role() eq "utility" ) {
+		 
+		    # Why am I getting these, confused?
+		    $response = $object->build(
+                           Role      => 'error',
+		   	   Origin    => 'ivo:/uk.org.estar/estar.exo#',
+                           TimeStamp => eSTAR::Broker::Util::time_iso(),
+			   Meta => [{ Name => 'error',UCD => 'meta.error', 
+			       Value => "You sent me a utility packet?" },] );
 	         }
 	      
 	      }   
