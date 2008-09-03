@@ -152,9 +152,9 @@
         "<a href='./status.cgi?dir=03-2008'>Mar 2008</a> | ". 
         "<a href='./status.cgi?dir=04-2008'>Apr 2008</a> | ". 
         "<a href='./status.cgi?dir=05-2008'>May 2008</a> | ". 
-        "<a href='./status.cgi'>Jun 2008</a> | ". 
-        "Jul 2008 | ". 
-        "Aug 2008 | ". 
+        "<a href='./status.cgi?dir=06-2008'>Jun 2008</a> | ". 
+        "<a href='./status.cgi?dir=07-2008'>Jul 2008</a> | ". 
+        "<a href='./status.cgi'>Aug 2008</a> | ". 
         "Sep 2008 | ". 
         "Oct 2008 | ". 
         "Nov 2008 | ". 
@@ -217,6 +217,7 @@
 	$node = "LT New" if $node eq "161.72.57.3:8080/org_estar_nodeagent/services/NodeAgent";	
 	$node = "FTS" if $node eq "estar3.astro.ex.ac.uk:8079";  
 	$node = "FTS Proxy" if $node eq "150.203.153.202:8080/axis/services/NodeAgent";
+	$node = "FTS New" if $node eq "150.203.153.202:8080/org_estar_nodeagent/services/NodeAgent";
         $node = "UNKNOWN" unless defined $node;
 	
 	my $score;

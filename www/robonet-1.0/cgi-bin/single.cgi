@@ -105,6 +105,7 @@
   $node = "LT" if $node eq "161.72.57.3:8080/org_estar_nodeagent/services/NodeAgent";
   $node = "FTS" if $node eq "estar3.astro.ex.ac.uk:8079";  
   $node = "FTS" if $node eq "150.203.153.202:8080/axis/services/NodeAgent";
+  $node = "FTS" if $node eq "150.203.153.202:8080/org_estar_nodeagent/services/NodeAgent";
   my $score;
   eval { $score = $score_reply->score() if defined $score_reply; };
   if ( $@ ) {
