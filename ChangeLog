@@ -4,6 +4,8 @@
 	
 	* bin/user_agent.pl: Changed endpoint for FTN
 	
+	* bin/test_servers.pl: Changed endpoint for FTN
+
 	* bin/test_servers_gsm.pl: Changed endpoint for FTN
 	
 2008-08-29 Alasdair Allan <aa@astro.ex.ac.uk>

@@ -407,7 +407,7 @@ sub new_observation {
    $observation{'followup'} = 0 unless defined $observation{'followup'};
    
    # check we have a passband, assume V-band if undefined
-   $observation{'passband'} = 'V' unless defined $observation{'passband'};
+   $observation{'passband'} = 'R' unless defined $observation{'passband'};
    
    # if series count is defined and we have no time constraint then we should
    # generate some, if the interval or tolerance for the series isn't defined
@@ -417,32 +417,11 @@ sub new_observation {
       unless ( defined $observation{'starttime'} && 
                defined $observation{'endtime' } ) {
       
-         my $year = 1900 + localtime->year();
-         my $month = localtime->mon() + 1;
-         my $day = localtime->mday();
-         my $dayplusone = $day + 1;
-         if ( $day >= 28 && $day <= 31 ) {
-            if ( $month == 2 ) {
-               $month = $month + 1;
-               $day = 1;
-            } elsif ( $month == 9 || $month == 4 || 
-                      $month == 6 || $month == 11 ) {
-               if( $day == 30 ) {
-                  $month = $month + 1;
-                  $day = 1;
-               }
-            } elsif ( $day == 31 ) {
-               $month = $month + 1;
-               $day = 1;
-            }  
-         }
-         $month = "0$month" if $month < 10;
-         $day = "0$day" if $day < 10;            
-         $dayplusone = "0$dayplusone" if $dayplusone < 10;   
+         my ($starttime, $endtime) = eSTAR::Util::get_times( 24 );
                
          # mid-afternoon local till 24 hours later 
-         $observation{'starttime'} = "$year-$month-$day" . "T12:00:00";
-         $observation{'endtime'} = "$year-$month-$dayplusone" . "T12:00:00";
+         $observation{'starttime'} = $starttime;
+         $observation{'endtime'} = $endtime;
                
       }         
    
@@ -1093,46 +1072,13 @@ sub new_observation {
 	    eSTAR::GSM::send_sms( "447714250373", $text ); # Andrew Levan
 	 }
          
-         # SERIALISE OBSERVATION TO STATE DIRECTORY 
-         # ========================================
-         $log->debug( "Serialising \$observation_object to " .
-                       $config->get_state_dir() );
-         my $file = File::Spec->catfile(
-                       $config->get_state_dir(), $id);
-        
-         # write the observation object to disk. Lets use a DBM backend next
-         # time shall we?
-         unless ( open ( SERIAL, "+>$file" )) {
-           # check for errors, theoretically if we can't temporarily write to
-           # the state directory this is no great loss as we'll create a fresh
-           # observation object in the handle_rtml() routine if the unique id
-           # of the object isn't known (i.e. it doesn't exist as a file in
-           # the state directory
-           $log->warn( "Warning: Unable to serialise observation_object");
-           $log->warn( "Warning: Can not write to "  .
-                            $config->get_state_dir());             
-         
-         } else {
-           unless ( flock( SERIAL, LOCK_EX ) ) {
-              $log->warn("Warning: unable to acquire exclusive lock: $!");
-              $log->warn("Warning: Possible data loss...");
-           } else {
-              $log->debug("Acquiring exclusive lock...");
-           } 
-      
-           # serialise the object
-           my $dumper = new Data::Dumper([$observation_object],
-                                         [qw($observation_object)]  );
-           print SERIAL $dumper->Dump( );
-           close(SERIAL);  
-           $log->debug("Freeing flock()...");
-        
-         }
-         
+         eSTAR::Util::freeze( $id, $observation_object );
+                 
       } else {
          $log->debug( $best_node . " rejected the observation" );
          my $error = "Error: Observation rejected";
-         
+         $observation_object->status( 'reject' );
+         eSTAR::Util::freeze( $id, $observation_object );         
       
          if( $config->get_option("user.notify") == 1 ) {
       
@@ -1929,41 +1875,8 @@ sub all_telescopes {
          $log->debug( "$dn_host:$dn_port confirmed start of observation" );
          $observation_object->status( 'running' );
          
-         # SERIALISE OBSERVATION TO STATE DIRECTORY 
-         # ========================================
-         $log->debug( "Serialising \$observation_object to " .
-                       $config->get_state_dir() );
-         my $file = File::Spec->catfile(
-                       $config->get_state_dir(), $id);
-        
-         # write the observation object to disk. Lets use a DBM backend next
-         # time shall we?
-         unless ( open ( SERIAL, "+>$file" )) {
-           # check for errors, theoretically if we can't temporarily write to
-           # the state directory this is no great loss as we'll create a fresh
-           # observation object in the handle_rtml() routine if the unique id
-           # of the object isn't known (i.e. it doesn't exist as a file in
-           # the state directory
-           $log->warn( "Warning: Unable to serialise observation_object");
-           $log->warn( "Warning: Can not write to "  .
-                            $config->get_state_dir());             
-         
-         } else {
-           unless ( flock( SERIAL, LOCK_EX ) ) {
-              $log->warn("Warning: unable to acquire exclusive lock: $!");
-              $log->warn("Warning: Possible data loss...");
-           } else {
-              $log->debug("Acquiring exclusive lock...");
-           } 
-      
-           # serialise the object
-           my $dumper = new Data::Dumper([$observation_object],
-                                         [qw($observation_object)]  );
-           print SERIAL $dumper->Dump( );
-           close(SERIAL);  
-           $log->debug("Freeing flock()...");
-        
-         }
+         eSTAR::Util::freeze( $id, $observation_object );
+
          
       } else {
          $log->debug( "$dn_host:$dn_port rejected the observation" );
@@ -2175,7 +2088,8 @@ sub handle_rtml {
       if ( $status == ESTAR__ERROR ) {
          $log->warn( 
             "Warning: Problem re-serialising the \$observation_object");
-      }   
+      }  
+       
    # ABORT MESSAGE
    # =============
    } elsif ( $type eq "abort" ) { 

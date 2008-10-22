@@ -100,11 +100,11 @@
     
   # grab result 
   my $result;
-  eval { $result = $soap->$method( $arg1, $arg2 ); };
+  #eval { $result = $soap->$method( $arg1, $arg2 ); };
   
   # Needed for the Java NodeAgent
-  #$arg1 =~ s/</&lt;/g;
-  #eval { $result = $soap->$method( SOAP::Data->name('query', $arg1 )->type('xsd:string') ); };
+  $arg1 =~ s/</&lt;/g;
+  eval { $result = $soap->$method( SOAP::Data->name('query', $arg1 )->type('xsd:string') ); };
   if ( $@ ) {
      print "Error: $@";
      exit;   
