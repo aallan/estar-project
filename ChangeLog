@@ -8,6 +8,11 @@
 
 	* bin/test_servers_gsm.pl: Changed endpoint for FTN
 	
+	* bin/soap_client.pl, eSTAR/Util.pm, eSTAR/UA/Handler.pm: Check-in
+	  and check-out problems. Reverted to previous version in timeline
+	  
+	* eSTAR/UA/Util.pm: New file. Bad check-in, but left for reference.
+	
 2008-08-29 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* Changes for the new FTS node agent endpoint

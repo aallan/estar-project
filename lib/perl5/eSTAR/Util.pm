@@ -37,10 +37,10 @@ use eSTAR::Error qw /:try/;
 @ISA = qw/Exporter/;
 @EXPORT_OK = 
       qw/ make_cookie make_id freeze thaw reheat melt query_simbad 
-          fudge_message fudge_user fudge_project get_times
+          fudge_message fudge_user fudge_project
 	  time_at_LT time_at_FTN time_at_FTS time_in_UK time_UTC/;
 
-'$Revision: 1.24 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.25 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 # This is the code that is used to generate cookies based on the user
 # name and password. It is NOT cryptographically sound, it is just a
@@ -480,19 +480,6 @@ sub fudge_project {
    return $new_rtml;
 }
 
-
-sub get_times{
-   my $hours = shift;
-   
-   my $end_time = DateTime->now()->add( hours => $hours );
-   my $start_time = DateTime->now();
-
-   $start_time = $start_time->ymd('-') . "T" . $start_time->hms(':') . "+0000";
-   $end_time = $end_time->ymd('-') . "T" . $end_time->hms(':') . "+0000";
-
-   return ($start_time, $end_time);
-}
-
 sub time_in_UK {
   my $dt = DateTime->now();
   $dt->set_time_zone( 'Europe/London' );
@@ -536,7 +523,7 @@ sub time_at_FTS {
 
 =head1 REVISION
 
-$Id: Util.pm,v 1.24 2008/10/22 17:34:32 aa Exp $
+$Id: Util.pm,v 1.25 2008/10/22 17:42:25 aa Exp $
 
 =head1 AUTHORS
 
