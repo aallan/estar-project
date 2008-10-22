@@ -2,6 +2,8 @@
 
 	* www/istar/cone/*: Added iphone cone search stubs for monitor project
 	
+	* bin/user_agent.pl: Changed endpoint for FTN
+	
 2008-08-29 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* Changes for the new FTS node agent endpoint

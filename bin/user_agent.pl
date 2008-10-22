@@ -23,7 +23,7 @@
 
 #  Revision:
 
-#     $Id: user_agent.pl,v 1.36 2008/08/29 12:15:27 aa Exp $
+#     $Id: user_agent.pl,v 1.37 2008/10/22 17:30:09 aa Exp $
 
 
 #  Copyright:
@@ -67,7 +67,7 @@ itself.
 
 =head1 REVISION
 
-$Id: user_agent.pl,v 1.36 2008/08/29 12:15:27 aa Exp $
+$Id: user_agent.pl,v 1.37 2008/10/22 17:30:09 aa Exp $
 
 =head1 AUTHORS
 
@@ -84,7 +84,7 @@ Copyright (C) 2003 University of Exeter. All Rights Reserved.
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.36 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.37 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -427,14 +427,15 @@ $ua->set_ua( $lwp );
 #$config->set_option( "nodes.FTNproxy", "estar3.astro.ex.ac.uk:8077" );
 #$config->set_option( "nodes.FTSproxy", "estar3.astro.ex.ac.uk:8079" );
 
-# Current (24/04/07) nodes
+# Current (22/10/08) nodes
 if ( $config->get_state("ua.unique_process") == 1 ) {
    #$config->set_option( "nodes.LT", "161.72.57.3:8080/axis/services/NodeAgent" );
-   $config->set_option( "nodes.LT", "161.72.57.3:8080/org_estar_nodeagent/services/NodeAgent");
    #$config->set_option( "nodes.FTS", "150.203.153.202:8080/axis/services/NodeAgent" );
-   $config->set_option( "nodes.FTS", "150.203.153.202:8080/org_estar_nodeagent/services/NodeAgent" );
-   $config->set_option( "nodes.FTN", "132.160.98.239:8080/axis/services/NodeAgent" );
+   #$config->set_option( "nodes.FTN", "132.160.98.239:8080/axis/services/NodeAgent" );
    #$config->set_option( "nodes.UKIRT", "estar.ukirt.jach.hawaii.edu:8080" );
+   $config->set_option( "nodes.LT", "161.72.57.3:8080/org_estar_nodeagent/services/NodeAgent");
+   $config->set_option( "nodes.FTS", "150.203.153.202:8080/org_estar_nodeagent/services/NodeAgent" );
+   $config->set_option( "nodes.FTN", "132.160.98.239:8080/org_estar_nodeagent/services/NodeAgent" );
 }
 
 # Virtual nodes
@@ -620,6 +621,9 @@ sub kill_agent {
 # T I M E   A T   T H E   B A R  -------------------------------------------
 
 # $Log: user_agent.pl,v $
+# Revision 1.37  2008/10/22 17:30:09  aa
+# Changed endpoint of FTN
+#
 # Revision 1.36  2008/08/29 12:15:27  aa
 # changes for FTS node agent
 #
