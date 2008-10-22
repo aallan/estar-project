@@ -13,6 +13,8 @@
 	  
 	* eSTAR/UA/Util.pm: New file. Bad check-in, but left for reference.
 	
+	* www/robonet-1.0/cgi-bin/*.cgi: Added new FTN endpoint
+	
 2008-08-29 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* Changes for the new FTS node agent endpoint
