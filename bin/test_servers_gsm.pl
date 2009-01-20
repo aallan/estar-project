@@ -558,9 +558,16 @@ $ua->set_ua( $lwp );
       twitter( "The GRB programme is $USER_AGENTS{GRB}." );
 
       if( $USER_AGENTS{'EXO-PLANET'}  ne 'UP' ) {
-          my $text = "eSTAR Test: EXO user agent down at ".ctime();
+          my $month = localtime->mon() + 1;
+	  my $text;
+	  if( $month >= 10 && $month < 3 ) {
+             $text = "eSTAR Test: EXO user agent SUSPENDED at ".ctime();
+	     $USER_AGENTS{'EXO-PLANET'} = "SUSPENDED";
+          } else {
+             my $text = "eSTAR Test: EXO user agent down at ".ctime();
+    	     eSTAR::GSM::send_sms( "447973793139", $text );
+	  }   
           $log->debug( $text );	  
-    	  eSTAR::GSM::send_sms( "447973793139", $text );
       }
       twitter( "The Exo-planet programme is $USER_AGENTS{'EXO-PLANET'}." );
     	    

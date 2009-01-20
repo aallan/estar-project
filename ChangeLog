@@ -1,3 +1,8 @@
+2009-01-20 Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* bin/test_servers_gsm.pl: Changed EXO programme poll to return
+	  a SUSPENDED status during off-season rather than DOWN.
+	  
 2008-10-22 Alasdair Allan <aa@astro.ex.ac.uk>
 
 	* www/istar/cone/*: Added iphone cone search stubs for monitor project
