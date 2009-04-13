@@ -20,7 +20,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: ogle_fetch_v2.pl,v 1.5 2008/05/27 20:45:33 aa Exp $
+$Id: ogle_fetch_v2.pl,v 1.6 2009/04/13 10:13:30 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -37,7 +37,7 @@ use vars qw / $VERSION /;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -66,6 +66,7 @@ use eSTAR::Mail;
 use eSTAR::Process;
 use eSTAR::Config;
 use eSTAR::UserAgent;
+use eSTAR::GSM;
 
 # general modules
 #use SOAP::Lite +trace => all;  
@@ -499,6 +500,13 @@ my @page = split "\n", ${$reply}{_content};
 my @data;
 foreach my $j ( 0 ... $#page ) {
    
+   if ( $page[$j] =~ /<!DOCTYPE html/ ) {
+      $log->error( "Error: Unable to connect to PLOP" );
+      my $text = "eSTAR: Unable to connect to PLOP";
+      eSTAR::GSM::send_sms( "447973793139", $text );
+      last;
+   }
+      
    my @columns = split " ", $page[$j];
    foreach my $k ( 0 ... $#columns ) {
       $columns[$k] =~ s/^\s+//g;

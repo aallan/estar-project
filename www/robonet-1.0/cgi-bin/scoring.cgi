@@ -135,18 +135,30 @@
         "<a href='./status.cgi?dir=10-2007'>Oct 2007</a> | ". 
         "<a href='./status.cgi?dir=11-2007'>Nov 2007</a> | ". 
         "Dec 2007</p>";
- my $this_year = "<p>Jan 2008 | ". 
+  print "<p>Jan 2008 | ". 
         "<a href='./status.cgi?dir=02-2008'>Feb 2008</a> | ". 
         "<a href='./status.cgi?dir=03-2008'>Mar 2008</a> | ". 
         "<a href='./status.cgi?dir=04-2008'>Apr 2008</a> | ". 
         "<a href='./status.cgi?dir=05-2008'>May 2008</a> | ". 
-        "<a href='./status.cgi'>Jun 2008</a> | ".
-        "Jul 2008 | ". 
-        "Aug 2008 | ". 
-        "Sep 2008 | ". 
-        "Oct 2008 | ". 
-        "Nov 2008 | ". 
-        "Dec 2008</p></font>";
+        "<a href='./status.cgi?dir=06-2008'>Jun 2008</a> | ". 
+        "<a href='./status.cgi?dir=07-2008'>Jul 2008</a> | ". 
+        "<a href='./status.cgi?dir=08-2008'>Aug 2008</a> | ". 
+        "<a href='./status.cgi?dir=09-2008'>Sep 2008</a> | ". 
+        "<a href='./status.cgi?dir=10-2008'>Oct 2008</a> | ". 
+        "<a href='./status.cgi?dir=11-2008'>Nov 2008</a> | ". 
+        "Dec 2008</p>";	
+ my $this_year = "<p>Jan 2009 | ". 
+        "Feb 2009 | ". 
+        "Mar 2009 | ". 
+        "<a href='./status.cgi'>Apr 2009</a> | ". 
+        "May 2009 | ". 
+        "Jun 2009 | ".
+        "Jul 2009 | ". 
+        "Aug 2009 | ". 
+        "Sep 2009 | ". 
+        "Oct 2009 | ". 
+        "Nov 2009 | ". 
+        "Dec 2009</p></font>";
 
 
   my $month = localtime->mon() + 1;
