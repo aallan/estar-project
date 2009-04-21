@@ -20,7 +20,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: ogle_fetch_v2.pl,v 1.6 2009/04/13 10:13:30 aa Exp $
+$Id: ogle_fetch_v2.pl,v 1.7 2009/04/21 15:12:09 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -37,7 +37,7 @@ use vars qw / $VERSION /;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -619,7 +619,7 @@ foreach my $n ( 0 ... $#data ) {
                           dec           => ${$data[$n]}{Dec},
                           target        => ${$data[$n]}{ID},
                           exposure      => ${$data[$n]}{Time},
-                          passband      => "R",
+                          passband      => "I",
                           type          => "ExoPlanetMonitor",
                           followup      => 0,
                           groupcount    => ${$data[$n]}{GroupCount},
@@ -641,7 +641,7 @@ foreach my $n ( 0 ... $#data ) {
                           dec           => ${$data[$n]}{Dec},
                           target        => ${$data[$n]}{ID},
                           exposure      => ${$data[$n]}{Time},
-                          passband      => "R",
+                          passband      => "I",
                           type          => "ExoPlanetMonitor",
                           followup      => 0,
                           groupcount    => ${$data[$n]}{GroupCount},
@@ -665,7 +665,7 @@ foreach my $n ( 0 ... $#data ) {
                           dec           => ${$data[$n]}{Dec},
                           target        => ${$data[$n]}{ID},
                           exposure      => ${$data[$n]}{Time},
-                          passband      => "R",
+                          passband      => "I",
                           type          => "ExoPlanetMonitor",
                           followup      => 0,
                           starttime     => $start_time,
@@ -682,7 +682,7 @@ foreach my $n ( 0 ... $#data ) {
                           dec           => ${$data[$n]}{Dec},
                           target        => ${$data[$n]}{ID},
                           exposure      => ${$data[$n]}{Time},
-                          passband      => "R",
+                          passband      => "I",
                           type          => "ExoPlanetMonitor",
                           followup      => 0,
                           starttime     => $start_time,
