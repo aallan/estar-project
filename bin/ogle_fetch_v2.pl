@@ -20,7 +20,7 @@ Alasdair Allan (aa@astro.ex.ac.uk)
 
 =head1 REVISION
 
-$Id: ogle_fetch_v2.pl,v 1.7 2009/04/21 15:12:09 aa Exp $
+$Id: ogle_fetch_v2.pl,v 1.8 2009/04/21 15:52:32 aa Exp $
 
 =head1 COPYRIGHT
 
@@ -37,7 +37,7 @@ use vars qw / $VERSION /;
 #  Version number - do this before anything else so that we dont have to 
 #  wait for all the modules to load - very quick
 BEGIN {
-  $VERSION = sprintf "%d.%d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/;
+  $VERSION = sprintf "%d.%d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/;
  
   #  Check for version number request - do this before real options handling
   foreach (@ARGV) {
@@ -627,7 +627,7 @@ foreach my $n ( 0 ... $#data ) {
                           endtime       => $end_time,
                           seriescount   => ${$data[$n]}{SeriesCount},
                           project       => $config->get_option("of.project"),
-			  priority      => 0 );
+			  priority      => 1 );
           
    } elsif ( defined ${$data[$n]}{GroupCount} &&
              ${$data[$n]}{SeriesCount} > 1 ) {
@@ -651,7 +651,7 @@ foreach my $n ( 0 ... $#data ) {
                           interval      => $interval,
                           tolerance     => $tolerance,
                           project       => $config->get_option("of.project"),
-			  priority      => 0 );
+			  priority      => 1 );
                     
           
                           
@@ -671,7 +671,7 @@ foreach my $n ( 0 ... $#data ) {
                           starttime     => $start_time,
                           endtime       => $end_time,
                           project       => $config->get_option("of.project"),
-			  priority      => 0 );
+			  priority      => 1 );
    } else {
    
       $log->print("We have a series of " . ${$data[$n]}{SeriesCount} . 
@@ -691,7 +691,7 @@ foreach my $n ( 0 ... $#data ) {
                           interval      => $interval,
                           tolerance     => $tolerance,
                           project       => $config->get_option("of.project"),
-			  priority      => 0 );   
+			  priority      => 1 );   
    
    }
    
