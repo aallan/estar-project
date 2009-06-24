@@ -540,7 +540,7 @@ foreach my $j ( 0 ... $#page ) {
       # build the hash entry
       my $ref = {ID => $key, 
       		 SeriesCount => 1,
-      		 GroupCount => $series, 
+      		 GroupCount => $group, 
       		 Time => $time, 
 		 RA => $ra, 
 		 Dec => $dec, 
