@@ -309,8 +309,8 @@ print '      <tr align="left" valign="top">'."\n";
          
 print '         <td>'."\n";
 print '             <b>Type :</b> <select NAME="type">'."\n";
+print '                <option VALUE="normal">  Normal observation'."\n";
 print '  	       <option VALUE="toop">	Target of opportunity '."\n";
-print '  	       <option VALUE="normal">	Normal observation'."\n";
 print '	    </select>  '."\n";
 print '	     <br>'."\n";
 print '             <i><small>Type of observation requested</small></i>'."\n";
@@ -385,8 +385,8 @@ print '         </td>'."\n";
 
 print '         <td>'."\n";
 print '             <b>Type :</b> <select NAME="filter">'."\n";
+print '                <option VALUE="I">       I'."\n";
 print '  	       <option VALUE="R">	R '."\n";
-print '  	       <option VALUE="I">	I'."\n";
 print '  	       <option VALUE="V">	V'."\n";
 print '  	       <option VALUE="B">	B'."\n";
 print '	    </select>  '."\n";

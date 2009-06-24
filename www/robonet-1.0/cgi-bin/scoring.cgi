@@ -150,9 +150,9 @@
  my $this_year = "<p>Jan 2009 | ". 
         "Feb 2009 | ". 
         "Mar 2009 | ". 
-        "<a href='./status.cgi'>Apr 2009</a> | ". 
-        "May 2009 | ". 
-        "Jun 2009 | ".
+        "<a href='./status.cgi?dir=04-2009'>Apr 2009</a> | ". 
+        "<a href='./status.cgi?dir=05-2009'>May 2009</a> | ". 
+        "<a href='./status.cgi'>Jun 2009</a> | ".
         "Jul 2009 | ". 
         "Aug 2009 | ". 
         "Sep 2009 | ". 
@@ -163,7 +163,7 @@
 
   my $month = localtime->mon() + 1;
   $month = "0$month" if $month < 10;
-  $this_year =~ s/\?dir=$month-2008//;
+  $this_year =~ s/\?dir=$month-2009//;
   print $this_year;
   
   print "<font size='-2'><table border='0' width='95%'>\n"; 
