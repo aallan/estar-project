@@ -3,3 +3,4 @@ blib
 Makefile
 *.bck
 META.yml
+.DS_Store
