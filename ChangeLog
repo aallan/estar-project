@@ -3,7 +3,8 @@
 	* www/robonet-1.0/*: Changes for 2009 season.
 	
 	* bin/ogle_fetch_v2.pl: Added status field, changed priority based
-	  on it and changed max exposure time form 120 to 300 seconds.
+	  on it and changed max exposure time form 120 to 300 seconds. Swapped
+	  from SeriesCount to GroupCount on PLOP submission.
 	  
 2009-04-13 Alasdair Allan <aa@astro.ex.ac.uk>
 

@@ -519,8 +519,8 @@ foreach my $j ( 0 ... $#page ) {
    # get exposure time
    my $time = $columns[4];
 
-   # get number of exposures in series
-   my $series = $columns[3];
+   # get number of exposures in group
+   my $group = $columns[3];
       
    # get RA & Dec
    my $ra = $columns[1];
@@ -539,7 +539,8 @@ foreach my $j ( 0 ... $#page ) {
    
       # build the hash entry
       my $ref = {ID => $key, 
-      		 SeriesCount => $series, 
+      		 SeriesCount => 1,
+      		 GroupCount => $series, 
       		 Time => $time, 
 		 RA => $ra, 
 		 Dec => $dec, 
