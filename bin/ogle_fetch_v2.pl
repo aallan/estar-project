@@ -532,10 +532,10 @@ foreach my $j ( 0 ... $#page ) {
    # get status
    my $status = $columns[6];
 
-   $log->debug("Line ($j) $key: $series x $time seconds exposures at $ra, $dec ($status)");
+   $log->debug("Line ($j) $key: $group x $time seconds exposures at $ra, $dec ($status)");
 
    # don't bother to add it to the hash if we aren't going to observe it
-   unless ( $series == 0 ) {
+   unless ( $group == 0 ) {
    
       # build the hash entry
       my $ref = {ID => $key, 
