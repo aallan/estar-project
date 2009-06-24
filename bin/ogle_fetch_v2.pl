@@ -529,13 +529,21 @@ foreach my $j ( 0 ... $#page ) {
    my $dec = $columns[2];
    $dec =~ s/:/ /g;
 
-   $log->debug("Line ($j) $key: $series x $time seconds exposures at $ra, $dec");
+   # get status
+   my $status = $columns[6];
+
+   $log->debug("Line ($j) $key: $series x $time seconds exposures at $ra, $dec ($status)");
 
    # don't bother to add it to the hash if we aren't going to observe it
    unless ( $series == 0 ) {
    
       # build the hash entry
-      my $ref = {ID => $key, SeriesCount => $series, Time => $time, RA => $ra, Dec => $dec };
+      my $ref = {ID => $key, 
+      		 SeriesCount => $series, 
+      		 Time => $time, 
+		 RA => $ra, 
+		 Dec => $dec, 
+		 Status => $status };
       push @data, $ref;
    }   
 
@@ -545,7 +553,7 @@ foreach my $j ( 0 ... $#page ) {
 # F I X   G R O U P C O U N T S --------------------------------------------
 
 # we have all the necessary data to schedule the observations now, however
-# it's likely that some of the exposure times are greater then 120 seconds
+# it's likely that some of the exposure times are greater then 300 seconds
 # which is the maximum *right now* for the FTN. So we munge the exposure 
 # times so this isn't going to generate multiruns we didn't know about.
 
@@ -553,7 +561,7 @@ foreach my $j ( 0 ... $#page ) {
 foreach my $n ( 0 ... $#data ) {
 
    $count = 0;
-   while ( ${$data[$n]}{Time} > 120 ) {
+   while ( ${$data[$n]}{Time} > 300 ) {
       ${$data[$n]}{Time} = ${$data[$n]}{Time}/2.0;
       $count = $count + 1;
    }
@@ -606,6 +614,15 @@ foreach my $n ( 0 ... $#data ) {
    #${$data[$n]}{ID} = $id;
    #$log->warn("Warning: Fixing object name to ${$data[$n]}{ID}" );
     
+   my $priority = 1; 
+   if ( ${$data[$n]}{Status} eq "anomaly" ) {
+      $log->print("Status is (${$data[$n]}{Status}), observation priority = 0" );
+      $priority = 0;
+   } else {
+      $log->print("Status is (${$data[$n]}{Status}), observation priority = 1" );
+      $priority = 1;
+   }
+    
    my %observation;
    if ( defined ${$data[$n]}{GroupCount} &&
         ${$data[$n]}{SeriesCount} == 1 ) {
@@ -627,7 +644,7 @@ foreach my $n ( 0 ... $#data ) {
                           endtime       => $end_time,
                           seriescount   => ${$data[$n]}{SeriesCount},
                           project       => $config->get_option("of.project"),
-			  priority      => 1 );
+			  priority      => $priority );
           
    } elsif ( defined ${$data[$n]}{GroupCount} &&
              ${$data[$n]}{SeriesCount} > 1 ) {
@@ -651,7 +668,7 @@ foreach my $n ( 0 ... $#data ) {
                           interval      => $interval,
                           tolerance     => $tolerance,
                           project       => $config->get_option("of.project"),
-			  priority      => 1 );
+			  priority      => $priority );
                     
           
                           
@@ -671,7 +688,7 @@ foreach my $n ( 0 ... $#data ) {
                           starttime     => $start_time,
                           endtime       => $end_time,
                           project       => $config->get_option("of.project"),
-			  priority      => 1 );
+			  priority      => $priority );
    } else {
    
       $log->print("We have a series of " . ${$data[$n]}{SeriesCount} . 
@@ -691,7 +708,7 @@ foreach my $n ( 0 ... $#data ) {
                           interval      => $interval,
                           tolerance     => $tolerance,
                           project       => $config->get_option("of.project"),
-			  priority      => 1 );   
+			  priority      => $priority );   
    
    }
    

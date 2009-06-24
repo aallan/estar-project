@@ -1,6 +1,13 @@
+2009-06-24  Alasdair Allan <aa@astro.ex.ac.uk>
+
+	* www/robonet-1.0/*: Changes for 2009 season.
+	
+	* bin/ogle_fetch_v2.pl: Added status field, changed priority based
+	  on it and changed max exposure time form 120 to 300 seconds.
+	  
 2009-04-13 Alasdair Allan <aa@astro.ex.ac.uk>
 
-	* Chnages for 2009 season. Lots.
+	* Changes for 2009 season. Lots.
 	
 2009-01-20 Alasdair Allan <aa@astro.ex.ac.uk>
 
